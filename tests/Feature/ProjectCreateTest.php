@@ -69,6 +69,31 @@ class ProjectCreateTest extends TestCase
             ->assertJsonValidationErrors(['name', 'customer_name']);
     }
 
+    public function test_project_can_be_relinked_to_another_customer(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::factory()->create();
+        $andereKlant = Customer::factory()->create(['name' => 'Familie Omgekoppeld']);
+
+        $this->actingAs($user)->patch('/projecten/'.$project->id, [
+            'customer_id' => $andereKlant->id,
+        ])->assertRedirect(route('projects.show', $project));
+
+        $this->assertDatabaseHas('projects', [
+            'id' => $project->id,
+            'customer_id' => $andereKlant->id,
+        ]);
+        $this->assertDatabaseHas('timeline_events', [
+            'customer_id' => $andereKlant->id,
+            'type' => 'projectupdate',
+        ]);
+        $this->assertDatabaseHas('audit_logs', [
+            'auditable_type' => 'project',
+            'auditable_id' => $project->id,
+            'action' => 'bijgewerkt',
+        ]);
+    }
+
     public function test_vakman_cannot_create_projects(): void
     {
         $vakman = User::factory()->vakman()->create();

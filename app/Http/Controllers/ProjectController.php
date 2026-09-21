@@ -131,6 +131,7 @@ class ProjectController extends Controller
 
         return view('projects.edit', [
             'project' => $project,
+            'customers' => Customer::orderBy('name')->get(['id', 'name', 'city']),
             'leaders' => User::whereIn('role', [UserRole::Admin, UserRole::Projectleider, UserRole::Sales])
                 ->orderBy('name')
                 ->get(['id', 'name']),
@@ -148,6 +149,16 @@ class ProjectController extends Controller
             $project->update(collect($validated)
                 ->except(['deposit_received', 'craftsmen'])
                 ->all());
+
+            if ($project->wasChanged('customer_id')) {
+                $project->unsetRelation('customer');
+                $project->customer->recordEvent(
+                    TimelineEventType::Projectupdate,
+                    'Project "'.$project->name.'" aan dit dossier gekoppeld',
+                    null,
+                    $project,
+                );
+            }
 
             if (array_key_exists('deposit_received', $validated)) {
                 $project->forceFill([

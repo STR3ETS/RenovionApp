@@ -9,6 +9,13 @@
         <section class="rounded-2xl border border-gray-200 bg-white p-5">
             <h2 class="mb-4 text-sm font-bold text-navy-900">Project</h2>
             <div class="grid gap-4 sm:grid-cols-2">
+                <x-field label="Klant" name="customer_id" class="sm:col-span-2">
+                    <select name="customer_id" id="customer_id" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+                        @foreach ($customers as $customer)
+                            <option value="{{ $customer->id }}" @selected(old('customer_id', $project->customer_id) == $customer->id)>{{ $customer->name }} ({{ $customer->city ?? '—' }})</option>
+                        @endforeach
+                    </select>
+                </x-field>
                 <x-field label="Naam" name="name" class="sm:col-span-2">
                     <input type="text" name="name" id="name" value="{{ old('name', $project->name) }}" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
                 </x-field>
