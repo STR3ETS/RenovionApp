@@ -61,7 +61,7 @@ Voice/tekst → intent → gestructureerde JSON-action → validatie → permiss
 
 ## Tijdelijk uitgeschakelde modules
 
-**Offertes en Automations staan nu uit** (keuze van Raphael, sept 2026: de app smal houden zodat Imad en Raphael overzicht houden). Toggle via `.env`: `MODULE_QUOTES` / `MODULE_AUTOMATIONS` (config `renovion.modules.*`). Uit betekent: geen routes, geen menu-items, geen offerte-signalen in dashboard/Aandacht/leadcards, geen automations-schedule. Weer aanzetten = env op `true` + `php artisan config:clear`. In tests staan beide altijd aan (phpunit.xml).
+**Offertes en Automations staan nu uit** (keuze van Raphael, sept 2026: de app smal houden zodat Imad en Raphael overzicht houden). **De code-default is uit**; aanzetten kan alleen expliciet via `.env`: `MODULE_QUOTES=true` / `MODULE_AUTOMATIONS=true` (config `renovion.modules.*`) + caches verversen (`php artisan config:clear` en, indien gecachet, `config:cache && route:cache`). Uit betekent: geen routes, geen menu-items, geen offerte-signalen in dashboard/Aandacht/leadcards, geen automations-schedule. In tests staan beide altijd aan (phpunit.xml).
 
 ## Automations & Aandacht (fase 2 — gebouwd)
 

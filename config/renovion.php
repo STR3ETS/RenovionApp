@@ -40,8 +40,8 @@ return [
     */
 
     'modules' => [
-        'quotes' => (bool) env('MODULE_QUOTES', true),
-        'automations' => (bool) env('MODULE_AUTOMATIONS', true),
+        'quotes' => (bool) env('MODULE_QUOTES', false),
+        'automations' => (bool) env('MODULE_AUTOMATIONS', false),
     ],
 
 ];

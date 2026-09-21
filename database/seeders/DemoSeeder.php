@@ -26,8 +26,8 @@ class DemoSeeder extends Seeder
 {
     public function run(): void
     {
-        if (app()->environment('production')) {
-            $this->command->error('Demo-seeder is geblokkeerd op productie.');
+        if (! app()->environment(['local', 'testing'])) {
+            $this->command->error('Demo-seeder draait alleen op local/testing-omgevingen.');
 
             return;
         }
