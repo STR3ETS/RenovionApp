@@ -1,0 +1,50 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+@theme {
+    --font-sans: 'Inter Tight', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Renovion oranje — primaire actiekleur (van renovion.nl) */
+    --color-brand-50: #fef6ec;
+    --color-brand-100: #fdeacf;
+    --color-brand-200: #fad29e;
+    --color-brand-300: #f8b463;
+    --color-brand-400: #f69a3d;
+    --color-brand-500: #f58220;
+    --color-brand-600: #eb5d16;
+    --color-brand-700: #c34712;
+    --color-brand-800: #9b3915;
+    --color-brand-900: #7d3014;
+
+    /* Renovion donker navy — headers en donkere vlakken */
+    --color-navy-50: #eef0f7;
+    --color-navy-100: #d8dcec;
+    --color-navy-200: #b3bad9;
+    --color-navy-300: #8b94c2;
+    --color-navy-400: #5f68a3;
+    --color-navy-500: #3f4783;
+    --color-navy-600: #2c3268;
+    --color-navy-700: #1e224e;
+    --color-navy-800: #131538;
+    --color-navy-900: #0a0a28;
+
+    /* Staalblauw — links en secundaire accenten */
+    --color-steel-50: #f2f6fa;
+    --color-steel-100: #dfe9f2;
+    --color-steel-200: #c0d3e5;
+    --color-steel-300: #97b5d2;
+    --color-steel-400: #6f97bd;
+    --color-steel-500: #4e79a7;
+    --color-steel-600: #3e6084;
+    --color-steel-700: #334e6b;
+    --color-steel-800: #2b4054;
+    --color-steel-900: #253546;
+}
+
+[x-cloak] {
+    display: none !important;
+}

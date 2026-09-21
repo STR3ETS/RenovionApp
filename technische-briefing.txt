@@ -1,0 +1,654 @@
+Technische briefing Boyd – Renovion Dash
+1. Doel van het systeem
+
+We willen op basis van de bestaande EasyDash-core een Renovion-specifiek CRM en projectmanagementsysteem bouwen.
+
+Het systeem moet drie processen in één omgeving samenbrengen:
+
+Sales → Uitvoering → Nazorg
+
+Het belangrijkste uitgangspunt is mobiel gebruik. Imad en Raphael moeten op hun telefoon binnen enkele seconden kunnen zien:
+
+Wat moet ik vandaag doen? Welke leads vragen aandacht? Welke projecten lopen goed of fout? Wie moet ik bellen? Welke offerte moet worden opgevolgd? Welke betaling ontbreekt?
+
+Nova wordt hierin de AI-assistent die informatie analyseert, acties signaleert en werkzaamheden kan voorbereiden.
+
+2. Hoofdstructuur
+
+De hoofdnavigatie wordt:
+
+Vandaag / Dashboard
+Aanvragen & Sales
+Offertes
+Projecten
+Planning & Taken
+Aandacht
+Vakmensen
+Klantcommunicatie
+Documenten
+Inzichten
+Automations
+
+Desktop krijgt een uitgebreid managementoverzicht. Mobiel moet veel meer functioneren als een dagelijkse werkapp.
+
+3. Dashboard / Vandaag
+
+Dit is het belangrijkste scherm.
+
+Bij openen van Renovion Dash moet niet eerst een algemeen dashboard verschijnen, maar direct:
+
+Nova dagelijkse briefing
+
+Bijvoorbeeld:
+
+Goedemorgen Imad.
+Vandaag vragen 5 zaken je aandacht.
+
+🔴 Dhr. Ahmed: offerte 5 dagen open
+🟠 Jansen: planning loopt mogelijk 2 dagen uit
+📞 De Vries: terugbelafspraak om 11:00
+💶 Bakker: aanbetaling nog niet verwerkt
+📦 Smit: materiaal vertraagd
+
+Daaronder compacte statussen:
+
+Onderdeel	Voorbeeld
+Nieuwe aanvragen	3
+Open offertes	8
+Lopende projecten	5
+Open taken	7
+Planningrisico's	1
+Open betalingen	2
+
+Geen overdaad aan statistieken. Actie gaat vóór informatie.
+
+4. Nova AI-assistent
+
+Nova moet als centrale assistent door het systeem heen lopen.
+
+Nova analyseert:
+
+leads
+offertes
+afspraken
+taken
+projecten
+projectplanning
+betalingen
+vakmanstatussen
+klantcommunicatie
+documenten
+openstaande acties
+
+Nova moet vervolgens kunnen aangeven wat afwijkt.
+
+Bijvoorbeeld:
+
+Badkamer Jansen loopt waarschijnlijk twee dagen uit. De volgende klus van Peter begint maandag bij De Vries. Wil je de planning aanpassen?
+
+Nova mag voorstellen doen, maar belangrijke acties niet zelfstandig uitvoeren zonder bevestiging.
+
+5. Voice commands
+
+Dit is belangrijk voor Imad.
+
+Op mobiel moet vrijwel overal een vaste Nova/microfoonknop beschikbaar zijn.
+
+Voorbeelden:
+
+"Nova, plan morgen om 10:00 een terugbelafspraak met familie Jansen."
+
+"Zet voor vrijdag een taak om de aanbetaling van Bakker te controleren."
+
+"Jansen loopt waarschijnlijk twee dagen uit."
+
+"Maak een afspraak met meneer Ahmed volgende week dinsdag."
+
+"Maak van dit gesprek een notitie bij De Vries."
+
+"Maak een offerte voor familie Smit voor 42 vierkante meter stucwerk."
+
+Technisch:
+
+Voice → speech-to-text → intent herkennen → entiteit/klant herkennen → datum/tijd herkennen → actie voorstellen → gebruiker bevestigt → actie uitvoeren.
+
+Bij onduidelijkheid altijd terugvragen.
+
+6. Aanvragen & Sales CRM
+
+Nieuwe websiteaanvragen moeten automatisch als lead binnenkomen.
+
+Minimaal opslaan:
+
+naam
+e-mail
+telefoon
+adres
+woonplaats
+aanvraag
+dienst
+bron
+datum/tijd
+toegewezen salespersoon
+leadstatus
+laatste contact
+volgende actie
+documenten
+notities
+voice memo's
+transcripties
+
+Pipeline:
+
+Nieuw → Contact → Intake → Offerte → Akkoord → Project
+
+Daarnaast:
+
+Verloren / On hold
+
+Er moet zowel een Kanban view als lijst view zijn.
+
+7. Lead cards
+
+Cards moeten in één oogopslag leesbaar zijn.
+
+Bijvoorbeeld:
+
+Familie Jansen
+Utrecht
+Complete renovatie
+
+🟠 Geen telefoonnummer
+📅 Vandaag opvolgen
+
+Contact opnemen
+
+Of:
+
+Dhr. Ahmed
+Rotterdam
+Complete renovatie
+
+€34.850
+
+🟠 Offerte 5 dagen open
+👁 2× bekeken
+
+Offerte opvolgen
+
+Dus niet te veel informatie op de kaart. Alleen hetgeen nodig is om een beslissing te nemen.
+
+8. Klantdossier
+
+Iedere klant krijgt één centrale timeline.
+
+Hierin komen chronologisch:
+
+websiteaanvraag
+e-mails
+telefoongesprekken
+notities
+voice memo's
+transcripties
+afspraken
+offertes
+wijzigingen
+documenten
+betalingen
+projectupdates
+WhatsApp-communicatie
+interne acties
+
+Zo kan iedereen later precies terugzien:
+
+wie heeft wanneer wat met deze klant besproken?
+
+9. Automatische ontbrekend-telefoonnummer-flow
+
+Wanneer een websiteaanvraag geen telefoonnummer bevat:
+
+Trigger: nieuwe lead + telefoonnummer leeg.
+
+Automatisch concept:
+
+Hallo [voornaam],
+
+Bedankt voor je aanvraag bij Renovion. We zouden graag even telefonisch contact opnemen om je wensen goed te inventariseren voordat we een voorstel maken.
+
+Zou je je telefoonnummer met ons willen delen?
+
+Met vriendelijke groet,
+Renovion
+
+Status vervolgens:
+
+Telefoonnummer opgevraagd
+
+Als klant reageert moet het nummer aan het CRM-dossier gekoppeld kunnen worden.
+
+10. Offertetool
+
+We willen hiervoor zoveel mogelijk de bestaande EasyOnline-offertefunctionaliteit hergebruiken.
+
+Vanuit klantdossier:
+
+Offerte maken
+
+Maar ook via voice:
+
+"Maak offerte familie Jansen. 80 m² stucwerk, plafond 45 m², schilderwerk volledige benedenverdieping."
+
+Nova maakt hiervan eerst gestructureerde werkzaamheden.
+
+Daarna:
+
+werkzaamheid → hoeveelheid → eenheid → prijs → BTW → totaal
+
+Gebruiker controleert en verstuurt.
+
+Offertestatus:
+
+Concept → Verstuurd → Bekeken → Opvolgen → Akkoord → Afgewezen
+
+Bij akkoord:
+
+lead → project
+
+11. Offerte-opvolging
+
+Automatische signalering.
+
+Bijvoorbeeld:
+
+offerte verstuurd
+bekeken
+3 dagen geen reactie
+Nova signaleert opvolging
+5 dagen open = hogere prioriteit
+
+Dashboard:
+
+Dhr. Ahmed
+Offerte €34.850
+2× bekeken
+5 dagen geen reactie
+
+Vandaag bellen
+
+Dit kan later eventueel automatisch een concept WhatsApp of e-mail opleveren.
+
+12. Projectmanagement
+
+Na akkoord wordt vanuit de lead automatisch een project aangemaakt.
+
+Project bevat:
+
+klant
+adres
+werkzaamheden
+projectwaarde
+startdatum
+verwachte einddatum
+projectleider
+vakmensen
+planning
+taken
+documenten
+foto's
+offertes
+betalingen
+aanbetaling
+voortgang
+risico's
+communicatie
+
+Projectstatus:
+
+Voorbereiding → Gepland → Uitvoering → Oplevering → Afgerond
+
+13. Planning
+
+Planning moet niet alleen afspraken bevatten, maar ook daadwerkelijke projectcapaciteit.
+
+Bijvoorbeeld:
+
+Vakman	Ma	Di	Wo	Do	Vr
+Peter	Jansen	Jansen	Jansen	Jansen	De Vries
+Mehmet	Bakker	Bakker	Smit	Smit	Smit
+
+Nova moet conflicten kunnen herkennen.
+
+Bijvoorbeeld:
+
+Peter loopt bij Jansen één dag uit.
+De Vries staat vrijdag gepland.
+
+Nova stelt opties voor:
+
+A. Mehmet inzetten
+B. De Vries één dag verschuiven
+C. Zelf andere planning kiezen
+
+Gebruiker beslist.
+
+14. Vakmanstatus
+
+Dit moet extreem eenvoudig zijn.
+
+Vakman hoeft geen uitgebreid CRM te gebruiken.
+
+Bijvoorbeeld via mobiele interface/WhatsApp:
+
+Hoe loopt Badkamer Jansen?
+
+Keuzes:
+
+✓ Op schema
+↗ Loopt uit
+✓ Klaar
+
+Eventueel voice:
+
+"Ik heb nog ongeveer twee dagen nodig."
+
+Nova verwerkt dit naar projectstatus en planning.
+
+15. Taken
+
+Iedere taak bevat minimaal:
+
+titel
+klant/project
+eigenaar
+deadline
+prioriteit
+status
+bron
+notitie
+
+Status:
+
+Te doen → Bezig → Wacht op → Afgerond
+
+Taken moeten ontstaan uit:
+
+handmatige invoer
+voice
+Nova
+projectstatus
+offerte
+betaling
+automation
+klantcontact
+16. Aandacht-module
+
+Een belangrijk scherm:
+
+Wat vraagt aandacht?
+
+Hier komen alleen uitzonderingen.
+
+Bijvoorbeeld:
+
+🔴 Project loopt uit
+🟠 Offerte niet opgevolgd
+🟠 Aanbetaling ontbreekt
+🔴 Planningconflict
+🟠 Klant wacht op reactie
+🟠 Materiaal vertraagd
+🔴 Deadline verlopen
+
+Dus géén lijst met 50 projecten die goed gaan.
+
+Alleen uitzonderingen.
+
+17. Documenten
+
+Per lead/project documenten kunnen uploaden:
+
+tekeningen
+foto's
+offertes
+calculaties
+facturen
+contracten
+technische documentatie
+opleverdocumenten
+
+Documenten moeten aan klant én eventueel project gekoppeld zijn.
+
+Uploaden vanaf mobiel moet belangrijk zijn.
+
+18. Betalingen en administratie
+
+Per project minimaal:
+
+Projectwaarde
+Aanbetaling vereist
+Aanbetaling ontvangen
+Openstaand
+Betaald
+Volgende betaaltermijn
+
+Bijvoorbeeld:
+
+Projectwaarde €52.000
+Aanbetaling €15.600
+🟠 Nog niet ontvangen
+
+Nova:
+
+Familie Bakker start over 4 dagen, maar de aanbetaling staat nog open.
+
+19. Klantcommunicatie
+
+Nova mag communicatie voorbereiden.
+
+Bijvoorbeeld bij vertraging:
+
+Goedemiddag familie Jansen,
+Door een latere levering van de tegels loopt de planning één dag uit...
+
+Maar:
+
+Nova verstuurt dit niet automatisch zonder akkoord, tenzij we later bewust bepaalde simpele automations daarvoor activeren.
+
+Flow:
+
+Nova maakt concept → Imad/Raphael controleert → aanpassen / goedkeuren → verzenden.
+
+20. NIEUW: project afgerond → bedankje + review
+
+Deze wil ik expliciet toevoegen.
+
+Wanneer projectstatus verandert naar:
+
+Afgerond
+
+start een nazorgflow.
+
+Stap 1 – Nova controle
+
+Is het project daadwerkelijk afgerond en zijn er geen openstaande kritieke punten?
+
+Daarna krijgt Imad bijvoorbeeld:
+
+Villa Parkzicht is afgerond.
+Wil je de klant bedanken en een reviewverzoek versturen?
+
+Stap 2 – WhatsApp bedankbericht
+
+Concept:
+
+Beste [voornaam],
+
+Bedankt voor het vertrouwen in Renovion. We hopen dat jullie erg blij zijn met het eindresultaat en wensen jullie veel plezier met de vernieuwde woning.
+
+We zouden het enorm waarderen als je jouw ervaring met Renovion wilt delen in een korte review.
+
+⭐ [Google reviewlink]
+
+Nogmaals bedankt namens het hele team van Renovion!
+
+Knoppen:
+
+Aanpassen | Nu versturen | Later versturen
+
+Stap 3 – Reviewstatus
+
+CRM opslaan:
+
+Review gevraagd
+WhatsApp verstuurd
+Review ontvangen
+Geen reactie
+
+Stap 4 – reminder
+
+Bijvoorbeeld na 5 dagen geen review:
+
+Reviewverzoek Jansen: nog geen reactie.
+
+Dan kan Imad kiezen:
+
+Herinnering sturen of Afronden zonder reminder.
+
+Dit moet geen irritante automatische spamflow worden.
+
+21. WhatsApp-integratie
+
+WhatsApp wordt uiteindelijk belangrijk voor:
+
+afspraakbevestigingen
+klantupdates
+terugbelafspraken
+reviewverzoeken
+projectcommunicatie
+statusvragen richting vakmensen
+
+Iedere verzonden/ontvangen relevante communicatie moet waar mogelijk terugkomen in de CRM-timeline.
+
+22. Automations
+
+Ik zou de automation-engine modulair maken:
+
+Trigger → voorwaarden → actie → eventueel goedkeuring
+
+Voorbeelden:
+
+Trigger	Voorwaarde	Actie
+Nieuwe lead	telefoon ontbreekt	e-mail telefoonnummer vragen
+Nieuwe lead	compleet	taak sales
+Intake gepland	24 uur vooraf	reminder
+Offerte verstuurd	3 dagen geen reactie	opvolgtaak
+Offerte akkoord	-	project maken
+Project start	aanbetaling ontbreekt	waarschuwing
+Vakman meldt uitloop	volgende klus raakt planning	Nova-waarschuwing
+Project afgerond	geen kritieke punten	bedank/reviewflow
+Review niet ontvangen	5 dagen	reminder voorstellen
+23. Mobiele UX
+
+Dit is voor Boyd belangrijk:
+
+niet desktop ontwerpen en daarna responsive maken.
+
+De belangrijkste workflows moeten expliciet mobile-first worden ontworpen.
+
+Bij openen:
+
+1. Nova
+
+4 acties vragen aandacht
+
+2. Status
+
+12 aanvragen · 8 offertes · 5 projecten · 7 taken
+
+3. Nu doen
+
+Concrete actielijst.
+
+4. Quick actions
+
++ aanvraag · 🎙 Nova · Planning · Offerte
+
+5. Projectstatus
+
+Onderin vaste navigatie:
+
+Vandaag | Aanvragen | Planning | Projecten | Acties
+
+En een vaste 🎙 Nova-knop.
+
+24. Technische opzet Nova
+
+Ik zou Nova niet rechtstreeks allerlei databaseacties laten uitvoeren vanuit vrije AI-output.
+
+Beter:
+
+Voice/text → AI intent → gestructureerde JSON/action → validatie → permissions → preview/bevestiging → backend action → audit log.
+
+Bijvoorbeeld intern:
+
+{
+  "intent": "create_callback",
+  "customer_id": 184,
+  "assigned_to": "imad",
+  "datetime": "2026-09-12T10:00:00+02:00",
+  "reminder_minutes": 30
+}
+
+Daarna pas backend uitvoeren.
+
+Dit maakt Nova veel betrouwbaarder en voorkomt dat AI zelfstandig verkeerde CRM-data wijzigt.
+
+25. Rechten
+
+Minimaal rollen voorbereiden:
+
+Admin
+Alles.
+
+Sales
+Leads, afspraken, offertes, klantcontact.
+
+Projectleider
+Projecten, planning, taken, documenten, communicatie.
+
+Vakman
+Alleen eigen projecten/taken/status.
+
+Later eventueel administratie apart.
+
+26. Audit trail
+
+Bij belangrijke acties altijd vastleggen:
+
+wie → wat → wanneer → oude waarde → nieuwe waarde → bron
+
+Bron bijvoorbeeld:
+
+Handmatig
+Voice command
+Nova voorstel
+Automation
+Website
+WhatsApp
+
+Dit is vooral belangrijk omdat we AI en automatisering door het systeem heen gebruiken.
+
+27. MVP-prioriteit voor Boyd
+
+Ik zou Boyd niet alles tegelijk laten bouwen. De bestaande EasyDash-core zoveel mogelijk hergebruiken.
+
+Fase 1: mobiel dashboard, leads/CRM, Kanban + lijst, klantdossier, taken, planning, offertes en projectstatus.
+
+Fase 2: voice memo/transcriptie, Nova commands, dagelijkse briefing, automations, betalingen en aandacht-module.
+
+Fase 3: WhatsApp, vakmanstatus, intelligente capaciteitsplanning, reviewflow, AI-projectrisico's en uitgebreidere inzichten.
+
+Het uiteindelijke doel is simpel:
+
+Renovion Dash moet ervoor zorgen dat Imad en Raphael niet hoeven te onthouden wat er moet gebeuren. Het systeem moet zelf laten zien wat vandaag aandacht vraagt en vanuit de telefoon zo veel mogelijk met één tik of voice kunnen worden afgehandeld.
+
+Dat zou ik als leidend UX- en technisch principe bovenaan de briefing voor Boyd zetten.
