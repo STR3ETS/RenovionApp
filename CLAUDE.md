@@ -29,7 +29,7 @@ MVP eerst als één verticale flow: lead → calculatie → offerte → akkoord 
 1. ✔ Sprint 1: huisstijl v2, rollen, projectfasen-fundament, globale zoekfunctie, fotokaarten.
 2. ✔ Sprint 2: leadkwalificatie (koud/warm/heet, gewenste start), contactmomenten (`Lead::logContact`, `POST aanvragen/{lead}/contactmomenten`), stille-aanvraag-signaal in Aandacht, Nova-actie `log_contact`.
 3. ✔ Sprint 3 — **Calculatiemodule** (§5): kostendatabase `PriceItem` (bron/editie/eenheid/indexfactor/opslag, `PriceLibrarySeeder` met Renovion-praktijkprijzen 2026, draait ook op productie; Archidat-import volgt zodra licentie rond is), `Calculation` + `CalculationLine` met prijssnapshot per regel (`Calculation::addLine`), totalen (subtotaal → onvoorzien% → marge% → btw%), definitief = regels op slot, [CalculationAssistant](app/Services/CalculationAssistant.php) vertaalt tekst/spraak naar regels die de gebruiker eerst controleert (`POST calculaties/ai-voorstel`), prijsbibliotheek-picker via `GET prijsitems`. PDF-import nog open.
-4. **Offerte-editor** (§6): EasyDash-concept (links blokken, midden live document, rechts templates), klantview met digitaal ondertekenen (click-to-sign + audit), versies v1/v2/v3 als immutable snapshots, nummering REN-{jaar}-{volgnr}.
+4. ✔ Sprint 4 — **Offerte-editor** (§6): vaste blokken uit de briefing met templates per werktype ([QuoteTemplates](app/Support/QuoteTemplates.php)), tabbladen Overzicht/Teksten (editor + live voorbeeld)/Preview op de offertepagina, klantlink zonder inlog (`GET offerte/{public_token}`) met digitaal ondertekenen (naam+datum+IP in audit, `AcceptQuote` → project), aanpassing aanvragen en afwijzen, versiebeheer (versturen bevriest snapshot in `quote_versions`, nieuwe versie = wijzigingslog verplicht + terug naar concept), calculatie→offerte met één actie ([CreateQuoteFromCalculation](app/Actions/CreateQuoteFromCalculation.php): commerciële posten, marge verdeeld, stelposten apart), nummering REN-{jaar}-{volgnr}. Nog open: échte PDF-generatie (nu print-naar-PDF) en mailverzending (SMTP ontbreekt).
 5. Project core: werkpakketten, checklists, goedkeuringsgates per fase.
 6. **Foto-bewijs** (§8): verplichte foto's per checklistitem (bijv. "min. 3 vóór dichtzetten"), taak kan niet dicht zonder bewijs, klant tekent "gezien en akkoord".
 7. **Klantportaal** (§9): Klant-rol, vereenvoudigde tijdlijn, "deze week", "actie van u nodig", alleen klantzichtbare content (nooit marge/interne notities) — zichtbaarheid op objectniveau (internal / client-visible).
@@ -63,9 +63,9 @@ Voice/tekst → intent → gestructureerde JSON-action → validatie → permiss
 - Queue/cache/sessies: database-driver. Herbruikbare concepten uit EasyDash/EazyOnline (offerte-editor!) en EazyChats (teamchat): zie zustermappen in `c:\laragon\www\`.
 - **Seeders:** `TeamSeeder` (4 accounts, idempotent, wachtwoorden worden nooit overschreven) draait altijd; `DemoSeeder` alleen local/testing. Live deploy: `git pull` + `php artisan migrate --force` + **altijd `php artisan optimize:clear`** (config/route-caches overleven pulls).
 
-## Tijdelijk uitgeschakelde modules
+## Modules
 
-**Offertes en Automations staan uit** (code-default `false` in [config/renovion.php](config/renovion.php)); aanzetten alleen via `.env` (`MODULE_QUOTES=true` / `MODULE_AUTOMATIONS=true`) + caches verversen. Uit = geen routes, geen menu, geen signalen. In tests staan beide aan (phpunit.xml). De offertemodule gaat bij de offerte-editor-sprint in vernieuwde vorm weer aan.
+**Offertes staat aan** (code-default `true` sinds de offerte-editor-sprint; uitzetten kan met `MODULE_QUOTES=false`). **Automations staat uit** (code-default `false`) tot de Nova-rules-sprint; aanzetten via `MODULE_AUTOMATIONS=true` + caches verversen. Uit = geen routes, geen menu, geen signalen. In tests staan beide aan (phpunit.xml).
 
 ## Automations & Aandacht (gebouwd, fundament voor Nova-rules §12)
 

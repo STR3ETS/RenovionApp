@@ -6,6 +6,7 @@ use App\Http\Controllers\AutomationController;
 use App\Http\Controllers\CalculationAssistController;
 use App\Http\Controllers\CalculationController;
 use App\Http\Controllers\CalculationLineController;
+use App\Http\Controllers\CalculationQuoteController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\PriceItemSearchController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectStatusController;
 use App\Http\Controllers\QuoteController;
+use App\Http\Controllers\QuotePublicController;
 use App\Http\Controllers\QuoteStatusController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TaskController;
@@ -28,6 +30,16 @@ use Illuminate\Support\Facades\Route;
 Route::get('/login', [LoginController::class, 'create'])->name('login');
 Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:login')->name('login.store');
 Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+
+// Klantview van de offerte: privélink zonder inlog (briefing §6).
+if (config('renovion.modules.quotes')) {
+    Route::middleware('throttle:30,1')->group(function () {
+        Route::get('offerte/{quote:public_token}', [QuotePublicController::class, 'show'])->name('quotes.public');
+        Route::post('offerte/{quote:public_token}/ondertekenen', [QuotePublicController::class, 'sign'])->name('quotes.public.sign');
+        Route::post('offerte/{quote:public_token}/aanpassing', [QuotePublicController::class, 'requestChange'])->name('quotes.public.change');
+        Route::post('offerte/{quote:public_token}/afwijzen', [QuotePublicController::class, 'reject'])->name('quotes.public.reject');
+    });
+}
 
 Route::middleware('auth')->group(function () {
     // Voor iedereen (uitvoerders zien alleen hun eigen projecten, taken en planning).
@@ -66,6 +78,10 @@ Route::middleware('auth')->group(function () {
                 ->parameters(['offertes' => 'quote'])
                 ->names('quotes');
             Route::patch('offertes/{quote}/status', [QuoteStatusController::class, 'update'])->name('quotes.status');
+            Route::patch('offertes/{quote}/blokken', [QuoteController::class, 'updateBlocks'])->name('quotes.blocks');
+            Route::post('offertes/{quote}/template', [QuoteController::class, 'applyTemplate'])->name('quotes.template');
+            Route::post('offertes/{quote}/nieuwe-versie', [QuoteController::class, 'newVersion'])->name('quotes.version');
+            Route::post('calculaties/{calculation}/offerte', CalculationQuoteController::class)->name('calculations.quote');
         }
 
         Route::get('calculaties', [CalculationController::class, 'index'])->name('calculations.index');

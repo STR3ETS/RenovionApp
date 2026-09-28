@@ -18,7 +18,7 @@ class QuoteFactory extends Factory
     public function definition(): array
     {
         return [
-            'number' => 'OFF-'.now()->year.'-'.str_pad((string) fake()->unique()->numberBetween(1, 9999), 4, '0', STR_PAD_LEFT),
+            'number' => 'REN-'.now()->year.'-'.str_pad((string) fake()->unique()->numberBetween(1, 9999), 4, '0', STR_PAD_LEFT),
             'customer_id' => Customer::factory(),
             'status' => QuoteStatus::Concept,
             'valid_until' => now()->addDays(30)->toDateString(),

@@ -33,11 +33,18 @@ class QuoteStatusController extends Controller
                 ->with('success', "Offerte akkoord — project \"{$project->name}\" aangemaakt.");
         }
 
-        match ($new) {
-            QuoteStatus::Verstuurd => $quote->forceFill([
+        if ($new === QuoteStatus::Verstuurd) {
+            $quote->forceFill([
                 'status' => $new,
                 'sent_at' => $quote->sent_at ?? now(),
-            ])->save(),
+            ])->save();
+
+            // Bij versturen wordt de huidige inhoud bevroren als versie (briefing §6).
+            $quote->freezeVersion();
+        }
+
+        match ($new) {
+            QuoteStatus::Verstuurd => null,
             QuoteStatus::Bekeken => $quote->forceFill([
                 'status' => $new,
                 'viewed_at' => now(),

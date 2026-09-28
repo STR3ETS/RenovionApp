@@ -34,13 +34,14 @@ return [
     | Modules
     |--------------------------------------------------------------------------
     |
-    | Tijdelijk uitgeschakelde modules: de app is nu bewust smal gehouden
-    | zodat Imad en Raphael overzicht houden. Aanzetten = env-waarde op true.
+    | Offertes staat sinds de offerte-editor (briefing v2 §6) standaard aan.
+    | Automations blijft bewust uit tot de Nova-rules-sprint; aanzetten kan
+    | via MODULE_AUTOMATIONS=true in .env.
     |
     */
 
     'modules' => [
-        'quotes' => (bool) env('MODULE_QUOTES', false),
+        'quotes' => (bool) env('MODULE_QUOTES', true),
         'automations' => (bool) env('MODULE_AUTOMATIONS', false),
     ],
 

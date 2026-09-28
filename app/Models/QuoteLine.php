@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['quote_id', 'description', 'quantity', 'unit', 'unit_price', 'vat_rate', 'total', 'position'])]
+#[Fillable(['quote_id', 'description', 'quantity', 'unit', 'unit_price', 'vat_rate', 'total', 'is_estimate', 'position'])]
 class QuoteLine extends Model
 {
     /** @use HasFactory<QuoteLineFactory> */
@@ -24,6 +24,7 @@ class QuoteLine extends Model
             'unit_price' => 'decimal:2',
             'vat_rate' => 'decimal:1',
             'total' => 'decimal:2',
+            'is_estimate' => 'boolean',
         ];
     }
 

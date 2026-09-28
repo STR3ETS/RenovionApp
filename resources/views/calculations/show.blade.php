@@ -210,6 +210,15 @@
                 <h2 class="mb-3 text-sm font-bold text-navy-900">Acties</h2>
                 <div class="space-y-2">
                     @if ($calculation->isLocked())
+                        @if (config('renovion.modules.quotes'))
+                            <form method="POST" action="{{ route('calculations.quote', $calculation) }}">
+                                @csrf
+                                <button type="submit" class="flex w-full items-center justify-center gap-1.5 rounded-xl bg-brand-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600">
+                                    <x-icon name="document-text" class="h-4 w-4" /> Offerte maken van deze calculatie
+                                </button>
+                            </form>
+                            <p class="text-xs text-gray-400">De klant ziet commerciële posten — onvoorzien en marge worden verdeeld, stelposten blijven apart zichtbaar.</p>
+                        @endif
                         <form method="POST" action="{{ route('calculations.update', $calculation) }}">
                             @csrf
                             @method('PATCH')
@@ -230,7 +239,9 @@
                         </form>
                     @endif
                 </div>
-                <p class="mt-3 text-xs text-gray-400">De offerte-editor (volgende sprint) maakt van een definitieve calculatie met één actie een offerte.</p>
+                @unless ($calculation->isLocked())
+                    <p class="mt-3 text-xs text-gray-400">Definitief maken zet de regels vast; daarna maak je er met één actie een offerte van.</p>
+                @endunless
             </section>
         </div>
     </div>
