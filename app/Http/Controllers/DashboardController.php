@@ -19,7 +19,7 @@ class DashboardController extends Controller
     public function __invoke(Request $request): View
     {
         if ($request->user()->cannot('manage-crm')) {
-            return view('dashboard.vakman', [
+            return view('dashboard.uitvoerder', [
                 'taken' => Task::open()
                     ->where('owner_id', $request->user()->id)
                     ->with(['customer', 'project'])
@@ -36,15 +36,19 @@ class DashboardController extends Controller
         }
 
         $stats = [
+            'actieve_projecten' => Project::active()->count(),
+            'projecten_aandacht' => Project::active()->whereDate('end_date_expected', '<', today())->count(),
             'nieuwe_aanvragen' => Lead::where('status', LeadStatus::Nieuw)->count(),
+            'open_aanvragen' => Lead::open()->count(),
             'open_offertes' => Quote::open()->whereNotNull('sent_at')->count(),
-            'lopende_projecten' => Project::active()->count(),
-            'open_taken' => Task::open()->count(),
-            'planningsrisicos' => Project::active()->whereDate('end_date_expected', '<', today())->count(),
-            'open_betalingen' => Project::active()
-                ->whereNotNull('deposit_amount')
-                ->whereNull('deposit_received_at')
-                ->count(),
+            'taken_deze_week' => Task::open()->where(fn ($query) => $query
+                ->whereNull('deadline')
+                ->orWhereDate('deadline', '<=', today()->endOfWeek()))->count(),
+            'taken_te_laat' => Task::open()->whereDate('deadline', '<', today())->count(),
+            'omzet_lopend' => (float) Project::active()->sum('value'),
+            'omzet_open' => (float) Project::active()
+                ->selectRaw('coalesce(sum(value - paid_amount), 0) as open')
+                ->value('open'),
         ];
 
         $taken = Task::open()
@@ -88,8 +92,15 @@ class DashboardController extends Controller
             ->orderByRaw('start_time is null, start_time asc')
             ->get();
 
+        $recenteProjecten = Project::active()
+            ->with(['customer', 'craftsmen', 'phases'])
+            ->latest('updated_at')
+            ->limit(4)
+            ->get();
+
         return view('dashboard.index', [
             'stats' => $stats,
+            'recenteProjecten' => $recenteProjecten,
             'taken' => $taken,
             'opvolgLeads' => $opvolgLeads,
             'opvolgOffertes' => $opvolgOffertes,

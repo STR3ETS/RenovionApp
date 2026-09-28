@@ -16,7 +16,7 @@ class ProjectCreateTest extends TestCase
     {
         $user = User::factory()->create();
         $customer = Customer::factory()->create();
-        $vakman = User::factory()->vakman()->create();
+        $uitvoerder = User::factory()->uitvoerder()->create();
 
         $response = $this->actingAs($user)->post('/projecten', [
             'name' => 'Badkamer handmatig',
@@ -27,7 +27,7 @@ class ProjectCreateTest extends TestCase
             'start_date' => today()->addDays(7)->toDateString(),
             'end_date_expected' => today()->addDays(30)->toDateString(),
             'project_leader_id' => $user->id,
-            'craftsmen' => [$vakman->id],
+            'craftsmen' => [$uitvoerder->id],
         ]);
 
         $this->assertDatabaseHas('projects', [
@@ -40,7 +40,7 @@ class ProjectCreateTest extends TestCase
         $project = Project::firstWhere('name', 'Badkamer handmatig');
         $response->assertRedirect(route('projects.show', $project));
 
-        $this->assertTrue($project->craftsmen()->whereKey($vakman->id)->exists());
+        $this->assertTrue($project->craftsmen()->whereKey($uitvoerder->id)->exists());
         $this->assertDatabaseHas('timeline_events', ['customer_id' => $customer->id, 'type' => 'projectupdate']);
         $this->assertDatabaseHas('audit_logs', ['auditable_type' => 'project', 'action' => 'aangemaakt']);
     }
@@ -94,11 +94,11 @@ class ProjectCreateTest extends TestCase
         ]);
     }
 
-    public function test_vakman_cannot_create_projects(): void
+    public function test_uitvoerder_cannot_create_projects(): void
     {
-        $vakman = User::factory()->vakman()->create();
+        $uitvoerder = User::factory()->uitvoerder()->create();
 
-        $this->actingAs($vakman)->get('/projecten/aanmaken')->assertForbidden();
-        $this->actingAs($vakman)->post('/projecten', ['name' => 'X', 'customer_name' => 'Y'])->assertForbidden();
+        $this->actingAs($uitvoerder)->get('/projecten/aanmaken')->assertForbidden();
+        $this->actingAs($uitvoerder)->post('/projecten', ['name' => 'X', 'customer_name' => 'Y'])->assertForbidden();
     }
 }

@@ -117,8 +117,8 @@ class AttentionService
     }
 
     /**
-     * Dubbele boekingen (zelfde vakman, zelfde dag, meerdere projecten) en
-     * uitlopende projecten waarvan de vakman binnenkort elders is ingepland.
+     * Dubbele boekingen (zelfde uitvoerder, zelfde dag, meerdere projecten) en
+     * uitlopende projecten waarvan de uitvoerder binnenkort elders is ingepland.
      *
      * @return Collection<int, array<string, mixed>>
      */

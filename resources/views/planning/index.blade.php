@@ -11,12 +11,12 @@
             @endcan
         </x-page-header>
 
-        {{-- Weekgrid: capaciteit per vakman per dag --}}
+        {{-- Weekgrid: capaciteit per uitvoerder per dag --}}
         <div class="-mx-4 overflow-x-auto px-4 lg:mx-0 lg:px-0">
             <table class="w-full min-w-[760px] border-separate border-spacing-1">
                 <thead>
                     <tr>
-                        <th class="w-32 p-2 text-left text-xs font-bold text-gray-500 uppercase">Vakman</th>
+                        <th class="w-32 p-2 text-left text-xs font-bold text-gray-500 uppercase">Uitvoerder</th>
                         @foreach ($days as $day)
                             <th class="p-2 text-left text-xs font-bold uppercase {{ $day->isToday() ? 'text-brand-600' : 'text-gray-500' }}">
                                 {{ $day->translatedFormat('D j M') }}
@@ -64,7 +64,7 @@
                     @empty
                         <tr>
                             <td colspan="6">
-                                <x-empty-state title="Nog geen vakmensen" subtitle="Maak gebruikers aan met rol Vakman om de capaciteitsplanning te vullen." />
+                                <x-empty-state title="Nog geen uitvoerders" subtitle="Maak gebruikers aan met rol Uitvoerder om de capaciteitsplanning te vullen." />
                             </td>
                         </tr>
                     @endforelse

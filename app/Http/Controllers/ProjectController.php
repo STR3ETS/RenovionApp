@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PhaseStatus;
 use App\Enums\ProjectStatus;
 use App\Enums\TimelineEventType;
 use App\Enums\UserRole;
@@ -10,6 +11,7 @@ use App\Http\Requests\UpdateProjectRequest;
 use App\Models\AuditLog;
 use App\Models\Customer;
 use App\Models\Project;
+use App\Models\ProjectPhase;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,7 +29,7 @@ class ProjectController extends Controller
 
         $status = $request->filled('status') ? ProjectStatus::from($request->query('status')) : null;
 
-        $projects = Project::with(['customer', 'projectLeader'])
+        $projects = Project::with(['customer', 'projectLeader', 'craftsmen', 'phases'])
             ->when($request->user()->cannot('manage-crm'), fn ($query) => $query->whereHas(
                 'craftsmen', fn ($craftsmen) => $craftsmen->where('users.id', $request->user()->id)
             ))
@@ -47,10 +49,10 @@ class ProjectController extends Controller
     {
         return view('projects.create', [
             'customers' => Customer::orderBy('name')->get(['id', 'name', 'city']),
-            'leaders' => User::whereIn('role', [UserRole::Admin, UserRole::Projectleider, UserRole::Sales])
+            'leaders' => User::whereIn('role', [UserRole::Admin, UserRole::Projectleider, UserRole::Werkvoorbereider, UserRole::Sales])
                 ->orderBy('name')
                 ->get(['id', 'name']),
-            'vakmensen' => User::vakmensen()->orderBy('name')->get(['id', 'name']),
+            'uitvoerders' => User::uitvoerders()->orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -113,6 +115,7 @@ class ProjectController extends Controller
             'quote',
             'projectLeader',
             'craftsmen',
+            'phases',
             'tasks' => fn ($query) => $query->open()->orderByRaw('deadline is null, deadline asc'),
             'documents.uploader',
             'scheduleEntries' => fn ($query) => $query
@@ -127,15 +130,15 @@ class ProjectController extends Controller
 
     public function edit(Project $project): View
     {
-        $project->load(['customer', 'craftsmen']);
+        $project->load(['customer', 'craftsmen', 'phases']);
 
         return view('projects.edit', [
             'project' => $project,
             'customers' => Customer::orderBy('name')->get(['id', 'name', 'city']),
-            'leaders' => User::whereIn('role', [UserRole::Admin, UserRole::Projectleider, UserRole::Sales])
+            'leaders' => User::whereIn('role', [UserRole::Admin, UserRole::Projectleider, UserRole::Werkvoorbereider, UserRole::Sales])
                 ->orderBy('name')
                 ->get(['id', 'name']),
-            'vakmensen' => User::vakmensen()->orderBy('name')->get(['id', 'name']),
+            'uitvoerders' => User::uitvoerders()->orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -147,8 +150,12 @@ class ProjectController extends Controller
             $depositWasOutstanding = $project->depositOutstanding();
 
             $project->update(collect($validated)
-                ->except(['deposit_received', 'craftsmen'])
+                ->except(['deposit_received', 'craftsmen', 'current_phase'])
                 ->all());
+
+            if (array_key_exists('current_phase', $validated)) {
+                $this->moveToPhase($project, (int) $validated['current_phase']);
+            }
 
             if ($project->wasChanged('customer_id')) {
                 $project->unsetRelation('customer');
@@ -187,5 +194,32 @@ class ProjectController extends Controller
         });
 
         return redirect()->route('projects.show', $project)->with('success', 'Project bijgewerkt.');
+    }
+
+    /**
+     * Zet het project in de gekozen fase: alles ervoor gereed, alles erna terug
+     * naar niet gestart. Fijnmazig fasebeheer (blokkades, wachten op klant)
+     * volgt in de uitvoeringsmodule.
+     */
+    private function moveToPhase(Project $project, int $position): void
+    {
+        $project->phases()->get()->each(function (ProjectPhase $phase) use ($position) {
+            $phase->update(match (true) {
+                $phase->position < $position => [
+                    'status' => PhaseStatus::Gereed,
+                    'completed_at' => $phase->completed_at ?? now(),
+                ],
+                $phase->position === $position => [
+                    'status' => in_array($phase->status, [PhaseStatus::Gereed, PhaseStatus::NietGestart], true)
+                        ? PhaseStatus::Bezig
+                        : $phase->status,
+                    'completed_at' => null,
+                ],
+                default => [
+                    'status' => PhaseStatus::NietGestart,
+                    'completed_at' => null,
+                ],
+            });
+        });
     }
 }

@@ -19,7 +19,7 @@
                     </span>
                     <span class="block truncate text-xs text-gray-500">
                         {{ $user->email }}{{ $user->phone ? ' · '.$user->phone : '' }}
-                        @if ($user->role === \App\Enums\UserRole::Vakman)
+                        @if ($user->role === \App\Enums\UserRole::Uitvoerder)
                             · {{ $user->projects_count }} {{ $user->projects_count === 1 ? 'project' : 'projecten' }}
                         @endif
                         · {{ $user->tasks_count }} open {{ $user->tasks_count === 1 ? 'taak' : 'taken' }}

@@ -27,7 +27,7 @@ class User extends Authenticatable
      * @var array<string, mixed>
      */
     protected $attributes = [
-        'role' => 'vakman',
+        'role' => 'uitvoerder',
     ];
 
     /**
@@ -60,9 +60,9 @@ class User extends Authenticatable
     }
 
     #[Scope]
-    protected function vakmensen(Builder $query): Builder
+    protected function uitvoerders(Builder $query): Builder
     {
-        return $query->where('role', UserRole::Vakman);
+        return $query->where('role', UserRole::Uitvoerder);
     }
 
     public function isAdmin(): bool

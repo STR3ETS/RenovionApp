@@ -7,7 +7,8 @@ enum UserRole: string
     case Admin = 'admin';
     case Sales = 'sales';
     case Projectleider = 'projectleider';
-    case Vakman = 'vakman';
+    case Werkvoorbereider = 'werkvoorbereider';
+    case Uitvoerder = 'uitvoerder';
 
     public function label(): string
     {
@@ -15,7 +16,8 @@ enum UserRole: string
             self::Admin => 'Admin',
             self::Sales => 'Sales',
             self::Projectleider => 'Projectleider',
-            self::Vakman => 'Vakman',
+            self::Werkvoorbereider => 'Werkvoorbereider',
+            self::Uitvoerder => 'Uitvoerder',
         };
     }
 
@@ -25,7 +27,8 @@ enum UserRole: string
             self::Admin => 'bg-navy-100 text-navy-800',
             self::Sales => 'bg-steel-100 text-steel-800',
             self::Projectleider => 'bg-brand-100 text-brand-800',
-            self::Vakman => 'bg-gray-200 text-gray-700',
+            self::Werkvoorbereider => 'bg-amber-100 text-amber-800',
+            self::Uitvoerder => 'bg-gray-200 text-gray-700',
         };
     }
 }

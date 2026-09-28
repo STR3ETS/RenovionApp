@@ -42,6 +42,14 @@
                 <x-field label="Voortgang (%)" name="progress">
                     <input type="number" name="progress" id="progress" value="{{ old('progress', $project->progress) }}" min="0" max="100" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
                 </x-field>
+                <x-field label="Huidige fase" name="current_phase" class="sm:col-span-2">
+                    <select name="current_phase" id="current_phase" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+                        @foreach ($project->phases as $phase)
+                            <option value="{{ $phase->position }}" @selected(old('current_phase', $project->currentPhase()?->position) == $phase->position)>{{ $phase->position }}. {{ $phase->name }}</option>
+                        @endforeach
+                    </select>
+                    <p class="mt-1 text-xs text-gray-400">Eerdere fasen worden gereed gemarkeerd, latere fasen gaan terug naar "niet gestart".</p>
+                </x-field>
                 <x-field label="Notities" name="notes" class="sm:col-span-2">
                     <textarea name="notes" id="notes" rows="3" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">{{ old('notes', $project->notes) }}</textarea>
                 </x-field>
@@ -49,17 +57,17 @@
         </section>
 
         <section class="rounded-2xl border border-gray-200 bg-white p-5">
-            <h2 class="mb-4 text-sm font-bold text-navy-900">Vakmensen op dit project</h2>
+            <h2 class="mb-4 text-sm font-bold text-navy-900">Uitvoerders op dit project</h2>
             <div class="grid gap-2 sm:grid-cols-2">
-                @forelse ($vakmensen as $vakman)
+                @forelse ($uitvoerders as $uitvoerder)
                     <label class="flex items-center gap-2 rounded-xl border border-gray-200 p-3 text-sm font-medium text-navy-900 transition has-checked:border-brand-400 has-checked:bg-brand-50">
-                        <input type="checkbox" name="craftsmen[]" value="{{ $vakman->id }}"
-                               @checked(in_array($vakman->id, old('craftsmen', $project->craftsmen->pluck('id')->all())))
+                        <input type="checkbox" name="craftsmen[]" value="{{ $uitvoerder->id }}"
+                               @checked(in_array($uitvoerder->id, old('craftsmen', $project->craftsmen->pluck('id')->all())))
                                class="rounded border-gray-300 text-brand-600 focus:ring-brand-500">
-                        {{ $vakman->name }}
+                        {{ $uitvoerder->name }}
                     </label>
                 @empty
-                    <p class="text-sm text-gray-400 sm:col-span-2">Nog geen vakmensen aangemaakt (gebruikers met rol "Vakman").</p>
+                    <p class="text-sm text-gray-400 sm:col-span-2">Nog geen uitvoerders aangemaakt (gebruikers met rol "Uitvoerder").</p>
                 @endforelse
             </div>
         </section>

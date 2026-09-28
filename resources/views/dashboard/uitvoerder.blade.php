@@ -1,6 +1,6 @@
 <x-layouts.app title="Vandaag">
 
-    <section class="mb-5 rounded-2xl bg-navy-900 p-5 text-white">
+    <section class="mb-5 rounded-2xl bg-navy-950 p-5 text-white">
         <p class="text-sm text-navy-300">{{ now()->translatedFormat('l j F') }}</p>
         <h1 class="mt-1 text-xl font-bold lg:text-2xl">
             {{ now()->hour < 12 ? 'Goedemorgen' : (now()->hour < 18 ? 'Goedemiddag' : 'Goedenavond') }} {{ str(auth()->user()->name)->before(' ') }}.

@@ -95,17 +95,17 @@
         </section>
 
         <section class="rounded-2xl border border-gray-200 bg-white p-5">
-            <h2 class="mb-4 text-sm font-bold text-navy-900">Vakmensen op dit project</h2>
+            <h2 class="mb-4 text-sm font-bold text-navy-900">Uitvoerders op dit project</h2>
             <div class="grid gap-2 sm:grid-cols-2">
-                @forelse ($vakmensen as $vakman)
+                @forelse ($uitvoerders as $uitvoerder)
                     <label class="flex items-center gap-2 rounded-xl border border-gray-200 p-3 text-sm font-medium text-navy-900 transition has-checked:border-brand-400 has-checked:bg-brand-50">
-                        <input type="checkbox" name="craftsmen[]" value="{{ $vakman->id }}"
-                               @checked(in_array($vakman->id, old('craftsmen', [])))
+                        <input type="checkbox" name="craftsmen[]" value="{{ $uitvoerder->id }}"
+                               @checked(in_array($uitvoerder->id, old('craftsmen', [])))
                                class="rounded border-gray-300 text-brand-600 focus:ring-brand-500">
-                        {{ $vakman->name }}
+                        {{ $uitvoerder->name }}
                     </label>
                 @empty
-                    <p class="text-sm text-gray-400 sm:col-span-2">Nog geen vakmensen — voeg ze toe via Team.</p>
+                    <p class="text-sm text-gray-400 sm:col-span-2">Nog geen uitvoerders — voeg ze toe via Team.</p>
                 @endforelse
             </div>
         </section>

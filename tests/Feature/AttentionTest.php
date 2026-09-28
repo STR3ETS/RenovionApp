@@ -49,12 +49,12 @@ class AttentionTest extends TestCase
             ->assertSee('Niets vraagt op dit moment aandacht');
     }
 
-    public function test_vakman_cannot_open_attention_or_automations(): void
+    public function test_uitvoerder_cannot_open_attention_or_automations(): void
     {
-        $vakman = User::factory()->create(['role' => UserRole::Vakman]);
+        $uitvoerder = User::factory()->create(['role' => UserRole::Uitvoerder]);
 
-        $this->actingAs($vakman)->get('/aandacht')->assertForbidden();
-        $this->actingAs($vakman)->get('/automations')->assertForbidden();
+        $this->actingAs($uitvoerder)->get('/aandacht')->assertForbidden();
+        $this->actingAs($uitvoerder)->get('/automations')->assertForbidden();
     }
 
     public function test_automations_page_lists_automations(): void

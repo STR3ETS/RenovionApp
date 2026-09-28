@@ -31,7 +31,7 @@ class SeederTest extends TestCase
         $this->assertTrue(Hash::check('.ydX7Q.,Ck#2_Iwf', $imad->password));
 
         $peter = User::firstWhere('email', 'peter@renovion.nl');
-        $this->assertSame(UserRole::Vakman, $peter->role);
+        $this->assertSame(UserRole::Uitvoerder, $peter->role);
     }
 
     public function test_seeding_locally_adds_demo_data_on_top_of_the_team(): void

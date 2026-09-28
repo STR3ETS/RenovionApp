@@ -14,6 +14,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectStatusController;
 use App\Http\Controllers\QuoteController;
 use App\Http\Controllers\QuoteStatusController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TaskStatusController;
 use App\Http\Controllers\TeamController;
@@ -24,7 +25,7 @@ Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:l
 Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
 Route::middleware('auth')->group(function () {
-    // Voor iedereen (vakmensen zien alleen hun eigen projecten, taken en planning).
+    // Voor iedereen (uitvoerders zien alleen hun eigen projecten, taken en planning).
     Route::get('/', DashboardController::class)->name('dashboard');
 
     Route::get('projecten', [ProjectController::class, 'index'])->name('projects.index');
@@ -41,7 +42,7 @@ Route::middleware('auth')->group(function () {
     Route::post('documenten', [DocumentController::class, 'store'])->name('documents.store');
     Route::get('documenten/{document}', [DocumentController::class, 'show'])->name('documents.show');
 
-    // CRM en beheer: niet voor vakmensen (briefing §25).
+    // CRM en beheer: niet voor uitvoerders (briefing §15).
     Route::middleware('can:manage-crm')->group(function () {
         Route::resource('aanvragen', LeadController::class)
             ->parameters(['aanvragen' => 'lead'])
@@ -73,6 +74,8 @@ Route::middleware('auth')->group(function () {
         Route::get('nova/briefing', [NovaController::class, 'briefing'])->name('nova.briefing');
 
         Route::get('aandacht', [AttentionController::class, 'index'])->name('attention.index');
+
+        Route::get('zoeken', SearchController::class)->name('search');
 
         if (config('renovion.modules.automations')) {
             Route::get('automations', [AutomationController::class, 'index'])->name('automations.index');

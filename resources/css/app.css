@@ -8,31 +8,32 @@
     --font-sans: 'Inter Tight', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 
-    /* Renovion oranje — primaire actiekleur (van renovion.nl) */
-    --color-brand-50: #fef6ec;
-    --color-brand-100: #fdeacf;
-    --color-brand-200: #fad29e;
-    --color-brand-300: #f8b463;
-    --color-brand-400: #f69a3d;
-    --color-brand-500: #f58220;
-    --color-brand-600: #eb5d16;
-    --color-brand-700: #c34712;
-    --color-brand-800: #9b3915;
-    --color-brand-900: #7d3014;
+    /* Renovion oranje — primaire actiekleur (briefing v2 huisstijl: #F85B0B) */
+    --color-brand-50: #fff4ed;
+    --color-brand-100: #ffe4d4;
+    --color-brand-200: #ffc6a8;
+    --color-brand-300: #ff9e70;
+    --color-brand-400: #fc7737;
+    --color-brand-500: #f85b0b;
+    --color-brand-600: #e04c06;
+    --color-brand-700: #ba3a08;
+    --color-brand-800: #942f0e;
+    --color-brand-900: #77290f;
 
-    /* Renovion donker navy — headers en donkere vlakken */
-    --color-navy-50: #eef0f7;
-    --color-navy-100: #d8dcec;
-    --color-navy-200: #b3bad9;
-    --color-navy-300: #8b94c2;
-    --color-navy-400: #5f68a3;
-    --color-navy-500: #3f4783;
-    --color-navy-600: #2c3268;
-    --color-navy-700: #1e224e;
-    --color-navy-800: #131538;
-    --color-navy-900: #0a0a28;
+    /* Renovion navy — sidebar, headers en donkere vlakken (briefing v2: #070724 / #0B0B2B) */
+    --color-navy-50: #eeeef6;
+    --color-navy-100: #d9d9eb;
+    --color-navy-200: #b4b5d8;
+    --color-navy-300: #8b8cc0;
+    --color-navy-400: #6163a3;
+    --color-navy-500: #414382;
+    --color-navy-600: #2d2e66;
+    --color-navy-700: #1f204f;
+    --color-navy-800: #14143c;
+    --color-navy-900: #0b0b2b;
+    --color-navy-950: #070724;
 
-    /* Staalblauw — links en secundaire accenten */
+    /* Staalblauw — secundaire accenten (v1, wordt uitgefaseerd) */
     --color-steel-50: #f2f6fa;
     --color-steel-100: #dfe9f2;
     --color-steel-200: #c0d3e5;

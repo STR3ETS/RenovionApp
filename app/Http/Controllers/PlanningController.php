@@ -28,15 +28,15 @@ class PlanningController extends Controller
             ->get();
 
         if ($request->user()->cannot('manage-crm')) {
-            // Vakmensen zien alleen hun eigen planning.
+            // Uitvoerders zien alleen hun eigen planning.
             $rows = collect([$request->user()]);
         } else {
-            $vakmensen = User::vakmensen()->orderBy('name')->get();
+            $uitvoerders = User::uitvoerders()->orderBy('name')->get();
 
-            // Toon ook rijen voor niet-vakmensen (bijv. sales-afspraken) met entries deze week.
-            $rows = $vakmensen->merge(
+            // Toon ook rijen voor niet-uitvoerders (bijv. sales-afspraken) met entries deze week.
+            $rows = $uitvoerders->merge(
                 $entries->pluck('user')->unique('id')->reject(
-                    fn (User $user) => $vakmensen->contains('id', $user->id)
+                    fn (User $user) => $uitvoerders->contains('id', $user->id)
                 )
             );
         }

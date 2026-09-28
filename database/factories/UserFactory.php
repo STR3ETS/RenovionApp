@@ -35,9 +35,9 @@ class UserFactory extends Factory
         ];
     }
 
-    public function vakman(): static
+    public function uitvoerder(): static
     {
-        return $this->state(['role' => UserRole::Vakman]);
+        return $this->state(['role' => UserRole::Uitvoerder]);
     }
 
     /**

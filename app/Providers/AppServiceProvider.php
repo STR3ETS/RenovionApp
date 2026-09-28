@@ -7,6 +7,7 @@ use App\Models\Customer;
 use App\Models\Document;
 use App\Models\Lead;
 use App\Models\Project;
+use App\Models\ProjectPhase;
 use App\Models\Quote;
 use App\Models\ScheduleEntry;
 use App\Models\Task;
@@ -39,6 +40,7 @@ class AppServiceProvider extends ServiceProvider
             'document' => Document::class,
             'lead' => Lead::class,
             'project' => Project::class,
+            'project_phase' => ProjectPhase::class,
             'quote' => Quote::class,
             'schedule_entry' => ScheduleEntry::class,
             'task' => Task::class,
@@ -51,8 +53,8 @@ class AppServiceProvider extends ServiceProvider
             ));
         });
 
-        // Briefing §25: vakmensen zien alleen hun eigen projecten, taken en planning.
-        Gate::define('manage-crm', fn (User $user) => $user->role !== UserRole::Vakman);
+        // Briefing §15: uitvoerders zien alleen hun eigen projecten, taken en planning.
+        Gate::define('manage-crm', fn (User $user) => $user->role !== UserRole::Uitvoerder);
 
         // Teambeheer (gebruikers aanmaken/bewerken) is alleen voor admins.
         Gate::define('manage-team', fn (User $user) => $user->role === UserRole::Admin);

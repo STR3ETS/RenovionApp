@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PhaseStatus;
 use App\Enums\ProjectStatus;
 use Database\Factories\ProjectFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -23,6 +24,21 @@ class Project extends Model
 {
     /** @use HasFactory<ProjectFactory> */
     use HasFactory;
+
+    /**
+     * Elk project krijgt bij aanmaak de vaste fasen 0–8 (briefing §7),
+     * ongeacht waar het ontstaat (handmatig, offerte-akkoord of Nova).
+     */
+    protected static function booted(): void
+    {
+        static::created(function (Project $project) {
+            $project->phases()->createMany(collect(ProjectPhase::NAMES)->map(fn (string $name, int $position) => [
+                'position' => $position,
+                'name' => $name,
+                'status' => $position === 0 ? PhaseStatus::Bezig : PhaseStatus::NietGestart,
+            ])->all());
+        });
+    }
 
     /**
      * @return array<string, string>
@@ -65,6 +81,20 @@ class Project extends Model
     public function craftsmen(): BelongsToMany
     {
         return $this->belongsToMany(User::class);
+    }
+
+    public function phases(): HasMany
+    {
+        return $this->hasMany(ProjectPhase::class)->orderBy('position');
+    }
+
+    /**
+     * De fase waar het project nu in zit: de eerste die nog niet gereed is.
+     */
+    public function currentPhase(): ?ProjectPhase
+    {
+        return $this->phases->firstWhere(fn (ProjectPhase $phase) => $phase->status !== PhaseStatus::Gereed)
+            ?? $this->phases->last();
     }
 
     public function tasks(): HasMany

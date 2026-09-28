@@ -32,6 +32,7 @@ class UpdateProjectRequest extends FormRequest
             'project_leader_id' => ['nullable', 'exists:users,id'],
             'craftsmen' => ['nullable', 'array'],
             'craftsmen.*' => ['exists:users,id'],
+            'current_phase' => ['sometimes', 'integer', 'min:0', 'max:8'],
             'progress' => ['nullable', 'integer', 'min:0', 'max:100'],
             'notes' => ['nullable', 'string', 'max:5000'],
         ];

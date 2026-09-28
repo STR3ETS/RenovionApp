@@ -7,6 +7,18 @@
         @endcan
     </x-page-header>
 
+    {{-- Fasering (briefing §7): voortgang + fase-stepper --}}
+    <section class="mb-4 rounded-2xl border border-gray-200 bg-white p-5">
+        <div class="mb-2 flex items-center justify-between">
+            <h2 class="text-sm font-bold text-navy-900">Projectvoortgang</h2>
+            <span class="text-xs font-semibold text-gray-400">{{ $project->progress }}%</span>
+        </div>
+        <div class="mb-5 h-2 overflow-hidden rounded-full bg-gray-100">
+            <div class="h-full rounded-full bg-brand-500" style="width: {{ $project->progress }}%"></div>
+        </div>
+        <x-phase-stepper :project="$project" />
+    </section>
+
     <div class="grid gap-4 lg:grid-cols-3">
         <div class="space-y-4 lg:col-span-2">
 
@@ -162,9 +174,9 @@
                 </dl>
             </section>
 
-            {{-- Vakmensen --}}
+            {{-- Uitvoerders --}}
             <section class="rounded-2xl border border-gray-200 bg-white p-5">
-                <h2 class="mb-3 text-sm font-bold text-navy-900">Vakmensen</h2>
+                <h2 class="mb-3 text-sm font-bold text-navy-900">Uitvoerders</h2>
                 @forelse ($project->craftsmen as $craftsman)
                     <div class="mb-2 flex items-center gap-2 text-sm">
                         <span class="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700">{{ str($craftsman->name)->substr(0, 1)->upper() }}</span>

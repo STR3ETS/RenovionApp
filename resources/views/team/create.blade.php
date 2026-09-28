@@ -19,7 +19,7 @@
                 <x-field label="Rol *" name="role">
                     <select name="role" id="role" required class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
                         @foreach (\App\Enums\UserRole::cases() as $role)
-                            <option value="{{ $role->value }}" @selected(old('role', 'vakman') === $role->value)>{{ $role->label() }}</option>
+                            <option value="{{ $role->value }}" @selected(old('role', 'uitvoerder') === $role->value)>{{ $role->label() }}</option>
                         @endforeach
                     </select>
                 </x-field>

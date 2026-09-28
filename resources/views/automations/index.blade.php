@@ -35,7 +35,7 @@
     </div>
 
     <p class="mt-4 text-xs text-gray-400">
-        Automations voor vakmanstatus, reviewflow en WhatsApp volgen in fase 3.
+        Automations voor uitvoerdersstatus, reviewflow en WhatsApp volgen later.
     </p>
 
 </x-layouts.app>

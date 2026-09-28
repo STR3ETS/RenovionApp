@@ -14,15 +14,15 @@ class TeamTest extends TestCase
     public function test_admin_can_view_the_team_page(): void
     {
         $admin = User::factory()->create(['name' => 'Imad Admin']);
-        User::factory()->vakman()->create(['name' => 'Peter Stukadoor']);
+        User::factory()->uitvoerder()->create(['name' => 'Peter Stukadoor']);
 
         $this->actingAs($admin)->get('/team')
             ->assertOk()
             ->assertSee('Peter Stukadoor')
-            ->assertSee('Vakman');
+            ->assertSee('Uitvoerder');
     }
 
-    public function test_admin_can_create_a_new_vakman(): void
+    public function test_admin_can_create_a_new_uitvoerder(): void
     {
         $admin = User::factory()->create();
 
@@ -30,7 +30,7 @@ class TeamTest extends TestCase
             'name' => 'Ahmed Tegelzetter',
             'email' => 'ahmed@renovion.nl',
             'phone' => '06-11122233',
-            'role' => 'vakman',
+            'role' => 'uitvoerder',
             'password' => 'geheim-wachtwoord',
         ]);
 
@@ -39,7 +39,7 @@ class TeamTest extends TestCase
         $this->assertDatabaseHas('users', [
             'name' => 'Ahmed Tegelzetter',
             'email' => 'ahmed@renovion.nl',
-            'role' => 'vakman',
+            'role' => 'uitvoerder',
         ]);
         $this->assertDatabaseHas('audit_logs', ['auditable_type' => 'user', 'action' => 'aangemaakt']);
 
@@ -51,16 +51,16 @@ class TeamTest extends TestCase
     public function test_admin_can_edit_a_team_member(): void
     {
         $admin = User::factory()->create();
-        $vakman = User::factory()->vakman()->create();
+        $uitvoerder = User::factory()->uitvoerder()->create();
 
-        $this->actingAs($admin)->patch('/team/'.$vakman->id, [
+        $this->actingAs($admin)->patch('/team/'.$uitvoerder->id, [
             'name' => 'Nieuwe Naam',
-            'email' => $vakman->email,
+            'email' => $uitvoerder->email,
             'role' => 'projectleider',
         ])->assertRedirect(route('team.index'));
 
         $this->assertDatabaseHas('users', [
-            'id' => $vakman->id,
+            'id' => $uitvoerder->id,
             'name' => 'Nieuwe Naam',
             'role' => 'projectleider',
         ]);
@@ -73,7 +73,7 @@ class TeamTest extends TestCase
         $this->actingAs($admin)->patch('/team/'.$admin->id, [
             'name' => $admin->name,
             'email' => $admin->email,
-            'role' => 'vakman',
+            'role' => 'uitvoerder',
         ]);
 
         $this->assertSame(UserRole::Admin, $admin->refresh()->role);
@@ -81,7 +81,7 @@ class TeamTest extends TestCase
 
     public function test_non_admins_cannot_manage_the_team(): void
     {
-        foreach ([UserRole::Sales, UserRole::Projectleider, UserRole::Vakman] as $role) {
+        foreach ([UserRole::Sales, UserRole::Projectleider, UserRole::Werkvoorbereider, UserRole::Uitvoerder] as $role) {
             $user = User::factory()->create(['role' => $role]);
 
             $this->actingAs($user)->get('/team')->assertForbidden();
