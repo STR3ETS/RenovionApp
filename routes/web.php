@@ -6,6 +6,7 @@ use App\Http\Controllers\AutomationController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\LeadContactController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\LeadStatusController;
 use App\Http\Controllers\NovaController;
@@ -49,6 +50,7 @@ Route::middleware('auth')->group(function () {
             ->names('leads')
             ->except('destroy');
         Route::patch('aanvragen/{lead}/status', [LeadStatusController::class, 'update'])->name('leads.status');
+        Route::post('aanvragen/{lead}/contactmomenten', [LeadContactController::class, 'store'])->name('leads.contacts.store');
 
         Route::get('klanten', [CustomerController::class, 'index'])->name('customers.index');
         Route::get('klanten/{customer}', [CustomerController::class, 'show'])->name('customers.show');

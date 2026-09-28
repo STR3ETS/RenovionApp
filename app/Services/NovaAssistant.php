@@ -29,7 +29,7 @@ class NovaAssistant
     /**
      * @var array<int, string>
      */
-    public const ACTIONS = ['create_task', 'create_appointment', 'create_note'];
+    public const ACTIONS = ['create_task', 'create_appointment', 'create_note', 'log_contact'];
 
     public function isConfigured(): bool
     {
@@ -143,6 +143,7 @@ class NovaAssistant
             'create_task' => $this->executeCreateTask($validated, $user, $source),
             'create_appointment' => $this->executeCreateAppointment($validated, $user, $source),
             'create_note' => $this->executeCreateNote($validated, $user, $source),
+            'log_contact' => $this->executeLogContact($validated, $source),
         });
     }
 
@@ -175,6 +176,13 @@ class NovaAssistant
             'create_note' => [
                 'customer_id' => ['required', 'integer', 'exists:customers,id'],
                 'body' => ['required', 'string', 'max:5000'],
+            ],
+            'log_contact' => [
+                'lead_id' => ['required', 'integer', 'exists:leads,id'],
+                'type' => ['required', Rule::in(['telefoon', 'email', 'whatsapp', 'bezoek'])],
+                'summary' => ['required', 'string', 'max:2000'],
+                'next_action' => ['nullable', 'string', 'max:255'],
+                'next_action_at' => ['nullable', 'date'],
             ],
             default => [],
         };
@@ -212,6 +220,12 @@ class NovaAssistant
                 isset($params['title']) ? '— '.$params['title'] : null,
             ])->filter()->implode(' · '),
             'create_note' => 'Notitie bij '.($customer?->name ?? 'klant').': "'.str($params['body'])->limit(120).'"',
+            'log_contact' => collect([
+                'Contactmoment ('.$params['type'].') vastleggen bij '.(Lead::find($params['lead_id'])?->customer->name ?? 'aanvraag'),
+                '"'.str($params['summary'])->limit(120).'"',
+                isset($params['next_action']) ? 'volgende actie: '.$params['next_action'] : null,
+                isset($params['next_action_at']) ? 'gepland '.Carbon::parse($params['next_action_at'])->translatedFormat('D j M H:i') : null,
+            ])->filter()->implode(' · '),
             default => 'Onbekende actie',
         };
     }
@@ -296,6 +310,34 @@ class NovaAssistant
         return ['message' => 'Notitie toegevoegd aan het dossier van '.$customer->name.'.', 'url' => route('customers.show', $customer)];
     }
 
+    /**
+     * @param  array<string, mixed>  $params
+     * @return array{message: string, url: string|null}
+     */
+    private function executeLogContact(array $params, ActionSource $source): array
+    {
+        $lead = Lead::with('customer')->findOrFail($params['lead_id']);
+
+        $lead->logContact(
+            match ($params['type']) {
+                'telefoon' => TimelineEventType::Telefoon,
+                'email' => TimelineEventType::Email,
+                'whatsapp' => TimelineEventType::Whatsapp,
+                'bezoek' => TimelineEventType::Afspraak,
+            },
+            $params['summary'],
+            $params['next_action'] ?? null,
+            $params['next_action_at'] ?? null,
+            $source,
+        );
+
+        return [
+            'message' => 'Contactmoment vastgelegd bij '.$lead->customer->name.'.'
+                .(isset($params['next_action']) ? ' Volgende actie: '.$params['next_action'].'.' : ''),
+            'url' => route('leads.show', $lead),
+        ];
+    }
+
     private function systemPrompt(User $user): string
     {
         $customers = Customer::orderBy('name')->limit(150)->get(['id', 'name', 'city', 'phone'])
@@ -315,7 +357,7 @@ class NovaAssistant
             Je praat met {$user->name} ({$user->role->label()}). Antwoord altijd in het Nederlands, kort en to-the-point.
             Vandaag is het {$this->today()}.
 
-            Jouw taak: herken wat de gebruiker wil en zet er een actie voor klaar met een van je tools (taak aanmaken, afspraak/terugbelafspraak inplannen, notitie toevoegen).
+            Jouw taak: herken wat de gebruiker wil en zet er een actie voor klaar met een van je tools (taak aanmaken, afspraak/terugbelafspraak inplannen, notitie toevoegen, contactmoment vastleggen bij een aanvraag).
             De gebruiker bevestigt of annuleert het voorstel — jij voert zelf nooit iets definitief uit.
 
             Regels:
@@ -397,6 +439,21 @@ class NovaAssistant
                         'body' => ['type' => 'string', 'description' => 'De inhoud van de notitie'],
                     ],
                     'required' => ['customer_id', 'body'],
+                ],
+            ],
+            [
+                'name' => 'log_contact',
+                'description' => 'Leg een contactmoment vast bij een open aanvraag: gebeld, gemaild, geappt of langsgeweest. Gebruik dit bij "ik heb net gebeld met ...", "gesproken met ...", "geappt met ...". Plan waar mogelijk direct de volgende actie mee in.',
+                'inputSchema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'lead_id' => ['type' => 'integer', 'description' => 'Id van de aanvraag (zie OPEN AANVRAGEN)'],
+                        'type' => ['type' => 'string', 'enum' => ['telefoon', 'email', 'whatsapp', 'bezoek']],
+                        'summary' => ['type' => 'string', 'description' => 'Korte samenvatting van wat er is besproken'],
+                        'next_action' => ['type' => 'string', 'description' => 'De afgesproken vervolgactie, bijv. "offerte nasturen"'],
+                        'next_action_at' => ['type' => 'string', 'description' => 'Wanneer de vervolgactie gepland staat, als "YYYY-MM-DD HH:MM"'],
+                    ],
+                    'required' => ['lead_id', 'type', 'summary'],
                 ],
             ],
         ];

@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Enums\LeadStatus;
 use App\Models\Customer;
+use App\Models\Lead;
 use App\Models\Project;
 use App\Models\User;
 use App\Services\NovaAssistant;
@@ -144,6 +146,41 @@ class NovaTest extends TestCase
             'title' => 'Materiaal nabellen',
             'project_id' => $project->id,
             'customer_id' => $project->customer_id,
+        ]);
+    }
+
+    public function test_execute_logs_a_contact_moment_on_a_lead(): void
+    {
+        $user = User::factory()->create();
+        $lead = Lead::factory()->create(['status' => LeadStatus::Nieuw]);
+
+        $this->actingAs($user)->postJson('/nova/uitvoeren', [
+            'action' => [
+                'type' => 'log_contact',
+                'params' => [
+                    'lead_id' => $lead->id,
+                    'type' => 'telefoon',
+                    'summary' => 'Gebeld: klant stuurt foto\'s van de badkamer door.',
+                    'next_action' => 'Foto\'s beoordelen en terugbellen',
+                    'next_action_at' => now()->addDays(2)->format('Y-m-d H:i'),
+                ],
+            ],
+        ])->assertOk();
+
+        $lead->refresh();
+        $this->assertNotNull($lead->last_contact_at);
+        $this->assertSame(LeadStatus::Contact, $lead->status);
+        $this->assertSame('Foto\'s beoordelen en terugbellen', $lead->next_action);
+
+        $this->assertDatabaseHas('timeline_events', [
+            'customer_id' => $lead->customer_id,
+            'type' => 'telefoon',
+            'source' => 'nova',
+        ]);
+        $this->assertDatabaseHas('audit_logs', [
+            'auditable_type' => 'lead',
+            'action' => 'contactmoment',
+            'source' => 'nova',
         ]);
     }
 

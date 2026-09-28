@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\QuoteStatus;
 use App\Enums\UserRole;
+use App\Models\Lead;
 use App\Models\Project;
 use App\Models\Quote;
 use App\Models\Task;
@@ -38,6 +39,24 @@ class AttentionTest extends TestCase
         $response->assertSee('Badkamer Uitloop');
         $response->assertSee('Offerte niet opgevolgd');
         $response->assertSee('Verlopen taak');
+    }
+
+    public function test_attention_flags_leads_without_planned_follow_up(): void
+    {
+        $user = User::factory()->create(['role' => UserRole::Admin]);
+
+        $stil = Lead::factory()->create(['next_action_at' => null, 'last_contact_at' => now()->subDays(5)]);
+        $stil->customer->update(['name' => 'Familie Stilgevallen']);
+
+        $vers = Lead::factory()->create(['next_action_at' => null, 'last_contact_at' => now()->subDay()]);
+        $vers->customer->update(['name' => 'Familie Vers']);
+
+        $response = $this->actingAs($user)->get('/aandacht');
+
+        $response->assertOk();
+        $response->assertSee('Aanvraag zonder opvolging');
+        $response->assertSee('Familie Stilgevallen');
+        $response->assertDontSee('Familie Vers');
     }
 
     public function test_attention_page_is_empty_when_everything_is_on_track(): void

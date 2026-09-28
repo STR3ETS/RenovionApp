@@ -66,6 +66,9 @@
                     @if ($lead->missingPhone())
                         <x-signal-dot color="amber" title="Geen telefoonnummer" />
                     @endif
+                    @if ($lead->qualification !== \App\Enums\LeadQualification::Onbeoordeeld)
+                        <span class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-semibold {{ $lead->qualification->badgeClasses() }}">{{ $lead->qualification->label() }}</span>
+                    @endif
                     <x-status-badge :status="$lead->status" />
                 </a>
             @empty

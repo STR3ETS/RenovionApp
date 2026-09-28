@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\LeadStatus;
 use App\Enums\ScheduleEntryType;
 use App\Models\Lead;
 use App\Models\Project;
@@ -28,6 +29,7 @@ class AttentionService
             ->concat($this->missingDeposits())
             ->concat($this->planningConflicts())
             ->concat($this->waitingCustomers())
+            ->concat($this->silentLeads())
             ->concat($this->overdueTasks())
             ->sortBy(fn (array $item) => $item['severity'] === 'rood' ? 0 : 1)
             ->values();
@@ -198,6 +200,32 @@ class AttentionService
                 'label' => 'Klant wacht op reactie',
                 'title' => $lead->customer->name,
                 'subtitle' => ($lead->next_action ?? 'Opvolgen').' · gepland '.$lead->next_action_at->translatedFormat('j M H:i'),
+                'url' => route('leads.show', $lead),
+            ]);
+    }
+
+    /**
+     * Stille aanvragen (briefing §4): open, geen volgende actie gepland en al
+     * minstens 3 dagen geen contactmoment. Nova bewaakt dat er contact blijft.
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function silentLeads(): Collection
+    {
+        return Lead::open()
+            ->where('status', '!=', LeadStatus::OnHold)
+            ->whereNull('next_action_at')
+            ->whereRaw('coalesce(last_contact_at, created_at) <= ?', [now()->subDays(3)])
+            ->with('customer')
+            ->get()
+            ->map(fn (Lead $lead) => [
+                'severity' => 'oranje',
+                'icon' => 'phone',
+                'label' => 'Aanvraag zonder opvolging',
+                'title' => $lead->customer->name,
+                'subtitle' => ($lead->last_contact_at === null
+                    ? 'nog geen contactmoment sinds de aanvraag ('.(int) $lead->created_at->diffInDays().' dagen)'
+                    : 'laatste contact '.$lead->last_contact_at->translatedFormat('j M')).' · geen volgende actie gepland',
                 'url' => route('leads.show', $lead),
             ]);
     }

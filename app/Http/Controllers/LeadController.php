@@ -72,6 +72,7 @@ class LeadController extends Controller
                 'source' => ActionSource::Handmatig,
                 'status' => LeadStatus::Nieuw,
                 'value' => $validated['value'] ?? null,
+                'desired_start' => $validated['desired_start'] ?? null,
                 'assigned_to' => $validated['assigned_to'] ?? null,
                 'next_action' => $validated['next_action'] ?? null,
                 'next_action_at' => $validated['next_action_at'] ?? null,
@@ -126,7 +127,7 @@ class LeadController extends Controller
                 ->all());
 
             $lead->update(collect($validated)
-                ->only(['service', 'description', 'value', 'assigned_to', 'last_contact_at', 'next_action', 'next_action_at'])
+                ->only(['service', 'description', 'value', 'qualification', 'desired_start', 'assigned_to', 'last_contact_at', 'next_action', 'next_action_at'])
                 ->all());
 
             if ($phoneWasMissing && filled($customer->phone)) {

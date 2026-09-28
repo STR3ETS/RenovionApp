@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\LeadQualification;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateLeadRequest extends FormRequest
 {
@@ -27,6 +29,8 @@ class UpdateLeadRequest extends FormRequest
             'service' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
             'value' => ['nullable', 'numeric', 'min:0'],
+            'qualification' => ['sometimes', Rule::enum(LeadQualification::class)],
+            'desired_start' => ['nullable', 'string', 'max:100'],
             'assigned_to' => ['nullable', 'exists:users,id'],
             'last_contact_at' => ['nullable', 'date'],
             'next_action' => ['nullable', 'string', 'max:255'],

@@ -67,6 +67,9 @@
                 <x-field label="Indicatieve waarde (€)" name="value">
                     <input type="number" name="value" id="value" value="{{ old('value') }}" min="0" step="100" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
                 </x-field>
+                <x-field label="Gewenste start" name="desired_start">
+                    <input type="text" name="desired_start" id="desired_start" value="{{ old('desired_start') }}" placeholder="Bijv. voorjaar 2027" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+                </x-field>
                 <x-field label="Omschrijving" name="description" class="sm:col-span-2">
                     <textarea name="description" id="description" rows="3" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">{{ old('description') }}</textarea>
                 </x-field>

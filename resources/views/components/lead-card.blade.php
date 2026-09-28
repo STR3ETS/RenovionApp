@@ -3,7 +3,12 @@
 {{-- Leadcard volgens briefing: alleen wat nodig is om een beslissing te nemen. --}}
 <div {{ $attributes->merge(['class' => 'rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition hover:border-brand-300']) }}>
     <a href="{{ route('leads.show', $lead) }}" class="block">
-        <p class="font-semibold text-navy-900">{{ $lead->customer->name }}</p>
+        <div class="flex items-start justify-between gap-2">
+            <p class="font-semibold text-navy-900">{{ $lead->customer->name }}</p>
+            @if ($lead->qualification !== \App\Enums\LeadQualification::Onbeoordeeld)
+                <x-signal-dot :color="$lead->qualification->dotColor()" class="mt-1.5" title="Kwalificatie: {{ $lead->qualification->label() }}" />
+            @endif
+        </div>
         <p class="text-xs text-gray-500">{{ $lead->customer->city ?? 'Plaats onbekend' }}</p>
         @if ($lead->service)
             <p class="mt-1 text-sm text-gray-700">{{ $lead->service }}</p>
@@ -20,6 +25,11 @@
                 <p class="flex items-center gap-1.5 text-xs font-medium text-red-600"><x-signal-dot color="red" /> Opvolging verlopen ({{ $lead->next_action_at->translatedFormat('j M') }})</p>
             @elseif ($lead->needsFollowUpToday())
                 <p class="flex items-center gap-1.5 text-xs font-medium text-amber-600"><x-icon name="calendar" class="h-3.5 w-3.5" /> Vandaag opvolgen</p>
+            @elseif ($lead->isSilent())
+                <p class="flex items-center gap-1.5 text-xs font-medium text-amber-600"><x-signal-dot color="amber" /> Geen opvolging gepland</p>
+            @endif
+            @if ($lead->status->isOpen() && $lead->qualification === \App\Enums\LeadQualification::Onbeoordeeld)
+                <p class="flex items-center gap-1.5 text-xs font-medium text-gray-400"><x-signal-dot color="gray" /> Nog kwalificeren</p>
             @endif
             @if (config('renovion.modules.quotes'))
                 @foreach ($lead->quotes->filter(fn ($quote) => $quote->status->isOpen() && $quote->daysOpen() !== null && $quote->daysOpen() >= 3) as $openQuote)
