@@ -27,7 +27,7 @@ CRM + projectmanagementsysteem voor **Renovion** (renovatiebedrijf, Arnhem — s
 MVP eerst als één verticale flow: lead → calculatie → offerte → akkoord → project → één uitvoeringsfase → foto-bewijs → klantakkoord → opleverrapport. Daarna verbreden.
 
 1. ✔ Sprint 1: huisstijl v2, rollen, projectfasen-fundament, globale zoekfunctie, fotokaarten.
-2. Leadflow verrijken (kwalificatie, contactmomenten).
+2. ✔ Sprint 2: leadkwalificatie (koud/warm/heet, gewenste start), contactmomenten (`Lead::logContact`, `POST aanvragen/{lead}/contactmomenten`), stille-aanvraag-signaal in Aandacht, Nova-actie `log_contact`.
 3. **Calculatiemodule** (§5): kostendatabase (Archidat-boeken als geversioneerde prijsbibliotheek — licentie vereist, Renovion-praktijkprijzen als eigen set), invoer handmatig/spraak/PDF, AI-regels altijd eerst tonen.
 4. **Offerte-editor** (§6): EasyDash-concept (links blokken, midden live document, rechts templates), klantview met digitaal ondertekenen (click-to-sign + audit), versies v1/v2/v3 als immutable snapshots, nummering REN-{jaar}-{volgnr}.
 5. Project core: werkpakketten, checklists, goedkeuringsgates per fase.
