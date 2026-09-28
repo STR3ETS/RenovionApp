@@ -29,6 +29,88 @@ async function sendJson(method, url, data) {
 window.patchJson = (url, data) => sendJson('PATCH', url, data);
 window.postJson = (url, data) => sendJson('POST', url, data);
 
+// Calculatie-invoer (briefing §5): omschrijving (getypt of ingesproken) → AI-regelvoorstel
+// dat de gebruiker eerst controleert en pas daarna opslaat.
+Alpine.data('calcCreate', (proposeUrl, initialDescription, initialSources) => ({
+    mode: 'handmatig',
+    description: initialDescription || '',
+    sources: initialSources || [],
+    busy: false,
+    listening: false,
+    recognition: null,
+    error: null,
+    proposal: null,
+
+    get speechSupported() {
+        return 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+    },
+
+    get proposalTotal() {
+        if (!this.proposal) return 0;
+        return this.proposal.lines.reduce((sum, line) => sum + this.lineTotal(line), 0);
+    },
+
+    lineTotal(line) {
+        return line.quantity * line.unit_price * (1 + (line.surcharge_pct || 0) / 100);
+    },
+
+    euro(value) {
+        return new Intl.NumberFormat('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+    },
+
+    toggleSource(source) {
+        this.sources = this.sources.includes(source)
+            ? this.sources.filter((item) => item !== source)
+            : [...this.sources, source];
+    },
+
+    removeLine(index) {
+        this.proposal.lines.splice(index, 1);
+        if (this.proposal.lines.length === 0) this.proposal = null;
+    },
+
+    toggleMic() {
+        if (!this.speechSupported) return;
+
+        if (this.listening) {
+            this.recognition?.stop();
+            return;
+        }
+
+        const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const startingText = this.description ? this.description.trim() + ' ' : '';
+        this.recognition = new Recognition();
+        this.recognition.lang = 'nl-NL';
+        this.recognition.interimResults = true;
+
+        this.recognition.onresult = (event) => {
+            const transcript = Array.from(event.results).map((r) => r[0].transcript).join('');
+            this.description = startingText + transcript;
+        };
+        this.recognition.onend = () => { this.listening = false; };
+        this.recognition.onerror = () => { this.listening = false; };
+
+        this.listening = true;
+        this.recognition.start();
+    },
+
+    async propose() {
+        if (!this.description.trim() || this.busy) return;
+
+        this.busy = true;
+        this.error = null;
+        this.proposal = null;
+
+        try {
+            this.proposal = await postJson(proposeUrl, { description: this.description, sources: this.sources });
+        } catch (error) {
+            this.error = error.message;
+        }
+
+        this.busy = false;
+    },
+}));
+
 // Nova-assistent: chat + voorstel/bevestiging + browser-spraakherkenning (nl-NL).
 Alpine.data('nova', (proposeUrl, executeUrl) => ({
     open: false,

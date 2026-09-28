@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\UserRole;
 use App\Models\Customer;
+use App\Models\PriceItem;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\TeamSeeder;
@@ -25,6 +26,7 @@ class SeederTest extends TestCase
         $this->assertDatabaseCount('users', 4);
         $this->assertDatabaseCount('customers', 0);
         $this->assertDatabaseCount('projects', 0);
+        $this->assertTrue(PriceItem::count() > 0, 'De prijsbibliotheek hoort ook op productie geseed te worden.');
 
         $imad = User::firstWhere('email', 'imad@renovion.nl');
         $this->assertSame(UserRole::Admin, $imad->role);

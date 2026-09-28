@@ -27,13 +27,14 @@
 
             {{-- Snelle acties --}}
             @php $quotesEnabled = config('renovion.modules.quotes'); @endphp
-            <div class="grid grid-cols-2 gap-2 {{ $quotesEnabled ? 'sm:grid-cols-4' : 'sm:grid-cols-3' }}">
+            <div class="grid grid-cols-2 gap-2 {{ $quotesEnabled ? 'sm:grid-cols-5' : 'sm:grid-cols-4' }}">
                 @if ($lead->customer->phone)
                     <a href="tel:{{ $lead->customer->phone }}" class="flex items-center justify-center gap-1.5 rounded-xl bg-brand-600 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-500"><x-icon name="phone" /> Bellen</a>
                 @endif
                 @if ($lead->customer->email)
                     <a href="mailto:{{ $lead->customer->email }}" class="flex items-center justify-center gap-1.5 rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm font-semibold text-navy-900 transition hover:border-brand-400"><x-icon name="envelope" /> Mailen</a>
                 @endif
+                <a href="{{ route('calculations.create', ['aanvraag' => $lead->id]) }}" class="flex items-center justify-center gap-1.5 rounded-xl bg-navy-900 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-navy-800"><x-icon name="calculator" /> Calculatie</a>
                 @if ($quotesEnabled)
                     <a href="{{ route('quotes.create', ['aanvraag' => $lead->id]) }}" class="flex items-center justify-center gap-1.5 rounded-xl bg-navy-900 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-navy-800"><x-icon name="document-text" /> Offerte maken</a>
                 @endif
@@ -117,6 +118,25 @@
                         <div class="sm:col-span-2"><dt class="text-gray-500">Omschrijving</dt><dd class="font-medium whitespace-pre-line">{{ $lead->description }}</dd></div>
                     @endif
                 </dl>
+            </section>
+
+            {{-- Calculaties --}}
+            <section class="rounded-2xl border border-gray-200 bg-white p-5">
+                <div class="mb-3 flex items-center justify-between">
+                    <h2 class="text-sm font-bold text-navy-900">Calculaties</h2>
+                    <a href="{{ route('calculations.create', ['aanvraag' => $lead->id]) }}" class="text-xs font-semibold text-brand-600 hover:text-brand-500">+ Nieuwe calculatie</a>
+                </div>
+                @forelse ($lead->calculations as $calculation)
+                    <a href="{{ route('calculations.show', $calculation) }}" class="mb-2 flex items-center justify-between gap-2 rounded-xl border border-gray-200 p-3 transition hover:border-brand-400">
+                        <span class="min-w-0">
+                            <span class="block truncate text-sm font-semibold text-navy-900">{{ $calculation->title }}</span>
+                            <span class="block text-xs text-gray-500">€ {{ number_format($calculation->totalExcl(), 2, ',', '.') }} excl. btw · {{ $calculation->lines->count() }} regels</span>
+                        </span>
+                        <span class="rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap {{ $calculation->status->badgeClasses() }}">{{ $calculation->status->label() }}</span>
+                    </a>
+                @empty
+                    <p class="text-sm text-gray-400">Nog geen calculaties voor deze aanvraag.</p>
+                @endforelse
             </section>
 
             {{-- Offertes --}}

@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Enums\UserRole;
+use App\Models\Calculation;
 use App\Models\Customer;
 use App\Models\Document;
 use App\Models\Lead;
@@ -36,6 +37,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Relation::enforceMorphMap([
+            'calculation' => Calculation::class,
             'customer' => Customer::class,
             'document' => Document::class,
             'lead' => Lead::class,

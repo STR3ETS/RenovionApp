@@ -59,6 +59,11 @@ class Lead extends Model
         return $this->hasMany(Quote::class);
     }
 
+    public function calculations(): HasMany
+    {
+        return $this->hasMany(Calculation::class);
+    }
+
     public function project(): HasOne
     {
         return $this->hasOne(Project::class);

@@ -10,6 +10,7 @@ enum TimelineEventType: string
     case Notitie = 'notitie';
     case VoiceMemo = 'voice_memo';
     case Afspraak = 'afspraak';
+    case Calculatie = 'calculatie';
     case Offerte = 'offerte';
     case Wijziging = 'wijziging';
     case Document = 'document';
@@ -27,6 +28,7 @@ enum TimelineEventType: string
             self::Notitie => 'Notitie',
             self::VoiceMemo => 'Voice memo',
             self::Afspraak => 'Afspraak',
+            self::Calculatie => 'Calculatie',
             self::Offerte => 'Offerte',
             self::Wijziging => 'Wijziging',
             self::Document => 'Document',
@@ -49,6 +51,7 @@ enum TimelineEventType: string
             self::Notitie => 'pencil-square',
             self::VoiceMemo => 'microphone',
             self::Afspraak => 'calendar',
+            self::Calculatie => 'calculator',
             self::Offerte => 'document-text',
             self::Wijziging => 'pencil',
             self::Document => 'paper-clip',

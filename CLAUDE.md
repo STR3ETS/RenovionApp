@@ -28,7 +28,7 @@ MVP eerst als één verticale flow: lead → calculatie → offerte → akkoord 
 
 1. ✔ Sprint 1: huisstijl v2, rollen, projectfasen-fundament, globale zoekfunctie, fotokaarten.
 2. ✔ Sprint 2: leadkwalificatie (koud/warm/heet, gewenste start), contactmomenten (`Lead::logContact`, `POST aanvragen/{lead}/contactmomenten`), stille-aanvraag-signaal in Aandacht, Nova-actie `log_contact`.
-3. **Calculatiemodule** (§5): kostendatabase (Archidat-boeken als geversioneerde prijsbibliotheek — licentie vereist, Renovion-praktijkprijzen als eigen set), invoer handmatig/spraak/PDF, AI-regels altijd eerst tonen.
+3. ✔ Sprint 3 — **Calculatiemodule** (§5): kostendatabase `PriceItem` (bron/editie/eenheid/indexfactor/opslag, `PriceLibrarySeeder` met Renovion-praktijkprijzen 2026, draait ook op productie; Archidat-import volgt zodra licentie rond is), `Calculation` + `CalculationLine` met prijssnapshot per regel (`Calculation::addLine`), totalen (subtotaal → onvoorzien% → marge% → btw%), definitief = regels op slot, [CalculationAssistant](app/Services/CalculationAssistant.php) vertaalt tekst/spraak naar regels die de gebruiker eerst controleert (`POST calculaties/ai-voorstel`), prijsbibliotheek-picker via `GET prijsitems`. PDF-import nog open.
 4. **Offerte-editor** (§6): EasyDash-concept (links blokken, midden live document, rechts templates), klantview met digitaal ondertekenen (click-to-sign + audit), versies v1/v2/v3 als immutable snapshots, nummering REN-{jaar}-{volgnr}.
 5. Project core: werkpakketten, checklists, goedkeuringsgates per fase.
 6. **Foto-bewijs** (§8): verplichte foto's per checklistitem (bijv. "min. 3 vóór dichtzetten"), taak kan niet dicht zonder bewijs, klant tekent "gezien en akkoord".

@@ -95,7 +95,7 @@ class LeadController extends Controller
 
     public function show(Lead $lead): View
     {
-        $lead->load(['customer.timelineEvents.user', 'assignee', 'quotes', 'project', 'tasks' => fn ($query) => $query->open()]);
+        $lead->load(['customer.timelineEvents.user', 'assignee', 'quotes', 'calculations.lines', 'project', 'tasks' => fn ($query) => $query->open()]);
 
         return view('leads.show', [
             'lead' => $lead,

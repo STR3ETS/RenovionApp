@@ -3,6 +3,9 @@
 use App\Http\Controllers\AttentionController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\AutomationController;
+use App\Http\Controllers\CalculationAssistController;
+use App\Http\Controllers\CalculationController;
+use App\Http\Controllers\CalculationLineController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentController;
@@ -11,6 +14,7 @@ use App\Http\Controllers\LeadController;
 use App\Http\Controllers\LeadStatusController;
 use App\Http\Controllers\NovaController;
 use App\Http\Controllers\PlanningController;
+use App\Http\Controllers\PriceItemSearchController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectStatusController;
 use App\Http\Controllers\QuoteController;
@@ -63,6 +67,18 @@ Route::middleware('auth')->group(function () {
                 ->names('quotes');
             Route::patch('offertes/{quote}/status', [QuoteStatusController::class, 'update'])->name('quotes.status');
         }
+
+        Route::get('calculaties', [CalculationController::class, 'index'])->name('calculations.index');
+        Route::get('calculaties/nieuw', [CalculationController::class, 'create'])->name('calculations.create');
+        Route::post('calculaties', [CalculationController::class, 'store'])->name('calculations.store');
+        Route::post('calculaties/ai-voorstel', CalculationAssistController::class)->middleware('throttle:30,1')->name('calculations.propose');
+        Route::get('calculaties/{calculation}', [CalculationController::class, 'show'])->name('calculations.show');
+        Route::match(['put', 'patch'], 'calculaties/{calculation}', [CalculationController::class, 'update'])->name('calculations.update');
+        Route::delete('calculaties/{calculation}', [CalculationController::class, 'destroy'])->name('calculations.destroy');
+        Route::post('calculaties/{calculation}/regels', [CalculationLineController::class, 'store'])->name('calculations.lines.store');
+        Route::patch('calculaties/{calculation}/regels/{line}', [CalculationLineController::class, 'update'])->scopeBindings()->name('calculations.lines.update');
+        Route::delete('calculaties/{calculation}/regels/{line}', [CalculationLineController::class, 'destroy'])->scopeBindings()->name('calculations.lines.destroy');
+        Route::get('prijsitems', PriceItemSearchController::class)->name('price-items.search');
 
         Route::post('projecten', [ProjectController::class, 'store'])->name('projects.store');
         Route::get('projecten/{project}/bewerken', [ProjectController::class, 'edit'])->name('projects.edit');

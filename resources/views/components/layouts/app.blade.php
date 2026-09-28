@@ -34,6 +34,7 @@
                     ['label' => 'Vandaag', 'icon' => 'home', 'route' => 'dashboard', 'active' => request()->routeIs('dashboard')],
                     ['label' => 'Aandacht', 'icon' => 'exclamation-triangle', 'route' => 'attention.index', 'active' => request()->routeIs('attention.*'), 'badge' => $aandachtCount],
                     ['label' => 'Aanvragen & Sales', 'icon' => 'inbox', 'route' => 'leads.index', 'active' => request()->routeIs('leads.*')],
+                    ['label' => 'Calculaties', 'icon' => 'calculator', 'route' => 'calculations.index', 'active' => request()->routeIs('calculations.*')],
                     config('renovion.modules.quotes') ? ['label' => 'Offertes', 'icon' => 'document-text', 'route' => 'quotes.index', 'active' => request()->routeIs('quotes.*')] : null,
                     ['label' => 'Projecten', 'icon' => 'building-office', 'route' => 'projects.index', 'active' => request()->routeIs('projects.*')],
                     ['label' => 'Planning', 'icon' => 'calendar', 'route' => 'planning.index', 'active' => request()->routeIs('planning.*')],
