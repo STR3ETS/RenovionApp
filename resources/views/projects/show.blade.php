@@ -1,6 +1,7 @@
 <x-layouts.app :title="$project->name">
 
-    <x-page-header :title="$project->name" :subtitle="$project->customer->name.' · '.($project->city ?? 'plaats onbekend')">
+    <x-page-header :title="$project->name" :subtitle="$project->customer->name.' · '.($project->city ?? 'plaats onbekend')"
+                   :image="$project->cover_photo_path ? route('projects.cover', $project) : null">
         <x-status-badge :status="$project->status" class="text-sm" />
         @can('manage-crm')
             <a href="{{ route('projects.edit', $project) }}" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">Bewerken</a>

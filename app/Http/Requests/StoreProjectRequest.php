@@ -39,6 +39,7 @@ class StoreProjectRequest extends FormRequest
             'craftsmen' => ['nullable', 'array'],
             'craftsmen.*' => ['exists:users,id'],
             'notes' => ['nullable', 'string', 'max:5000'],
+            'cover_photo' => ['nullable', 'image', 'max:5120'],
         ];
     }
 }

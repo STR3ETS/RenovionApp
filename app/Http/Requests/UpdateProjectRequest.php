@@ -33,6 +33,7 @@ class UpdateProjectRequest extends FormRequest
             'craftsmen' => ['nullable', 'array'],
             'craftsmen.*' => ['exists:users,id'],
             'current_phase' => ['sometimes', 'integer', 'min:0', 'max:8'],
+            'cover_photo' => ['nullable', 'image', 'max:5120'],
             'progress' => ['nullable', 'integer', 'min:0', 'max:100'],
             'notes' => ['nullable', 'string', 'max:5000'],
         ];

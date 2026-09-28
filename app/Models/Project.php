@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
     'customer_id', 'lead_id', 'quote_id', 'name', 'address', 'city', 'status',
     'value', 'deposit_amount', 'deposit_received_at', 'paid_amount', 'next_payment_due_at',
     'start_date', 'end_date_expected', 'end_date_actual', 'project_leader_id', 'progress', 'notes',
+    'cover_photo_path',
 ])]
 class Project extends Model
 {

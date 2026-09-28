@@ -40,7 +40,7 @@ MVP eerst als één verticale flow: lead → calculatie → offerte → akkoord 
 ## Huisstijl v2 (mockups §18)
 
 - **Kleuren:** oranje (primair/CTA) `#F85B0B` = `brand-500`; navy `#070724` = `navy-950` (sidebar) en `#0B0B2B` = `navy-900`; statuskleuren groen/oranje/rood/grijs. Tokens in [app.css](resources/css/app.css). Staalblauw (`steel-*`) is legacy en wordt uitgefaseerd.
-- **Look:** witte kaarten (`rounded-2xl border-gray-200`), veel witruimte, sidebar met iconen + oranje actieve pill, topbar met zoekbalk + "+ Nieuw", projectkaarten met foto (nu placeholder-gradient; foto-bewijs levert straks de echte omslag), voortgangsbalken, avatar-stacks.
+- **Look:** witte kaarten (`rounded-2xl border-gray-200`), veel witruimte, sidebar met iconen + oranje actieve pill, topbar met zoekbalk + "+ Nieuw", projectkaarten met foto (omslagfoto uploadbaar in het projectformulier, gestreamd via route `projects.cover` uit private storage — geen storage:link nodig; foto-bewijs kan de omslag later automatisch aanleveren), voortgangsbalken, avatar-stacks.
 - **Font:** Inter Tight (bunny.net). **Logo:** [renovion-logo.svg](public/images/renovion-logo.svg) — alleen op donkere achtergrond.
 - **Geen emoji's in de UI** (keuze Raphael): `<x-icon name="...">` (heroicons outline, [icon.blade.php](resources/views/components/icon.blade.php)), `<x-signal-dot>`, `<x-status-badge>`, `<x-stat-tile>`, `<x-project-card>`, `<x-phase-stepper>`.
 - Alle UI-teksten Nederlands. Bedrijfsgegevens: Mercatorweg 28, 6827 DC Arnhem · info@renovion.nl · +31 6 395 353 00 · KVK 95384782.

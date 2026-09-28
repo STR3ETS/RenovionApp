@@ -16,8 +16,10 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ProjectController extends Controller
 {
@@ -59,6 +61,7 @@ class ProjectController extends Controller
     public function store(StoreProjectRequest $request): RedirectResponse
     {
         $validated = $request->validated();
+        $validated['cover_photo_path'] = $request->file('cover_photo')?->store('project-covers');
 
         $project = DB::transaction(function () use ($validated) {
             $customer = isset($validated['customer_id'])
@@ -84,6 +87,7 @@ class ProjectController extends Controller
                 'end_date_expected' => $validated['end_date_expected'] ?? null,
                 'project_leader_id' => $validated['project_leader_id'] ?? null,
                 'notes' => $validated['notes'] ?? null,
+                'cover_photo_path' => $validated['cover_photo_path'],
             ]);
 
             $project->craftsmen()->sync($validated['craftsmen'] ?? []);
@@ -146,11 +150,17 @@ class ProjectController extends Controller
     {
         $validated = $request->validated();
 
+        $previousCoverPath = $project->cover_photo_path;
+
+        if ($request->hasFile('cover_photo')) {
+            $validated['cover_photo_path'] = $request->file('cover_photo')->store('project-covers');
+        }
+
         DB::transaction(function () use ($validated, $project) {
             $depositWasOutstanding = $project->depositOutstanding();
 
             $project->update(collect($validated)
-                ->except(['deposit_received', 'craftsmen', 'current_phase'])
+                ->except(['deposit_received', 'craftsmen', 'current_phase', 'cover_photo'])
                 ->all());
 
             if (array_key_exists('current_phase', $validated)) {
@@ -193,7 +203,27 @@ class ProjectController extends Controller
             }
         });
 
+        if (isset($validated['cover_photo_path']) && $previousCoverPath !== null && $previousCoverPath !== $project->cover_photo_path) {
+            Storage::delete($previousCoverPath);
+        }
+
         return redirect()->route('projects.show', $project)->with('success', 'Project bijgewerkt.');
+    }
+
+    /**
+     * Streamt de omslagfoto vanuit private storage (geen storage:link nodig op live).
+     */
+    public function coverPhoto(Project $project): BinaryFileResponse
+    {
+        if (auth()->user()->cannot('manage-crm') && ! $project->craftsmen()->whereKey(auth()->id())->exists()) {
+            abort(403);
+        }
+
+        abort_if($project->cover_photo_path === null || ! Storage::exists($project->cover_photo_path), 404);
+
+        return response()->file(Storage::path($project->cover_photo_path), [
+            'Cache-Control' => 'private, max-age=86400',
+        ]);
     }
 
     /**

@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\Quote;
 use App\Models\ScheduleEntry;
 use App\Models\Task;
+use App\Services\AttentionService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -98,9 +99,13 @@ class DashboardController extends Controller
             ->limit(4)
             ->get();
 
+        $attentionItems = (new AttentionService)->items();
+
         return view('dashboard.index', [
             'stats' => $stats,
             'recenteProjecten' => $recenteProjecten,
+            'aandachtItems' => $attentionItems->take(4),
+            'attentionCount' => $attentionItems->count(),
             'taken' => $taken,
             'opvolgLeads' => $opvolgLeads,
             'opvolgOffertes' => $opvolgOffertes,

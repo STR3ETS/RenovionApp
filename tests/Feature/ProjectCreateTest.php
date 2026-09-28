@@ -6,6 +6,8 @@ use App\Models\Customer;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ProjectCreateTest extends TestCase
@@ -92,6 +94,27 @@ class ProjectCreateTest extends TestCase
             'auditable_id' => $project->id,
             'action' => 'bijgewerkt',
         ]);
+    }
+
+    public function test_a_cover_photo_can_be_uploaded_and_served(): void
+    {
+        Storage::fake('local');
+
+        $user = User::factory()->create();
+        $project = Project::factory()->create();
+
+        $this->actingAs($user)->patch('/projecten/'.$project->id, [
+            'cover_photo' => UploadedFile::fake()->image('badkamer.jpg', 800, 600),
+        ])->assertRedirect(route('projects.show', $project));
+
+        $project->refresh();
+        $this->assertNotNull($project->cover_photo_path);
+        Storage::assertExists($project->cover_photo_path);
+
+        $this->actingAs($user)->get('/projecten/'.$project->id.'/omslagfoto')->assertOk();
+
+        $buitenstaander = User::factory()->uitvoerder()->create();
+        $this->actingAs($buitenstaander)->get('/projecten/'.$project->id.'/omslagfoto')->assertForbidden();
     }
 
     public function test_uitvoerder_cannot_create_projects(): void

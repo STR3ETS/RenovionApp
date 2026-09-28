@@ -1,14 +1,44 @@
 <x-layouts.app title="Vandaag">
 
-    {{-- Nova-briefing (fase 1: samenvatting; fase 2: Nova schrijft dit zelf) --}}
-    <section class="mb-5 flex items-center gap-4 rounded-2xl bg-navy-950 p-5 text-white">
-        <x-nova-avatar class="h-14 w-14 ring-2 ring-brand-500 lg:h-16 lg:w-16" />
-        <div class="min-w-0">
-            <p class="text-sm text-navy-300">{{ now()->translatedFormat('l j F') }}</p>
-            <h1 class="mt-0.5 text-xl font-bold lg:text-2xl">
-                {{ now()->hour < 12 ? 'Goedemorgen' : (now()->hour < 18 ? 'Goedemiddag' : 'Goedenavond') }} {{ str(auth()->user()->name)->before(' ') }}.
-            </h1>
-            <div x-data="{
+    {{-- Begroeting (mockup §18: licht, boven de kaarten) --}}
+    <section class="mb-5">
+        <h1 class="text-2xl font-bold text-navy-900 lg:text-3xl">
+            {{ now()->hour < 12 ? 'Goedemorgen' : (now()->hour < 18 ? 'Goedemiddag' : 'Goedenavond') }} {{ str(auth()->user()->name)->before(' ') }}.
+        </h1>
+        <p class="mt-1 text-sm text-gray-500">{{ now()->translatedFormat('l j F') }} — hier is de status van je projecten en aandachtspunten.</p>
+    </section>
+
+    @php $quotesEnabled = config('renovion.modules.quotes'); @endphp
+    <div class="mb-6 grid gap-3 lg:grid-cols-3">
+
+        {{-- Kerncijfers (mockup §18: statcards met subregel) --}}
+        <section class="grid grid-cols-2 gap-2 lg:col-span-2 lg:gap-3 xl:grid-cols-4">
+            <x-stat-tile label="Actieve projecten" :value="$stats['actieve_projecten']" icon="building-office" :href="route('projects.index')"
+                         :sub="$stats['projecten_aandacht'] > 0 ? $stats['projecten_aandacht'].' '.($stats['projecten_aandacht'] === 1 ? 'vraagt aandacht' : 'vragen aandacht') : 'alles op schema'"
+                         :alert="$stats['projecten_aandacht'] > 0" />
+            <x-stat-tile label="Nieuwe aanvragen" :value="$stats['nieuwe_aanvragen']" icon="inbox" :href="route('leads.index')"
+                         :sub="$stats['open_aanvragen'].' open in de pipeline'" />
+            @if ($quotesEnabled)
+                <x-stat-tile label="Open offertes" :value="$stats['open_offertes']" icon="document-text" :href="route('quotes.index')" />
+            @endif
+            <x-stat-tile label="Taken deze week" :value="$stats['taken_deze_week']" icon="clipboard-check" :href="route('tasks.index')"
+                         :sub="$stats['taken_te_laat'] > 0 ? $stats['taken_te_laat'].' te laat' : 'niets te laat'"
+                         :alert="$stats['taken_te_laat'] > 0" />
+            <x-stat-tile label="Omzet (lopend)" :value="'€ '.number_format($stats['omzet_lopend'], 0, ',', '.')" icon="currency-euro" :href="route('projects.index')"
+                         :sub="'€ '.number_format($stats['omzet_open'], 0, ',', '.').' nog open'" />
+        </section>
+
+        {{-- Nova-kaart (mockup §18: donkere kaart rechts met dagbriefing + signalen) --}}
+        <section class="flex flex-col rounded-2xl bg-navy-950 p-5 text-white lg:row-span-2">
+            <div class="flex items-center gap-3">
+                <x-nova-avatar class="h-10 w-10 ring-2 ring-brand-500" />
+                <p class="flex-1 text-base font-bold">Nova</p>
+                @if ($attentionCount > 0)
+                    <a href="{{ route('attention.index') }}" class="flex h-6 min-w-6 items-center justify-center rounded-full bg-brand-500 px-1.5 text-xs font-bold text-white">{{ $attentionCount }}</a>
+                @endif
+            </div>
+
+            <div class="mt-3" x-data="{
                     briefing: null,
                     loading: false,
                     async load(refresh = false) {
@@ -20,40 +50,57 @@
                         this.loading = false;
                     },
                  }" x-init="load()">
-                <p class="mt-0.5 text-sm text-navy-100" x-show="!briefing">
+                <p class="text-sm text-navy-100" x-show="!briefing">
                     @if ($aandachtTotaal > 0)
                         Vandaag {{ $aandachtTotaal === 1 ? 'vraagt 1 zaak' : "vragen {$aandachtTotaal} zaken" }} je aandacht.
                     @else
                         Alles loopt op schema. Geen openstaande acties voor vandaag.
                     @endif
                 </p>
-                <p class="mt-0.5 text-sm whitespace-pre-line text-navy-100" x-show="briefing" x-text="briefing" x-cloak></p>
+                <p class="text-sm whitespace-pre-line text-navy-100" x-show="briefing" x-text="briefing" x-cloak></p>
                 <button x-show="briefing && !loading" x-cloak @click="load(true)"
                         class="mt-1.5 text-xs font-semibold text-navy-300 transition hover:text-white">
                     Briefing vernieuwen
                 </button>
                 <p x-show="loading" x-cloak class="mt-1 text-xs text-navy-400">Nova stelt de briefing op…</p>
             </div>
-        </div>
-    </section>
 
-    {{-- Kerncijfers (mockup §18: vier statcards met subregel) --}}
-    @php $quotesEnabled = config('renovion.modules.quotes'); @endphp
-    <section class="mb-6 grid grid-cols-2 gap-2 lg:gap-3 {{ $quotesEnabled ? 'lg:grid-cols-5' : 'lg:grid-cols-4' }}">
-        <x-stat-tile label="Actieve projecten" :value="$stats['actieve_projecten']" icon="building-office" :href="route('projects.index')"
-                     :sub="$stats['projecten_aandacht'] > 0 ? $stats['projecten_aandacht'].' '.($stats['projecten_aandacht'] === 1 ? 'vraagt aandacht' : 'vragen aandacht') : 'alles op schema'"
-                     :alert="$stats['projecten_aandacht'] > 0" />
-        <x-stat-tile label="Nieuwe aanvragen" :value="$stats['nieuwe_aanvragen']" icon="inbox" :href="route('leads.index')"
-                     :sub="$stats['open_aanvragen'].' open in de pipeline'" />
-        @if ($quotesEnabled)
-            <x-stat-tile label="Open offertes" :value="$stats['open_offertes']" icon="document-text" :href="route('quotes.index')" />
+            @if ($aandachtItems->isNotEmpty())
+                <div class="mt-4 space-y-3 border-t border-navy-800 pt-4">
+                    @foreach ($aandachtItems as $item)
+                        <a href="{{ $item['url'] }}" class="group flex items-start gap-2.5">
+                            <x-signal-dot :color="$item['severity'] === 'rood' ? 'red' : 'amber'" class="mt-1.5" />
+                            <span class="min-w-0">
+                                <span class="block truncate text-sm font-medium text-white group-hover:text-brand-300">{{ $item['title'] }}</span>
+                                <span class="block truncate text-xs text-navy-300">{{ $item['label'] }}</span>
+                            </span>
+                        </a>
+                    @endforeach
+                </div>
+            @endif
+
+            <div class="mt-auto pt-4">
+                <a href="{{ route('attention.index') }}" class="block rounded-xl bg-navy-800 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-navy-700">
+                    Bekijk alle inzichten →
+                </a>
+            </div>
+        </section>
+
+        {{-- Recente projecten (mockup §18: fotokaarten met voortgang) --}}
+        @if ($recenteProjecten->isNotEmpty())
+            <section class="lg:col-span-2">
+                <div class="mb-3 flex items-center justify-between">
+                    <h2 class="text-base font-bold text-navy-900">Recente projecten</h2>
+                    <a href="{{ route('projects.index') }}" class="text-xs font-semibold text-brand-600 hover:text-brand-500">Alle projecten →</a>
+                </div>
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    @foreach ($recenteProjecten as $project)
+                        <x-project-card :project="$project" />
+                    @endforeach
+                </div>
+            </section>
         @endif
-        <x-stat-tile label="Taken deze week" :value="$stats['taken_deze_week']" icon="clipboard-check" :href="route('tasks.index')"
-                     :sub="$stats['taken_te_laat'] > 0 ? $stats['taken_te_laat'].' te laat' : 'niets te laat'"
-                     :alert="$stats['taken_te_laat'] > 0" />
-        <x-stat-tile label="Omzet (lopend)" :value="'€ '.number_format($stats['omzet_lopend'], 0, ',', '.')" icon="currency-euro" :href="route('projects.index')"
-                     :sub="'€ '.number_format($stats['omzet_open'], 0, ',', '.').' nog open'" />
-    </section>
+    </div>
 
     {{-- Nu doen --}}
     <section class="mb-6">
@@ -129,21 +176,6 @@
             </div>
         @endif
     </section>
-
-    {{-- Recente projecten (mockup §18: fotokaarten met voortgang) --}}
-    @if ($recenteProjecten->isNotEmpty())
-        <section class="mb-6">
-            <div class="mb-3 flex items-center justify-between">
-                <h2 class="text-base font-bold text-navy-900">Recente projecten</h2>
-                <a href="{{ route('projects.index') }}" class="text-xs font-semibold text-brand-600 hover:text-brand-500">Alle projecten →</a>
-            </div>
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                @foreach ($recenteProjecten as $project)
-                    <x-project-card :project="$project" />
-                @endforeach
-            </div>
-        </section>
-    @endif
 
     {{-- Quick actions --}}
     <section class="mb-6">

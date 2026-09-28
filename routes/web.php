@@ -32,6 +32,7 @@ Route::middleware('auth')->group(function () {
     Route::get('projecten', [ProjectController::class, 'index'])->name('projects.index');
     Route::get('projecten/aanmaken', [ProjectController::class, 'create'])->middleware('can:manage-crm')->name('projects.create');
     Route::get('projecten/{project}', [ProjectController::class, 'show'])->name('projects.show');
+    Route::get('projecten/{project}/omslagfoto', [ProjectController::class, 'coverPhoto'])->name('projects.cover');
 
     Route::get('taken', [TaskController::class, 'index'])->name('tasks.index');
     Route::post('taken', [TaskController::class, 'store'])->name('tasks.store');

@@ -2,7 +2,7 @@
 
     <x-page-header title="Nieuw project" />
 
-    <form method="POST" action="{{ route('projects.store') }}" class="max-w-2xl space-y-5"
+    <form method="POST" action="{{ route('projects.store') }}" enctype="multipart/form-data" class="max-w-2xl space-y-5"
           x-data="{ bestaand: true }">
         @csrf
 
@@ -90,6 +90,11 @@
                 </x-field>
                 <x-field label="Notities" name="notes" class="sm:col-span-2">
                     <textarea name="notes" id="notes" rows="3" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">{{ old('notes') }}</textarea>
+                </x-field>
+                <x-field label="Omslagfoto" name="cover_photo" class="sm:col-span-2">
+                    <input type="file" name="cover_photo" id="cover_photo" accept="image/*"
+                           class="w-full text-sm text-gray-500 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-brand-700 hover:file:bg-brand-100">
+                    <p class="mt-1 text-xs text-gray-400">Deze foto verschijnt op de projectkaarten (jpg/png, max 5 MB).</p>
                 </x-field>
             </div>
         </section>

@@ -7,8 +7,15 @@
 
 <a href="{{ route('projects.show', $project) }}"
    class="group flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:border-brand-400 hover:shadow-md">
-    <div class="relative flex h-28 items-center justify-center bg-gradient-to-br from-navy-700 via-navy-900 to-navy-950">
-        <x-icon name="building-office" class="h-9 w-9 text-navy-500 transition group-hover:text-navy-400" />
+    <div class="relative h-28 overflow-hidden bg-gradient-to-br from-navy-700 via-navy-900 to-navy-950">
+        @if ($project->cover_photo_path)
+            <img src="{{ route('projects.cover', $project) }}" alt="{{ $project->name }}" loading="lazy"
+                 class="h-full w-full object-cover transition duration-300 group-hover:scale-105">
+        @else
+            <span class="flex h-full items-center justify-center">
+                <x-icon name="building-office" class="h-9 w-9 text-navy-500 transition group-hover:text-navy-400" />
+            </span>
+        @endif
         <span class="absolute top-2.5 right-2.5"><x-status-badge :status="$project->status" /></span>
     </div>
 
