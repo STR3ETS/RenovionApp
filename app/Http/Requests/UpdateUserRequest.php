@@ -23,7 +23,7 @@ class UpdateUserRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($this->route('user'))],
             'phone' => ['nullable', 'string', 'max:30'],
-            'role' => ['required', Rule::enum(UserRole::class)],
+            'role' => ['required', Rule::enum(UserRole::class), Rule::notIn([UserRole::Klant->value])],
             'password' => ['nullable', 'string', 'min:8'],
         ];
     }

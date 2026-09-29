@@ -132,6 +132,7 @@
                         <span class="block text-xs text-gray-400">
                             {{ $phase->responsible?->name ?? 'Geen verantwoordelijke' }}
                             @if ($phase->approved_at) · vrijgegeven door {{ $phase->approver?->name ?? '—' }} op {{ $phase->approved_at->translatedFormat('j M') }} @endif
+                            @if ($phase->client_approved_at) · klant: gezien en akkoord ({{ $phase->client_approved_at->translatedFormat('j M') }}) @endif
                         </span>
                     </span>
 

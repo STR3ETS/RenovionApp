@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserRole;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\AuditLog;
@@ -15,6 +16,7 @@ class TeamController extends Controller
     {
         return view('team.index', [
             'users' => User::withCount(['projects', 'tasks' => fn ($query) => $query->open()])
+                ->where('role', '!=', UserRole::Klant)
                 ->orderBy('name')
                 ->get(),
         ]);

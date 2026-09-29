@@ -62,7 +62,10 @@ class AppServiceProvider extends ServiceProvider
         });
 
         // Briefing §15: uitvoerders zien alleen hun eigen projecten, taken en planning.
-        Gate::define('manage-crm', fn (User $user) => $user->role !== UserRole::Uitvoerder);
+        Gate::define('manage-crm', fn (User $user) => ! in_array($user->role, [UserRole::Uitvoerder, UserRole::Klant], true));
+
+        // De interne omgeving is niet voor klanten — die krijgen het portaal (§10).
+        Gate::define('internal', fn (User $user) => $user->role !== UserRole::Klant);
 
         // Teambeheer (gebruikers aanmaken/bewerken) is alleen voor admins.
         Gate::define('manage-team', fn (User $user) => $user->role === UserRole::Admin);

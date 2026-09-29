@@ -23,7 +23,7 @@ class StoreUserRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users')],
             'phone' => ['nullable', 'string', 'max:30'],
-            'role' => ['required', Rule::enum(UserRole::class)],
+            'role' => ['required', Rule::enum(UserRole::class), Rule::notIn([UserRole::Klant->value])],
             'password' => ['required', 'string', 'min:8'],
         ];
     }

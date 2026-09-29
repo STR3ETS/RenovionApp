@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Auth;
 
 #[Fillable(['name', 'email', 'phone', 'address', 'postal_code', 'city', 'notes'])]
@@ -20,6 +21,14 @@ class Customer extends Model
     public function leads(): HasMany
     {
         return $this->hasMany(Lead::class);
+    }
+
+    /**
+     * Het portaal-account van deze klant (briefing §10).
+     */
+    public function portalUser(): HasOne
+    {
+        return $this->hasOne(User::class);
     }
 
     public function quotes(): HasMany

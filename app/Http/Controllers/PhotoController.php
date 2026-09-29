@@ -76,7 +76,10 @@ class PhotoController extends Controller
      */
     public function show(Request $request, Photo $photo): BinaryFileResponse
     {
-        abort_unless($photo->project->isAccessibleBy($request->user()), 403);
+        $magBekijken = $photo->project->isAccessibleBy($request->user())
+            || ($photo->client_visible && $photo->project->isViewableByClient($request->user()));
+
+        abort_unless($magBekijken, 403);
         abort_unless(Storage::exists($photo->path), 404);
 
         return response()->file(Storage::path($photo->path), [

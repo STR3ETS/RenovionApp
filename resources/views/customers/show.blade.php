@@ -66,6 +66,30 @@
                 </dl>
             </section>
 
+            {{-- Klantportaal (briefing §10) --}}
+            <section class="rounded-2xl border border-gray-200 bg-white p-5">
+                <h2 class="mb-3 text-sm font-bold text-navy-900">Klantportaal</h2>
+                @if ($customer->portalUser)
+                    <p class="flex items-center gap-1.5 text-sm font-medium text-green-700"><x-icon name="check" class="h-4 w-4" /> Account actief</p>
+                    <p class="mt-1 text-xs text-gray-400">Inloggen met {{ $customer->portalUser->email }} sinds {{ $customer->portalUser->created_at->translatedFormat('j M Y') }}.</p>
+                    <form method="POST" action="{{ route('customers.portal', $customer) }}" class="mt-3" onsubmit="return confirm('Nieuw wachtwoord genereren? Het oude wachtwoord werkt daarna niet meer.');">
+                        @csrf
+                        <button type="submit" class="w-full rounded-xl border border-gray-300 bg-white py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">Wachtwoord resetten</button>
+                    </form>
+                @else
+                    <p class="text-xs text-gray-400">De klant volgt hiermee zelf de voortgang, foto's en acties via {{ rtrim(config('app.url'), '/') }}/portaal.</p>
+                    <form method="POST" action="{{ route('customers.portal', $customer) }}" class="mt-3">
+                        @csrf
+                        <button type="submit" class="w-full rounded-xl bg-brand-500 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600" @disabled(blank($customer->email))>
+                            Portaal-account aanmaken
+                        </button>
+                    </form>
+                    @if (blank($customer->email))
+                        <p class="mt-2 text-xs text-amber-600">Vul eerst een e-mailadres in bij deze klant.</p>
+                    @endif
+                @endif
+            </section>
+
             {{-- Aanvragen --}}
             <section class="rounded-2xl border border-gray-200 bg-white p-5">
                 <div class="mb-3 flex items-center justify-between">

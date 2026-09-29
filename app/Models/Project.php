@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\PhaseStatus;
 use App\Enums\ProjectStatus;
+use App\Enums\UserRole;
 use Database\Factories\ProjectFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -128,7 +129,18 @@ class Project extends Model
     public function isAccessibleBy(User $user): bool
     {
         return $user->can('manage-crm')
-            || $this->craftsmen()->whereKey($user->id)->exists();
+            || ($user->role !== UserRole::Klant && $this->craftsmen()->whereKey($user->id)->exists());
+    }
+
+    /**
+     * Klantportaal (briefing §10): een klant ziet uitsluitend projecten
+     * van het eigen klantdossier, en dan alleen klantzichtbare content.
+     */
+    public function isViewableByClient(User $user): bool
+    {
+        return $user->role === UserRole::Klant
+            && $user->customer_id !== null
+            && $user->customer_id === $this->customer_id;
     }
 
     /**

@@ -219,7 +219,7 @@ class ProjectController extends Controller
      */
     public function coverPhoto(Project $project): BinaryFileResponse
     {
-        abort_unless($project->isAccessibleBy(auth()->user()), 403);
+        abort_unless($project->isAccessibleBy(auth()->user()) || $project->isViewableByClient(auth()->user()), 403);
 
         $path = $project->coverPhotoPath();
 

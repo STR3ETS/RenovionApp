@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Enums\LeadStatus;
+use App\Enums\UserRole;
 use App\Models\Lead;
 use App\Models\Project;
 use App\Models\Quote;
 use App\Models\ScheduleEntry;
 use App\Models\Task;
 use App\Services\AttentionService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -17,8 +19,12 @@ class DashboardController extends Controller
     /**
      * Het Vandaag-scherm: actie gaat vóór informatie.
      */
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request): View|RedirectResponse
     {
+        if ($request->user()->role === UserRole::Klant) {
+            return redirect()->route('portal.index');
+        }
+
         if ($request->user()->cannot('manage-crm')) {
             return view('dashboard.uitvoerder', [
                 'taken' => Task::open()

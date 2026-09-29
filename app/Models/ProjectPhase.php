@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable([
     'project_id', 'position', 'name', 'status', 'responsible_id',
     'planned_start', 'planned_end', 'completed_at', 'approved_at', 'approved_by', 'gate_note',
+    'client_approved_at', 'client_approved_by',
 ])]
 class ProjectPhase extends Model
 {
@@ -47,6 +48,7 @@ class ProjectPhase extends Model
             'planned_end' => 'date',
             'completed_at' => 'datetime',
             'approved_at' => 'datetime',
+            'client_approved_at' => 'datetime',
         ];
     }
 
