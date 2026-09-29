@@ -363,6 +363,36 @@
                 </dl>
             </section>
 
+            {{-- Opleverrapport (briefing §13) --}}
+            <section class="rounded-2xl border border-gray-200 bg-white p-5">
+                <h2 class="mb-3 text-sm font-bold text-navy-900">Opleverrapport</h2>
+                @if ($project->deliveryReport)
+                    <p class="text-xs text-gray-400">
+                        Opgesteld {{ $project->deliveryReport->generated_at->translatedFormat('j M Y') }}
+                        @if ($project->deliveryReport->isFullySigned())
+                            · <span class="font-semibold text-green-700">volledig ondertekend</span>
+                        @elseif ($project->deliveryReport->isSignedByClient())
+                            · <span class="font-semibold text-green-700">klant heeft getekend</span>
+                        @else
+                            · wacht op ondertekening
+                        @endif
+                    </p>
+                    <a href="{{ route('delivery-reports.show', $project->deliveryReport) }}" class="mt-3 block rounded-xl bg-navy-950 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-navy-900">Rapport bekijken</a>
+                @else
+                    <p class="text-xs text-gray-400">Genereert automatisch een rapport uit fasen, foto-bewijs, wijzigingen en restpunten.</p>
+                @endif
+                @can('manage-crm')
+                    @unless ($project->deliveryReport?->isSignedByClient())
+                        <form method="POST" action="{{ route('delivery-reports.store', $project) }}" class="mt-2">
+                            @csrf
+                            <button type="submit" class="w-full rounded-xl {{ $project->deliveryReport ? 'border border-gray-300 bg-white text-gray-600 hover:bg-gray-50' : 'bg-brand-500 text-white hover:bg-brand-600 font-bold' }} py-2.5 text-sm font-semibold transition">
+                                {{ $project->deliveryReport ? 'Hergenereren met actuele data' : 'Opleverrapport genereren' }}
+                            </button>
+                        </form>
+                    @endunless
+                @endcan
+            </section>
+
             {{-- Uitvoerders --}}
             <section class="rounded-2xl border border-gray-200 bg-white p-5">
                 <h2 class="mb-3 text-sm font-bold text-navy-900">Uitvoerders</h2>

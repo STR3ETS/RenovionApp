@@ -125,6 +125,7 @@ class ProjectController extends Controller
             'photos.uploader',
             'photos.workPackage',
             'chatChannel',
+            'deliveryReport',
             'tasks' => fn ($query) => $query->open()->orderByRaw('deadline is null, deadline asc'),
             'documents.uploader',
             'scheduleEntries' => fn ($query) => $query

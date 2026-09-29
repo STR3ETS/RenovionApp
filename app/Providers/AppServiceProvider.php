@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Models\Calculation;
 use App\Models\ChecklistItem;
 use App\Models\Customer;
+use App\Models\DeliveryReport;
 use App\Models\Document;
 use App\Models\Lead;
 use App\Models\Photo;
@@ -43,6 +44,7 @@ class AppServiceProvider extends ServiceProvider
             'calculation' => Calculation::class,
             'checklist_item' => ChecklistItem::class,
             'customer' => Customer::class,
+            'delivery_report' => DeliveryReport::class,
             'document' => Document::class,
             'lead' => Lead::class,
             'photo' => Photo::class,

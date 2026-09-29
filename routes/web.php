@@ -12,6 +12,7 @@ use App\Http\Controllers\ChatMessageController;
 use App\Http\Controllers\ChecklistItemController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DeliveryReportController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\LeadContactController;
 use App\Http\Controllers\LeadController;
@@ -56,6 +57,8 @@ Route::middleware('auth')->group(function () {
     Route::get('portaal', [PortalController::class, 'index'])->name('portal.index');
     Route::get('portaal/projecten/{project}', [PortalController::class, 'show'])->name('portal.show');
     Route::post('portaal/fasen/{phase}/akkoord', [PortalController::class, 'approvePhase'])->name('portal.phases.approve');
+    Route::get('portaal/opleverrapporten/{report}', [PortalController::class, 'report'])->name('portal.report');
+    Route::post('portaal/opleverrapporten/{report}/ondertekenen', [PortalController::class, 'signReport'])->name('portal.report.sign');
 
     // Beeldstreams: intern én klantportaal (toegangscheck in de controller).
     Route::get('projecten/{project}/omslagfoto', [ProjectController::class, 'coverPhoto'])->name('projects.cover');
@@ -77,6 +80,9 @@ Route::middleware('auth')->group(function () {
         Route::post('werkpakketten/{workPackage}/afronden', [WorkPackageController::class, 'complete'])->name('work-packages.complete');
         Route::post('werkpakketten/{workPackage}/heropenen', [WorkPackageController::class, 'reopen'])->name('work-packages.reopen');
         Route::patch('werkpakketten/{workPackage}/items/{item}/toggle', [ChecklistItemController::class, 'toggle'])->scopeBindings()->name('checklist-items.toggle');
+
+        // Opleverrapport (briefing §13): bekijken kan het hele team (toegangscheck in controller).
+        Route::get('opleverrapporten/{deliveryReport}', [DeliveryReportController::class, 'show'])->name('delivery-reports.show');
 
         // Teamchat (briefing §11): teamkanalen voor iedereen intern, projectkanalen volgen projecttoegang.
         Route::get('chat', [ChatController::class, 'index'])->name('chat.index');
@@ -140,6 +146,8 @@ Route::middleware('auth')->group(function () {
             Route::match(['put', 'patch'], 'projecten/{project}', [ProjectController::class, 'update'])->name('projects.update');
             Route::patch('projecten/{project}/status', [ProjectStatusController::class, 'update'])->name('projects.status');
 
+            Route::post('projecten/{project}/opleverrapport', [DeliveryReportController::class, 'store'])->name('delivery-reports.store');
+            Route::post('opleverrapporten/{deliveryReport}/ondertekenen', [DeliveryReportController::class, 'sign'])->name('delivery-reports.sign');
             Route::post('projecten/{project}/werkpakketten', [WorkPackageController::class, 'store'])->name('work-packages.store');
             Route::match(['put', 'patch'], 'werkpakketten/{workPackage}', [WorkPackageController::class, 'update'])->name('work-packages.update');
             Route::delete('werkpakketten/{workPackage}', [WorkPackageController::class, 'destroy'])->name('work-packages.destroy');

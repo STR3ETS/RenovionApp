@@ -8,6 +8,7 @@ use App\Enums\TimelineEventType;
 use App\Enums\UserRole;
 use App\Models\AuditLog;
 use App\Models\Customer;
+use App\Models\DeliveryReport;
 use App\Models\Project;
 use App\Models\ProjectPhase;
 use App\Models\ScheduleEntry;
@@ -61,7 +62,7 @@ class PortalController extends Controller
     {
         abort_unless($project->isViewableByClient($request->user()), 403);
 
-        $project->load(['customer', 'phases.workPackages']);
+        $project->load(['customer', 'phases.workPackages', 'deliveryReport']);
 
         $photos = $project->photos()
             ->where('client_visible', true)
@@ -119,6 +120,56 @@ class PortalController extends Controller
         );
 
         return back()->with('success', 'Bedankt voor uw bevestiging!');
+    }
+
+    /**
+     * Opleverrapport in het portaal (briefing §13).
+     */
+    public function report(Request $request, DeliveryReport $report): View
+    {
+        abort_unless($report->project->isViewableByClient($request->user()), 403);
+
+        $report->load(['project.customer', 'companySigner']);
+
+        return view('portal.report', [
+            'report' => $report,
+            'photos' => DeliveryReportController::photos($report),
+        ]);
+    }
+
+    public function signReport(Request $request, DeliveryReport $report): RedirectResponse
+    {
+        abort_unless($report->project->isViewableByClient($request->user()), 403);
+
+        $validated = $request->validate([
+            'signed_name' => ['required', 'string', 'max:255'],
+            'agree' => ['accepted'],
+        ], [], ['signed_name' => 'naam', 'agree' => 'akkoordverklaring']);
+
+        if ($report->isSignedByClient()) {
+            return back()->with('error', 'Dit rapport is al ondertekend.');
+        }
+
+        $report->update([
+            'client_signed_name' => $validated['signed_name'],
+            'client_signed_at' => now(),
+            'client_signed_ip' => $request->ip(),
+        ]);
+
+        AuditLog::record($report, 'ondertekend_klant', [], [
+            'naam' => $validated['signed_name'],
+            'ip' => (string) $request->ip(),
+        ], ActionSource::Website);
+
+        $report->project->customer->recordEvent(
+            TimelineEventType::Document,
+            'Opleverrapport ondertekend door de klant',
+            $validated['signed_name'],
+            $report,
+            ActionSource::Website,
+        );
+
+        return back()->with('success', 'Bedankt voor uw ondertekening — het rapport is definitief.');
     }
 
     private function customerFor(Request $request): Customer
@@ -182,6 +233,15 @@ class PortalController extends Controller
                     'url' => $quote->publicUrl(),
                 ]);
             }
+        }
+
+        if ($project->deliveryReport !== null && ! $project->deliveryReport->isSignedByClient()) {
+            $acties->push([
+                'type' => 'opleverrapport',
+                'title' => 'Opleverrapport staat voor u klaar',
+                'subtitle' => 'Bekijk het rapport met foto\'s en restpunten en onderteken digitaal.',
+                'url' => route('portal.report', $project->deliveryReport),
+            ]);
         }
 
         return $acties;

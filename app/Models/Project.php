@@ -122,6 +122,11 @@ class Project extends Model
         return $this->hasOne(ChatChannel::class);
     }
 
+    public function deliveryReport(): HasOne
+    {
+        return $this->hasOne(DeliveryReport::class);
+    }
+
     /**
      * Omslag: handmatig geüpload, anders het meest recente klantzichtbare foto-bewijs.
      */
