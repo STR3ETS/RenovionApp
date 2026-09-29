@@ -9,10 +9,11 @@
     </section>
 
     @php $quotesEnabled = config('renovion.modules.quotes'); @endphp
-    <div class="grid gap-x-4 gap-y-6 lg:grid-cols-3">
+    {{-- Laatste rij is 1fr: extra hoogte van de rechterkolom (Nova + Nu doen) valt onderaan, zodat de linker secties hun natuurlijke hoogte houden. --}}
+    <div class="grid gap-x-4 gap-y-6 lg:grid-cols-3 lg:grid-rows-[auto_auto_auto_1fr]">
 
         {{-- Kerncijfers (mockup §18: statcards met subregel) --}}
-        <section class="grid grid-cols-2 gap-2 lg:col-span-2 lg:gap-3 xl:grid-cols-4">
+        <section class="grid grid-cols-2 gap-2 lg:col-span-2 lg:gap-3 {{ $quotesEnabled ? 'xl:grid-cols-5' : 'xl:grid-cols-4' }}">
             <x-stat-tile label="Actieve projecten" :value="$stats['actieve_projecten']" icon="building-office" :href="route('projects.index')"
                          :sub="$stats['projecten_aandacht'] > 0 ? $stats['projecten_aandacht'].' '.($stats['projecten_aandacht'] === 1 ? 'vraagt aandacht' : 'vragen aandacht') : 'alles op schema'"
                          :alert="$stats['projecten_aandacht'] > 0" />
@@ -195,7 +196,7 @@
         </section>
 
         {{-- Planning vandaag --}}
-        <section class="lg:col-span-2">
+        <section class="lg:col-span-2 lg:self-start">
             <h2 class="mb-3 text-base font-bold text-navy-900">Vandaag gepland</h2>
             @if ($planningVandaag->isEmpty())
                 <x-empty-state title="Niets gepland voor vandaag" />
