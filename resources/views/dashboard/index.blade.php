@@ -9,7 +9,7 @@
     </section>
 
     @php $quotesEnabled = config('renovion.modules.quotes'); @endphp
-    <div class="mb-6 grid gap-3 lg:grid-cols-3">
+    <div class="grid gap-x-4 gap-y-6 lg:grid-cols-3">
 
         {{-- Kerncijfers (mockup §18: statcards met subregel) --}}
         <section class="grid grid-cols-2 gap-2 lg:col-span-2 lg:gap-3 xl:grid-cols-4">
@@ -28,8 +28,10 @@
                          :sub="'€ '.number_format($stats['omzet_open'], 0, ',', '.').' nog open'" />
         </section>
 
-        {{-- Nova-kaart (mockup §18: donkere kaart rechts met dagbriefing + signalen) --}}
-        <section class="flex flex-col rounded-2xl bg-navy-950 p-5 text-white lg:row-span-2">
+        {{-- Rechterkolom: Nova op natuurlijke hoogte + vandaag gepland --}}
+        <div class="space-y-4 lg:row-span-3">
+        {{-- Nova-kaart (mockup §18: donkere kaart met dagbriefing + signalen) --}}
+        <section class="rounded-2xl bg-navy-950 p-5 text-white">
             <div class="flex items-center gap-3">
                 <x-nova-avatar class="h-10 w-10 ring-2 ring-brand-500" />
                 <p class="flex-1 text-base font-bold">Nova</p>
@@ -79,12 +81,35 @@
                 </div>
             @endif
 
-            <div class="mt-auto pt-4">
+            <div class="pt-4">
                 <a href="{{ route('attention.index') }}" class="block rounded-xl bg-navy-800 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-navy-700">
                     Bekijk alle inzichten →
                 </a>
             </div>
         </section>
+
+        {{-- Vandaag gepland (compact naast Nova) --}}
+        <section class="rounded-2xl border border-gray-200 bg-white p-5">
+            <h2 class="mb-3 text-sm font-bold text-navy-900">Vandaag gepland</h2>
+            @if ($planningVandaag->isEmpty())
+                <p class="text-sm text-gray-400">Niets gepland voor vandaag.</p>
+            @else
+                <div class="space-y-2">
+                    @foreach ($planningVandaag as $entry)
+                        <div class="flex items-center gap-3 rounded-xl border p-2.5 text-sm {{ $entry->type->blockClasses() }}">
+                            <span class="w-14 shrink-0 text-xs font-bold">
+                                {{ $entry->start_time ? substr($entry->start_time, 0, 5) : 'hele dag' }}
+                            </span>
+                            <span class="min-w-0 flex-1">
+                                <span class="block truncate font-semibold">{{ $entry->displayTitle() }}</span>
+                                <span class="block truncate text-xs opacity-70">{{ $entry->user->name }} · {{ $entry->type->label() }}</span>
+                            </span>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </section>
+        </div>
 
         {{-- Recente projecten (mockup §18: fotokaarten met voortgang) --}}
         @if ($recenteProjecten->isNotEmpty())
@@ -100,10 +125,9 @@
                 </div>
             </section>
         @endif
-    </div>
 
     {{-- Nu doen --}}
-    <section class="mb-6">
+    <section class="lg:col-span-2">
         <h2 class="mb-3 text-base font-bold text-navy-900">Nu doen</h2>
 
         @if ($aandachtTotaal === 0)
@@ -178,7 +202,7 @@
     </section>
 
     {{-- Quick actions --}}
-    <section class="mb-6">
+    <section class="lg:col-span-2">
         <h2 class="mb-3 text-base font-bold text-navy-900">Snel</h2>
         <div class="grid grid-cols-2 gap-2 {{ $quotesEnabled ? 'lg:grid-cols-5' : 'lg:grid-cols-4' }}">
             <a href="{{ route('leads.create') }}" class="rounded-xl bg-brand-600 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-brand-500">+ Aanvraag</a>
@@ -190,27 +214,6 @@
             <a href="{{ route('tasks.index') }}" class="rounded-xl border border-gray-300 bg-white px-4 py-3 text-center text-sm font-semibold text-navy-900 transition hover:border-brand-400">Taken</a>
         </div>
     </section>
-
-    {{-- Planning vandaag --}}
-    <section>
-        <h2 class="mb-3 text-base font-bold text-navy-900">Vandaag gepland</h2>
-        @if ($planningVandaag->isEmpty())
-            <x-empty-state title="Niets gepland voor vandaag" />
-        @else
-            <div class="space-y-2">
-                @foreach ($planningVandaag as $entry)
-                    <div class="flex items-center gap-3 rounded-xl border bg-white p-3 {{ $entry->type->blockClasses() }}">
-                        <span class="w-14 shrink-0 text-xs font-bold">
-                            {{ $entry->start_time ? substr($entry->start_time, 0, 5) : 'hele dag' }}
-                        </span>
-                        <span class="min-w-0 flex-1">
-                            <span class="block truncate text-sm font-semibold">{{ $entry->displayTitle() }}</span>
-                            <span class="block text-xs opacity-70">{{ $entry->user->name }} · {{ $entry->type->label() }}</span>
-                        </span>
-                    </div>
-                @endforeach
-            </div>
-        @endif
-    </section>
+    </div>
 
 </x-layouts.app>
