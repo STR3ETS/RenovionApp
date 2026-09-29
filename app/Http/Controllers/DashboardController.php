@@ -95,6 +95,7 @@ class DashboardController extends Controller
 
         $recenteProjecten = Project::active()
             ->with(['customer', 'craftsmen', 'phases'])
+            ->withCount(['photos' => fn ($query) => $query->where('client_visible', true)])
             ->latest('updated_at')
             ->limit(4)
             ->get();

@@ -51,6 +51,11 @@ class WorkPackage extends Model
         return $this->hasMany(ChecklistItem::class)->orderBy('position')->orderBy('id');
     }
 
+    public function photos(): HasMany
+    {
+        return $this->hasMany(Photo::class)->latest();
+    }
+
     public function isDone(): bool
     {
         return $this->status === PhaseStatus::Gereed;
@@ -69,5 +74,14 @@ class WorkPackage extends Model
     public function checklistComplete(): bool
     {
         return $this->items->every(fn (ChecklistItem $item) => $item->isDone());
+    }
+
+    /**
+     * Is al het verplichte foto-bewijs aanwezig (briefing §9)? Zonder bewijs
+     * kan het werkpakket niet definitief worden afgesloten.
+     */
+    public function evidenceComplete(): bool
+    {
+        return $this->items->every(fn (ChecklistItem $item) => $item->hasRequiredPhotos());
     }
 }

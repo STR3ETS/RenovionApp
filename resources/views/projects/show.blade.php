@@ -1,7 +1,7 @@
 <x-layouts.app :title="$project->name">
 
     <x-page-header :title="$project->name" :subtitle="$project->customer->name.' · '.($project->city ?? 'plaats onbekend')"
-                   :image="$project->cover_photo_path ? route('projects.cover', $project) : null">
+                   :image="($project->cover_photo_path || $project->photos->where('client_visible', true)->isNotEmpty()) ? route('projects.cover', $project) : null">
         <x-status-badge :status="$project->status" class="text-sm" />
         @can('manage-crm')
             <a href="{{ route('projects.edit', $project) }}" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">Bewerken</a>
@@ -20,7 +20,7 @@
         <x-phase-stepper :project="$project" />
     </section>
 
-    <div x-data="{ tab: 'overzicht' }">
+    <div x-data="{ tab: 'overzicht', fotoFilter: 'alle' }">
 
     {{-- Tabs (mockup §18) --}}
     <div class="mb-5 flex gap-1 rounded-xl border border-gray-200 bg-white p-1 text-sm font-semibold">
@@ -32,6 +32,90 @@
                 <span class="ml-1 rounded-full bg-brand-500 px-1.5 py-0.5 text-[10px] font-bold text-white">{{ $openPakketten }}</span>
             @endif
         </button>
+        <button type="button" @click="tab = 'fotos'" :class="tab === 'fotos' ? 'bg-navy-950 text-white' : 'text-gray-600 hover:bg-gray-50'" class="flex-1 rounded-lg px-4 py-2 transition">
+            Foto's
+            @if ($project->photos->isNotEmpty())
+                <span class="ml-1 text-xs opacity-60">{{ $project->photos->count() }}</span>
+            @endif
+        </button>
+    </div>
+
+    {{-- ===== Tab: Foto's & voortgang (briefing §9, mockup §18) ===== --}}
+    <div x-show="tab === 'fotos'" x-cloak>
+        <div class="grid gap-4 lg:grid-cols-4">
+            <div class="space-y-4">
+                {{-- Filter per fase --}}
+                <nav class="space-y-1 rounded-2xl border border-gray-200 bg-white p-2">
+                    <button type="button" @click="fotoFilter = 'alle'"
+                            :class="fotoFilter === 'alle' ? 'bg-brand-500 text-white' : 'text-gray-600 hover:bg-gray-50'"
+                            class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold transition">
+                        Alle foto's <span class="text-xs opacity-70">{{ $project->photos->count() }}</span>
+                    </button>
+                    @foreach ($project->phases as $phase)
+                        @php $faseFotos = $project->photos->where('project_phase_id', $phase->id)->count(); @endphp
+                        @continue($faseFotos === 0)
+                        <button type="button" @click="fotoFilter = '{{ $phase->id }}'"
+                                :class="fotoFilter === '{{ $phase->id }}' ? 'bg-brand-500 text-white' : 'text-gray-600 hover:bg-gray-50'"
+                                class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold transition">
+                            <span class="truncate">{{ $phase->name }}</span> <span class="text-xs opacity-70">{{ $faseFotos }}</span>
+                        </button>
+                    @endforeach
+                </nav>
+
+                {{-- Uploaden --}}
+                <form method="POST" action="{{ route('photos.store', $project) }}" enctype="multipart/form-data" class="space-y-3 rounded-2xl border border-gray-200 bg-white p-4">
+                    @csrf
+                    <h2 class="text-sm font-bold text-navy-900">Foto's toevoegen</h2>
+                    <input type="file" name="photos[]" multiple required accept="image/*" capture="environment"
+                           class="w-full text-xs text-gray-500 file:mr-2 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-brand-700 hover:file:bg-brand-100">
+                    <select name="project_phase_id" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+                        <option value="">— Fase (optioneel) —</option>
+                        @foreach ($project->phases as $phase)
+                            <option value="{{ $phase->id }}" @selected($project->currentPhase()?->is($phase))>{{ $phase->name }}</option>
+                        @endforeach
+                    </select>
+                    <input type="text" name="caption" maxlength="255" placeholder="Omschrijving (bijv. Leidingwerk badkamer)" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+                    <label class="flex items-center gap-2 text-xs font-medium text-gray-600">
+                        <input type="hidden" name="client_visible" value="0">
+                        <input type="checkbox" name="client_visible" value="1" checked class="rounded border-gray-300 text-brand-600 focus:ring-brand-500">
+                        Zichtbaar voor de klant
+                    </label>
+                    <button type="submit" class="w-full rounded-xl bg-brand-500 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600">+ Uploaden</button>
+                </form>
+            </div>
+
+            {{-- Fotogrid --}}
+            <div class="lg:col-span-3">
+                @if ($project->photos->isEmpty())
+                    <x-empty-state title="Nog geen foto's" subtitle="Upload foto's per fase of vanaf een werkpakket — zo bouw je het bewijs voor de oplevering op." />
+                @else
+                    <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                        @foreach ($project->photos as $photo)
+                            <figure x-show="fotoFilter === 'alle' || fotoFilter === '{{ $photo->project_phase_id }}'"
+                                    class="group relative overflow-hidden rounded-xl border border-gray-200 bg-white">
+                                <img src="{{ route('photos.show', $photo) }}" alt="{{ $photo->caption ?? 'Projectfoto' }}" loading="lazy" class="h-36 w-full object-cover sm:h-40">
+                                <figcaption class="px-3 py-2">
+                                    <span class="block truncate text-xs font-semibold text-navy-900">{{ $photo->caption ?? $photo->workPackage?->name ?? 'Projectfoto' }}</span>
+                                    <span class="block truncate text-[11px] text-gray-400">{{ $photo->created_at->translatedFormat('j M') }}{{ $photo->uploader ? ' · '.$photo->uploader->name : '' }}</span>
+                                </figcaption>
+                                @unless ($photo->client_visible)
+                                    <span class="absolute top-2 left-2 rounded-full bg-navy-950/80 px-2 py-0.5 text-[10px] font-semibold text-white">Intern</span>
+                                @endunless
+                                @if (auth()->user()->can('manage-crm') || $photo->uploaded_by === auth()->id())
+                                    <form method="POST" action="{{ route('photos.destroy', $photo) }}" onsubmit="return confirm('Foto verwijderen?');"
+                                          class="absolute top-2 right-2 opacity-0 transition group-hover:opacity-100">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-gray-500 shadow hover:text-red-600" title="Verwijderen">
+                                            <x-icon name="trash" class="h-3.5 w-3.5" />
+                                        </button>
+                                    </form>
+                                @endif
+                            </figure>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+        </div>
     </div>
 
     {{-- ===== Tab: Uitvoering — fasen, gates en werkpakketten (briefing §7) ===== --}}

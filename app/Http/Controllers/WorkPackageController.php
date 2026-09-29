@@ -42,7 +42,7 @@ class WorkPackageController extends Controller
     {
         abort_unless($workPackage->project->isAccessibleBy($request->user()), 403);
 
-        $workPackage->load(['project.customer', 'phase', 'responsible', 'items.doneBy']);
+        $workPackage->load(['project.customer', 'phase', 'responsible', 'items.doneBy', 'items.photos', 'photos.uploader', 'photos.checklistItem']);
 
         return view('work-packages.show', [
             'workPackage' => $workPackage,
@@ -93,6 +93,12 @@ class WorkPackageController extends Controller
         if (! $workPackage->checklistComplete()) {
             return redirect()->route('work-packages.show', $workPackage)
                 ->with('error', 'Nog niet alle checklistitems zijn afgevinkt — rond eerst de checklist af.');
+        }
+
+        // Briefing §9: zonder verplicht foto-bewijs kan de taak niet definitief dicht.
+        if (! $workPackage->evidenceComplete()) {
+            return redirect()->route('work-packages.show', $workPackage)
+                ->with('error', 'Het verplichte foto-bewijs is nog niet compleet — upload eerst de ontbrekende foto\'s.');
         }
 
         $workPackage->update([

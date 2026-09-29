@@ -33,6 +33,14 @@ class ChecklistItemController extends Controller
     {
         abort_unless($workPackage->project->isAccessibleBy($request->user()), 403);
 
+        // Briefing §9: zonder het verplichte foto-bewijs kan het item niet af.
+        if (! $item->isDone() && ! $item->hasRequiredPhotos()) {
+            $ontbrekend = $item->requires_photos - $item->photos()->count();
+
+            return redirect()->route('work-packages.show', $workPackage)
+                ->with('error', '"'.$item->label.'" vereist nog '.$ontbrekend.' '.($ontbrekend === 1 ? 'bewijsfoto' : 'bewijsfoto\'s').' — upload die eerst.');
+        }
+
         $item->update($item->isDone()
             ? ['done_at' => null, 'done_by' => null]
             : ['done_at' => now(), 'done_by' => $request->user()->id]);

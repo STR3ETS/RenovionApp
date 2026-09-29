@@ -32,6 +32,7 @@ class ProjectController extends Controller
         $status = $request->filled('status') ? ProjectStatus::from($request->query('status')) : null;
 
         $projects = Project::with(['customer', 'projectLeader', 'craftsmen', 'phases'])
+            ->withCount(['photos' => fn ($query) => $query->where('client_visible', true)])
             ->when($request->user()->cannot('manage-crm'), fn ($query) => $query->whereHas(
                 'craftsmen', fn ($craftsmen) => $craftsmen->where('users.id', $request->user()->id)
             ))
@@ -121,6 +122,8 @@ class ProjectController extends Controller
             'phases.approver',
             'phases.workPackages.responsible',
             'phases.workPackages.items',
+            'photos.uploader',
+            'photos.workPackage',
             'tasks' => fn ($query) => $query->open()->orderByRaw('deadline is null, deadline asc'),
             'documents.uploader',
             'scheduleEntries' => fn ($query) => $query
@@ -218,9 +221,11 @@ class ProjectController extends Controller
     {
         abort_unless($project->isAccessibleBy(auth()->user()), 403);
 
-        abort_if($project->cover_photo_path === null || ! Storage::exists($project->cover_photo_path), 404);
+        $path = $project->coverPhotoPath();
 
-        return response()->file(Storage::path($project->cover_photo_path), [
+        abort_if($path === null || ! Storage::exists($path), 404);
+
+        return response()->file(Storage::path($path), [
             'Cache-Control' => 'private, max-age=86400',
         ]);
     }

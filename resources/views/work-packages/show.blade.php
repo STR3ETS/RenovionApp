@@ -45,9 +45,21 @@
                                 @endif
                             </span>
                             @if ($item->requiresPhotos())
-                                <span class="flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap text-amber-800" title="Minimaal {{ $item->requires_photos }} bewijsfoto's vereist">
-                                    <x-icon name="camera" class="h-3 w-3" /> min. {{ $item->requires_photos }}
+                                <span class="flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap {{ $item->hasRequiredPhotos() ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800' }}"
+                                      title="{{ $item->photos->count() }} van minimaal {{ $item->requires_photos }} bewijsfoto's aanwezig">
+                                    <x-icon name="camera" class="h-3 w-3" /> {{ $item->photos->count() }}/{{ $item->requires_photos }}
                                 </span>
+                                @unless ($item->hasRequiredPhotos() || $workPackage->isDone())
+                                    <form method="POST" action="{{ route('photos.store', $workPackage->project) }}" enctype="multipart/form-data">
+                                        @csrf
+                                        <input type="hidden" name="work_package_id" value="{{ $workPackage->id }}">
+                                        <input type="hidden" name="checklist_item_id" value="{{ $item->id }}">
+                                        <label class="flex cursor-pointer items-center gap-1 rounded-lg bg-gray-100 px-2 py-1 text-[11px] font-semibold text-gray-600 transition hover:bg-gray-200" title="Bewijsfoto's uploaden">
+                                            <x-icon name="camera" class="h-3.5 w-3.5" /> Upload
+                                            <input type="file" name="photos[]" accept="image/*" capture="environment" multiple class="hidden" onchange="this.form.submit()">
+                                        </label>
+                                    </form>
+                                @endunless
                             @endif
                             @can('manage-crm')
                                 <form method="POST" action="{{ route('checklist-items.destroy', [$workPackage, $item]) }}" onsubmit="return confirm('Checklistitem verwijderen?');">
@@ -76,6 +88,49 @@
                 @endcan
             </section>
 
+            {{-- Foto's (briefing §9: bewijs gekoppeld aan het werkpakket) --}}
+            <section class="rounded-2xl border border-gray-200 bg-white p-5">
+                <div class="mb-4 flex items-center justify-between">
+                    <h2 class="text-sm font-bold text-navy-900">Foto's</h2>
+                    <span class="text-xs font-semibold text-gray-400">{{ $workPackage->photos->count() }}</span>
+                </div>
+
+                @if ($workPackage->photos->isNotEmpty())
+                    <div class="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                        @foreach ($workPackage->photos as $photo)
+                            <figure class="group relative overflow-hidden rounded-xl border border-gray-200">
+                                <img src="{{ route('photos.show', $photo) }}" alt="{{ $photo->caption ?? 'Bewijsfoto' }}" loading="lazy" class="h-32 w-full object-cover">
+                                <figcaption class="px-2.5 py-1.5">
+                                    <span class="block truncate text-[11px] font-semibold text-navy-900">{{ $photo->caption ?? $photo->checklistItem?->label ?? 'Bewijsfoto' }}</span>
+                                    <span class="block truncate text-[10px] text-gray-400">{{ $photo->created_at->translatedFormat('j M H:i') }}{{ $photo->uploader ? ' · '.$photo->uploader->name : '' }}</span>
+                                </figcaption>
+                                @unless ($photo->client_visible)
+                                    <span class="absolute top-1.5 left-1.5 rounded-full bg-navy-950/80 px-2 py-0.5 text-[10px] font-semibold text-white">Intern</span>
+                                @endunless
+                                @if (auth()->user()->can('manage-crm') || $photo->uploaded_by === auth()->id())
+                                    <form method="POST" action="{{ route('photos.destroy', $photo) }}" onsubmit="return confirm('Foto verwijderen?');"
+                                          class="absolute top-1.5 right-1.5 opacity-0 transition group-hover:opacity-100">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="flex h-6 w-6 items-center justify-center rounded-full bg-white/90 text-gray-500 shadow hover:text-red-600" title="Verwijderen">
+                                            <x-icon name="trash" class="h-3 w-3" />
+                                        </button>
+                                    </form>
+                                @endif
+                            </figure>
+                        @endforeach
+                    </div>
+                @endif
+
+                <form method="POST" action="{{ route('photos.store', $workPackage->project) }}" enctype="multipart/form-data" class="flex flex-wrap items-center gap-2">
+                    @csrf
+                    <input type="hidden" name="work_package_id" value="{{ $workPackage->id }}">
+                    <input type="file" name="photos[]" multiple required accept="image/*" capture="environment"
+                           class="min-w-0 flex-1 text-xs text-gray-500 file:mr-2 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-brand-700 hover:file:bg-brand-100">
+                    <input type="text" name="caption" maxlength="255" placeholder="Omschrijving" class="rounded-xl border-gray-200 bg-gray-50 text-sm focus:border-brand-500 focus:bg-white focus:ring-brand-500">
+                    <button type="submit" class="rounded-xl bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-200">Uploaden</button>
+                </form>
+            </section>
+
             @if ($workPackage->description)
                 <section class="rounded-2xl border border-gray-200 bg-white p-5">
                     <h2 class="mb-2 text-sm font-bold text-navy-900">Omschrijving</h2>
@@ -95,7 +150,7 @@
                     </form>
                 @else
                     <form method="POST" action="{{ route('work-packages.complete', $workPackage) }}"
-                          @unless ($workPackage->checklistComplete()) onsubmit="return confirm('Nog niet alle checklistitems zijn afgevinkt. Toch proberen af te ronden?');" @endunless>
+                          @unless ($workPackage->checklistComplete() && $workPackage->evidenceComplete()) onsubmit="return confirm('De checklist of het foto-bewijs is nog niet compleet. Toch proberen af te ronden?');" @endunless>
                         @csrf
                         <button type="submit" class="w-full rounded-xl bg-brand-500 py-3.5 text-base font-bold text-white transition hover:bg-brand-600">
                             Taak afronden
@@ -104,6 +159,9 @@
                     @unless ($workPackage->checklistComplete())
                         <p class="mt-2 text-xs text-gray-400">Kan pas afgerond worden als de checklist compleet is ({{ $checklistDone }}/{{ $workPackage->items->count() }}).</p>
                     @endunless
+                    @if ($workPackage->checklistComplete() && ! $workPackage->evidenceComplete())
+                        <p class="mt-2 text-xs text-amber-600">Het verplichte foto-bewijs is nog niet compleet — upload eerst de ontbrekende foto's.</p>
+                    @endif
                 @endif
             </section>
 

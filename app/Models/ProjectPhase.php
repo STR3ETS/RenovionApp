@@ -70,6 +70,11 @@ class ProjectPhase extends Model
         return $this->hasMany(WorkPackage::class)->orderBy('position')->orderBy('id');
     }
 
+    public function photos(): HasMany
+    {
+        return $this->hasMany(Photo::class, 'project_phase_id')->latest();
+    }
+
     /**
      * Voortgang van deze fase (0–1): gereed telt volledig, anders het
      * aandeel afgeronde werkpakketten.

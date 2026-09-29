@@ -8,6 +8,7 @@ use App\Models\ChecklistItem;
 use App\Models\Customer;
 use App\Models\Document;
 use App\Models\Lead;
+use App\Models\Photo;
 use App\Models\Project;
 use App\Models\ProjectPhase;
 use App\Models\Quote;
@@ -44,6 +45,7 @@ class AppServiceProvider extends ServiceProvider
             'customer' => Customer::class,
             'document' => Document::class,
             'lead' => Lead::class,
+            'photo' => Photo::class,
             'project' => Project::class,
             'project_phase' => ProjectPhase::class,
             'quote' => Quote::class,

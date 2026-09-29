@@ -1,14 +1,15 @@
 @props(['project'])
 
 @php
-    /** Fotokaart per project (mockup §18): foto-bewijs levert later de echte omslagfoto. */
+    /** Fotokaart per project (mockup §18): handmatige omslag of het laatste klantzichtbare foto-bewijs. */
     $phase = $project->relationLoaded('phases') ? $project->currentPhase() : null;
+    $hasCover = $project->cover_photo_path !== null || ($project->photos_count ?? 0) > 0;
 @endphp
 
 <a href="{{ route('projects.show', $project) }}"
    class="group flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:border-brand-400 hover:shadow-md">
     <div class="relative h-28 overflow-hidden bg-gradient-to-br from-navy-700 via-navy-900 to-navy-950">
-        @if ($project->cover_photo_path)
+        @if ($hasCover)
             <img src="{{ route('projects.cover', $project) }}" alt="{{ $project->name }}" loading="lazy"
                  class="h-full w-full object-cover transition duration-300 group-hover:scale-105">
         @else

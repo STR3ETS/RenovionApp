@@ -15,6 +15,7 @@ use App\Http\Controllers\LeadContactController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\LeadStatusController;
 use App\Http\Controllers\NovaController;
+use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\PlanningController;
 use App\Http\Controllers\PriceItemSearchController;
 use App\Http\Controllers\ProjectController;
@@ -52,6 +53,11 @@ Route::middleware('auth')->group(function () {
     Route::get('projecten/aanmaken', [ProjectController::class, 'create'])->middleware('can:manage-crm')->name('projects.create');
     Route::get('projecten/{project}', [ProjectController::class, 'show'])->name('projects.show');
     Route::get('projecten/{project}/omslagfoto', [ProjectController::class, 'coverPhoto'])->name('projects.cover');
+
+    // Foto-bewijs: uploaden en bekijken kan ook door uitvoerders op eigen projecten.
+    Route::post('projecten/{project}/fotos', [PhotoController::class, 'store'])->name('photos.store');
+    Route::get('fotos/{photo}', [PhotoController::class, 'show'])->name('photos.show');
+    Route::delete('fotos/{photo}', [PhotoController::class, 'destroy'])->name('photos.destroy');
 
     // Werkpakketten: uitvoerders werken hierin op eigen projecten (toegangscheck in controller).
     Route::get('werkpakketten/{workPackage}', [WorkPackageController::class, 'show'])->name('work-packages.show');
@@ -115,6 +121,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('werkpakketten/{workPackage}', [WorkPackageController::class, 'destroy'])->name('work-packages.destroy');
         Route::post('werkpakketten/{workPackage}/items', [ChecklistItemController::class, 'store'])->name('checklist-items.store');
         Route::delete('werkpakketten/{workPackage}/items/{item}', [ChecklistItemController::class, 'destroy'])->scopeBindings()->name('checklist-items.destroy');
+        Route::patch('fotos/{photo}', [PhotoController::class, 'update'])->name('photos.update');
         Route::patch('fasen/{phase}', [ProjectPhaseController::class, 'update'])->name('phases.update');
         Route::post('fasen/{phase}/vrijgeven', [ProjectPhaseController::class, 'approve'])->name('phases.approve');
 

@@ -57,9 +57,10 @@ class WorkPackageTest extends TestCase
             'label' => "Foto's vóór dichtzetten",
             'requires_photos' => 3,
         ]);
+        $this->assertSame(3, $package->items()->firstWhere('label', "Foto's vóór dichtzetten")->requires_photos);
 
-        $item = $package->items()->first();
-        $this->assertSame(3, $item->requires_photos);
+        $this->actingAs($admin)->post('/werkpakketten/'.$package->id.'/items', ['label' => 'Freeswerk uitvoeren']);
+        $item = $package->items()->firstWhere('label', 'Freeswerk uitvoeren');
 
         $this->actingAs($uitvoerder)
             ->patch('/werkpakketten/'.$package->id.'/items/'.$item->id.'/toggle')

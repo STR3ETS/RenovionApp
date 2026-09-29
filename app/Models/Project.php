@@ -103,6 +103,20 @@ class Project extends Model
         return $this->hasMany(WorkPackage::class);
     }
 
+    public function photos(): HasMany
+    {
+        return $this->hasMany(Photo::class)->latest();
+    }
+
+    /**
+     * Omslag: handmatig geüpload, anders het meest recente klantzichtbare foto-bewijs.
+     */
+    public function coverPhotoPath(): ?string
+    {
+        return $this->cover_photo_path
+            ?? $this->photos()->where('client_visible', true)->value('path');
+    }
+
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
