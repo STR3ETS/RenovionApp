@@ -5,6 +5,7 @@
         <x-page-header :title="$quote->number.' · v'.$quote->version" :subtitle="$quote->customer->name.' · aangemaakt '.$quote->created_at->translatedFormat('j M Y')">
             <x-status-badge :status="$quote->status" class="text-sm" />
             @if ($quote->status === \App\Enums\QuoteStatus::Concept)
+                <a href="{{ route('quotes.builder', $quote) }}" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-600">Offerte bouwen</a>
                 <a href="{{ route('quotes.edit', $quote) }}" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">Posten bewerken</a>
             @endif
         </x-page-header>
@@ -12,7 +13,6 @@
         {{-- Tabs (mockup §18) --}}
         <div class="mb-5 flex gap-1 rounded-xl border border-gray-200 bg-white p-1 text-sm font-semibold">
             <button type="button" @click="tab = 'overzicht'" :class="tab === 'overzicht' ? 'bg-navy-950 text-white' : 'text-gray-600 hover:bg-gray-50'" class="flex-1 rounded-lg px-4 py-2 transition">Overzicht</button>
-            <button type="button" @click="tab = 'teksten'" :class="tab === 'teksten' ? 'bg-navy-950 text-white' : 'text-gray-600 hover:bg-gray-50'" class="flex-1 rounded-lg px-4 py-2 transition">Teksten</button>
             <button type="button" @click="tab = 'preview'" :class="tab === 'preview' ? 'bg-navy-950 text-white' : 'text-gray-600 hover:bg-gray-50'" class="flex-1 rounded-lg px-4 py-2 transition">Preview (klant)</button>
         </div>
 
@@ -217,94 +217,10 @@
             </div>
         </div>
 
-        {{-- ===== Tab: Teksten (blokken-editor, mockup: links blokken, rechts live document) ===== --}}
-        <div x-show="tab === 'teksten'" x-cloak>
-            @if ($quote->status !== \App\Enums\QuoteStatus::Concept)
-                <div class="mb-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
-                    Deze versie is bevroren ({{ $quote->status->label() }}). Start een nieuwe versie via het Overzicht om de teksten te wijzigen.
-                </div>
-            @endif
-
-            <div x-data="{ blocks: @js($quote->blocks ?? []) }" class="grid gap-4 xl:grid-cols-2">
-                <div>
-                    @if ($quote->status === \App\Enums\QuoteStatus::Concept)
-                        <form method="POST" action="{{ route('quotes.template', $quote) }}" class="mb-4 flex items-center gap-2 rounded-2xl border border-gray-200 bg-white p-4"
-                              onsubmit="return confirm('Template toepassen? Alle bloktekst wordt overschreven met de standaardtekst.');">
-                            @csrf
-                            <label for="template" class="text-sm font-semibold text-navy-900">Template</label>
-                            <select name="template" id="template" class="flex-1 rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
-                                @foreach (\App\Support\QuoteTemplates::options() as $value => $label)
-                                    <option value="{{ $value }}">{{ $label }}</option>
-                                @endforeach
-                            </select>
-                            <button type="submit" class="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">Toepassen</button>
-                        </form>
-                    @endif
-
-                    <form method="POST" action="{{ route('quotes.blocks', $quote) }}">
-                        @csrf
-                        @method('PATCH')
-                        <input type="hidden" name="blocks" :value="JSON.stringify(blocks)">
-
-                        <div class="space-y-2">
-                            <template x-for="(block, index) in blocks" :key="block.key">
-                                <div class="rounded-2xl border bg-white transition" :class="block.enabled ? 'border-gray-200' : 'border-gray-100 opacity-60'"
-                                     x-data="{ open: false }">
-                                    <div class="flex items-center gap-3 px-4 py-3">
-                                        <input type="checkbox" x-model="block.enabled" @if ($quote->status !== \App\Enums\QuoteStatus::Concept) disabled @endif
-                                               class="rounded border-gray-300 text-brand-600 focus:ring-brand-500" title="Blok tonen in de offerte">
-                                        <button type="button" @click="open = !open" class="flex flex-1 items-center justify-between gap-2 text-left">
-                                            <span class="text-sm font-semibold text-navy-900" x-text="block.title"></span>
-                                            <x-icon name="chevron-down" class="h-4 w-4 text-gray-400 transition" x-bind:class="open ? 'rotate-180' : ''" />
-                                        </button>
-                                    </div>
-                                    <div x-show="open" x-cloak class="border-t border-gray-100 p-4">
-                                        <textarea x-model="block.body" rows="6" @if ($quote->status !== \App\Enums\QuoteStatus::Concept) disabled @endif
-                                                  class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500 disabled:bg-gray-50"></textarea>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-
-                        @if ($quote->status === \App\Enums\QuoteStatus::Concept)
-                            <button type="submit" class="mt-4 rounded-xl bg-brand-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-brand-600">Teksten opslaan</button>
-                        @endif
-                    </form>
-                </div>
-
-                {{-- Live document --}}
-                <div class="hidden xl:block">
-                    <div class="sticky top-20 max-h-[80vh] overflow-y-auto rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-                        <div class="mb-6 border-b border-gray-100 pb-4">
-                            <p class="text-xs font-bold tracking-wide text-brand-500 uppercase">Live voorbeeld</p>
-                            <p class="text-lg font-bold text-navy-950">Offerte {{ $quote->number }} · v{{ $quote->version }}</p>
-                        </div>
-                        <div class="space-y-6">
-                            <template x-for="block in blocks.filter(b => b.enabled && (b.body || ['investering','stelposten'].includes(b.key)))" :key="'p'+block.key">
-                                <section>
-                                    <h3 class="mb-2 text-base font-bold text-navy-950" x-text="block.title"></h3>
-                                    <p class="text-sm whitespace-pre-line text-gray-600" x-text="block.body"></p>
-                                    <p x-show="block.key === 'investering'" class="mt-2 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-400">+ investeringstabel (€ {{ number_format((float) $quote->total, 2, ',', '.') }} incl. btw)</p>
-                                </section>
-                            </template>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         {{-- ===== Tab: Preview (klant) ===== --}}
         <div x-show="tab === 'preview'" x-cloak>
-            <div class="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-                <div class="bg-navy-950 px-8 py-10 text-white">
-                    <img src="{{ asset('images/renovion-logo.svg') }}" alt="Renovion" class="mb-6 h-10 w-auto">
-                    <p class="text-sm text-navy-300">Offerte {{ $quote->number }} · versie v{{ $quote->version }}</p>
-                    <h1 class="mt-1 text-2xl font-bold">{{ $quote->lead?->service ?? 'Renovatiewerkzaamheden' }}</h1>
-                    <p class="mt-1 text-navy-100">{{ $quote->customer->name }}</p>
-                </div>
-                <div class="p-8">
-                    @include('quotes.partials.document', ['quote' => $quote])
-                </div>
+            <div class="mx-auto max-w-3xl rounded-2xl border border-gray-200 bg-white p-6 shadow-sm lg:p-8">
+                @include('quotes.partials.document', ['quote' => $quote])
             </div>
             <p class="mt-3 text-center text-xs text-gray-400">Zo ziet de klant de offerte via de klantlink (inclusief knoppen voor ondertekenen, aanpassing aanvragen en afwijzen).</p>
         </div>

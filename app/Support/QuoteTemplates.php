@@ -67,18 +67,22 @@ class QuoteTemplates
 
     /**
      * Bouw de blokkenlijst voor een offerte: [{key, title, body, enabled}].
+     * Zonder offerte blijven de {klant}/{plaats}-tokens staan (voor templates).
      *
      * @return list<array{key: string, title: string, body: string, enabled: bool}>
      */
-    public static function blocks(string $template, Quote $quote): array
+    public static function blocks(string $template, ?Quote $quote = null): array
     {
         $texts = array_merge(self::sharedTexts(), self::templateTexts($template));
 
         $replacements = [
-            '{klant}' => $quote->customer?->name ?? 'de opdrachtgever',
-            '{plaats}' => $quote->customer?->city ?? 'de projectlocatie',
             '{werk}' => self::options()[$template] ?? 'Renovatie',
         ];
+
+        if ($quote !== null) {
+            $replacements['{klant}'] = $quote->customer?->name ?? 'de opdrachtgever';
+            $replacements['{plaats}'] = $quote->customer?->city ?? 'de projectlocatie';
+        }
 
         return collect(self::BLOCKS)
             ->map(fn (string $title, string $key) => [

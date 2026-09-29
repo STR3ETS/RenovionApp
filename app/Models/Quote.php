@@ -146,16 +146,6 @@ class Quote extends Model
         return $prefix.str_pad((string) $sequence, 4, '0', STR_PAD_LEFT);
     }
 
-    /**
-     * Alleen de ingeschakelde blokken, in de vaste volgorde.
-     *
-     * @return list<array{key: string, title: string, body: string, enabled: bool}>
-     */
-    public function enabledBlocks(): array
-    {
-        return array_values(array_filter($this->blocks ?? [], fn (array $block) => $block['enabled'] ?? true));
-    }
-
     public function publicUrl(): string
     {
         return route('quotes.public', $this->public_token);

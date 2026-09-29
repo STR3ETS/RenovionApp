@@ -23,19 +23,6 @@
         @endif
 
         <div class="overflow-hidden rounded-2xl bg-white shadow-sm print:shadow-none">
-            {{-- Hero (mockup §18) --}}
-            <div class="bg-navy-950 px-6 py-10 text-white lg:px-10">
-                <img src="{{ asset('images/renovion-logo.svg') }}" alt="Renovion" class="mb-6 h-10 w-auto">
-                <p class="text-sm text-navy-300">Offerte {{ $quote->number }} · versie v{{ $quote->version }}</p>
-                <h1 class="mt-1 text-2xl font-bold lg:text-3xl">{{ $quote->lead?->service ?? 'Renovatiewerkzaamheden' }}</h1>
-                <p class="mt-1 text-navy-100">{{ $quote->customer->name }}</p>
-                @if ($quote->valid_until)
-                    <p class="mt-4 inline-block rounded-full bg-navy-900 px-3 py-1 text-xs font-semibold text-navy-200">
-                        Geldig tot {{ $quote->valid_until->translatedFormat('j F Y') }}
-                    </p>
-                @endif
-            </div>
-
             {{-- Statusbanner --}}
             @if ($quote->status === \App\Enums\QuoteStatus::Akkoord)
                 <div class="flex items-center gap-2 bg-green-600 px-6 py-3 text-sm font-semibold text-white lg:px-10">

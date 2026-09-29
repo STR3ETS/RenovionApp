@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(TeamSeeder::class);
         $this->call(PriceLibrarySeeder::class);
+        $this->call(QuoteTemplateSeeder::class);
 
         if (app()->environment(['local', 'testing'])) {
             $this->call(DemoSeeder::class);

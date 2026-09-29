@@ -73,22 +73,18 @@ class QuoteEditorTest extends TestCase
         $this->assertSame(0, Quote::count());
     }
 
-    public function test_blocks_can_be_edited_while_concept(): void
+    public function test_blocks_can_be_edited_in_the_builder_while_concept(): void
     {
         $user = User::factory()->create();
-        $quote = Quote::factory()->create([
-            'blocks' => [['key' => 'samenvatting', 'title' => 'Samenvatting', 'body' => 'Oud', 'enabled' => true]],
-        ]);
+        $quote = Quote::factory()->create();
 
-        $this->actingAs($user)->patch('/offertes/'.$quote->id.'/blokken', [
+        $this->actingAs($user)->putJson('/offertes/'.$quote->id.'/builder', [
             'blocks' => [
-                ['key' => 'samenvatting', 'title' => 'Samenvatting', 'body' => 'Nieuwe tekst voor de klant', 'enabled' => true],
-                ['key' => 'faq', 'title' => 'Veelgestelde vragen', 'body' => '', 'enabled' => false],
+                ['id' => 'b_x', 'type' => 'text', 'data' => ['title' => 'Samenvatting', 'body' => 'Nieuwe tekst voor de klant']],
             ],
-        ])->assertRedirect(route('quotes.show', $quote));
+        ])->assertOk();
 
-        $this->assertSame('Nieuwe tekst voor de klant', $quote->refresh()->blocks[0]['body']);
-        $this->assertCount(1, $quote->enabledBlocks());
+        $this->assertSame('Nieuwe tekst voor de klant', $quote->refresh()->blocks[0]['data']['body']);
     }
 
     public function test_sending_freezes_the_version(): void

@@ -25,6 +25,7 @@ use App\Http\Controllers\PriceItemSearchController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectPhaseController;
 use App\Http\Controllers\ProjectStatusController;
+use App\Http\Controllers\QuoteBuilderController;
 use App\Http\Controllers\QuoteController;
 use App\Http\Controllers\QuotePublicController;
 use App\Http\Controllers\QuoteStatusController;
@@ -43,6 +44,7 @@ Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 if (config('renovion.modules.quotes')) {
     Route::middleware('throttle:30,1')->group(function () {
         Route::get('offerte/{quote:public_token}', [QuotePublicController::class, 'show'])->name('quotes.public');
+        Route::get('offerte/{quote:public_token}/media/{file}', [QuoteBuilderController::class, 'media'])->name('quotes.public.media');
         Route::post('offerte/{quote:public_token}/ondertekenen', [QuotePublicController::class, 'sign'])->name('quotes.public.sign');
         Route::post('offerte/{quote:public_token}/aanpassing', [QuotePublicController::class, 'requestChange'])->name('quotes.public.change');
         Route::post('offerte/{quote:public_token}/afwijzen', [QuotePublicController::class, 'reject'])->name('quotes.public.reject');
@@ -123,9 +125,16 @@ Route::middleware('auth')->group(function () {
                     ->parameters(['offertes' => 'quote'])
                     ->names('quotes');
                 Route::patch('offertes/{quote}/status', [QuoteStatusController::class, 'update'])->name('quotes.status');
-                Route::patch('offertes/{quote}/blokken', [QuoteController::class, 'updateBlocks'])->name('quotes.blocks');
-                Route::post('offertes/{quote}/template', [QuoteController::class, 'applyTemplate'])->name('quotes.template');
                 Route::post('offertes/{quote}/nieuwe-versie', [QuoteController::class, 'newVersion'])->name('quotes.version');
+
+                // Offerte-builder (briefing §6, EasyDash-concept)
+                Route::get('offertes/{quote}/builder', [QuoteBuilderController::class, 'edit'])->name('quotes.builder');
+                Route::put('offertes/{quote}/builder', [QuoteBuilderController::class, 'update'])->name('quotes.builder.update');
+                Route::post('offertes/{quote}/builder/template', [QuoteBuilderController::class, 'applyTemplate'])->name('quotes.builder.template');
+                Route::post('offertes/{quote}/builder/template-opslaan', [QuoteBuilderController::class, 'saveAsTemplate'])->name('quotes.builder.save-template');
+                Route::delete('offerte-templates/{template}', [QuoteBuilderController::class, 'deleteTemplate'])->name('quote-templates.destroy');
+                Route::post('offertes/{quote}/builder/upload', [QuoteBuilderController::class, 'upload'])->middleware('throttle:30,1')->name('quotes.builder.upload');
+                Route::post('offertes/{quote}/builder/blok-ai', [QuoteBuilderController::class, 'blockAi'])->middleware('throttle:30,1')->name('quotes.builder.ai');
                 Route::post('calculaties/{calculation}/offerte', CalculationQuoteController::class)->name('calculations.quote');
             }
 

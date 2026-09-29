@@ -10,7 +10,7 @@ use App\Models\AuditLog;
 use App\Models\Calculation;
 use App\Models\CalculationLine;
 use App\Models\Quote;
-use App\Support\QuoteTemplates;
+use App\Support\QuoteBlockRegistry;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -34,8 +34,7 @@ class CreateQuoteFromCalculation
                 'valid_until' => now()->addDays(30)->toDateString(),
             ]);
 
-            $template = QuoteTemplates::guess($calculation->lead?->service ?? $calculation->title);
-            $quote->update(['blocks' => QuoteTemplates::blocks($template, $quote)]);
+            $quote->update(['blocks' => QuoteBlockRegistry::forNewQuote($quote)]);
 
             $this->buildCommercialLines($quote, $calculation);
 

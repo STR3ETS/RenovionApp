@@ -56,7 +56,10 @@ class GenerateDeliveryReport
      */
     private function snapshot(Project $project): array
     {
-        $scopeBlok = collect($project->quote?->blocks ?? [])->firstWhere('key', 'scope');
+        // Scope uit de offerte: oud formaat (key) of builder-formaat (tekstblok met "scope" in de titel).
+        $offerteBlokken = collect($project->quote?->blocks ?? []);
+        $scopeBlok = $offerteBlokken->firstWhere('key', 'scope')
+            ?? ['body' => $offerteBlokken->first(fn ($blok) => str_contains(mb_strtolower($blok['data']['title'] ?? ''), 'scope'))['data']['body'] ?? null];
 
         return [
             'project' => [

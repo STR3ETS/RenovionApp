@@ -11,7 +11,7 @@ use App\Models\AuditLog;
 use App\Models\Customer;
 use App\Models\Lead;
 use App\Models\Quote;
-use App\Support\QuoteTemplates;
+use App\Support\QuoteBlockRegistry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -64,7 +64,7 @@ class QuoteController extends Controller
                 'notes' => $validated['notes'] ?? null,
             ]);
 
-            $quote->update(['blocks' => QuoteTemplates::blocks(QuoteTemplates::guess($quote->lead?->service), $quote)]);
+            $quote->update(['blocks' => QuoteBlockRegistry::forNewQuote($quote)]);
 
             $this->syncLines($quote, $validated['lines']);
 
@@ -92,61 +92,6 @@ class QuoteController extends Controller
         $quote->load(['lines', 'customer', 'lead', 'project', 'calculation', 'versions.creator']);
 
         return view('quotes.show', ['quote' => $quote]);
-    }
-
-    /**
-     * Blokken uit de editor opslaan (alleen concept).
-     */
-    public function updateBlocks(Request $request, Quote $quote): RedirectResponse
-    {
-        if ($quote->status !== QuoteStatus::Concept) {
-            return redirect()->route('quotes.show', $quote)
-                ->with('error', 'Alleen conceptoffertes kunnen worden bewerkt — start eerst een nieuwe versie.');
-        }
-
-        if (is_string($request->input('blocks'))) {
-            $decoded = json_decode((string) $request->input('blocks'), true);
-            $request->merge(['blocks' => is_array($decoded) ? $decoded : []]);
-        }
-
-        $validated = $request->validate([
-            'blocks' => ['required', 'array', 'max:20'],
-            'blocks.*.key' => ['required', 'string', 'max:50'],
-            'blocks.*.title' => ['required', 'string', 'max:100'],
-            'blocks.*.body' => ['nullable', 'string', 'max:10000'],
-            'blocks.*.enabled' => ['required', 'boolean'],
-        ]);
-
-        $quote->update(['blocks' => collect($validated['blocks'])
-            ->map(fn (array $block) => [...$block, 'body' => $block['body'] ?? ''])
-            ->all()]);
-
-        AuditLog::record($quote, 'blokken_bijgewerkt', [], ['versie' => $quote->version]);
-
-        return redirect()->route('quotes.show', $quote)->with('success', 'Offerteteksten opgeslagen.');
-    }
-
-    /**
-     * Template toepassen: vult alle blokken opnieuw met de standaardteksten
-     * voor het gekozen type werk.
-     */
-    public function applyTemplate(Request $request, Quote $quote): RedirectResponse
-    {
-        if ($quote->status !== QuoteStatus::Concept) {
-            return redirect()->route('quotes.show', $quote)
-                ->with('error', 'Alleen conceptoffertes kunnen worden bewerkt.');
-        }
-
-        $validated = $request->validate([
-            'template' => ['required', Rule::in(array_keys(QuoteTemplates::options()))],
-        ]);
-
-        $quote->update(['blocks' => QuoteTemplates::blocks($validated['template'], $quote)]);
-
-        AuditLog::record($quote, 'template_toegepast', [], ['template' => $validated['template']]);
-
-        return redirect()->route('quotes.show', $quote)
-            ->with('success', 'Template "'.QuoteTemplates::options()[$validated['template']].'" toegepast.');
     }
 
     /**
