@@ -12,7 +12,7 @@ use App\Models\Task;
 /**
  * Briefing §22: nieuwe lead met complete gegevens → salestaak om op te volgen.
  */
-class NewLeadTaskAutomation implements Automation
+class NewLeadTaskAutomation extends BaseAutomation
 {
     public function key(): string
     {
@@ -43,16 +43,22 @@ class NewLeadTaskAutomation implements Automation
                 continue;
             }
 
-            Task::create([
+            $taak = [
                 'title' => 'Nieuwe aanvraag opvolgen: '.$lead->customer->name,
                 'note' => $lead->service,
                 'customer_id' => $lead->customer_id,
                 'lead_id' => $lead->id,
                 'owner_id' => $lead->assigned_to,
                 'deadline' => today()->addDay()->toDateString(),
-                'priority' => TaskPriority::Normaal,
-                'source' => ActionSource::Automation,
-            ]);
+                'priority' => TaskPriority::Normaal->value,
+            ];
+
+            $this->act(
+                'Nieuwe aanvraag van '.$lead->customer->name.' wacht op opvolging.',
+                fn () => Task::create([...$taak, 'priority' => TaskPriority::Normaal, 'source' => ActionSource::Automation]),
+                ['type' => 'create_task', 'params' => $taak],
+                route('leads.show', $lead),
+            );
 
             $count++;
         }

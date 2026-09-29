@@ -13,7 +13,7 @@ use App\Models\Task;
  * Briefing §18/§22: project start binnenkort maar de aanbetaling is niet
  * ontvangen → waarschuwingstaak met hoge prioriteit.
  */
-class DepositWarningAutomation implements Automation
+class DepositWarningAutomation extends BaseAutomation
 {
     public function key(): string
     {
@@ -48,22 +48,30 @@ class DepositWarningAutomation implements Automation
                 continue;
             }
 
-            Task::create([
+            $taak = [
                 'title' => 'Aanbetaling '.$project->customer->name.' controleren — project start '.$project->start_date->translatedFormat('j M'),
                 'customer_id' => $project->customer_id,
                 'project_id' => $project->id,
                 'owner_id' => $project->project_leader_id,
                 'deadline' => today()->toDateString(),
-                'priority' => TaskPriority::Hoog,
-                'source' => ActionSource::Automation,
-            ]);
+                'priority' => TaskPriority::Hoog->value,
+            ];
 
-            $project->customer->recordEvent(
-                TimelineEventType::Betaling,
-                'Waarschuwing: aanbetaling € '.number_format((float) $project->deposit_amount, 0, ',', '.').' nog niet ontvangen, project start '.$project->start_date->translatedFormat('j M'),
-                null,
-                $project,
-                ActionSource::Automation,
+            $this->act(
+                'Aanbetaling van '.$project->customer->name.' (€ '.number_format((float) $project->deposit_amount, 0, ',', '.').') is nog niet ontvangen; het project start '.$project->start_date->translatedFormat('j M').'.',
+                function () use ($project, $taak) {
+                    Task::create([...$taak, 'priority' => TaskPriority::Hoog, 'source' => ActionSource::Automation]);
+
+                    $project->customer->recordEvent(
+                        TimelineEventType::Betaling,
+                        'Waarschuwing: aanbetaling € '.number_format((float) $project->deposit_amount, 0, ',', '.').' nog niet ontvangen, project start '.$project->start_date->translatedFormat('j M'),
+                        null,
+                        $project,
+                        ActionSource::Automation,
+                    );
+                },
+                ['type' => 'create_task', 'params' => $taak],
+                route('projects.show', $project),
             );
 
             $count++;

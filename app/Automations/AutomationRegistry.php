@@ -13,6 +13,9 @@ class AutomationRegistry
         QuoteFollowUpAutomation::class,
         IntakeReminderAutomation::class,
         DepositWarningAutomation::class,
+        DeadlineReminderAutomation::class,
+        WaitingOnClientAutomation::class,
+        DeliveryReportConceptAutomation::class,
     ];
 
     /**

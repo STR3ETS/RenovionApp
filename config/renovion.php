@@ -34,15 +34,15 @@ return [
     | Modules
     |--------------------------------------------------------------------------
     |
-    | Offertes staat sinds de offerte-editor (briefing v2 §6) standaard aan.
-    | Automations blijft bewust uit tot de Nova-rules-sprint; aanzetten kan
-    | via MODULE_AUTOMATIONS=true in .env.
+    | Beide modules staan standaard aan: Offertes sinds de offerte-editor
+    | (briefing §6), Automations sinds de Nova-rules-sprint (briefing §12,
+    | per regel instelbaar). Uitzetten kan via .env.
     |
     */
 
     'modules' => [
         'quotes' => (bool) env('MODULE_QUOTES', true),
-        'automations' => (bool) env('MODULE_AUTOMATIONS', false),
+        'automations' => (bool) env('MODULE_AUTOMATIONS', true),
     ],
 
 ];

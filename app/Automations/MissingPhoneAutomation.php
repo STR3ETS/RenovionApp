@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Mail;
  * Briefing §9: nieuwe lead zonder telefoonnummer → automatisch e-mail om het
  * nummer op te vragen. Zonder e-mailadres wordt een taak aangemaakt.
  */
-class MissingPhoneAutomation implements Automation
+class MissingPhoneAutomation extends BaseAutomation
 {
     public function key(): string
     {
@@ -47,33 +47,52 @@ class MissingPhoneAutomation implements Automation
                 continue;
             }
 
-            if (filled($lead->customer->email)) {
-                Mail::to($lead->customer->email)->send(new RequestPhoneNumberMail($lead));
-
-                $lead->forceFill(['phone_requested_at' => now()])->save();
-
-                $lead->customer->recordEvent(
-                    TimelineEventType::Email,
-                    'E-mail verstuurd: telefoonnummer opgevraagd',
-                    'Automatische e-mail met het verzoek om een telefoonnummer te delen.',
-                    $lead,
-                    ActionSource::Automation,
-                );
-            } else {
-                Task::create([
+            $this->act(
+                'Aanvraag van '.$lead->customer->name.' heeft geen telefoonnummer.',
+                fn () => $this->requestPhone($lead),
+                ['type' => 'create_task', 'params' => [
                     'title' => 'Telefoonnummer achterhalen: '.$lead->customer->name,
                     'customer_id' => $lead->customer_id,
                     'lead_id' => $lead->id,
                     'owner_id' => $lead->assigned_to,
                     'deadline' => today()->toDateString(),
-                    'priority' => TaskPriority::Hoog,
-                    'source' => ActionSource::Automation,
-                ]);
-            }
+                    'priority' => TaskPriority::Hoog->value,
+                ]],
+                route('leads.show', $lead),
+            );
 
             $count++;
         }
 
         return $count;
+    }
+
+    private function requestPhone(Lead $lead): void
+    {
+        if (filled($lead->customer->email)) {
+            Mail::to($lead->customer->email)->send(new RequestPhoneNumberMail($lead));
+
+            $lead->forceFill(['phone_requested_at' => now()])->save();
+
+            $lead->customer->recordEvent(
+                TimelineEventType::Email,
+                'E-mail verstuurd: telefoonnummer opgevraagd',
+                'Automatische e-mail met het verzoek om een telefoonnummer te delen.',
+                $lead,
+                ActionSource::Automation,
+            );
+
+            return;
+        }
+
+        Task::create([
+            'title' => 'Telefoonnummer achterhalen: '.$lead->customer->name,
+            'customer_id' => $lead->customer_id,
+            'lead_id' => $lead->id,
+            'owner_id' => $lead->assigned_to,
+            'deadline' => today()->toDateString(),
+            'priority' => TaskPriority::Hoog,
+            'source' => ActionSource::Automation,
+        ]);
     }
 }

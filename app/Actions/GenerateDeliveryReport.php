@@ -20,7 +20,7 @@ use App\Models\WorkPackage;
  */
 class GenerateDeliveryReport
 {
-    public function handle(Project $project, User $user): DeliveryReport
+    public function handle(Project $project, ?User $user = null): DeliveryReport
     {
         $project->load([
             'customer', 'quote.versions',
@@ -36,7 +36,7 @@ class GenerateDeliveryReport
             [
                 'snapshot' => $this->snapshot($project),
                 'generated_at' => now(),
-                'generated_by' => $user->id,
+                'generated_by' => $user?->id,
             ],
         );
 

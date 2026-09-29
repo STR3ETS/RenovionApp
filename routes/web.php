@@ -56,9 +56,9 @@ Route::middleware('auth')->group(function () {
     // Klantportaal (briefing §10): rol Klant, alleen eigen projecten en klantzichtbare content.
     Route::get('portaal', [PortalController::class, 'index'])->name('portal.index');
     Route::get('portaal/projecten/{project}', [PortalController::class, 'show'])->name('portal.show');
-    Route::post('portaal/fasen/{phase}/akkoord', [PortalController::class, 'approvePhase'])->name('portal.phases.approve');
+    Route::post('portaal/fasen/{phase}/akkoord', [PortalController::class, 'approvePhase'])->middleware('throttle:10,1')->name('portal.phases.approve');
     Route::get('portaal/opleverrapporten/{report}', [PortalController::class, 'report'])->name('portal.report');
-    Route::post('portaal/opleverrapporten/{report}/ondertekenen', [PortalController::class, 'signReport'])->name('portal.report.sign');
+    Route::post('portaal/opleverrapporten/{report}/ondertekenen', [PortalController::class, 'signReport'])->middleware('throttle:10,1')->name('portal.report.sign');
 
     // Beeldstreams: intern én klantportaal (toegangscheck in de controller).
     Route::get('projecten/{project}/omslagfoto', [ProjectController::class, 'coverPhoto'])->name('projects.cover');
@@ -72,7 +72,7 @@ Route::middleware('auth')->group(function () {
         Route::get('projecten/{project}', [ProjectController::class, 'show'])->name('projects.show');
 
         // Foto-bewijs: uploaden kan ook door uitvoerders op eigen projecten.
-        Route::post('projecten/{project}/fotos', [PhotoController::class, 'store'])->name('photos.store');
+        Route::post('projecten/{project}/fotos', [PhotoController::class, 'store'])->middleware('throttle:30,1')->name('photos.store');
         Route::delete('fotos/{photo}', [PhotoController::class, 'destroy'])->name('photos.destroy');
 
         // Werkpakketten: uitvoerders werken hierin op eigen projecten (toegangscheck in controller).
@@ -92,7 +92,7 @@ Route::middleware('auth')->group(function () {
         Route::post('chat/berichten/{message}/taak', [ChatMessageController::class, 'toTask'])->name('chat.task');
         Route::get('chat/{channel}', [ChatController::class, 'show'])->name('chat.show');
         Route::get('chat/{channel}/berichten', [ChatMessageController::class, 'index'])->name('chat.messages');
-        Route::post('chat/{channel}/berichten', [ChatMessageController::class, 'store'])->name('chat.messages.store');
+        Route::post('chat/{channel}/berichten', [ChatMessageController::class, 'store'])->middleware('throttle:60,1')->name('chat.messages.store');
 
         Route::get('taken', [TaskController::class, 'index'])->name('tasks.index');
         Route::post('taken', [TaskController::class, 'store'])->name('tasks.store');
@@ -170,6 +170,7 @@ Route::middleware('auth')->group(function () {
 
             if (config('renovion.modules.automations')) {
                 Route::get('automations', [AutomationController::class, 'index'])->name('automations.index');
+                Route::patch('automations/{key}', [AutomationController::class, 'update'])->name('automations.update');
             }
         });
 

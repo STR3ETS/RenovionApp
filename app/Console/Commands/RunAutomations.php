@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Automations\AutomationRegistry;
+use App\Enums\AutomationMode;
 use App\Services\AttentionService;
 use Illuminate\Console\Command;
 
@@ -15,9 +16,15 @@ class RunAutomations extends Command
     public function handle(): int
     {
         foreach (AutomationRegistry::all() as $automation) {
+            if ($automation->mode() === AutomationMode::Uit) {
+                $this->line(sprintf('%-40s (uit)', $automation->name()));
+
+                continue;
+            }
+
             $count = $automation->run();
 
-            $this->line(sprintf('%-35s %s', $automation->name(), $count > 0 ? "{$count} actie(s)" : '—'));
+            $this->line(sprintf('%-40s %s [%s]', $automation->name(), $count > 0 ? "{$count} actie(s)" : '—', $automation->mode()->value));
         }
 
         AttentionService::forgetCount();

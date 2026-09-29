@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Enums\UserRole;
+use App\Models\AutomationSetting;
 use App\Models\Calculation;
 use App\Models\ChecklistItem;
 use App\Models\Customer;
@@ -41,6 +42,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Relation::enforceMorphMap([
+            'automation_setting' => AutomationSetting::class,
             'calculation' => Calculation::class,
             'checklist_item' => ChecklistItem::class,
             'customer' => Customer::class,

@@ -15,7 +15,7 @@ use App\Models\Task;
  * Briefing §11/§22: offerte verstuurd en 3 dagen geen reactie → opvolgtaak
  * en status "Opvolgen". Vanaf 5 dagen krijgt de taak hoge prioriteit.
  */
-class QuoteFollowUpAutomation implements Automation
+class QuoteFollowUpAutomation extends BaseAutomation
 {
     public function key(): string
     {
@@ -47,27 +47,35 @@ class QuoteFollowUpAutomation implements Automation
                 continue;
             }
 
-            $old = $quote->status;
-            $quote->forceFill(['status' => QuoteStatus::Opvolgen])->save();
-
-            AuditLog::record($quote, 'status_gewijzigd', ['status' => $old->value], ['status' => QuoteStatus::Opvolgen->value], ActionSource::Automation);
-
-            Task::create([
+            $taak = [
                 'title' => 'Offerte '.$quote->number.' opvolgen ('.$quote->daysOpen().' dagen open)',
                 'customer_id' => $quote->customer_id,
                 'lead_id' => $quote->lead_id,
                 'owner_id' => $quote->lead?->assigned_to,
                 'deadline' => today()->toDateString(),
-                'priority' => $quote->daysOpen() >= 5 ? TaskPriority::Hoog : TaskPriority::Normaal,
-                'source' => ActionSource::Automation,
-            ]);
+                'priority' => $quote->daysOpen() >= 5 ? TaskPriority::Hoog->value : TaskPriority::Normaal->value,
+            ];
 
-            $quote->customer->recordEvent(
-                TimelineEventType::Offerte,
-                'Offerte '.$quote->number.' gemarkeerd voor opvolging ('.$quote->daysOpen().' dagen geen reactie)',
-                null,
-                $quote,
-                ActionSource::Automation,
+            $this->act(
+                'Offerte '.$quote->number.' van '.$quote->customer->name.' staat '.$quote->daysOpen().' dagen open zonder reactie.',
+                function () use ($quote, $taak) {
+                    $old = $quote->status;
+                    $quote->forceFill(['status' => QuoteStatus::Opvolgen])->save();
+
+                    AuditLog::record($quote, 'status_gewijzigd', ['status' => $old->value], ['status' => QuoteStatus::Opvolgen->value], ActionSource::Automation);
+
+                    Task::create([...$taak, 'priority' => TaskPriority::from($taak['priority']), 'source' => ActionSource::Automation]);
+
+                    $quote->customer->recordEvent(
+                        TimelineEventType::Offerte,
+                        'Offerte '.$quote->number.' gemarkeerd voor opvolging ('.$quote->daysOpen().' dagen geen reactie)',
+                        null,
+                        $quote,
+                        ActionSource::Automation,
+                    );
+                },
+                ['type' => 'create_task', 'params' => $taak],
+                route('quotes.show', $quote),
             );
 
             $count++;
