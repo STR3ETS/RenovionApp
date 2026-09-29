@@ -39,16 +39,13 @@
                         @endforeach
                     </select>
                 </x-field>
-                <x-field label="Voortgang (%)" name="progress">
-                    <input type="number" name="progress" id="progress" value="{{ old('progress', $project->progress) }}" min="0" max="100" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
-                </x-field>
                 <x-field label="Huidige fase" name="current_phase" class="sm:col-span-2">
                     <select name="current_phase" id="current_phase" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
                         @foreach ($project->phases as $phase)
                             <option value="{{ $phase->position }}" @selected(old('current_phase', $project->currentPhase()?->position) == $phase->position)>{{ $phase->position }}. {{ $phase->name }}</option>
                         @endforeach
                     </select>
-                    <p class="mt-1 text-xs text-gray-400">Eerdere fasen worden gereed gemarkeerd, latere fasen gaan terug naar "niet gestart".</p>
+                    <p class="mt-1 text-xs text-gray-400">Eerdere fasen worden gereed gemarkeerd, latere fasen gaan terug naar "niet gestart". De voortgang% wordt automatisch berekend uit de fasen en werkpakketten.</p>
                 </x-field>
                 <x-field label="Notities" name="notes" class="sm:col-span-2">
                     <textarea name="notes" id="notes" rows="3" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">{{ old('notes', $project->notes) }}</textarea>

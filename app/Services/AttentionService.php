@@ -3,12 +3,15 @@
 namespace App\Services;
 
 use App\Enums\LeadStatus;
+use App\Enums\PhaseStatus;
 use App\Enums\ScheduleEntryType;
 use App\Models\Lead;
 use App\Models\Project;
+use App\Models\ProjectPhase;
 use App\Models\Quote;
 use App\Models\ScheduleEntry;
 use App\Models\Task;
+use App\Models\WorkPackage;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
@@ -25,6 +28,7 @@ class AttentionService
     {
         return collect()
             ->concat($this->overdueProjects())
+            ->concat($this->blockedWork())
             ->concat($this->unansweredQuotes())
             ->concat($this->missingDeposits())
             ->concat($this->planningConflicts())
@@ -70,6 +74,50 @@ class AttentionService
                 'subtitle' => 'Verwachte oplevering was '.$project->end_date_expected->translatedFormat('j M').' · '.$project->customer->name,
                 'url' => route('projects.show', $project),
             ]);
+    }
+
+    /**
+     * Geblokkeerde fasen/werkpakketten en werkpakketten over hun deadline
+     * (briefing §3: Aandacht toont te laat en blokkades).
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function blockedWork(): Collection
+    {
+        $blockedPhases = ProjectPhase::where('status', PhaseStatus::Geblokkeerd)
+            ->whereHas('project', fn ($query) => $query->active())
+            ->with('project')
+            ->get()
+            ->map(fn (ProjectPhase $phase) => [
+                'severity' => 'rood',
+                'icon' => 'exclamation-triangle',
+                'label' => 'Fase geblokkeerd',
+                'title' => $phase->project->name.' — '.$phase->name,
+                'subtitle' => 'Blokkade oplossen om het project door te laten lopen',
+                'url' => route('projects.show', $phase->project),
+            ]);
+
+        $problemPackages = WorkPackage::where('status', '!=', PhaseStatus::Gereed)
+            ->whereHas('project', fn ($query) => $query->active())
+            ->where(fn ($query) => $query
+                ->where('status', PhaseStatus::Geblokkeerd)
+                ->orWhereDate('deadline', '<', today()))
+            ->with(['project', 'responsible'])
+            ->get()
+            ->map(fn (WorkPackage $package) => [
+                'severity' => $package->status === PhaseStatus::Geblokkeerd ? 'rood' : 'oranje',
+                'icon' => 'wrench-screwdriver',
+                'label' => $package->status === PhaseStatus::Geblokkeerd ? 'Werkpakket geblokkeerd' : 'Werkpakket over deadline',
+                'title' => $package->name,
+                'subtitle' => collect([
+                    $package->project->name,
+                    $package->deadline ? 'deadline '.$package->deadline->translatedFormat('j M') : null,
+                    $package->responsible?->name,
+                ])->filter()->implode(' · '),
+                'url' => route('work-packages.show', $package),
+            ]);
+
+        return $blockedPhases->concat($problemPackages);
     }
 
     /**

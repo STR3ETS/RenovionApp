@@ -109,9 +109,7 @@ class ProjectController extends Controller
 
     public function show(Project $project): View
     {
-        if (auth()->user()->cannot('manage-crm') && ! $project->craftsmen()->whereKey(auth()->id())->exists()) {
-            abort(403);
-        }
+        abort_unless($project->isAccessibleBy(auth()->user()), 403);
 
         $project->load([
             'customer',
@@ -119,7 +117,10 @@ class ProjectController extends Controller
             'quote',
             'projectLeader',
             'craftsmen',
-            'phases',
+            'phases.responsible',
+            'phases.approver',
+            'phases.workPackages.responsible',
+            'phases.workPackages.items',
             'tasks' => fn ($query) => $query->open()->orderByRaw('deadline is null, deadline asc'),
             'documents.uploader',
             'scheduleEntries' => fn ($query) => $query
@@ -215,9 +216,7 @@ class ProjectController extends Controller
      */
     public function coverPhoto(Project $project): BinaryFileResponse
     {
-        if (auth()->user()->cannot('manage-crm') && ! $project->craftsmen()->whereKey(auth()->id())->exists()) {
-            abort(403);
-        }
+        abort_unless($project->isAccessibleBy(auth()->user()), 403);
 
         abort_if($project->cover_photo_path === null || ! Storage::exists($project->cover_photo_path), 404);
 
@@ -251,5 +250,7 @@ class ProjectController extends Controller
                 ],
             });
         });
+
+        $project->syncProgress();
     }
 }

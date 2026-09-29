@@ -7,6 +7,7 @@ use App\Http\Controllers\CalculationAssistController;
 use App\Http\Controllers\CalculationController;
 use App\Http\Controllers\CalculationLineController;
 use App\Http\Controllers\CalculationQuoteController;
+use App\Http\Controllers\ChecklistItemController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentController;
@@ -17,6 +18,7 @@ use App\Http\Controllers\NovaController;
 use App\Http\Controllers\PlanningController;
 use App\Http\Controllers\PriceItemSearchController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ProjectPhaseController;
 use App\Http\Controllers\ProjectStatusController;
 use App\Http\Controllers\QuoteController;
 use App\Http\Controllers\QuotePublicController;
@@ -25,6 +27,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TaskStatusController;
 use App\Http\Controllers\TeamController;
+use App\Http\Controllers\WorkPackageController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/login', [LoginController::class, 'create'])->name('login');
@@ -49,6 +52,12 @@ Route::middleware('auth')->group(function () {
     Route::get('projecten/aanmaken', [ProjectController::class, 'create'])->middleware('can:manage-crm')->name('projects.create');
     Route::get('projecten/{project}', [ProjectController::class, 'show'])->name('projects.show');
     Route::get('projecten/{project}/omslagfoto', [ProjectController::class, 'coverPhoto'])->name('projects.cover');
+
+    // Werkpakketten: uitvoerders werken hierin op eigen projecten (toegangscheck in controller).
+    Route::get('werkpakketten/{workPackage}', [WorkPackageController::class, 'show'])->name('work-packages.show');
+    Route::post('werkpakketten/{workPackage}/afronden', [WorkPackageController::class, 'complete'])->name('work-packages.complete');
+    Route::post('werkpakketten/{workPackage}/heropenen', [WorkPackageController::class, 'reopen'])->name('work-packages.reopen');
+    Route::patch('werkpakketten/{workPackage}/items/{item}/toggle', [ChecklistItemController::class, 'toggle'])->scopeBindings()->name('checklist-items.toggle');
 
     Route::get('taken', [TaskController::class, 'index'])->name('tasks.index');
     Route::post('taken', [TaskController::class, 'store'])->name('tasks.store');
@@ -100,6 +109,14 @@ Route::middleware('auth')->group(function () {
         Route::get('projecten/{project}/bewerken', [ProjectController::class, 'edit'])->name('projects.edit');
         Route::match(['put', 'patch'], 'projecten/{project}', [ProjectController::class, 'update'])->name('projects.update');
         Route::patch('projecten/{project}/status', [ProjectStatusController::class, 'update'])->name('projects.status');
+
+        Route::post('projecten/{project}/werkpakketten', [WorkPackageController::class, 'store'])->name('work-packages.store');
+        Route::match(['put', 'patch'], 'werkpakketten/{workPackage}', [WorkPackageController::class, 'update'])->name('work-packages.update');
+        Route::delete('werkpakketten/{workPackage}', [WorkPackageController::class, 'destroy'])->name('work-packages.destroy');
+        Route::post('werkpakketten/{workPackage}/items', [ChecklistItemController::class, 'store'])->name('checklist-items.store');
+        Route::delete('werkpakketten/{workPackage}/items/{item}', [ChecklistItemController::class, 'destroy'])->scopeBindings()->name('checklist-items.destroy');
+        Route::patch('fasen/{phase}', [ProjectPhaseController::class, 'update'])->name('phases.update');
+        Route::post('fasen/{phase}/vrijgeven', [ProjectPhaseController::class, 'approve'])->name('phases.approve');
 
         Route::post('planning', [PlanningController::class, 'store'])->name('planning.store');
         Route::delete('planning/{scheduleEntry}', [PlanningController::class, 'destroy'])->name('planning.destroy');

@@ -98,9 +98,40 @@ class Project extends Model
             ?? $this->phases->last();
     }
 
+    public function workPackages(): HasMany
+    {
+        return $this->hasMany(WorkPackage::class);
+    }
+
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
+    }
+
+    /**
+     * Uitvoerders zien alleen projecten waar ze op ingedeeld zijn (briefing §15).
+     */
+    public function isAccessibleBy(User $user): bool
+    {
+        return $user->can('manage-crm')
+            || $this->craftsmen()->whereKey($user->id)->exists();
+    }
+
+    /**
+     * Voortgang% wordt berekend uit de fasen en hun werkpakketten (briefing §7),
+     * zodat het dashboard en klantportaal altijd de werkelijke stand tonen.
+     */
+    public function syncProgress(): void
+    {
+        $phases = $this->phases()->with('workPackages')->get();
+
+        if ($phases->isEmpty()) {
+            return;
+        }
+
+        $this->forceFill([
+            'progress' => (int) round($phases->avg(fn (ProjectPhase $phase) => $phase->completionFraction()) * 100),
+        ])->save();
     }
 
     public function scheduleEntries(): HasMany
