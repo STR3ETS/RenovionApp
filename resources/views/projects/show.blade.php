@@ -3,6 +3,9 @@
     <x-page-header :title="$project->name" :subtitle="$project->customer->name.' · '.($project->city ?? 'plaats onbekend')"
                    :image="($project->cover_photo_path || $project->photos->where('client_visible', true)->isNotEmpty()) ? route('projects.cover', $project) : null">
         <x-status-badge :status="$project->status" class="text-sm" />
+        @if ($project->chatChannel)
+            <a href="{{ route('chat.show', $project->chatChannel) }}" class="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"><x-icon name="chat-bubble" class="h-4 w-4" /> Chat</a>
+        @endif
         @can('manage-crm')
             <a href="{{ route('projects.edit', $project) }}" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">Bewerken</a>
         @endcan

@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 #[Fillable([
@@ -39,6 +40,13 @@ class Project extends Model
                 'name' => $name,
                 'status' => $position === 0 ? PhaseStatus::Bezig : PhaseStatus::NietGestart,
             ])->all());
+
+            // Elk project krijgt een eigen chatkanaal (briefing §11).
+            ChatChannel::create([
+                'type' => 'project',
+                'name' => $project->name,
+                'project_id' => $project->id,
+            ]);
         });
     }
 
@@ -107,6 +115,11 @@ class Project extends Model
     public function photos(): HasMany
     {
         return $this->hasMany(Photo::class)->latest();
+    }
+
+    public function chatChannel(): HasOne
+    {
+        return $this->hasOne(ChatChannel::class);
     }
 
     /**

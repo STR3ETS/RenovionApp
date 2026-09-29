@@ -29,6 +29,146 @@ async function sendJson(method, url, data) {
 window.patchJson = (url, data) => sendJson('PATCH', url, data);
 window.postJson = (url, data) => sendJson('POST', url, data);
 
+// Teamchat (briefing §11): berichten versturen, pollen op nieuwe berichten,
+// Nova-voorstellen bevestigen en taken maken vanuit een bericht.
+Alpine.data('chat', (config) => ({
+    messages: config.messages || [],
+    lastId: 0,
+    input: '',
+    busy: false,
+    listening: false,
+    recognition: null,
+    pollTimer: null,
+    toast: null,
+
+    init() {
+        this.lastId = this.messages.length ? this.messages[this.messages.length - 1].id : 0;
+        this.scrollDown();
+        this.pollTimer = setInterval(() => this.poll(), 8000);
+    },
+
+    destroy() {
+        clearInterval(this.pollTimer);
+    },
+
+    get speechSupported() {
+        return 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+    },
+
+    toggleMic() {
+        if (!this.speechSupported) return;
+        if (this.listening) { this.recognition?.stop(); return; }
+
+        const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const startingText = this.input ? this.input.trim() + ' ' : '';
+        this.recognition = new Recognition();
+        this.recognition.lang = 'nl-NL';
+        this.recognition.interimResults = true;
+        this.recognition.onresult = (event) => {
+            this.input = startingText + Array.from(event.results).map((r) => r[0].transcript).join('');
+        };
+        this.recognition.onend = () => { this.listening = false; };
+        this.recognition.onerror = () => { this.listening = false; };
+        this.listening = true;
+        this.recognition.start();
+    },
+
+    format(body) {
+        if (!body) return '';
+        return body
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+            .replace(/@([\wÀ-ÿ-]+)/g, '<span class="font-semibold text-brand-600">@$1</span>')
+            .replace(/\n/g, '<br>');
+    },
+
+    append(list) {
+        for (const incoming of list) {
+            const index = this.messages.findIndex((m) => m.id === incoming.id);
+            if (index >= 0) this.messages.splice(index, 1, incoming);
+            else this.messages.push(incoming);
+        }
+        if (this.messages.length) this.lastId = Math.max(...this.messages.map((m) => m.id));
+        this.scrollDown();
+    },
+
+    async poll() {
+        try {
+            const response = await fetch(config.messagesUrl + '?after=' + this.lastId, { headers: { Accept: 'application/json' } });
+            if (!response.ok) return;
+            const data = await response.json();
+            if (data.messages.length) this.append(data.messages);
+        } catch { /* volgende poll probeert opnieuw */ }
+    },
+
+    async send() {
+        const text = this.input.trim();
+        if (!text || this.busy) return;
+        this.busy = true;
+        this.input = '';
+        try {
+            const data = await postJson(config.messagesUrl, { body: text });
+            this.append(data.messages);
+        } catch (error) {
+            this.input = text;
+            this.flash(error.message);
+        }
+        this.busy = false;
+    },
+
+    async attach(event) {
+        const file = event.target.files[0];
+        if (!file || this.busy) return;
+        this.busy = true;
+        const form = new FormData();
+        form.append('attachment', file);
+        if (this.input.trim()) { form.append('body', this.input.trim()); this.input = ''; }
+        try {
+            const response = await fetch(config.messagesUrl, {
+                method: 'POST',
+                headers: { Accept: 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+                body: form,
+            });
+            if (!response.ok) throw new Error('Upload mislukt.');
+            this.append((await response.json()).messages);
+        } catch (error) {
+            this.flash(error.message);
+        }
+        event.target.value = '';
+        this.busy = false;
+    },
+
+    async confirmNova(message) {
+        if (message.nova?.executed) return;
+        try {
+            const data = await postJson(config.confirmUrl.replace('__ID__', message.id), {});
+            this.append(data.messages);
+        } catch (error) {
+            this.flash(error.message);
+        }
+    },
+
+    async toTask(message) {
+        try {
+            const data = await postJson(config.taskUrl.replace('__ID__', message.id), {});
+            this.flash(data.message);
+        } catch (error) {
+            this.flash(error.message);
+        }
+    },
+
+    flash(text) {
+        this.toast = text;
+        setTimeout(() => { this.toast = null; }, 3500);
+    },
+
+    scrollDown() {
+        this.$nextTick(() => {
+            const el = this.$refs.chatScroll;
+            if (el) el.scrollTop = el.scrollHeight;
+        });
+    },
+}));
+
 // Calculatie-invoer (briefing §5): omschrijving (getypt of ingesproken) → AI-regelvoorstel
 // dat de gebruiker eerst controleert en pas daarna opslaat.
 Alpine.data('calcCreate', (proposeUrl, initialDescription, initialSources) => ({

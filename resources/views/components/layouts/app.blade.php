@@ -18,6 +18,7 @@
     @php
         $canCrm = auth()->user()->can('manage-crm');
         $aandachtCount = $canCrm ? \App\Services\AttentionService::cachedCount() : 0;
+        $chatUnread = \App\Models\ChatChannel::unreadTotalFor(auth()->user());
     @endphp
 
     {{-- Desktop sidebar --}}
@@ -41,12 +42,14 @@
                     ['label' => 'Taken', 'icon' => 'clipboard-check', 'route' => 'tasks.index', 'active' => request()->routeIs('tasks.*')],
                     ['label' => 'Klanten', 'icon' => 'users', 'route' => 'customers.index', 'active' => request()->routeIs('customers.*')],
                     config('renovion.modules.automations') ? ['label' => 'Automations', 'icon' => 'bolt', 'route' => 'automations.index', 'active' => request()->routeIs('automations.*')] : null,
-                    auth()->user()->can('manage-team') ? ['label' => 'Team', 'icon' => 'user', 'route' => 'team.index', 'active' => request()->routeIs('team.*')] : null,
+                    ['label' => 'Team', 'icon' => 'chat-bubble', 'route' => 'chat.index', 'active' => request()->routeIs('chat.*'), 'badge' => $chatUnread],
+                    auth()->user()->can('manage-team') ? ['label' => 'Teambeheer', 'icon' => 'user', 'route' => 'team.index', 'active' => request()->routeIs('team.*')] : null,
                 ])->filter() : collect([
                     ['label' => 'Vandaag', 'icon' => 'home', 'route' => 'dashboard', 'active' => request()->routeIs('dashboard')],
                     ['label' => 'Projecten', 'icon' => 'building-office', 'route' => 'projects.index', 'active' => request()->routeIs('projects.*')],
                     ['label' => 'Planning', 'icon' => 'calendar', 'route' => 'planning.index', 'active' => request()->routeIs('planning.*')],
                     ['label' => 'Taken', 'icon' => 'clipboard-check', 'route' => 'tasks.index', 'active' => request()->routeIs('tasks.*')],
+                    ['label' => 'Team', 'icon' => 'chat-bubble', 'route' => 'chat.index', 'active' => request()->routeIs('chat.*'), 'badge' => $chatUnread],
                 ]);
             @endphp
 
@@ -253,17 +256,19 @@
         $tabs = $canCrm ? [
             ['label' => 'Vandaag', 'route' => 'dashboard', 'active' => request()->routeIs('dashboard'), 'icon' => 'home'],
             ['label' => 'Aanvragen', 'route' => 'leads.index', 'active' => request()->routeIs('leads.*'), 'icon' => 'inbox'],
-            ['label' => 'Planning', 'route' => 'planning.index', 'active' => request()->routeIs('planning.*'), 'icon' => 'calendar'],
             ['label' => 'Projecten', 'route' => 'projects.index', 'active' => request()->routeIs('projects.*'), 'icon' => 'building-office'],
+            ['label' => 'Planning', 'route' => 'planning.index', 'active' => request()->routeIs('planning.*'), 'icon' => 'calendar'],
+            ['label' => 'Chat', 'route' => 'chat.index', 'active' => request()->routeIs('chat.*'), 'icon' => 'chat-bubble'],
             ['label' => 'Acties', 'route' => 'tasks.index', 'active' => request()->routeIs('tasks.*'), 'icon' => 'clipboard-check'],
         ] : [
             ['label' => 'Vandaag', 'route' => 'dashboard', 'active' => request()->routeIs('dashboard'), 'icon' => 'home'],
             ['label' => 'Projecten', 'route' => 'projects.index', 'active' => request()->routeIs('projects.*'), 'icon' => 'building-office'],
             ['label' => 'Planning', 'route' => 'planning.index', 'active' => request()->routeIs('planning.*'), 'icon' => 'calendar'],
+            ['label' => 'Chat', 'route' => 'chat.index', 'active' => request()->routeIs('chat.*'), 'icon' => 'chat-bubble'],
             ['label' => 'Acties', 'route' => 'tasks.index', 'active' => request()->routeIs('tasks.*'), 'icon' => 'clipboard-check'],
         ];
     @endphp
-    <nav class="fixed inset-x-0 bottom-0 z-40 grid border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)] lg:hidden {{ count($tabs) === 5 ? 'grid-cols-5' : 'grid-cols-4' }}">
+    <nav class="fixed inset-x-0 bottom-0 z-40 grid border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)] lg:hidden {{ ['4' => 'grid-cols-4', '5' => 'grid-cols-5', '6' => 'grid-cols-6'][count($tabs)] }}">
         @foreach ($tabs as $tab)
             <a href="{{ route($tab['route']) }}" class="flex flex-col items-center gap-0.5 py-2 {{ $tab['active'] ? 'text-brand-600' : 'text-gray-400' }}">
                 <x-icon :name="$tab['icon']" class="h-6 w-6" />

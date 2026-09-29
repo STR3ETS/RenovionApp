@@ -7,6 +7,8 @@ use App\Http\Controllers\CalculationAssistController;
 use App\Http\Controllers\CalculationController;
 use App\Http\Controllers\CalculationLineController;
 use App\Http\Controllers\CalculationQuoteController;
+use App\Http\Controllers\ChatController;
+use App\Http\Controllers\ChatMessageController;
 use App\Http\Controllers\ChecklistItemController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
@@ -75,6 +77,16 @@ Route::middleware('auth')->group(function () {
         Route::post('werkpakketten/{workPackage}/afronden', [WorkPackageController::class, 'complete'])->name('work-packages.complete');
         Route::post('werkpakketten/{workPackage}/heropenen', [WorkPackageController::class, 'reopen'])->name('work-packages.reopen');
         Route::patch('werkpakketten/{workPackage}/items/{item}/toggle', [ChecklistItemController::class, 'toggle'])->scopeBindings()->name('checklist-items.toggle');
+
+        // Teamchat (briefing §11): teamkanalen voor iedereen intern, projectkanalen volgen projecttoegang.
+        Route::get('chat', [ChatController::class, 'index'])->name('chat.index');
+        Route::post('chat/kanalen', [ChatController::class, 'store'])->name('chat.channels.store');
+        Route::get('chat/bijlagen/{message}', [ChatMessageController::class, 'attachment'])->name('chat.attachment');
+        Route::post('chat/berichten/{message}/nova-bevestigen', [ChatMessageController::class, 'confirmNova'])->name('chat.nova.confirm');
+        Route::post('chat/berichten/{message}/taak', [ChatMessageController::class, 'toTask'])->name('chat.task');
+        Route::get('chat/{channel}', [ChatController::class, 'show'])->name('chat.show');
+        Route::get('chat/{channel}/berichten', [ChatMessageController::class, 'index'])->name('chat.messages');
+        Route::post('chat/{channel}/berichten', [ChatMessageController::class, 'store'])->name('chat.messages.store');
 
         Route::get('taken', [TaskController::class, 'index'])->name('tasks.index');
         Route::post('taken', [TaskController::class, 'store'])->name('tasks.store');
