@@ -48,6 +48,34 @@ class LeadIntakeTest extends TestCase
         $this->assertDatabaseHas('audit_logs', ['action' => 'aangemaakt', 'source' => 'website']);
     }
 
+    public function test_desired_start_is_stored(): void
+    {
+        $this->postJson('/api/aanvragen', [
+            'name' => 'Familie Visser',
+            'email' => 'visser@example.nl',
+            'service' => 'Aanbouw',
+            'desired_start' => 'voorjaar 2027',
+        ], ['X-Intake-Token' => $this->token])->assertCreated();
+
+        $this->assertDatabaseHas('leads', ['service' => 'Aanbouw', 'desired_start' => 'voorjaar 2027']);
+    }
+
+    public function test_a_double_submission_does_not_create_a_second_lead(): void
+    {
+        $payload = [
+            'name' => 'Familie Dubbel',
+            'email' => 'dubbel@example.nl',
+            'service' => 'Stucwerk',
+            'message' => 'Woonkamer stucen.',
+        ];
+
+        $eerste = $this->postJson('/api/aanvragen', $payload, ['X-Intake-Token' => $this->token]);
+        $tweede = $this->postJson('/api/aanvragen', $payload, ['X-Intake-Token' => $this->token]);
+
+        $tweede->assertCreated()->assertJsonPath('id', $eerste->json('id'));
+        $this->assertDatabaseCount('leads', 1);
+    }
+
     public function test_existing_customer_is_reused_based_on_email(): void
     {
         $customer = Customer::factory()->create(['email' => 'bekend@example.nl']);

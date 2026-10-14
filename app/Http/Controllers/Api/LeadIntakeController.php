@@ -28,6 +28,7 @@ class LeadIntakeController extends Controller
             'city' => ['nullable', 'string', 'max:100'],
             'service' => ['nullable', 'string', 'max:255'],
             'message' => ['nullable', 'string', 'max:5000'],
+            'desired_start' => ['nullable', 'string', 'max:100'],
         ]);
 
         $lead = DB::transaction(function () use ($validated) {
@@ -48,9 +49,22 @@ class LeadIntakeController extends Controller
                 $customer->update(['phone' => $validated['phone']]);
             }
 
+            // Dubbele verzending (dubbelklik/refresh): zelfde klant + zelfde
+            // inhoud binnen 10 minuten levert geen tweede lead op.
+            $duplicate = $customer->leads()
+                ->where('created_at', '>=', now()->subMinutes(10))
+                ->where('service', $validated['service'] ?? null)
+                ->where('description', $validated['message'] ?? null)
+                ->first();
+
+            if ($duplicate !== null) {
+                return $duplicate;
+            }
+
             $lead = $customer->leads()->create([
                 'service' => $validated['service'] ?? null,
                 'description' => $validated['message'] ?? null,
+                'desired_start' => $validated['desired_start'] ?? null,
                 'source' => ActionSource::Website,
                 'status' => LeadStatus::Nieuw,
             ]);
