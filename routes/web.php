@@ -177,6 +177,8 @@ Route::middleware('auth')->group(function () {
 
             Route::get('zoeken', SearchController::class)->name('search');
 
+            Route::view('docs/api', 'docs.api')->name('docs.api');
+
             if (config('renovion.modules.automations')) {
                 Route::get('automations', [AutomationController::class, 'index'])->name('automations.index');
                 Route::patch('automations/{key}', [AutomationController::class, 'update'])->name('automations.update');
