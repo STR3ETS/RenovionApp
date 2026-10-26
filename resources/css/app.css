@@ -33,6 +33,60 @@
     --color-navy-900: #0b0b2b;
     --color-navy-950: #070724;
 
+    /*
+     * Categoriekleuren (stijlgids: /stijlgids) — elk domein een eigen tint
+     * voor snelle herkenning. Gebruik: icon-chips, pills, zachte kaarten en
+     * accentlijnen. Nooit voor knoppen (oranje blijft de enige actiekleur).
+     */
+
+    /* Aanvragen / leads — sky */
+    --color-lead-50: #f0f9ff;
+    --color-lead-100: #e0f2fe;
+    --color-lead-200: #bae6fd;
+    --color-lead-500: #0ea5e9;
+    --color-lead-600: #0284c7;
+    --color-lead-700: #0369a1;
+
+    /* Klanten — teal */
+    --color-klant-50: #f0fdfa;
+    --color-klant-100: #ccfbf1;
+    --color-klant-200: #99f6e4;
+    --color-klant-500: #14b8a6;
+    --color-klant-600: #0d9488;
+    --color-klant-700: #0f766e;
+
+    /* Calculaties — violet */
+    --color-calc-50: #f5f3ff;
+    --color-calc-100: #ede9fe;
+    --color-calc-200: #ddd6fe;
+    --color-calc-500: #8b5cf6;
+    --color-calc-600: #7c3aed;
+    --color-calc-700: #6d28d9;
+
+    /* Offertes — indigo */
+    --color-offerte-50: #eef2ff;
+    --color-offerte-100: #e0e7ff;
+    --color-offerte-200: #c7d2fe;
+    --color-offerte-500: #6366f1;
+    --color-offerte-600: #4f46e5;
+    --color-offerte-700: #4338ca;
+
+    /* Projecten — groen (uitvoering) */
+    --color-project-50: #f0fdf4;
+    --color-project-100: #dcfce7;
+    --color-project-200: #bbf7d0;
+    --color-project-500: #22c55e;
+    --color-project-600: #16a34a;
+    --color-project-700: #15803d;
+
+    /* Planning — roze */
+    --color-planning-50: #fdf2f8;
+    --color-planning-100: #fce7f3;
+    --color-planning-200: #fbcfe8;
+    --color-planning-500: #ec4899;
+    --color-planning-600: #db2777;
+    --color-planning-700: #be185d;
+
     /* Staalblauw — secundaire accenten (v1, wordt uitgefaseerd) */
     --color-steel-50: #f2f6fa;
     --color-steel-100: #dfe9f2;

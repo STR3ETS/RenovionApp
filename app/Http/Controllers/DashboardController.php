@@ -42,6 +42,23 @@ class DashboardController extends Controller
             ]);
         }
 
+        return view('dashboard.index', $this->managementData());
+    }
+
+    /**
+     * Ontwerpvoorstel: hetzelfde Vandaag-scherm in de nieuwe stijl
+     * (zie /stijlgids). Het echte dashboard wisselt pas na akkoord.
+     */
+    public function redesign(): View
+    {
+        return view('dashboard.redesign', $this->managementData());
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function managementData(): array
+    {
         $stats = [
             'actieve_projecten' => Project::active()->count(),
             'projecten_aandacht' => Project::active()->whereDate('end_date_expected', '<', today())->count(),
@@ -108,7 +125,7 @@ class DashboardController extends Controller
 
         $attentionItems = (new AttentionService)->items();
 
-        return view('dashboard.index', [
+        return [
             'stats' => $stats,
             'recenteProjecten' => $recenteProjecten,
             'aandachtItems' => $attentionItems->take(4),
@@ -119,6 +136,6 @@ class DashboardController extends Controller
             'betaalRisicos' => $betaalRisicos,
             'planningVandaag' => $planningVandaag,
             'aandachtTotaal' => $taken->count() + $opvolgLeads->count() + $opvolgOffertes->count() + $betaalRisicos->count(),
-        ]);
+        ];
     }
 }
