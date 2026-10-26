@@ -18,7 +18,13 @@
         @endif
     @endif
 
-    <div class="overflow-hidden rounded-xl border border-gray-200 {{ $isEdit ? '' : '' }}">
+    @if ($isEdit && $quote->lines->isEmpty())
+        <a href="{{ route('quotes.edit', $quote) }}" class="mb-3 flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-gray-300 p-4 text-xs font-semibold text-gray-400 transition hover:border-brand-400 hover:text-brand-600">
+            <x-icon name="plus" class="h-3.5 w-3.5" /> Nog geen posten — voeg ze toe via "Posten bewerken"
+        </a>
+    @endif
+
+    <div class="overflow-hidden rounded-xl border border-gray-200">
         <table class="w-full text-sm">
             <tbody>
                 @foreach ($posten as $line)
@@ -58,7 +64,7 @@
 
     @if ($isEdit)
         <div x-rich="block.data.note" @blur="save()" data-ph="Notitie onder de tabel (bijv. over stelposten)" class="mt-3 text-xs text-gray-500"></div>
-        <p class="mt-2 text-[11px] text-gray-400">De posten en bedragen bewerk je via "Posten bewerken" op de offertepagina.</p>
+        <p class="mt-2 text-[11px] text-gray-400">De posten en bedragen bewerk je via <a href="{{ route('quotes.edit', $quote) }}" class="font-semibold text-brand-600 hover:text-brand-500">Posten bewerken</a>.</p>
     @elseif ($stelposten->isNotEmpty() && filled($d['note'] ?? ''))
         <div class="mt-3 text-xs text-gray-500">{!! QuoteText::render($d['note']) !!}</div>
     @endif

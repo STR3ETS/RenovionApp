@@ -45,7 +45,8 @@ class QuoteEditorTest extends TestCase
         $response = $this->actingAs($user)->post('/calculaties/'.$calculation->id.'/offerte');
 
         $quote = Quote::firstWhere('calculation_id', $calculation->id);
-        $response->assertRedirect(route('quotes.show', $quote));
+        // Direct de builder in, zoals in het Eazyonline-concept.
+        $response->assertRedirect(route('quotes.builder', $quote));
 
         $this->assertStringStartsWith('REN-'.now()->year.'-', $quote->number);
         $this->assertNotNull($quote->public_token);

@@ -25,7 +25,7 @@ class CalculationQuoteController extends Controller
 
         $quote = $action->handle($calculation);
 
-        return redirect()->route('quotes.show', $quote)
-            ->with('success', "Offerte {$quote->number} aangemaakt vanuit de calculatie. Controleer de teksten en verstuur hem daarna.");
+        // Direct de builder in: daar controleer je de teksten en bouw je het document af.
+        return redirect()->route('quotes.builder', $quote);
     }
 }

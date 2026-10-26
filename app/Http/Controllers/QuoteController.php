@@ -66,7 +66,7 @@ class QuoteController extends Controller
 
             $quote->update(['blocks' => QuoteBlockRegistry::forNewQuote($quote)]);
 
-            $this->syncLines($quote, $validated['lines']);
+            $this->syncLines($quote, $validated['lines'] ?? []);
 
             if ($quote->lead !== null && ! in_array($quote->lead->status, [LeadStatus::Akkoord, LeadStatus::Project], true)) {
                 $quote->lead->update(['status' => LeadStatus::Offerte]);
@@ -84,7 +84,8 @@ class QuoteController extends Controller
             return $quote;
         });
 
-        return redirect()->route('quotes.show', $quote)->with('success', "Offerte {$quote->number} aangemaakt.");
+        // Direct de builder in (Eazyonline-concept): daar bouw je het document.
+        return redirect()->route('quotes.builder', $quote);
     }
 
     public function show(Quote $quote): View

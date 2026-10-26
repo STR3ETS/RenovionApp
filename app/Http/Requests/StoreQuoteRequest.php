@@ -22,7 +22,9 @@ class StoreQuoteRequest extends FormRequest
             'lead_id' => ['nullable', 'exists:leads,id'],
             'valid_until' => ['nullable', 'date'],
             'notes' => ['nullable', 'string', 'max:5000'],
-            'lines' => ['required', 'array', 'min:1'],
+            // Posten zijn optioneel: ze komen meestal uit de calculatie of
+            // worden later toegevoegd via "Posten bewerken".
+            'lines' => ['nullable', 'array'],
             'lines.*.description' => ['required', 'string', 'max:255'],
             'lines.*.quantity' => ['required', 'numeric', 'min:0.01'],
             'lines.*.unit' => ['required', 'string', 'max:20'],

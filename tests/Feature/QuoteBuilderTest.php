@@ -40,6 +40,24 @@ class QuoteBuilderTest extends TestCase
         $this->assertFalse($blocks->contains(fn ($block) => str_contains($block['data']['body'] ?? '', 'Uitgeschakeld')));
     }
 
+    public function test_a_new_manual_quote_starts_in_the_builder_without_lines(): void
+    {
+        $this->seed(QuoteTemplateSeeder::class);
+
+        $user = User::factory()->create();
+        $customer = Customer::factory()->create();
+
+        $response = $this->actingAs($user)->post('/offertes', [
+            'customer_id' => $customer->id,
+            'valid_until' => now()->addDays(30)->toDateString(),
+        ]);
+
+        $quote = Quote::firstWhere('customer_id', $customer->id);
+        $response->assertRedirect(route('quotes.builder', $quote));
+        $this->assertSame(0, $quote->lines()->count());
+        $this->assertSame('hero', $quote->blocks[0]['type']);
+    }
+
     public function test_the_builder_is_only_for_concept_quotes(): void
     {
         $user = User::factory()->create();
