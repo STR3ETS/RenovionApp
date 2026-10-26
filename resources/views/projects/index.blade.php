@@ -1,6 +1,6 @@
 <x-layouts.app title="Projecten">
 
-    <x-page-header title="Projecten" subtitle="{{ $projects->total() }} projecten">
+    <x-page-header eyebrow="Uitvoering" category="project" title="Projecten" subtitle="{{ $projects->total() }} projecten">
         @can('manage-crm')
             <a href="{{ route('projects.create') }}" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-500">+ Project</a>
         @endcan
@@ -20,7 +20,7 @@
             <x-project-card :project="$project" />
         @empty
             <div class="sm:col-span-2 xl:col-span-3 2xl:col-span-4">
-                <x-empty-state title="Geen projecten in deze weergave" subtitle="Maak een project aan of zet een aanvraag om naar een project." />
+                <x-empty-state title="Geen projecten in deze weergave" subtitle="Maak een project aan of zet een aanvraag om naar een project." icon="building-office" category="project" />
             </div>
         @endforelse
     </div>

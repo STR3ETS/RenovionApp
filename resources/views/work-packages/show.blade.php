@@ -9,7 +9,7 @@
         <span class="text-navy-900">{{ $workPackage->name }}</span>
     </nav>
 
-    <x-page-header :title="$workPackage->name" :subtitle="$workPackage->project->name.', '.$workPackage->phase->name">
+    <x-page-header eyebrow="Werkpakket" category="project" :title="$workPackage->name" :subtitle="$workPackage->project->name.', '.$workPackage->phase->name">
         <span class="rounded-full px-2.5 py-1 text-xs font-semibold {{ $workPackage->status->badgeClasses() }}">{{ $workPackage->status->label() }}</span>
     </x-page-header>
 

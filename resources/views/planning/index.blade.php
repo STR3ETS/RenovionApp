@@ -2,7 +2,7 @@
 
     <div x-data="{ modal: false, formUser: '', formDate: '' }">
 
-        <x-page-header title="Planning" subtitle="Week {{ $start->isoWeek }}, {{ $start->translatedFormat('j M') }} – {{ $start->copy()->addDays(4)->translatedFormat('j M Y') }}">
+        <x-page-header eyebrow="Capaciteit" category="planning" title="Planning" subtitle="Week {{ $start->isoWeek }}, {{ $start->translatedFormat('j M') }} t/m {{ $start->copy()->addDays(4)->translatedFormat('j M Y') }}">
             <a href="{{ route('planning.index', ['week' => $start->copy()->subWeek()->toDateString()]) }}" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">←</a>
             <a href="{{ route('planning.index') }}" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">Vandaag</a>
             <a href="{{ route('planning.index', ['week' => $start->copy()->addWeek()->toDateString()]) }}" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">→</a>
@@ -64,7 +64,7 @@
                     @empty
                         <tr>
                             <td colspan="6">
-                                <x-empty-state title="Nog geen uitvoerders" subtitle="Maak gebruikers aan met rol Uitvoerder om de capaciteitsplanning te vullen." />
+                                <x-empty-state title="Nog geen uitvoerders" subtitle="Maak gebruikers aan met rol Uitvoerder om de capaciteitsplanning te vullen." icon="calendar" category="planning" />
                             </td>
                         </tr>
                     @endforelse

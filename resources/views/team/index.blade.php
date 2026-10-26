@@ -1,6 +1,6 @@
 <x-layouts.app title="Team">
 
-    <x-page-header title="Team" subtitle="{{ $users->count() }} teamleden">
+    <x-page-header eyebrow="Teambeheer" title="Team" subtitle="{{ $users->count() }} teamleden">
         <a href="{{ route('team.create') }}" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-500">+ Teamlid</a>
     </x-page-header>
 

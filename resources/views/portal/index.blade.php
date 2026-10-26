@@ -1,6 +1,7 @@
 <x-layouts.portal title="Uw projecten">
 
-    <h1 class="text-xl font-bold text-navy-950">Welkom {{ str(auth()->user()->name)->before(' ') }}</h1>
+    <p class="text-[11px] font-bold tracking-widest text-brand-500 uppercase">Uw projecten</p>
+    <h1 class="mt-1 text-xl font-bold text-navy-950">Welkom {{ str(auth()->user()->name)->before(' ') }}</h1>
     <p class="mt-1 mb-5 text-sm text-gray-500">Volg hier de voortgang van uw {{ $projects->count() === 1 ? 'project' : 'projecten' }}.</p>
 
     <div class="space-y-3">

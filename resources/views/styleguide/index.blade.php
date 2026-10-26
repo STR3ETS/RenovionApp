@@ -26,7 +26,7 @@
             De frisse huisstijl van Renovion Dash: één actiekleur, een eigen kleur per domein zodat je in één oogopslag ziet
             waar iets over gaat, en kaarten met karakter in plaats van grijs op grijs.
         </p>
-        <a href="{{ route('dashboard.redesign') }}" class="mt-4 inline-block rounded-xl bg-brand-500 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600">
+        <a href="{{ route('dashboard') }}" class="mt-4 inline-block rounded-xl bg-brand-500 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600">
             Bekijk het dashboard in deze stijl →
         </a>
     </section>

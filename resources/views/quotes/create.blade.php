@@ -1,6 +1,6 @@
 <x-layouts.app title="Nieuwe offerte">
 
-    <x-page-header title="Nieuwe offerte" :subtitle="$lead ? 'Voor aanvraag van '.$lead->customer->name : 'Je start zo meteen direct in de offerte-builder'" />
+    <x-page-header eyebrow="Offertes" category="offerte" title="Nieuwe offerte" :subtitle="$lead ? 'Voor aanvraag van '.$lead->customer->name : 'Je start zo meteen direct in de offerte-builder'" />
 
     <form method="POST" action="{{ route('quotes.store') }}" class="max-w-xl space-y-5">
         @csrf

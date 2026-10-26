@@ -1,7 +1,7 @@
 @props(['lead'])
 
 {{-- Leadcard volgens briefing: alleen wat nodig is om een beslissing te nemen. --}}
-<div {{ $attributes->merge(['class' => 'rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition hover:border-brand-300']) }}>
+<div {{ $attributes->merge(['class' => 'rounded-xl border border-gray-200 border-t-2 border-t-lead-500 bg-white p-3 shadow-sm transition hover:shadow-md']) }}>
     <a href="{{ route('leads.show', $lead) }}" class="block">
         <div class="flex items-start justify-between gap-2">
             <p class="font-semibold text-navy-900">{{ $lead->customer->name }}</p>

@@ -1,6 +1,6 @@
 <x-layouts.app :title="$calculation->title">
 
-    <x-page-header :title="$calculation->title" :subtitle="($calculation->customer?->name ?? 'Geen klant').', aangemaakt '.$calculation->created_at->translatedFormat('j M Y').($calculation->creator ? ' door '.$calculation->creator->name : '')">
+    <x-page-header eyebrow="Calculatie" category="calc" :title="$calculation->title" :subtitle="($calculation->customer?->name ?? 'Geen klant').', aangemaakt '.$calculation->created_at->translatedFormat('j M Y').($calculation->creator ? ' door '.$calculation->creator->name : '')">
         <span class="rounded-full px-2.5 py-1 text-xs font-semibold {{ $calculation->status->badgeClasses() }}">{{ $calculation->status->label() }}</span>
         @if ($calculation->lead)
             <a href="{{ route('leads.show', $calculation->lead) }}" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">Naar aanvraag</a>

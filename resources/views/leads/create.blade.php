@@ -1,6 +1,6 @@
 <x-layouts.app title="Nieuwe aanvraag">
 
-    <x-page-header title="Nieuwe aanvraag" />
+    <x-page-header eyebrow="Aanvragen" category="lead" title="Nieuwe aanvraag" />
 
     <form method="POST" action="{{ route('leads.store') }}" class="max-w-2xl space-y-5"
           x-data="{ bestaand: {{ $selectedCustomerId ? 'true' : 'false' }} }">

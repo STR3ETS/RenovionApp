@@ -1,6 +1,6 @@
 <x-layouts.app :title="'Bewerken: '.$user->name">
 
-    <x-page-header :title="'Bewerken: '.$user->name" />
+    <x-page-header eyebrow="Teambeheer" :title="'Bewerken: '.$user->name" />
 
     <form method="POST" action="{{ route('team.update', $user) }}" class="max-w-xl space-y-5">
         @csrf

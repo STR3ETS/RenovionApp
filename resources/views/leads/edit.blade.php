@@ -1,6 +1,6 @@
 <x-layouts.app title="Aanvraag bewerken">
 
-    <x-page-header :title="'Bewerken: '.$lead->customer->name" />
+    <x-page-header eyebrow="Aanvragen" category="lead" :title="'Bewerken: '.$lead->customer->name" />
 
     <form method="POST" action="{{ route('leads.update', $lead) }}" class="max-w-2xl space-y-5">
         @csrf

@@ -1,6 +1,6 @@
 <x-layouts.app title="Zoeken">
 
-    <x-page-header title="Zoeken" :subtitle="$q !== '' ? 'Resultaten voor &quot;'.$q.'&quot;' : 'Doorzoek klanten, projecten, aanvragen en taken'" />
+    <x-page-header eyebrow="Alles doorzoeken" title="Zoeken" :subtitle="$q !== '' ? 'Resultaten voor &quot;'.$q.'&quot;' : 'Doorzoek klanten, projecten, aanvragen en taken'" />
 
     {{-- Zoekveld (mobiel; desktop zoekt via de topbar) --}}
     <form action="{{ route('search') }}" method="GET" class="relative mb-5 max-w-xl lg:hidden">
@@ -10,9 +10,9 @@
     </form>
 
     @if ($q === '')
-        <x-empty-state title="Typ een zoekterm" subtitle="Bijvoorbeeld een klantnaam, projectnaam of plaats." />
+        <x-empty-state title="Typ een zoekterm" subtitle="Bijvoorbeeld een klantnaam, projectnaam of plaats." icon="magnifying-glass" />
     @elseif ($customers->isEmpty() && $projects->isEmpty() && $leads->isEmpty() && $tasks->isEmpty())
-        <x-empty-state title="Niets gevonden voor &quot;{{ $q }}&quot;" subtitle="Controleer de spelling of probeer een kortere zoekterm." />
+        <x-empty-state title="Niets gevonden voor &quot;{{ $q }}&quot;" subtitle="Controleer de spelling of probeer een kortere zoekterm." icon="magnifying-glass" />
     @else
         <div class="space-y-6">
             @if ($projects->isNotEmpty())
@@ -20,8 +20,8 @@
                     <h2 class="mb-3 text-base font-bold text-navy-900">Projecten</h2>
                     <div class="space-y-2">
                         @foreach ($projects as $project)
-                            <a href="{{ route('projects.show', $project) }}" class="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 transition hover:border-brand-400">
-                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-navy-50 text-navy-500"><x-icon name="building-office" class="h-4.5 w-4.5" /></span>
+                            <a href="{{ route('projects.show', $project) }}" class="flex items-center gap-3 rounded-xl border border-gray-200 border-l-4 border-l-project-500 bg-white p-3 transition hover:shadow-sm">
+                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-project-100 text-project-600"><x-icon name="building-office" class="h-4.5 w-4.5" /></span>
                                 <span class="min-w-0 flex-1">
                                     <span class="block truncate text-sm font-semibold text-navy-900">{{ $project->name }}</span>
                                     <span class="block truncate text-xs text-gray-500">{{ $project->customer->name }}{{ $project->city ? ', '.$project->city : '' }}</span>
@@ -38,8 +38,8 @@
                     <h2 class="mb-3 text-base font-bold text-navy-900">Klanten</h2>
                     <div class="space-y-2">
                         @foreach ($customers as $customer)
-                            <a href="{{ route('customers.show', $customer) }}" class="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 transition hover:border-brand-400">
-                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700">{{ str($customer->name)->substr(0, 1)->upper() }}</span>
+                            <a href="{{ route('customers.show', $customer) }}" class="flex items-center gap-3 rounded-xl border border-gray-200 border-l-4 border-l-klant-500 bg-white p-3 transition hover:shadow-sm">
+                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-klant-100 text-xs font-bold text-klant-700">{{ str($customer->name)->substr(0, 1)->upper() }}</span>
                                 <span class="min-w-0 flex-1">
                                     <span class="block truncate text-sm font-semibold text-navy-900">{{ $customer->name }}</span>
                                     <span class="block truncate text-xs text-gray-500">{{ collect([$customer->city, $customer->phone, $customer->email])->filter()->implode(', ') ?: '-' }}</span>
@@ -56,8 +56,8 @@
                     <h2 class="mb-3 text-base font-bold text-navy-900">Aanvragen</h2>
                     <div class="space-y-2">
                         @foreach ($leads as $lead)
-                            <a href="{{ route('leads.show', $lead) }}" class="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 transition hover:border-brand-400">
-                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600"><x-icon name="inbox" class="h-4.5 w-4.5" /></span>
+                            <a href="{{ route('leads.show', $lead) }}" class="flex items-center gap-3 rounded-xl border border-gray-200 border-l-4 border-l-lead-500 bg-white p-3 transition hover:shadow-sm">
+                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-lead-100 text-lead-600"><x-icon name="inbox" class="h-4.5 w-4.5" /></span>
                                 <span class="min-w-0 flex-1">
                                     <span class="block truncate text-sm font-semibold text-navy-900">{{ $lead->customer->name }}</span>
                                     <span class="block truncate text-xs text-gray-500">{{ $lead->service ?? 'Aanvraag' }}</span>

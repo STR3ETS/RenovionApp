@@ -1,6 +1,6 @@
 <x-layouts.app :title="$lead->customer->name">
 
-    <x-page-header :title="$lead->customer->name" :subtitle="($lead->service ?? 'Aanvraag').', '.($lead->customer->city ?? 'plaats onbekend')">
+    <x-page-header eyebrow="Aanvraag" category="lead" :title="$lead->customer->name" :subtitle="($lead->service ?? 'Aanvraag').', '.($lead->customer->city ?? 'plaats onbekend')">
         <x-status-badge :status="$lead->status" class="text-sm" />
         <a href="{{ route('leads.edit', $lead) }}" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">Bewerken</a>
     </x-page-header>
@@ -144,7 +144,7 @@
             <section class="rounded-2xl border border-gray-200 bg-white p-5">
                 <div class="mb-3 flex items-center justify-between">
                     <h2 class="text-sm font-bold text-navy-900">Offertes</h2>
-                    <a href="{{ route('quotes.create', ['aanvraag' => $lead->id]) }}" class="text-xs font-semibold text-steel-600 hover:text-steel-500">+ Nieuwe offerte</a>
+                    <a href="{{ route('quotes.create', ['aanvraag' => $lead->id]) }}" class="text-xs font-semibold text-brand-600 hover:text-brand-500">+ Nieuwe offerte</a>
                 </div>
                 @forelse ($lead->quotes as $quote)
                     <a href="{{ route('quotes.show', $quote) }}" class="mb-2 flex items-center justify-between gap-2 rounded-xl border border-gray-200 p-3 transition hover:border-brand-400">
@@ -189,7 +189,7 @@
             <section class="rounded-2xl border border-gray-200 bg-white p-5">
                 <div class="mb-3 flex items-center justify-between">
                     <h2 class="text-sm font-bold text-navy-900">Laatste activiteit</h2>
-                    <a href="{{ route('customers.show', $lead->customer) }}" class="text-xs font-semibold text-steel-600 hover:text-steel-500">Volledig dossier →</a>
+                    <a href="{{ route('customers.show', $lead->customer) }}" class="text-xs font-semibold text-klant-600 hover:text-klant-500">Volledig dossier →</a>
                 </div>
                 <div class="space-y-3">
                     @forelse ($timeline as $event)

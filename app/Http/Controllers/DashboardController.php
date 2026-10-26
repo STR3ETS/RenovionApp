@@ -46,15 +46,6 @@ class DashboardController extends Controller
     }
 
     /**
-     * Ontwerpvoorstel: hetzelfde Vandaag-scherm in de nieuwe stijl
-     * (zie /stijlgids). Het echte dashboard wisselt pas na akkoord.
-     */
-    public function redesign(): View
-    {
-        return view('dashboard.redesign', $this->managementData());
-    }
-
-    /**
      * @return array<string, mixed>
      */
     private function managementData(): array

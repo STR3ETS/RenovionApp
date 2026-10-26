@@ -1,6 +1,6 @@
 <x-layouts.app title="Nieuwe calculatie">
 
-    <x-page-header title="Nieuwe calculatie" subtitle="Maak een calculatie op basis van een opname, omschrijving of AI-voorstel." />
+    <x-page-header eyebrow="Calculaties" category="calc" title="Nieuwe calculatie" subtitle="Maak een calculatie op basis van een opname, omschrijving of AI-voorstel." />
 
     <form method="POST" action="{{ route('calculations.store') }}"
           x-data="calcCreate(@js(route('calculations.propose')), @js(old('description', $lead?->description)), @js($sources->pluck('source')->values()))"

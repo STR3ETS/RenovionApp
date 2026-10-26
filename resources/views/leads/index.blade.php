@@ -1,6 +1,6 @@
 <x-layouts.app title="Aanvragen">
 
-    <x-page-header title="Aanvragen & Sales" subtitle="{{ $leads->filter(fn ($lead) => $lead->status->isOpen())->count() }} open aanvragen">
+    <x-page-header eyebrow="Sales" category="lead" title="Aanvragen & Sales" subtitle="{{ $leads->filter(fn ($lead) => $lead->status->isOpen())->count() }} open aanvragen">
         <div class="flex rounded-lg border border-gray-300 bg-white p-0.5 text-xs font-semibold">
             <a href="{{ route('leads.index', ['view' => 'kanban']) }}"
                class="rounded-md px-3 py-1.5 {{ $view === 'kanban' ? 'bg-navy-900 text-white' : 'text-gray-600' }}">Kanban</a>
@@ -51,7 +51,8 @@
         {{-- Lijstweergave --}}
         <div class="space-y-2">
             @forelse ($leads->filter(fn ($lead) => $lead->status->isOpen()) as $lead)
-                <a href="{{ route('leads.show', $lead) }}" class="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 transition hover:border-brand-400">
+                <a href="{{ route('leads.show', $lead) }}" class="flex items-center gap-3 rounded-xl border border-gray-200 border-l-4 border-l-lead-500 bg-white p-3 transition hover:shadow-sm">
+                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-lead-100 text-lead-600"><x-icon name="inbox" class="h-4 w-4" /></span>
                     <span class="min-w-0 flex-1">
                         <span class="block truncate text-sm font-semibold text-navy-900">{{ $lead->customer->name }}</span>
                         <span class="block truncate text-xs text-gray-500">
@@ -72,7 +73,7 @@
                     <x-status-badge :status="$lead->status" />
                 </a>
             @empty
-                <x-empty-state title="Nog geen open aanvragen">
+                <x-empty-state title="Nog geen open aanvragen" icon="inbox" category="lead">
                     <a href="{{ route('leads.create') }}" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white">+ Eerste aanvraag</a>
                 </x-empty-state>
             @endforelse

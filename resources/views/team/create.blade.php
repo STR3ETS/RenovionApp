@@ -1,6 +1,6 @@
 <x-layouts.app title="Nieuw teamlid">
 
-    <x-page-header title="Nieuw teamlid" />
+    <x-page-header eyebrow="Teambeheer" title="Nieuw teamlid" />
 
     <form method="POST" action="{{ route('team.store') }}" class="max-w-xl space-y-5">
         @csrf

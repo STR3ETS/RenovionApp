@@ -1,7 +1,7 @@
 <x-layouts.app :title="'Opleverrapport '.$report->project->name">
 
     <div class="print:hidden">
-        <x-page-header :title="'Opleverrapport'" :subtitle="$report->project->name.', '.$report->project->customer->name">
+        <x-page-header eyebrow="Oplevering" category="project" :title="'Opleverrapport'" :subtitle="$report->project->name.', '.$report->project->customer->name">
             @if ($report->isFullySigned())
                 <span class="flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-800"><x-icon name="check" class="h-3.5 w-3.5" /> Volledig ondertekend</span>
             @endif

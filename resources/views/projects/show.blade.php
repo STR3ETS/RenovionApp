@@ -1,6 +1,6 @@
 <x-layouts.app :title="$project->name">
 
-    <x-page-header :title="$project->name" :subtitle="$project->customer->name.', '.($project->city ?? 'plaats onbekend')"
+    <x-page-header eyebrow="Project" category="project" :title="$project->name" :subtitle="$project->customer->name.', '.($project->city ?? 'plaats onbekend')"
                    :image="($project->cover_photo_path || $project->photos->where('client_visible', true)->isNotEmpty()) ? route('projects.cover', $project) : null">
         <x-status-badge :status="$project->status" class="text-sm" />
         @if ($project->chatChannel)
@@ -90,7 +90,7 @@
             {{-- Fotogrid --}}
             <div class="lg:col-span-3">
                 @if ($project->photos->isEmpty())
-                    <x-empty-state title="Nog geen foto's" subtitle="Upload foto's per fase of vanaf een werkpakket - zo bouw je het bewijs voor de oplevering op." />
+                    <x-empty-state title="Nog geen foto's" subtitle="Upload foto's per fase of vanaf een werkpakket - zo bouw je het bewijs voor de oplevering op." icon="camera" category="project" />
                 @else
                     <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
                         @foreach ($project->photos as $photo)
@@ -343,7 +343,7 @@
                 <dl class="space-y-2 text-sm">
                     <div><dt class="text-gray-500">Klant</dt><dd class="font-medium">
                         @can('manage-crm')
-                            <a href="{{ route('customers.show', $project->customer) }}" class="text-steel-600 hover:text-steel-500">{{ $project->customer->name }}</a>
+                            <a href="{{ route('customers.show', $project->customer) }}" class="font-medium text-klant-600 hover:text-klant-500">{{ $project->customer->name }}</a>
                         @else
                             {{ $project->customer->name }}
                         @endcan
@@ -357,7 +357,7 @@
                     <div><dt class="text-gray-500">Projectleider</dt><dd class="font-medium">{{ $project->projectLeader?->name ?? 'Niet toegewezen' }}</dd></div>
                     @can('manage-crm')
                         @if ($project->quote && config('renovion.modules.quotes'))
-                            <div><dt class="text-gray-500">Offerte</dt><dd class="font-medium"><a href="{{ route('quotes.show', $project->quote) }}" class="text-steel-600 hover:text-steel-500">{{ $project->quote->number }}</a></dd></div>
+                            <div><dt class="text-gray-500">Offerte</dt><dd class="font-medium"><a href="{{ route('quotes.show', $project->quote) }}" class="text-offerte-600 hover:text-offerte-500">{{ $project->quote->number }}</a></dd></div>
                         @endif
                     @endcan
                 </dl>
@@ -410,7 +410,7 @@
             <section class="rounded-2xl border border-gray-200 bg-white p-5">
                 <div class="mb-3 flex items-center justify-between">
                     <h2 class="text-sm font-bold text-navy-900">Komende planning</h2>
-                    <a href="{{ route('planning.index') }}" class="text-xs font-semibold text-steel-600 hover:text-steel-500">Planning →</a>
+                    <a href="{{ route('planning.index') }}" class="text-xs font-semibold text-planning-600 hover:text-planning-500">Planning →</a>
                 </div>
                 @forelse ($project->scheduleEntries as $entry)
                     <div class="mb-2 rounded-lg border p-2.5 text-sm {{ $entry->type->blockClasses() }}">

@@ -1,7 +1,7 @@
 <x-layouts.app title="Vandaag">
 
-    <section class="mb-5 rounded-2xl bg-navy-950 p-5 text-white">
-        <p class="text-sm text-navy-300">{{ now()->translatedFormat('l j F') }}</p>
+    <section class="mb-5 rounded-2xl bg-gradient-to-br from-navy-950 to-navy-900 p-5 text-white lg:p-6">
+        <p class="text-[11px] font-bold tracking-widest text-navy-300 uppercase">{{ now()->translatedFormat('l j F') }}</p>
         <h1 class="mt-1 text-xl font-bold lg:text-2xl">
             {{ now()->hour < 12 ? 'Goedemorgen' : (now()->hour < 18 ? 'Goedemiddag' : 'Goedenavond') }} {{ str(auth()->user()->name)->before(' ') }}.
         </h1>
@@ -16,9 +16,10 @@
     </section>
 
     <section class="mb-6">
-        <h2 class="mb-3 text-base font-bold text-navy-900">Jouw week</h2>
+        <p class="text-[11px] font-bold tracking-widest text-planning-600 uppercase">Planning</p>
+        <h2 class="mt-0.5 mb-3 text-base font-bold text-navy-950">Jouw week</h2>
         @if ($planningWeek->isEmpty())
-            <x-empty-state title="Geen planning deze week" />
+            <x-empty-state title="Geen planning deze week" icon="calendar" category="planning" />
         @else
             <div class="space-y-2">
                 @foreach ($planningWeek->groupBy(fn ($entry) => $entry->date->toDateString()) as $entries)
@@ -43,13 +44,14 @@
     </section>
 
     <section>
-        <h2 class="mb-3 text-base font-bold text-navy-900">Jouw taken</h2>
+        <p class="text-[11px] font-bold tracking-widest text-planning-600 uppercase">Taken</p>
+        <h2 class="mt-0.5 mb-3 text-base font-bold text-navy-950">Jouw taken</h2>
         @if ($taken->isEmpty())
-            <x-empty-state title="Geen open taken" />
+            <x-empty-state title="Geen open taken" icon="clipboard-check" category="planning" />
         @else
             <div class="space-y-2">
                 @foreach ($taken as $task)
-                    <div class="flex items-center gap-3 rounded-xl border bg-white p-3 {{ $task->isOverdue() ? 'border-red-300' : 'border-gray-200' }}">
+                    <div class="flex items-center gap-3 rounded-xl border border-gray-200 border-l-4 bg-white p-3 {{ $task->isOverdue() ? 'border-l-red-500' : 'border-l-planning-500' }}">
                         <button
                             x-data
                             @click="patchJson('{{ route('tasks.status', $task) }}', { status: 'afgerond' }).then(() => window.location.reload())"

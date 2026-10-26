@@ -1,6 +1,6 @@
 <x-layouts.app title="API-documentatie">
 
-    <x-page-header title="API-documentatie" subtitle="Koppel het CMS of de website aan Renovion Dash - bij formulierverzending ontstaat hier automatisch een lead." />
+    <x-page-header eyebrow="Koppelingen" category="lead" title="API-documentatie" subtitle="Koppel het CMS of de website aan Renovion Dash - bij formulierverzending ontstaat hier automatisch een lead." />
 
     <div class="max-w-3xl space-y-5">
 

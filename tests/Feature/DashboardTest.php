@@ -25,7 +25,7 @@ class DashboardTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Imad');
-        $response->assertSee('Nieuwe aanvragen');
+        $response->assertSee('nieuwe aanvragen');
         $response->assertSee('Aanbetaling Bakker controleren');
         $response->assertSee('Nu doen');
     }

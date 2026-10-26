@@ -1,6 +1,6 @@
 <x-layouts.app title="Nieuw project">
 
-    <x-page-header title="Nieuw project" />
+    <x-page-header eyebrow="Projecten" category="project" title="Nieuw project" />
 
     <form method="POST" action="{{ route('projects.store') }}" enctype="multipart/form-data" class="max-w-2xl space-y-5"
           x-data="{ bestaand: true }">

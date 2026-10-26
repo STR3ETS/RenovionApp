@@ -2,7 +2,7 @@
 
     <div x-data="{ tab: 'overzicht' }">
 
-        <x-page-header :title="$quote->number.', v'.$quote->version" :subtitle="$quote->customer->name.', aangemaakt '.$quote->created_at->translatedFormat('j M Y')">
+        <x-page-header eyebrow="Offerte" category="offerte" :title="$quote->number.', v'.$quote->version" :subtitle="$quote->customer->name.', aangemaakt '.$quote->created_at->translatedFormat('j M Y')">
             <x-status-badge :status="$quote->status" class="text-sm" />
             @if ($quote->status === \App\Enums\QuoteStatus::Concept)
                 <a href="{{ route('quotes.builder', $quote) }}" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-600">Offerte bouwen</a>

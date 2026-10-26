@@ -1,6 +1,6 @@
 <x-layouts.app :title="$customer->name">
 
-    <x-page-header :title="$customer->name" :subtitle="trim(($customer->address ? $customer->address.', ' : '').($customer->city ?? '')) ?: 'Klantdossier'">
+    <x-page-header eyebrow="Klantdossier" category="klant" :title="$customer->name" :subtitle="trim(($customer->address ? $customer->address.', ' : '').($customer->city ?? '')) ?: 'Klantdossier'">
         @if ($customer->phone)
             <a href="tel:{{ $customer->phone }}" class="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-500"><x-icon name="phone" /> Bellen</a>
         @endif
@@ -94,7 +94,7 @@
             <section class="rounded-2xl border border-gray-200 bg-white p-5">
                 <div class="mb-3 flex items-center justify-between">
                     <h2 class="text-sm font-bold text-navy-900">Aanvragen</h2>
-                    <a href="{{ route('leads.create', ['klant' => $customer->id]) }}" class="text-xs font-semibold text-steel-600 hover:text-steel-500">+ Nieuw</a>
+                    <a href="{{ route('leads.create', ['klant' => $customer->id]) }}" class="text-xs font-semibold text-brand-600 hover:text-brand-500">+ Nieuw</a>
                 </div>
                 @forelse ($customer->leads as $lead)
                     <a href="{{ route('leads.show', $lead) }}" class="mb-2 flex items-center justify-between gap-2 rounded-lg border border-gray-200 p-2.5 text-sm transition hover:border-brand-400">

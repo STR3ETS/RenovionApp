@@ -1,6 +1,6 @@
 <x-layouts.app :title="'Bewerken: '.$project->name">
 
-    <x-page-header :title="'Bewerken: '.$project->name" :subtitle="$project->customer->name" />
+    <x-page-header eyebrow="Projecten" category="project" :title="'Bewerken: '.$project->name" :subtitle="$project->customer->name" />
 
     <form method="POST" action="{{ route('projects.update', $project) }}" enctype="multipart/form-data" class="max-w-2xl space-y-5">
         @csrf

@@ -12,7 +12,7 @@
     <div class="w-full max-w-sm">
         <div class="mb-8 text-center">
             <img src="{{ asset('images/renovion-logo.svg') }}" alt="Renovion" class="mx-auto h-20 w-auto">
-            <p class="mt-2 text-sm font-medium text-navy-300">Renovion Dash</p>
+            <p class="mt-2 text-[11px] font-bold tracking-widest text-brand-400 uppercase">Renovion Dash</p>
         </div>
 
         <form method="POST" action="{{ route('login.store') }}" class="space-y-4 rounded-2xl bg-white p-6 shadow-xl">

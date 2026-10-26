@@ -1,7 +1,7 @@
 <x-layouts.app title="Taken">
 
     <div x-data="{ nieuw: false }">
-        <x-page-header title="Taken" subtitle="{{ $tasks->total() }} taken in deze weergave">
+        <x-page-header eyebrow="Werk organiseren" category="planning" title="Taken" subtitle="{{ $tasks->total() }} taken in deze weergave">
             <button @click="nieuw = !nieuw" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-500">+ Taak</button>
         </x-page-header>
 
@@ -54,7 +54,7 @@
         {{-- Takenlijst --}}
         <div class="space-y-2">
             @forelse ($tasks as $task)
-                <div class="flex items-center gap-3 rounded-xl border bg-white p-3 {{ $task->isOverdue() ? 'border-red-300' : 'border-gray-200' }}">
+                <div class="flex items-center gap-3 rounded-xl border border-gray-200 border-l-4 bg-white p-3 {{ $task->isOverdue() ? 'border-l-red-500' : 'border-l-planning-500' }}">
                     @if ($task->status->isOpen())
                         <button
                             x-data
@@ -68,8 +68,8 @@
                     <span class="min-w-0 flex-1">
                         <span class="block truncate text-sm font-semibold {{ $task->status->isOpen() ? 'text-navy-900' : 'text-gray-400 line-through' }}">{{ $task->title }}</span>
                         <span class="block text-xs text-gray-500">
-                            @if ($task->customer)@can('manage-crm')<a href="{{ route('customers.show', $task->customer) }}" class="text-steel-600">{{ $task->customer->name }}</a>@else{{ $task->customer->name }}@endcan, @endif
-                            @if ($task->project)<a href="{{ route('projects.show', $task->project) }}" class="text-steel-600">{{ $task->project->name }}</a>, @endif
+                            @if ($task->customer)@can('manage-crm')<a href="{{ route('customers.show', $task->customer) }}" class="font-medium text-klant-600">{{ $task->customer->name }}</a>@else{{ $task->customer->name }}@endcan, @endif
+                            @if ($task->project)<a href="{{ route('projects.show', $task->project) }}" class="font-medium text-project-600">{{ $task->project->name }}</a>, @endif
                             {{ $task->owner?->name ?? 'geen eigenaar' }}
                             @if ($task->deadline), <span class="{{ $task->isOverdue() ? 'font-semibold text-red-600' : '' }}">{{ $task->deadline->isToday() ? 'vandaag' : $task->deadline->translatedFormat('j M') }}</span> @endif
                             @if ($task->note), {{ str($task->note)->limit(60) }} @endif
@@ -90,7 +90,7 @@
                     @endif
                 </div>
             @empty
-                <x-empty-state title="Geen taken in deze weergave" subtitle="Voeg een taak toe met de knop hierboven." />
+                <x-empty-state title="Geen taken in deze weergave" subtitle="Voeg een taak toe met de knop hierboven." icon="clipboard-check" category="planning" />
             @endforelse
         </div>
 

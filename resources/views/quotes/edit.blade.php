@@ -1,6 +1,6 @@
 <x-layouts.app :title="'Offerte '.$quote->number">
 
-    <x-page-header :title="'Bewerken: '.$quote->number" :subtitle="$quote->customer->name" />
+    <x-page-header eyebrow="Posten bewerken" category="offerte" :title="'Bewerken: '.$quote->number" :subtitle="$quote->customer->name" />
 
     <form method="POST" action="{{ route('quotes.update', $quote) }}" class="max-w-4xl space-y-5">
         @csrf

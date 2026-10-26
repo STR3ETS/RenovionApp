@@ -180,9 +180,8 @@ Route::middleware('auth')->group(function () {
 
             Route::view('docs/api', 'docs.api')->name('docs.api');
 
-            // Ontwerp: de stijlgids en het dashboard-voorstel in de nieuwe stijl.
+            // De levende stijlgids (referentie voor alle UI).
             Route::view('stijlgids', 'styleguide.index')->name('styleguide');
-            Route::get('redesign-dashboard', [DashboardController::class, 'redesign'])->name('dashboard.redesign');
 
             if (config('renovion.modules.automations')) {
                 Route::get('automations', [AutomationController::class, 'index'])->name('automations.index');

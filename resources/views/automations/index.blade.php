@@ -1,6 +1,6 @@
 <x-layouts.app title="Automations">
 
-    <x-page-header title="Automations" subtitle="Nova-rules (briefing §12): per regel instelbaar - alleen signaleren, eerst bevestigen of automatisch uitvoeren. Draait elke 15 minuten." />
+    <x-page-header eyebrow="Nova" title="Automations" subtitle="Per regel instelbaar: alleen signaleren, eerst bevestigen of automatisch uitvoeren. Draait elke 15 minuten." />
 
     <div class="space-y-2">
         @foreach ($automations as $automation)

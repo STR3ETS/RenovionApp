@@ -1,15 +1,15 @@
 <x-layouts.app title="Aandacht">
 
-    <x-page-header title="Aandacht" subtitle="Alleen uitzonderingen - wat goed loopt zie je hier niet" />
+    <x-page-header eyebrow="Nova signaleert" title="Aandacht" subtitle="Alleen uitzonderingen - wat goed loopt zie je hier niet" />
 
     @if ($items->isEmpty())
         <x-empty-state title="Niets vraagt op dit moment aandacht"
-                       subtitle="Alle projecten, offertes en taken lopen op schema." />
+                       subtitle="Alle projecten, offertes en taken lopen op schema." icon="check" category="project" />
     @else
         <div class="space-y-2">
             @foreach ($items as $item)
                 <a href="{{ $item['url'] }}"
-                   class="flex items-center gap-3 rounded-xl border bg-white p-3 transition hover:border-brand-400 {{ $item['severity'] === 'rood' ? 'border-red-200' : 'border-amber-200' }}">
+                   class="flex items-center gap-3 rounded-xl border border-gray-200 border-l-4 bg-white p-3 transition hover:shadow-sm {{ $item['severity'] === 'rood' ? 'border-l-red-500' : 'border-l-amber-400' }}">
                     <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full {{ $item['severity'] === 'rood' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600' }}">
                         <x-icon :name="$item['icon']" class="h-4.5 w-4.5" />
                     </span>
