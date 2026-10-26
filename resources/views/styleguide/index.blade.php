@@ -310,6 +310,60 @@
                 </div>
             </div>
         </section>
+
+        {{-- 8. Layout, laden & beweging --}}
+        <section>
+            <p class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">08 · Layout, laden &amp; beweging</p>
+            <h2 class="mt-1 mb-4 text-xl font-bold text-navy-950">Snel voelen, rustig bewegen</h2>
+
+            <div class="space-y-4">
+                {{-- Layoutprincipe --}}
+                <div class="rounded-2xl border border-gray-200 bg-white p-6">
+                    <p class="mb-1 text-sm font-bold text-navy-900">Paginaopbouw — hero-band, strip, werklijst</p>
+                    <p class="mb-4 text-xs text-gray-400">Overzichtspagina's volgen één ritme: een donkere hero-band met context bovenaan, een compacte cijferstrip, daaronder de werklijst prominent links en ondersteuning rechts. Actie gaat vóór informatie.</p>
+                    <div class="space-y-1.5">
+                        <div class="flex h-10 items-center rounded-lg bg-navy-950 px-3 text-[11px] font-bold text-white">Hero-band: begroeting + Nova + aandacht</div>
+                        <div class="grid grid-cols-5 gap-1.5">
+                            <div class="flex h-7 items-center justify-center rounded-lg bg-project-100 text-[10px] font-bold text-project-700">stat</div>
+                            <div class="flex h-7 items-center justify-center rounded-lg bg-lead-100 text-[10px] font-bold text-lead-700">stat</div>
+                            <div class="flex h-7 items-center justify-center rounded-lg bg-offerte-100 text-[10px] font-bold text-offerte-700">stat</div>
+                            <div class="flex h-7 items-center justify-center rounded-lg bg-planning-100 text-[10px] font-bold text-planning-700">stat</div>
+                            <div class="flex h-7 items-center justify-center rounded-lg bg-gray-100 text-[10px] font-bold text-gray-500">stat</div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-1.5">
+                            <div class="col-span-2 flex h-16 items-center justify-center rounded-lg border border-gray-200 bg-white text-[11px] font-bold text-gray-500">Werklijst (nu doen)</div>
+                            <div class="flex h-16 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-center text-[11px] font-bold text-gray-500">Planning + snel</div>
+                        </div>
+                        <div class="flex h-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-[11px] font-bold text-gray-500">Projecten, vier op een rij</div>
+                    </div>
+                </div>
+
+                {{-- Skeleton loaders --}}
+                <div class="rounded-2xl border border-gray-200 bg-white p-6">
+                    <p class="mb-1 text-sm font-bold text-navy-900">Skeleton loaders — geen spinners</p>
+                    <p class="mb-4 text-xs text-gray-400">Alles wat async laadt (Nova-briefing, chatberichten, zoekresultaten) toont een shimmer in de vorm van de content die komt: <code class="rounded bg-gray-100 px-1">&lt;x-skeleton&gt;</code>, of <code class="rounded bg-gray-100 px-1">.skeleton</code> op een eigen blokje. Op donkere kaarten de <code class="rounded bg-gray-100 px-1">dark</code>-variant.</p>
+                    <div class="grid gap-3 sm:grid-cols-2">
+                        <div class="rounded-xl border border-gray-200 p-4">
+                            <x-skeleton :lines="3" avatar />
+                        </div>
+                        <div class="rounded-xl bg-navy-950 p-4">
+                            <x-skeleton :lines="3" avatar dark />
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Paginaovergangen --}}
+                <div class="rounded-2xl border border-gray-200 bg-white p-6">
+                    <p class="mb-1 text-sm font-bold text-navy-900">Naadloze paginaovergangen</p>
+                    <p class="mb-3 text-xs text-gray-400">Navigeren voelt als één omgeving, zonder witte flits — je merkt het op elke pagina, ook deze.</p>
+                    <ul class="space-y-2 text-sm text-gray-700">
+                        <li class="flex gap-2"><span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-brand-500"></span><span><span class="font-semibold text-navy-900">View transitions:</span> de oude pagina blijft staan tot de nieuwe klaar is en vloeit er zacht in over (cross-document, puur CSS in <code class="rounded bg-gray-100 px-1">app.css</code>).</span></li>
+                        <li class="flex gap-2"><span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-brand-500"></span><span><span class="font-semibold text-navy-900">Vooraf laden bij hover:</span> Chrome laadt een pagina al in zodra je de muis op een link legt (speculation rules in de layout) — klikken voelt direct. Chat en de offerte-builder zijn uitgesloten.</span></li>
+                        <li class="flex gap-2"><span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-brand-500"></span><span><span class="font-semibold text-navy-900">Rustig bewegen:</span> overgangen zijn kort (±150 ms) en subtiel; bij <code class="rounded bg-gray-100 px-1">prefers-reduced-motion</code> staat alle beweging uit, ook de shimmer.</span></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
     </div>
 
 </x-layouts.app>

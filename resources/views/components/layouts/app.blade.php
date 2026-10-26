@@ -12,6 +12,21 @@
     <link href="https://fonts.bunny.net/css?family=inter-tight:400,500,600,700,800" rel="stylesheet">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    {{-- Chrome laadt pagina's alvast bij hover: navigatie voelt direct (stijlgids §08).
+         Chat (polling) en de offerte-builder (autosave) worden niet vooraf geladen. --}}
+    <script type="speculationrules">
+    {
+        "prerender": [{
+            "where": { "and": [
+                { "href_matches": "/*" },
+                { "not": { "href_matches": "/chat*" } },
+                { "not": { "href_matches": "/offertes/*/builder*" } }
+            ]},
+            "eagerness": "moderate"
+        }]
+    }
+    </script>
 </head>
 <body class="min-h-screen bg-gray-100 font-sans text-gray-900 antialiased">
 
