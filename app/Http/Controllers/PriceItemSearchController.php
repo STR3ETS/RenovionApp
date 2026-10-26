@@ -19,12 +19,15 @@ class PriceItemSearchController extends Controller
         $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\%', '\_'], $q).'%';
 
         $items = PriceItem::active()
-            ->when($q !== '', fn ($query) => $query->where('name', 'like', $like))
+            ->when($q !== '', fn ($query) => $query->where(fn ($sub) => $sub
+                ->where('name', 'like', $like)
+                ->orWhere('code', 'like', $like)))
             ->orderBy('name')
             ->limit(15)
             ->get()
             ->map(fn (PriceItem $item) => [
                 'id' => $item->id,
+                'code' => $item->code,
                 'name' => $item->name,
                 'type' => $item->type->value,
                 'type_label' => $item->type->label(),

@@ -22,11 +22,13 @@ use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\PlanningController;
 use App\Http\Controllers\PortalController;
 use App\Http\Controllers\PriceItemSearchController;
+use App\Http\Controllers\PriceListController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectPhaseController;
 use App\Http\Controllers\ProjectStatusController;
 use App\Http\Controllers\QuoteBuilderController;
 use App\Http\Controllers\QuoteController;
+use App\Http\Controllers\QuoteLineProposalController;
 use App\Http\Controllers\QuotePublicController;
 use App\Http\Controllers\QuoteStatusController;
 use App\Http\Controllers\SearchController;
@@ -136,6 +138,7 @@ Route::middleware('auth')->group(function () {
                 Route::post('offertes/{quote}/builder/upload', [QuoteBuilderController::class, 'upload'])->middleware('throttle:30,1')->name('quotes.builder.upload');
                 Route::post('offertes/{quote}/builder/blok-ai', [QuoteBuilderController::class, 'blockAi'])->middleware('throttle:30,1')->name('quotes.builder.ai');
                 Route::post('offertes/{quote}/builder/nova-offerte', [QuoteBuilderController::class, 'generate'])->middleware('throttle:10,1')->name('quotes.builder.generate');
+                Route::post('offertes/{quote}/posten-voorstel', QuoteLineProposalController::class)->middleware('throttle:15,1')->name('quotes.lines.propose');
                 Route::post('calculaties/{calculation}/offerte', CalculationQuoteController::class)->name('calculations.quote');
             }
 
@@ -150,6 +153,9 @@ Route::middleware('auth')->group(function () {
             Route::patch('calculaties/{calculation}/regels/{line}', [CalculationLineController::class, 'update'])->scopeBindings()->name('calculations.lines.update');
             Route::delete('calculaties/{calculation}/regels/{line}', [CalculationLineController::class, 'destroy'])->scopeBindings()->name('calculations.lines.destroy');
             Route::get('prijsitems', PriceItemSearchController::class)->name('price-items.search');
+            Route::get('prijslijst', [PriceListController::class, 'index'])->name('price-items.index');
+            Route::post('prijslijst', [PriceListController::class, 'store'])->name('price-items.store');
+            Route::match(['put', 'patch'], 'prijslijst/{priceItem}', [PriceListController::class, 'update'])->name('price-items.update');
 
             Route::post('projecten', [ProjectController::class, 'store'])->name('projects.store');
             Route::get('projecten/{project}/bewerken', [ProjectController::class, 'edit'])->name('projects.edit');

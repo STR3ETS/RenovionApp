@@ -90,6 +90,7 @@ class CalculationAssistant
         $library = $items
             ->map(fn (PriceItem $item) => implode(' | ', [
                 $item->id,
+                $item->code ?? '-',
                 $item->type->value,
                 $item->name,
                 $item->unit,
@@ -112,7 +113,7 @@ class CalculationAssistant
             - Alle prijzen exclusief btw. Omschrijvingen kort en professioneel, in het Nederlands, zonder em-dashes of het teken ·.
             - Risico/onvoorzien, marge en btw worden buiten de regels om berekend - neem die NIET als regel op.
 
-            PRIJSBIBLIOTHEEK (id | type | naam | eenheid | prijs | opslag | bron):
+            PRIJSBIBLIOTHEEK (id | artikelnr | type | naam | eenheid | prijs | opslag | bron):
             {$library}
             PROMPT;
     }

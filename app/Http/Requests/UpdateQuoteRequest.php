@@ -26,6 +26,7 @@ class UpdateQuoteRequest extends FormRequest
             'lines.*.unit' => ['required', 'string', 'max:20'],
             'lines.*.unit_price' => ['required', 'numeric', 'min:0'],
             'lines.*.vat_rate' => ['required', 'numeric', 'in:0,9,21'],
+            'lines.*.is_estimate' => ['nullable', 'boolean'],
         ];
     }
 }

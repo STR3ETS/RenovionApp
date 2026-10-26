@@ -28,7 +28,7 @@ enum CalculationLineType: string
             self::Materiaal => 'bg-navy-100 text-navy-800',
             self::Onderaannemer => 'bg-amber-100 text-amber-800',
             self::Materieel => 'bg-gray-200 text-gray-700',
-            self::Stelpost => 'bg-steel-100 text-steel-800',
+            self::Stelpost => 'bg-calc-100 text-calc-700',
         };
     }
 }

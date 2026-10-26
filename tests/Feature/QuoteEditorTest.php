@@ -9,12 +9,61 @@ use App\Models\Customer;
 use App\Models\Lead;
 use App\Models\Quote;
 use App\Models\User;
+use App\Services\CalculationAssistant;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class QuoteEditorTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_nova_proposes_quote_lines_from_the_price_list(): void
+    {
+        config(['renovion.ai.api_key' => 'test-key']);
+
+        $this->mock(CalculationAssistant::class, function ($mock) {
+            $mock->shouldReceive('isConfigured')->andReturn(true);
+            $mock->shouldReceive('proposeLines')->once()->andReturn([
+                'lines' => [
+                    ['type' => 'arbeid', 'description' => 'Wanden glad stucwerk', 'quantity' => 24, 'unit' => 'm2', 'unit_price' => 27.50, 'surcharge_pct' => 0],
+                    ['type' => 'stelpost', 'description' => 'Sanitair', 'quantity' => 1, 'unit' => 'post', 'unit_price' => 3500, 'surcharge_pct' => 10],
+                ],
+                'note' => 'Uitgegaan van 24 m2 wandoppervlak.',
+            ]);
+        });
+
+        $user = User::factory()->create();
+        $quote = Quote::factory()->create();
+
+        $response = $this->actingAs($user)->postJson('/offertes/'.$quote->id.'/posten-voorstel', [
+            'description' => 'Woonkamer stucen en sanitair als stelpost',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('lines.0.unit', 'm²')
+            ->assertJsonPath('lines.0.vat_rate', 21)
+            ->assertJsonPath('lines.0.is_estimate', false)
+            ->assertJsonPath('lines.1.is_estimate', true)
+            ->assertJsonPath('lines.1.unit_price', 3850)
+            ->assertJsonPath('note', 'Uitgegaan van 24 m2 wandoppervlak.');
+    }
+
+    public function test_quote_lines_keep_their_stelpost_flag_when_edited(): void
+    {
+        $user = User::factory()->create();
+        $quote = Quote::factory()->create();
+
+        $this->actingAs($user)->patch('/offertes/'.$quote->id, [
+            'lines' => [
+                ['description' => 'Stucwerk', 'quantity' => 10, 'unit' => 'm²', 'unit_price' => 30, 'vat_rate' => 21, 'is_estimate' => 0],
+                ['description' => 'Sanitair (stelpost)', 'quantity' => 1, 'unit' => 'post', 'unit_price' => 3500, 'vat_rate' => 21, 'is_estimate' => 1],
+            ],
+        ])->assertRedirect(route('quotes.show', $quote));
+
+        $quote->load('lines');
+        $this->assertFalse((bool) $quote->lines->firstWhere('description', 'Stucwerk')->is_estimate);
+        $this->assertTrue((bool) $quote->lines->firstWhere('description', 'Sanitair (stelpost)')->is_estimate);
+    }
 
     private function definitieveCalculation(): Calculation
     {

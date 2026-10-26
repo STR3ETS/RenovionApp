@@ -20,6 +20,41 @@ class PriceItem extends Model
     use HasFactory;
 
     /**
+     * Artikelnummer-prefix per type (prijslijst): ARB-001, MAT-014, enz.
+     */
+    public const CODE_PREFIXES = [
+        'arbeid' => 'ARB',
+        'materiaal' => 'MAT',
+        'materieel' => 'MTR',
+        'onderaannemer' => 'OND',
+        'stelpost' => 'STP',
+    ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (PriceItem $item) {
+            if (blank($item->code)) {
+                $item->code = self::nextCode($item->type?->value ?? 'arbeid');
+            }
+        });
+    }
+
+    /**
+     * Volgend vrij artikelnummer voor een type.
+     */
+    public static function nextCode(string $type): string
+    {
+        $prefix = self::CODE_PREFIXES[$type] ?? 'ART';
+
+        $highest = self::where('code', 'like', $prefix.'-%')
+            ->get(['code'])
+            ->map(fn (PriceItem $item) => (int) str($item->code)->after('-')->value())
+            ->max() ?? 0;
+
+        return sprintf('%s-%03d', $prefix, $highest + 1);
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array

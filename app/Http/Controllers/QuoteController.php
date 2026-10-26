@@ -173,6 +173,7 @@ class QuoteController extends Controller
                 'unit' => $line['unit'],
                 'unit_price' => $line['unit_price'],
                 'vat_rate' => $line['vat_rate'],
+                'is_estimate' => (bool) ($line['is_estimate'] ?? false),
                 'total' => round((float) $line['quantity'] * (float) $line['unit_price'], 2),
                 'position' => $index,
             ]);

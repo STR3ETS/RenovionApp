@@ -17,12 +17,14 @@
         <section class="rounded-2xl border border-gray-200 bg-white p-5">
             <h2 class="mb-4 text-sm font-bold text-navy-900">Werkzaamheden</h2>
             @include('quotes.partials.line-editor', [
+                'proposeUrl' => route('quotes.lines.propose', $quote),
                 'initialLines' => old('lines', $quote->lines->map(fn ($line) => [
                     'description' => $line->description,
                     'quantity' => (float) $line->quantity,
                     'unit' => $line->unit,
                     'unit_price' => (float) $line->unit_price,
                     'vat_rate' => (float) $line->vat_rate,
+                    'is_estimate' => (bool) $line->is_estimate,
                 ])->all()),
             ])
         </section>
