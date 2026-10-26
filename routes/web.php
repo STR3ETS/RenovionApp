@@ -135,6 +135,7 @@ Route::middleware('auth')->group(function () {
                 Route::delete('offerte-templates/{template}', [QuoteBuilderController::class, 'deleteTemplate'])->name('quote-templates.destroy');
                 Route::post('offertes/{quote}/builder/upload', [QuoteBuilderController::class, 'upload'])->middleware('throttle:30,1')->name('quotes.builder.upload');
                 Route::post('offertes/{quote}/builder/blok-ai', [QuoteBuilderController::class, 'blockAi'])->middleware('throttle:30,1')->name('quotes.builder.ai');
+                Route::post('offertes/{quote}/builder/nova-offerte', [QuoteBuilderController::class, 'generate'])->middleware('throttle:10,1')->name('quotes.builder.generate');
                 Route::post('calculaties/{calculation}/offerte', CalculationQuoteController::class)->name('calculations.quote');
             }
 

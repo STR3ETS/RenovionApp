@@ -34,9 +34,22 @@ class QuoteBlockRegistry
                     'subtitle' => 'Renovatiewerkzaamheden',
                 ],
             ],
+            'summary' => [
+                'label' => 'Samenvatting',
+                'icon' => 'document-text',
+                'description' => 'Korte intro met highlights',
+                'default' => [
+                    'title' => 'Samenvatting van het voorstel',
+                    'text' => 'Een zorgeloze renovatie, vakkundig uitgevoerd en strak opgeleverd.',
+                    'highlights' => [
+                        'Eén aanspreekpunt van start tot oplevering',
+                        'Vaste prijs, geen verrassingen achteraf',
+                    ],
+                ],
+            ],
             'text' => [
                 'label' => 'Tekst',
-                'icon' => 'document-text',
+                'icon' => 'pencil-square',
                 'description' => 'Titel met lopende tekst',
                 'default' => [
                     'title' => 'Titel',
@@ -53,12 +66,59 @@ class QuoteBlockRegistry
                     'items' => ['Eerste punt', 'Tweede punt'],
                 ],
             ],
+            'deliverables' => [
+                'label' => 'Wat u krijgt',
+                'icon' => 'check',
+                'description' => 'Leveringen, alles inbegrepen',
+                'default' => [
+                    'title' => 'Wat u van ons krijgt',
+                    'intro' => 'Dit is allemaal inbegrepen in deze offerte.',
+                    'items' => [
+                        ['text' => 'Vakkundige uitvoering door ons eigen team', 'included' => true],
+                        ['text' => 'Afdekken en beschermen van de woning', 'included' => true],
+                        ['text' => 'Dagelijks opgeruimde werkplek en afvoer van afval', 'included' => true],
+                    ],
+                ],
+            ],
+            'analysis' => [
+                'label' => 'Bevindingen',
+                'icon' => 'magnifying-glass',
+                'description' => 'Wat goed is en wat aandacht vraagt',
+                'default' => [
+                    'title' => 'Bevindingen uit de opname',
+                    'good' => ['De constructie is in goede staat', 'Leidingwerk recent vernieuwd'],
+                    'attention' => ['Ondergrond moet eerst egaal worden gemaakt', 'Kitranden zijn aan vervanging toe'],
+                ],
+            ],
+            'goals' => [
+                'label' => 'Wensen & doelen',
+                'icon' => 'bolt',
+                'description' => 'Waar het resultaat aan moet voldoen',
+                'default' => [
+                    'title' => 'Uw wensen & doelen',
+                    'intro' => 'Dit resultaat spraken we samen af.',
+                    'items' => ['Een frisse, strakke uitstraling', 'Onderhoudsarm en duurzaam afgewerkt'],
+                ],
+            ],
+            'rooms' => [
+                'label' => 'Ruimtes',
+                'icon' => 'home',
+                'description' => 'Werkzaamheden per ruimte',
+                'default' => [
+                    'title' => 'Werkzaamheden per ruimte',
+                    'intro' => '',
+                    'items' => [
+                        ['name' => 'Woonkamer', 'tasks' => ['Wanden stucen', 'Plafond sauzen']],
+                        ['name' => 'Badkamer', 'tasks' => ['Tegelwerk vloer en wanden', 'Sanitair plaatsen']],
+                    ],
+                ],
+            ],
             'phases' => [
                 'label' => 'Fasering',
                 'icon' => 'calendar',
                 'description' => 'Stappen van het werk',
                 'default' => [
-                    'title' => 'Fasering',
+                    'title' => 'Aanpak & planning',
                     'intro' => 'Zo verloopt het werk van start tot oplevering.',
                     'items' => [
                         ['title' => 'Voorbereiding', 'body' => 'Opname, werkvoorbereiding en inkoop.'],
@@ -78,6 +138,29 @@ class QuoteBlockRegistry
                     'note' => 'Stelposten worden achteraf verrekend op basis van de werkelijke keuze en aankoopprijs.',
                 ],
             ],
+            'support' => [
+                'label' => 'Garantie & nazorg',
+                'icon' => 'wrench-screwdriver',
+                'description' => 'Wat u krijgt na oplevering',
+                'default' => [
+                    'title' => 'Garantie & nazorg',
+                    'intro' => 'Na de oplevering laten we u niet los.',
+                    'items' => [
+                        ['text' => 'Garantie op al het uitgevoerde werk', 'included' => true],
+                        ['text' => 'Opleverrapport met foto-bewijs', 'included' => true],
+                        ['text' => 'Eén telefoontje en we staan weer voor u klaar', 'included' => true],
+                    ],
+                ],
+            ],
+            'terms' => [
+                'label' => 'Randvoorwaarden',
+                'icon' => 'folder',
+                'description' => 'Voorwaarden en scope',
+                'default' => [
+                    'title' => 'Randvoorwaarden & scope',
+                    'text' => 'Deze offerte is gebaseerd op de besproken wensen en de opname ter plaatse. Werkzaamheden buiten de omschreven scope worden vooraf als meerwerk afgestemd.',
+                ],
+            ],
             'faq' => [
                 'label' => 'Veelgestelde vragen',
                 'icon' => 'chat-bubble',
@@ -86,6 +169,17 @@ class QuoteBlockRegistry
                     'title' => 'Veelgestelde vragen',
                     'items' => [
                         ['q' => 'Hoe lang duurt het werk?', 'a' => 'De doorlooptijd stemmen we na akkoord met u af in de planning.'],
+                    ],
+                ],
+            ],
+            'social_proof' => [
+                'label' => 'Ervaringen',
+                'icon' => 'users',
+                'description' => 'Wat klanten over ons zeggen',
+                'default' => [
+                    'title' => 'Wat onze klanten zeggen',
+                    'items' => [
+                        ['name' => 'Familie de Boer', 'context' => 'Badkamerrenovatie, Arnhem', 'quote' => 'Strak opgeleverd, netjes gewerkt en altijd bereikbaar. Precies wat ze beloofden.'],
                     ],
                 ],
             ],
@@ -337,12 +431,21 @@ class QuoteBlockRegistry
         $clean = [];
 
         foreach ($data as $key => $value) {
-            if (! is_string($key) || str_starts_with($key, '_')) {
+            // "_keep" (vastgezet bij Nova) is de enige toegestane interne sleutel.
+            if (! is_string($key) && ! is_int($key)) {
+                continue;
+            }
+
+            if (is_string($key) && str_starts_with($key, '_')) {
+                if ($key === '_keep' && $value) {
+                    $clean['_keep'] = true;
+                }
+
                 continue;
             }
 
             $clean[$key] = match (true) {
-                is_string($value) => mb_substr($value, 0, 10000),
+                is_string($value) => QuoteText::clean(mb_substr($value, 0, 10000)),
                 is_array($value) => self::cleanData($value, $depth + 1),
                 is_bool($value), is_int($value), is_float($value) => $value,
                 default => null,

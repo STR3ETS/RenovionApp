@@ -219,7 +219,7 @@
 
         {{-- ===== Tab: Preview (klant) ===== --}}
         <div x-show="tab === 'preview'" x-cloak>
-            <div class="mx-auto max-w-3xl rounded-2xl border border-gray-200 bg-white p-6 shadow-sm lg:p-8">
+            <div class="mx-auto max-w-3xl">
                 @include('quotes.partials.document', ['quote' => $quote])
             </div>
             <p class="mt-3 text-center text-xs text-gray-400">Zo ziet de klant de offerte via de klantlink (inclusief knoppen voor ondertekenen, aanpassing aanvragen en afwijzen).</p>

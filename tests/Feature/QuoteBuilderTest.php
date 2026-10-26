@@ -60,14 +60,35 @@ class QuoteBuilderTest extends TestCase
 
         $this->actingAs($user)->putJson('/offertes/'.$quote->id.'/builder', [
             'blocks' => [
-                ['id' => 'b_1', 'type' => 'text', 'data' => ['title' => 'Ok', 'body' => 'Tekst', '_keep' => true]],
+                ['id' => 'b_1', 'type' => 'text', 'data' => ['title' => 'Ok', 'body' => 'Tekst', '_keep' => true, '_intern' => 'weg']],
                 ['id' => 'b_2', 'type' => 'script-injectie', 'data' => []],
             ],
         ])->assertOk();
 
         $blocks = $quote->refresh()->blocks;
         $this->assertCount(1, $blocks);
-        $this->assertArrayNotHasKey('_keep', $blocks[0]['data']);
+        // "_keep" (vastgezet bij Nova) blijft bewaard, andere interne sleutels niet.
+        $this->assertTrue($blocks[0]['data']['_keep']);
+        $this->assertArrayNotHasKey('_intern', $blocks[0]['data']);
+    }
+
+    public function test_saving_sanitizes_rich_text_and_keeps_list_items(): void
+    {
+        $user = User::factory()->create();
+        $quote = Quote::factory()->create();
+
+        $this->actingAs($user)->putJson('/offertes/'.$quote->id.'/builder', [
+            'blocks' => [
+                ['id' => 'b_1', 'type' => 'text', 'data' => ['title' => 'Ok', 'body' => 'Vet <strong>mag</strong> <script>alert(1)</script><img src=x onerror=alert(1)>']],
+                ['id' => 'b_2', 'type' => 'list', 'data' => ['title' => 'Werk', 'intro' => '', 'items' => ['Stucwerk', 'Tegelwerk']]],
+            ],
+        ])->assertOk();
+
+        $blocks = $quote->refresh()->blocks;
+        $this->assertStringContainsString('<strong>mag</strong>', $blocks[0]['data']['body']);
+        $this->assertStringNotContainsString('<script>', $blocks[0]['data']['body']);
+        $this->assertStringNotContainsString('onerror', $blocks[0]['data']['body']);
+        $this->assertSame(['Stucwerk', 'Tegelwerk'], $blocks[1]['data']['items']);
     }
 
     public function test_a_db_template_can_be_applied_with_customer_substitution(): void
@@ -110,6 +131,83 @@ class QuoteBuilderTest extends TestCase
 
         $default = QuoteTemplate::create(['name' => 'X', 'slug' => 'x', 'blocks' => [], 'is_default' => true, 'sort_order' => 1]);
         $this->actingAs($user)->deleteJson('/offerte-templates/'.$default->id)->assertUnprocessable();
+    }
+
+    public function test_an_existing_template_can_be_updated_with_the_current_blocks(): void
+    {
+        $user = User::factory()->create();
+        $template = QuoteTemplate::create(['name' => 'Badkamer', 'slug' => 'badkamer-eigen', 'blocks' => [['type' => 'text', 'data' => ['title' => 'Oud', 'body' => 'Oud']]], 'is_default' => false, 'sort_order' => 1]);
+        $quote = Quote::factory()->create(['blocks' => [
+            ['id' => 'b_1', 'type' => 'text', 'data' => ['title' => 'Nieuw blok', 'body' => 'Nieuwe inhoud', '_keep' => true]],
+        ]]);
+
+        $this->actingAs($user)->postJson('/offertes/'.$quote->id.'/builder/template-opslaan', [
+            'template_id' => $template->id,
+        ])->assertOk()->assertJsonPath('template.name', 'Badkamer');
+
+        $blocks = $template->refresh()->blocks;
+        $this->assertSame('Nieuw blok', $blocks[0]['data']['title']);
+        // De AI-pin is offerte-specifiek en gaat niet mee de template in.
+        $this->assertArrayNotHasKey('_keep', $blocks[0]['data']);
+    }
+
+    public function test_nova_builds_the_whole_quote_and_keeps_hero_and_pinned_blocks(): void
+    {
+        config(['renovion.ai.api_key' => 'test-key']);
+
+        $this->mock(QuoteBlockAi::class, function ($mock) {
+            $mock->shouldReceive('isConfigured')->andReturn(true);
+            $mock->shouldReceive('generate')->once()->andReturnUsing(function ($quote, $current) {
+                $hero = collect($current)->firstWhere('type', 'hero');
+                $pinned = collect($current)->first(fn ($block) => $block['data']['_keep'] ?? false);
+
+                return ['ok' => true, 'blocks' => [
+                    $hero,
+                    ['id' => 'b_new', 'type' => 'summary', 'data' => ['title' => 'Samenvatting van het voorstel', 'text' => 'Door Nova gebouwd.', 'highlights' => ['Punt een']]],
+                    $pinned,
+                    ['id' => 'b_inv', 'type' => 'investment', 'data' => ['title' => 'Investering', 'intro' => '', 'note' => '']],
+                ]];
+            });
+        });
+
+        $user = User::factory()->create();
+        $quote = Quote::factory()->create(['blocks' => [
+            ['id' => 'b_hero', 'type' => 'hero', 'data' => ['title' => 'Offerte', 'subtitle' => 'Badkamer']],
+            ['id' => 'b_vast', 'type' => 'text', 'data' => ['title' => 'Vast blok', 'body' => 'Blijft staan', '_keep' => true]],
+            ['id' => 'b_weg', 'type' => 'text', 'data' => ['title' => 'Oud blok', 'body' => 'Wordt vervangen']],
+        ]]);
+
+        $response = $this->actingAs($user)->postJson('/offertes/'.$quote->id.'/builder/nova-offerte', [
+            'instruction' => 'Benadruk de garantie',
+        ]);
+
+        $response->assertOk();
+        $blocks = collect($quote->refresh()->blocks);
+        $this->assertSame('hero', $blocks->first()['type']);
+        $this->assertTrue($blocks->contains(fn ($block) => ($block['data']['title'] ?? '') === 'Vast blok'));
+        $this->assertTrue($blocks->contains(fn ($block) => str_contains($block['data']['text'] ?? '', 'Door Nova gebouwd')));
+        $this->assertFalse($blocks->contains(fn ($block) => ($block['data']['title'] ?? '') === 'Oud blok'));
+    }
+
+    public function test_the_public_page_renders_the_new_block_types(): void
+    {
+        $quote = Quote::factory()->sent()->create([
+            'blocks' => [
+                ['id' => 'b_1', 'type' => 'hero', 'data' => ['title' => 'Offerte', 'subtitle' => 'Complete renovatie']],
+                ['id' => 'b_2', 'type' => 'summary', 'data' => ['title' => 'Samenvatting van het voorstel', 'text' => 'Zorgeloos verbouwd.', 'highlights' => ['Eén aanspreekpunt']]],
+                ['id' => 'b_3', 'type' => 'deliverables', 'data' => ['title' => 'Wat u van ons krijgt', 'intro' => '', 'items' => [['text' => 'Afdekken en beschermen', 'included' => true]]]],
+                ['id' => 'b_4', 'type' => 'rooms', 'data' => ['title' => 'Werkzaamheden per ruimte', 'intro' => '', 'items' => [['name' => 'Badkamer', 'tasks' => ['Tegelwerk vloer']]]]],
+                ['id' => 'b_5', 'type' => 'social_proof', 'data' => ['title' => 'Wat onze klanten zeggen', 'items' => [['name' => 'Familie de Boer', 'context' => 'Arnhem', 'quote' => 'Strak opgeleverd.']]]],
+            ],
+        ]);
+
+        $this->get('/offerte/'.$quote->public_token)
+            ->assertOk()
+            ->assertSee('Zorgeloos verbouwd.')
+            ->assertSee('Eén aanspreekpunt')
+            ->assertSee('Inbegrepen')
+            ->assertSee('Tegelwerk vloer')
+            ->assertSee('Strak opgeleverd.');
     }
 
     public function test_images_upload_and_are_served_via_the_client_link(): void

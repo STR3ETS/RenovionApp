@@ -92,17 +92,35 @@ class QuoteBuilderController extends Controller
     public function saveAsTemplate(Request $request, Quote $quote): JsonResponse
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:120'],
+            'template_id' => ['nullable', 'integer', 'exists:quote_templates,id'],
+            'name' => ['required_without:template_id', 'nullable', 'string', 'max:120'],
             'description' => ['nullable', 'string', 'max:255'],
         ]);
 
         $blocks = array_map(
-            fn (array $block) => ['type' => $block['type'], 'data' => $block['data']],
+            function (array $block) {
+                unset($block['data']['_keep']);
+
+                return ['type' => $block['type'], 'data' => $block['data']];
+            },
             QuoteBlockRegistry::normalize($quote->blocks ?? []),
         );
 
         if ($blocks === []) {
             return response()->json(['ok' => false, 'error' => 'Geen blokken om op te slaan.'], 422);
+        }
+
+        // Bestaande template bijwerken: alleen de blokken, de rest blijft staan.
+        if (filled($validated['template_id'] ?? null)) {
+            $template = QuoteTemplate::findOrFail($validated['template_id']);
+            $template->update(['blocks' => $blocks]);
+
+            return response()->json(['ok' => true, 'template' => [
+                'id' => $template->id,
+                'name' => $template->name,
+                'description' => $template->description,
+                'is_default' => (bool) $template->is_default,
+            ]]);
         }
 
         $base = Str::slug($validated['name']) ?: 'template';
@@ -186,6 +204,40 @@ class QuoteBuilderController extends Controller
         );
 
         return response()->json($result, ($result['ok'] ?? false) ? 200 : 422);
+    }
+
+    /**
+     * Nova bouwt de hele offerte: alle blokken opnieuw op basis van klant,
+     * aanvraag en calculatie. Vastgezette blokken en de kop blijven staan.
+     */
+    public function generate(Request $request, Quote $quote, QuoteBlockAi $ai): JsonResponse
+    {
+        if ($quote->status !== QuoteStatus::Concept) {
+            return response()->json(['ok' => false, 'error' => 'Offerte is niet meer in concept.'], 422);
+        }
+
+        $validated = $request->validate([
+            'instruction' => ['nullable', 'string', 'max:4000'],
+        ]);
+
+        if (! $ai->isConfigured()) {
+            return response()->json(['ok' => false, 'error' => 'De AI-assistent is niet geconfigureerd.'], 422);
+        }
+
+        $result = $ai->generate(
+            $quote,
+            QuoteBlockRegistry::ensureTyped($quote->blocks, $quote),
+            trim((string) ($validated['instruction'] ?? '')),
+        );
+
+        if (! ($result['ok'] ?? false)) {
+            return response()->json($result, 422);
+        }
+
+        $quote->update(['blocks' => QuoteBlockRegistry::normalize($result['blocks'])]);
+        AuditLog::record($quote, 'nova_offerte_gebouwd', [], ['blokken' => count($quote->blocks)]);
+
+        return response()->json(['ok' => true, 'blocks' => $quote->blocks]);
     }
 
     /**

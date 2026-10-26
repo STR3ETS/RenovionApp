@@ -22,27 +22,25 @@
             <div class="mb-4 rounded-xl bg-red-100 px-4 py-3 text-sm font-medium text-red-800 print:hidden">{{ session('error') }}</div>
         @endif
 
-        <div class="overflow-hidden rounded-2xl bg-white shadow-sm print:shadow-none">
+        <div class="space-y-4">
             {{-- Statusbanner --}}
             @if ($quote->status === \App\Enums\QuoteStatus::Akkoord)
-                <div class="flex items-center gap-2 bg-green-600 px-6 py-3 text-sm font-semibold text-white lg:px-10">
+                <div class="flex items-center gap-2 rounded-2xl bg-green-600 px-6 py-3 text-sm font-semibold text-white">
                     <x-icon name="check" class="h-4 w-4" />
                     Ondertekend door {{ $quote->signed_name ?? $quote->customer->name }} op {{ ($quote->signed_at ?? $quote->accepted_at)->translatedFormat('j F Y') }} — bedankt voor uw vertrouwen!
                 </div>
             @elseif ($quote->status === \App\Enums\QuoteStatus::Afgewezen)
-                <div class="bg-gray-200 px-6 py-3 text-sm font-semibold text-gray-600 lg:px-10">Deze offerte is afgewezen.</div>
+                <div class="rounded-2xl bg-gray-200 px-6 py-3 text-sm font-semibold text-gray-600">Deze offerte is afgewezen.</div>
             @elseif ($quote->isExpired())
-                <div class="bg-amber-100 px-6 py-3 text-sm font-semibold text-amber-800 lg:px-10">De geldigheidsdatum is verstreken. Neem contact met ons op voor een actuele versie.</div>
+                <div class="rounded-2xl bg-amber-100 px-6 py-3 text-sm font-semibold text-amber-800">De geldigheidsdatum is verstreken. Neem contact met ons op voor een actuele versie.</div>
             @endif
 
             {{-- Document --}}
-            <div class="px-6 py-8 lg:px-10">
-                @include('quotes.partials.document', ['quote' => $quote])
-            </div>
+            @include('quotes.partials.document', ['quote' => $quote])
 
             {{-- Acties --}}
             @if ($quote->status->isOpen() && ! $quote->isExpired())
-                <div class="border-t border-gray-100 bg-gray-50 px-6 py-8 lg:px-10 print:hidden" id="ondertekenen">
+                <div class="rounded-2xl border border-gray-200 bg-white px-6 py-8 lg:px-8 print:hidden" id="ondertekenen">
                     <h2 class="text-lg font-bold text-navy-950">Akkoord?</h2>
                     <p class="mt-1 mb-5 text-sm text-gray-500">Onderteken de offerte digitaal — wij nemen daarna direct contact met u op over de planning.</p>
 
@@ -87,7 +85,7 @@
             @endif
 
             {{-- Footer --}}
-            <div class="border-t border-gray-100 px-6 py-6 text-center text-xs text-gray-400 lg:px-10">
+            <div class="px-6 py-4 text-center text-xs text-gray-400">
                 <p class="font-semibold text-gray-500">Renovion — geen half werk en vage beloftes</p>
                 <p class="mt-1">Mercatorweg 28, 6827 DC Arnhem · info@renovion.nl · +31 6 395 353 00 · KVK 95384782</p>
             </div>
