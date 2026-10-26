@@ -91,7 +91,7 @@
                         <span class="w-16 shrink-0 text-xs font-bold text-navy-900">{{ $entry->date->isToday() ? 'Vandaag' : $entry->date->translatedFormat('D j M') }}</span>
                         <span class="min-w-0 flex-1">
                             <span class="block truncate font-medium text-navy-900">{{ $entry->displayTitle() }}</span>
-                            <span class="block text-xs text-gray-400">{{ $entry->user->name }}{{ $entry->start_time ? ' · vanaf '.substr($entry->start_time, 0, 5) : '' }}</span>
+                            <span class="block text-xs text-gray-400">{{ $entry->user->name }}{{ $entry->start_time ? ', vanaf '.substr($entry->start_time, 0, 5) : '' }}</span>
                         </span>
                     </div>
                 @empty
@@ -124,7 +124,7 @@
                         <span class="w-16 shrink-0 text-xs font-bold text-navy-900">{{ $entry->date->isToday() ? 'Vandaag' : $entry->date->translatedFormat('D j M') }}</span>
                         <span class="min-w-0 flex-1">
                             <span class="block truncate font-medium text-navy-900">{{ $entry->displayTitle() }}</span>
-                            <span class="block text-xs text-gray-400">{{ $entry->user->name }}{{ $entry->start_time ? ' · vanaf '.substr($entry->start_time, 0, 5) : '' }}</span>
+                            <span class="block text-xs text-gray-400">{{ $entry->user->name }}{{ $entry->start_time ? ', vanaf '.substr($entry->start_time, 0, 5) : '' }}</span>
                         </span>
                     </div>
                 @empty

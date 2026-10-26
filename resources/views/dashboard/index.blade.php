@@ -5,7 +5,7 @@
         <h1 class="text-2xl font-bold text-navy-900 lg:text-3xl">
             {{ now()->hour < 12 ? 'Goedemorgen' : (now()->hour < 18 ? 'Goedemiddag' : 'Goedenavond') }} {{ str(auth()->user()->name)->before(' ') }}.
         </h1>
-        <p class="mt-1 text-sm text-gray-500">{{ now()->translatedFormat('l j F') }} — hier is de status van je projecten en aandachtspunten.</p>
+        <p class="mt-1 text-sm text-gray-500">{{ now()->translatedFormat('l j F') }} - hier is de status van je projecten en aandachtspunten.</p>
     </section>
 
     @php $quotesEnabled = config('renovion.modules.quotes'); @endphp
@@ -105,7 +105,7 @@
                                     <span class="block truncate text-sm font-semibold text-navy-900">{{ $project->customer->name }}: aanbetaling nog niet ontvangen</span>
                                     <span class="block truncate text-xs text-gray-500">
                                         € {{ number_format((float) $project->deposit_amount, 0, ',', '.') }}
-                                        · start {{ $project->start_date->translatedFormat('j M') }}
+                                       , start {{ $project->start_date->translatedFormat('j M') }}
                                     </span>
                                 </span>
                                 <x-signal-dot color="red" />
@@ -119,7 +119,7 @@
                                     <span class="block truncate text-sm font-semibold text-navy-900">{{ $quote->customer->name }}: offerte {{ $quote->daysOpen() }} dagen open</span>
                                     <span class="block truncate text-xs text-gray-500">
                                         € {{ number_format((float) $quote->total, 0, ',', '.') }}
-                                        @if ($quote->viewed_count > 0) · {{ $quote->viewed_count }}× bekeken @endif
+                                        @if ($quote->viewed_count > 0), {{ $quote->viewed_count }}× bekeken @endif
                                     </span>
                                 </span>
                                 <x-signal-dot :color="$quote->daysOpen() >= 5 ? 'red' : 'amber'" />
@@ -136,7 +136,7 @@
                                     </span>
                                     <span class="block truncate text-xs text-gray-500">
                                         {{ $lead->service ?? 'Aanvraag' }}
-                                        @if ($lead->next_action_at) · {{ $lead->next_action_at->translatedFormat('j M H:i') }} @endif
+                                        @if ($lead->next_action_at), {{ $lead->next_action_at->translatedFormat('j M H:i') }} @endif
                                     </span>
                                 </span>
                                 <x-status-badge :status="$lead->status" />
@@ -155,7 +155,7 @@
                                     <span class="block truncate text-sm font-semibold text-navy-900 {{ $task->isOverdue() ? 'text-red-700' : '' }}">{{ $task->title }}</span>
                                     <span class="block truncate text-xs text-gray-500">
                                         {{ $task->customer?->name ?? $task->project?->name ?? 'Algemeen' }}
-                                        @if ($task->deadline) · {{ $task->deadline->isToday() ? 'vandaag' : $task->deadline->translatedFormat('j M') }} @endif
+                                        @if ($task->deadline), {{ $task->deadline->isToday() ? 'vandaag' : $task->deadline->translatedFormat('j M') }} @endif
                                     </span>
                                 </span>
                                 <span class="h-2.5 w-2.5 shrink-0 rounded-full {{ $task->priority->dotClasses() }}" title="Prioriteit: {{ $task->priority->label() }}"></span>
@@ -209,7 +209,7 @@
                             </span>
                             <span class="min-w-0 flex-1">
                                 <span class="block truncate text-sm font-semibold">{{ $entry->displayTitle() }}</span>
-                                <span class="block text-xs opacity-70">{{ $entry->user->name }} · {{ $entry->type->label() }}</span>
+                                <span class="block text-xs opacity-70">{{ $entry->user->name }}, {{ $entry->type->label() }}</span>
                             </span>
                         </div>
                     @endforeach

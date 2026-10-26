@@ -30,7 +30,7 @@ class QuoteStatusController extends Controller
             $project = $acceptQuote->handle($quote);
 
             return redirect()->route('projects.show', $project)
-                ->with('success', "Offerte akkoord — project \"{$project->name}\" aangemaakt.");
+                ->with('success', "Offerte akkoord - project \"{$project->name}\" aangemaakt.");
         }
 
         if ($new === QuoteStatus::Verstuurd) {

@@ -19,7 +19,7 @@ use Illuminate\Database\Seeder;
 
 /**
  * Demo-data op basis van de voorbeelden uit de technische briefing.
- * Alleen voor lokale ontwikkeling — draait bewust niet op productie.
+ * Alleen voor lokale ontwikkeling - draait bewust niet op productie.
  * Verwacht dat de teamaccounts al bestaan (TeamSeeder).
  */
 class DemoSeeder extends Seeder
@@ -308,7 +308,7 @@ class DemoSeeder extends Seeder
         ]);
 
         $bakker->timelineEvents()->createMany([
-            ['type' => TimelineEventType::Offerte, 'source' => ActionSource::Handmatig, 'user_id' => $imad->id, 'title' => 'Offerte akkoord — project aangemaakt', 'subject_type' => 'project', 'subject_id' => $bakkerProject->id, 'happened_at' => now()->subDays(10)],
+            ['type' => TimelineEventType::Offerte, 'source' => ActionSource::Handmatig, 'user_id' => $imad->id, 'title' => 'Offerte akkoord - project aangemaakt', 'subject_type' => 'project', 'subject_id' => $bakkerProject->id, 'happened_at' => now()->subDays(10)],
             ['type' => TimelineEventType::Betaling, 'source' => ActionSource::Handmatig, 'user_id' => $imad->id, 'title' => 'Aanbetalingsfactuur € 15.600 verstuurd', 'happened_at' => now()->subDays(9)],
         ]);
     }

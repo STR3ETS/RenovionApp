@@ -11,9 +11,9 @@
         <section class="space-y-4 rounded-2xl border border-gray-200 bg-white p-5">
             <x-field label="Klant *" name="customer_id">
                 <select name="customer_id" id="customer_id" required class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
-                    <option value="">— Kies klant —</option>
+                    <option value="">- Kies klant -</option>
                     @foreach ($customers as $customer)
-                        <option value="{{ $customer->id }}" @selected(old('customer_id', $lead?->customer_id) == $customer->id)>{{ $customer->name }} ({{ $customer->city ?? '—' }})</option>
+                        <option value="{{ $customer->id }}" @selected(old('customer_id', $lead?->customer_id) == $customer->id)>{{ $customer->name }} ({{ $customer->city ?? '-' }})</option>
                     @endforeach
                 </select>
             </x-field>

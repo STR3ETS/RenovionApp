@@ -77,7 +77,7 @@ class CalculationController extends Controller
 
         return redirect()
             ->route('calculations.show', $calculation)
-            ->with('success', 'Calculatie aangemaakt — controleer de regels en stel bij waar nodig.');
+            ->with('success', 'Calculatie aangemaakt - controleer de regels en stel bij waar nodig.');
     }
 
     public function show(Calculation $calculation): View

@@ -16,7 +16,7 @@
                     $isActief = $current !== null && $phase->is($current);
                 @endphp
                 <li class="flex items-start">
-                    <div class="flex w-20 flex-col items-center gap-1.5 text-center" title="{{ $phase->name }} — {{ $phase->status->label() }}">
+                    <div class="flex w-20 flex-col items-center gap-1.5 text-center" title="{{ $phase->name }} - {{ $phase->status->label() }}">
                         <span class="flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold transition
                             {{ $isGereed ? 'bg-green-500 text-white' : '' }}
                             {{ $isActief && ! $isGereed ? ($phase->status === PhaseStatus::Geblokkeerd ? 'bg-red-500 text-white' : 'bg-brand-500 text-white ring-4 ring-brand-100') : '' }}

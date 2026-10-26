@@ -109,8 +109,8 @@ class CalculationAssistant
             - Schat hoeveelheden op basis van de omschrijving (oppervlaktes, aantallen). Noem elke aanname kort in "note".
             - Gebruik type "stelpost" voor onderdelen die de klant nog moet kiezen of die onzeker zijn (bijv. sanitair, tegels boven standaard).
             - Denk aan bijkomende posten die vakmensen vaak vergeten: sloop/afvoer, afvalcontainer, bouwplaatsvoorzieningen, kitwerk, elektra-aanpassingen.
-            - Alle prijzen exclusief btw. Omschrijvingen kort en professioneel, in het Nederlands.
-            - Risico/onvoorzien, marge en btw worden buiten de regels om berekend — neem die NIET als regel op.
+            - Alle prijzen exclusief btw. Omschrijvingen kort en professioneel, in het Nederlands, zonder em-dashes of het teken ·.
+            - Risico/onvoorzien, marge en btw worden buiten de regels om berekend - neem die NIET als regel op.
 
             PRIJSBIBLIOTHEEK (id | type | naam | eenheid | prijs | opslag | bron):
             {$library}

@@ -24,7 +24,7 @@
                     </a>
                     <span class="min-w-0 flex-1">
                         <span class="block truncate text-sm font-bold text-navy-900">{{ $channel->displayName() }}</span>
-                        <span class="block text-xs text-gray-400">{{ $channel->isProjectChannel() ? 'Projectchat — intern, de klant leest niet mee' : 'Teamkanaal' }}</span>
+                        <span class="block text-xs text-gray-400">{{ $channel->isProjectChannel() ? 'Projectchat - intern, de klant leest niet mee' : 'Teamkanaal' }}</span>
                     </span>
                     @if ($channel->isProjectChannel() && $channel->project)
                         <a href="{{ route('projects.show', $channel->project) }}" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-50">Project →</a>
@@ -90,7 +90,7 @@
                     </template>
 
                     <p x-show="messages.length === 0" class="py-10 text-center text-sm text-gray-400">
-                        Nog geen berichten — trap af!{{ auth()->user()->can('manage-crm') ? ' Tip: noem @Nova om iets te laten klaarzetten.' : '' }}
+                        Nog geen berichten - trap af!{{ auth()->user()->can('manage-crm') ? ' Tip: noem @Nova om iets te laten klaarzetten.' : '' }}
                     </p>
                 </div>
 

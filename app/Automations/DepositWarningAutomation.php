@@ -49,7 +49,7 @@ class DepositWarningAutomation extends BaseAutomation
             }
 
             $taak = [
-                'title' => 'Aanbetaling '.$project->customer->name.' controleren — project start '.$project->start_date->translatedFormat('j M'),
+                'title' => 'Aanbetaling '.$project->customer->name.' controleren - project start '.$project->start_date->translatedFormat('j M'),
                 'customer_id' => $project->customer_id,
                 'project_id' => $project->id,
                 'owner_id' => $project->project_leader_id,

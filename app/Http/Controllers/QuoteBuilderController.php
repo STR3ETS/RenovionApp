@@ -26,7 +26,7 @@ class QuoteBuilderController extends Controller
     {
         if ($quote->status !== QuoteStatus::Concept) {
             return redirect()->route('quotes.show', $quote)
-                ->with('error', 'Alleen conceptoffertes kunnen worden bewerkt — start eerst een nieuwe versie.');
+                ->with('error', 'Alleen conceptoffertes kunnen worden bewerkt - start eerst een nieuwe versie.');
         }
 
         $quote->load(['customer', 'lead', 'lines']);

@@ -20,7 +20,7 @@
 
     {{-- Kop --}}
     <section class="mb-8 overflow-hidden rounded-2xl bg-navy-950 p-6 text-white lg:p-8">
-        <p class="text-[11px] font-bold tracking-widest text-brand-400 uppercase">Renovion Dash · ontwerp</p>
+        <p class="text-[11px] font-bold tracking-widest text-brand-400 uppercase">Renovion Dash, ontwerp</p>
         <h1 class="mt-1 text-2xl font-bold lg:text-3xl">Stijlgids</h1>
         <p class="mt-2 max-w-2xl text-sm leading-relaxed text-navy-200">
             De frisse huisstijl van Renovion Dash: één actiekleur, een eigen kleur per domein zodat je in één oogopslag ziet
@@ -35,7 +35,7 @@
 
         {{-- 1. Principes --}}
         <section>
-            <p class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">01 · Principes</p>
+            <p class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">01. Principes</p>
             <h2 class="mt-1 mb-4 text-xl font-bold text-navy-950">Waar alles op rust</h2>
             <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <div class="rounded-2xl border border-gray-200 bg-white p-5">
@@ -63,18 +63,18 @@
 
         {{-- 2. Merkkleuren --}}
         <section>
-            <p class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">02 · Merkkleuren</p>
+            <p class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">02. Merkkleuren</p>
             <h2 class="mt-1 mb-4 text-xl font-bold text-navy-950">Oranje doet, navy draagt</h2>
             <div class="grid gap-3 sm:grid-cols-2">
                 <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white">
-                    <div class="flex h-24 items-end bg-brand-500 p-4"><p class="text-sm font-bold text-white">brand-500 · #F85B0B</p></div>
+                    <div class="flex h-24 items-end bg-brand-500 p-4"><p class="text-sm font-bold text-white">brand-500. #F85B0B</p></div>
                     <div class="p-4 text-xs leading-relaxed text-gray-500">
                         <p class="font-bold text-navy-900">Actie</p>
                         Primaire knoppen, actieve navigatie, de "+ Nieuw". Nooit als sfeer- of categoriekleur: schaars houden, dan blijft hij sturend.
                     </div>
                 </div>
                 <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white">
-                    <div class="flex h-24 items-end bg-navy-950 p-4"><p class="text-sm font-bold text-white">navy-950 · #070724</p></div>
+                    <div class="flex h-24 items-end bg-navy-950 p-4"><p class="text-sm font-bold text-white">navy-950, #070724</p></div>
                     <div class="p-4 text-xs leading-relaxed text-gray-500">
                         <p class="font-bold text-navy-900">Fundament</p>
                         Sidebar, koppen, de ene donkere ankerkaart per scherm (Nova, offerte-hero) en alle belangrijke tekst (navy-900/950).
@@ -85,11 +85,11 @@
 
         {{-- 3. Categoriekleuren --}}
         <section>
-            <p class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">03 · Categoriekleuren</p>
+            <p class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">03. Categoriekleuren</p>
             <h2 class="mt-1 text-xl font-bold text-navy-950">Zien waar het over gaat, zonder te lezen</h2>
             <p class="mt-1 mb-4 max-w-2xl text-sm text-gray-500">
                 Elke module een vaste tint, altijd in drie vormen: een gevulde icon-chip, een zachte pill en (spaarzaam) een getinte kaart
-                of accentlijn links. Nooit voor knoppen — dat blijft oranje.
+                of accentlijn links. Nooit voor knoppen - dat blijft oranje.
             </p>
             <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($categories as $cat)
@@ -99,7 +99,7 @@
                                 <span class="flex h-10 w-10 items-center justify-center rounded-xl {{ $cat['chip'] }}"><x-icon :name="$cat['icon']" class="h-5 w-5" /></span>
                                 <div>
                                     <p class="text-sm font-bold text-navy-900">{{ $cat['naam'] }}</p>
-                                    <p class="text-[11px] font-medium text-gray-400">{{ $cat['hex'] }} · {{ $cat['basis'] }} · <code>{{ $cat['token'] }}-*</code></p>
+                                    <p class="text-[11px] font-medium text-gray-400">{{ $cat['hex'] }}, {{ $cat['basis'] }}, <code>{{ $cat['token'] }}-*</code></p>
                                 </div>
                             </div>
                         </div>
@@ -116,41 +116,41 @@
 
         {{-- 4. Statuskleuren --}}
         <section>
-            <p class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">04 · Statuskleuren</p>
+            <p class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">04. Statuskleuren</p>
             <h2 class="mt-1 mb-1 text-xl font-bold text-navy-950">Betekenis, geen decoratie</h2>
             <p class="mb-4 max-w-2xl text-sm text-gray-500">Groen, oranje, rood en grijs zijn gereserveerd voor status (briefing §7). Gebruik ze nergens anders voor, dan blijven ze betrouwbaar.</p>
             <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
                 <div class="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white p-4">
                     <x-signal-dot color="green" class="h-3 w-3" />
-                    <div><p class="text-sm font-bold text-navy-900">Op schema</p><p class="text-[11px] text-gray-400">gereed · akkoord</p></div>
+                    <div><p class="text-sm font-bold text-navy-900">Op schema</p><p class="text-[11px] text-gray-400">gereed, akkoord</p></div>
                 </div>
                 <div class="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white p-4">
                     <x-signal-dot color="amber" class="h-3 w-3" />
-                    <div><p class="text-sm font-bold text-navy-900">Aandacht</p><p class="text-[11px] text-gray-400">wachten · opvolgen</p></div>
+                    <div><p class="text-sm font-bold text-navy-900">Aandacht</p><p class="text-[11px] text-gray-400">wachten, opvolgen</p></div>
                 </div>
                 <div class="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white p-4">
                     <x-signal-dot color="red" class="h-3 w-3" />
-                    <div><p class="text-sm font-bold text-navy-900">Geblokkeerd</p><p class="text-[11px] text-gray-400">te laat · risico</p></div>
+                    <div><p class="text-sm font-bold text-navy-900">Geblokkeerd</p><p class="text-[11px] text-gray-400">te laat, risico</p></div>
                 </div>
                 <div class="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white p-4">
                     <x-signal-dot color="gray" class="h-3 w-3" />
-                    <div><p class="text-sm font-bold text-navy-900">Niet gestart</p><p class="text-[11px] text-gray-400">concept · inactief</p></div>
+                    <div><p class="text-sm font-bold text-navy-900">Niet gestart</p><p class="text-[11px] text-gray-400">concept, inactief</p></div>
                 </div>
             </div>
         </section>
 
         {{-- 5. Typografie --}}
         <section>
-            <p class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">05 · Typografie</p>
+            <p class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">05. Typografie</p>
             <h2 class="mt-1 mb-4 text-xl font-bold text-navy-950">Inter Tight, grote cijfers, kleine labels</h2>
             <div class="space-y-5 rounded-2xl border border-gray-200 bg-white p-6 lg:p-8">
                 <div class="flex flex-wrap items-baseline justify-between gap-2 border-b border-gray-100 pb-4">
-                    <p class="text-[11px] font-bold tracking-widest text-offerte-600 uppercase">Eyebrow · sectielabel</p>
+                    <p class="text-[11px] font-bold tracking-widest text-offerte-600 uppercase">Eyebrow, sectielabel</p>
                     <code class="text-[11px] text-gray-400">text-[11px] font-bold uppercase tracking-widest</code>
                 </div>
                 <div class="flex flex-wrap items-baseline justify-between gap-2 border-b border-gray-100 pb-4">
                     <p class="text-3xl font-bold text-navy-950">€ 128.400</p>
-                    <code class="text-[11px] text-gray-400">text-3xl font-bold — kerngetallen</code>
+                    <code class="text-[11px] text-gray-400">text-3xl font-bold - kerngetallen</code>
                 </div>
                 <div class="flex flex-wrap items-baseline justify-between gap-2 border-b border-gray-100 pb-4">
                     <h3 class="text-2xl font-bold text-navy-950">Paginakop (H1)</h3>
@@ -165,7 +165,7 @@
                     <code class="text-[11px] text-gray-400">text-sm text-gray-600</code>
                 </div>
                 <div class="flex flex-wrap items-baseline justify-between gap-2">
-                    <p class="text-xs text-gray-400">Bijschrift of metadata · 14 feb · door Imad</p>
+                    <p class="text-xs text-gray-400">Bijschrift of metadata, 14 feb, door Imad</p>
                     <code class="text-[11px] text-gray-400">text-xs text-gray-400</code>
                 </div>
             </div>
@@ -173,13 +173,13 @@
 
         {{-- 6. Bouwstenen --}}
         <section>
-            <p class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">06 · Bouwstenen</p>
+            <p class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">06. Bouwstenen</p>
             <h2 class="mt-1 mb-4 text-xl font-bold text-navy-950">Knoppen, kaarten en rijen</h2>
 
             <div class="space-y-4">
                 {{-- Knoppen --}}
                 <div class="rounded-2xl border border-gray-200 bg-white p-6">
-                    <p class="mb-3 text-sm font-bold text-navy-900">Knoppen — één primaire per schermdeel</p>
+                    <p class="mb-3 text-sm font-bold text-navy-900">Knoppen - één primaire per schermdeel</p>
                     <div class="flex flex-wrap items-center gap-2">
                         <button type="button" class="rounded-xl bg-brand-500 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600">Primair (oranje)</button>
                         <button type="button" class="rounded-xl bg-navy-950 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-navy-900">Secundair (navy)</button>
@@ -191,7 +191,7 @@
 
                 {{-- Statcard nieuw --}}
                 <div class="rounded-2xl border border-gray-200 bg-white p-6">
-                    <p class="mb-1 text-sm font-bold text-navy-900">Statcard — zachte categorietint + gevulde chip</p>
+                    <p class="mb-1 text-sm font-bold text-navy-900">Statcard - zachte categorietint + gevulde chip</p>
                     <p class="mb-3 text-xs text-gray-400">Zo herken je op afstand welk cijfer bij welk domein hoort. Alert-regel in signaalkleur.</p>
                     <div class="grid gap-3 sm:grid-cols-3">
                         <div class="rounded-2xl border border-project-200 bg-project-50 p-4">
@@ -223,14 +223,14 @@
 
                 {{-- Lijstrij --}}
                 <div class="rounded-2xl border border-gray-200 bg-white p-6">
-                    <p class="mb-1 text-sm font-bold text-navy-900">Actie-rij — chip vertelt de categorie, dot de urgentie</p>
+                    <p class="mb-1 text-sm font-bold text-navy-900">Actie-rij - chip vertelt de categorie, dot de urgentie</p>
                     <p class="mb-3 text-xs text-gray-400">Voor "Nu doen", Aandacht en andere lijsten. Wit houden; de kleur zit in chip en accentlijn.</p>
                     <div class="space-y-2">
                         <div class="flex items-center gap-3 rounded-xl border border-gray-200 border-l-4 border-l-offerte-500 bg-white p-3">
                             <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-offerte-100 text-offerte-600"><x-icon name="document-text" class="h-4 w-4" /></span>
                             <span class="min-w-0 flex-1">
                                 <span class="block truncate text-sm font-semibold text-navy-900">Familie Jansen: offerte 5 dagen open</span>
-                                <span class="block truncate text-xs text-gray-500">€ 18.400 · 2× bekeken</span>
+                                <span class="block truncate text-xs text-gray-500">€ 18.400. 2× bekeken</span>
                             </span>
                             <x-signal-dot color="amber" />
                         </div>
@@ -238,7 +238,7 @@
                             <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-lead-100 text-lead-600"><x-icon name="phone" class="h-4 w-4" /></span>
                             <span class="min-w-0 flex-1">
                                 <span class="block truncate text-sm font-semibold text-navy-900">De Vries: nieuwe aanvraag opvolgen</span>
-                                <span class="block truncate text-xs text-gray-500">Badkamerrenovatie · vandaag 15:00</span>
+                                <span class="block truncate text-xs text-gray-500">Badkamerrenovatie, vandaag 15:00</span>
                             </span>
                             <x-signal-dot color="red" />
                         </div>
@@ -249,7 +249,7 @@
                 <div class="grid gap-3 lg:grid-cols-3">
                     <div class="rounded-2xl border border-gray-200 bg-white p-5">
                         <p class="text-sm font-bold text-navy-900">Standaardkaart</p>
-                        <p class="mt-1 text-xs leading-relaxed text-gray-500">Wit, <code>rounded-2xl border-gray-200</code>. Het werkpaard — maar nooit vijf identieke naast elkaar zonder chip of accent.</p>
+                        <p class="mt-1 text-xs leading-relaxed text-gray-500">Wit, <code>rounded-2xl border-gray-200</code>. Het werkpaard - maar nooit vijf identieke naast elkaar zonder chip of accent.</p>
                     </div>
                     <div class="rounded-2xl border border-calc-200 bg-calc-50 p-5">
                         <span class="rounded-full bg-calc-100 px-2.5 py-0.5 text-[11px] font-semibold text-calc-700">Calculaties</span>
@@ -285,7 +285,7 @@
 
         {{-- 7. Spelregels --}}
         <section>
-            <p class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">07 · Spelregels</p>
+            <p class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">07. Spelregels</p>
             <h2 class="mt-1 mb-4 text-xl font-bold text-navy-950">Zo blijft het fris</h2>
             <div class="grid gap-3 lg:grid-cols-2">
                 <div class="rounded-2xl border border-project-200 bg-project-50 p-6">
@@ -302,9 +302,10 @@
                     <p class="mb-3 flex items-center gap-2 text-sm font-bold text-red-700"><x-icon name="x-mark" class="h-4 w-4" /> Niet doen</p>
                     <ul class="space-y-2 text-sm text-gray-700">
                         <li class="flex gap-2"><span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-red-500"></span>Rijen identieke witte kaarten zonder enig accent ("AI-grijs").</li>
-                        <li class="flex gap-2"><span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-red-500"></span>Categoriekleuren op knoppen — actie is altijd oranje.</li>
+                        <li class="flex gap-2"><span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-red-500"></span>Categoriekleuren op knoppen - actie is altijd oranje.</li>
                         <li class="flex gap-2"><span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-red-500"></span>Meer dan één tint of meer dan één donkere kaart per schermdeel.</li>
                         <li class="flex gap-2"><span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-red-500"></span>Emoji's, staalblauw (<code class="rounded bg-white px-1">steel-*</code>, legacy) of groen/rood als decoratie.</li>
+                        <li class="flex gap-2"><span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-red-500"></span>Middots en em-dashes in teksten: scheid metadata met komma's en gebruik gewone streepjes. Geldt ook voor alles wat Nova schrijft.</li>
                         <li class="flex gap-2"><span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-red-500"></span>Grijs op grijs: elk scherm heeft minstens één warm element.</li>
                     </ul>
                 </div>
@@ -313,13 +314,13 @@
 
         {{-- 8. Layout, laden & beweging --}}
         <section>
-            <p class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">08 · Layout, laden &amp; beweging</p>
+            <p class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">08. Layout, laden &amp; beweging</p>
             <h2 class="mt-1 mb-4 text-xl font-bold text-navy-950">Snel voelen, rustig bewegen</h2>
 
             <div class="space-y-4">
                 {{-- Layoutprincipe --}}
                 <div class="rounded-2xl border border-gray-200 bg-white p-6">
-                    <p class="mb-1 text-sm font-bold text-navy-900">Paginaopbouw — hero-band, strip, werklijst</p>
+                    <p class="mb-1 text-sm font-bold text-navy-900">Paginaopbouw - hero-band, strip, werklijst</p>
                     <p class="mb-4 text-xs text-gray-400">Overzichtspagina's volgen één ritme: een donkere hero-band met context bovenaan, een compacte cijferstrip, daaronder de werklijst prominent links en ondersteuning rechts. Actie gaat vóór informatie.</p>
                     <div class="space-y-1.5">
                         <div class="flex h-10 items-center rounded-lg bg-navy-950 px-3 text-[11px] font-bold text-white">Hero-band: begroeting + Nova + aandacht</div>
@@ -340,7 +341,7 @@
 
                 {{-- Skeleton loaders --}}
                 <div class="rounded-2xl border border-gray-200 bg-white p-6">
-                    <p class="mb-1 text-sm font-bold text-navy-900">Skeleton loaders — geen spinners</p>
+                    <p class="mb-1 text-sm font-bold text-navy-900">Skeleton loaders - geen spinners</p>
                     <p class="mb-4 text-xs text-gray-400">Alles wat async laadt (Nova-briefing, chatberichten, zoekresultaten) toont een shimmer in de vorm van de content die komt: <code class="rounded bg-gray-100 px-1">&lt;x-skeleton&gt;</code>, of <code class="rounded bg-gray-100 px-1">.skeleton</code> op een eigen blokje. Op donkere kaarten de <code class="rounded bg-gray-100 px-1">dark</code>-variant.</p>
                     <div class="grid gap-3 sm:grid-cols-2">
                         <div class="rounded-xl border border-gray-200 p-4">
@@ -355,10 +356,10 @@
                 {{-- Paginaovergangen --}}
                 <div class="rounded-2xl border border-gray-200 bg-white p-6">
                     <p class="mb-1 text-sm font-bold text-navy-900">Naadloze paginaovergangen</p>
-                    <p class="mb-3 text-xs text-gray-400">Navigeren voelt als één omgeving, zonder witte flits — je merkt het op elke pagina, ook deze.</p>
+                    <p class="mb-3 text-xs text-gray-400">Navigeren voelt als één omgeving, zonder witte flits - je merkt het op elke pagina, ook deze.</p>
                     <ul class="space-y-2 text-sm text-gray-700">
                         <li class="flex gap-2"><span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-brand-500"></span><span><span class="font-semibold text-navy-900">View transitions:</span> de oude pagina blijft staan tot de nieuwe klaar is en vloeit er zacht in over (cross-document, puur CSS in <code class="rounded bg-gray-100 px-1">app.css</code>).</span></li>
-                        <li class="flex gap-2"><span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-brand-500"></span><span><span class="font-semibold text-navy-900">Vooraf laden bij hover:</span> Chrome laadt een pagina al in zodra je de muis op een link legt (speculation rules in de layout) — klikken voelt direct. Chat en de offerte-builder zijn uitgesloten.</span></li>
+                        <li class="flex gap-2"><span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-brand-500"></span><span><span class="font-semibold text-navy-900">Vooraf laden bij hover:</span> Chrome laadt een pagina al in zodra je de muis op een link legt (speculation rules in de layout) - klikken voelt direct. Chat en de offerte-builder zijn uitgesloten.</span></li>
                         <li class="flex gap-2"><span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-brand-500"></span><span><span class="font-semibold text-navy-900">Rustig bewegen:</span> overgangen zijn kort (±150 ms) en subtiel; bij <code class="rounded bg-gray-100 px-1">prefers-reduced-motion</code> staat alle beweging uit, ook de shimmer.</span></li>
                     </ul>
                 </div>

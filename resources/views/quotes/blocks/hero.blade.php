@@ -8,7 +8,7 @@
 <header class="overflow-hidden rounded-2xl bg-navy-950 p-6 text-white lg:p-8">
     <div class="mb-6 flex items-start justify-between gap-4">
         <img src="{{ asset('images/renovion-logo.svg') }}" alt="Renovion" class="h-9 w-auto">
-        <span class="rounded-full bg-navy-900 px-3 py-1 text-xs font-semibold whitespace-nowrap text-navy-200">{{ $quote->number }} · v{{ $quote->version }}</span>
+        <span class="rounded-full bg-navy-900 px-3 py-1 text-xs font-semibold whitespace-nowrap text-navy-200">{{ $quote->number }}, v{{ $quote->version }}</span>
     </div>
 
     @if ($isEdit)

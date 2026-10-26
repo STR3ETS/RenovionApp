@@ -64,7 +64,7 @@ class QuoteBlockAi
         $decoded = $this->extractJson($text);
 
         if (! is_array($decoded)) {
-            return ['ok' => false, 'error' => 'De AI gaf geen bruikbaar resultaat — probeer het nog eens.'];
+            return ['ok' => false, 'error' => 'De AI gaf geen bruikbaar resultaat - probeer het nog eens.'];
         }
 
         // Structuur bewaken: ontbrekende sleutels vallen terug op huidig/standaard.
@@ -110,7 +110,7 @@ class QuoteBlockAi
 
         $pinnedNote = $pinned === []
             ? ''
-            : "\nDeze blokken staan al vast en blijven staan — genereer ze NIET opnieuw en herhaal hun inhoud niet: "
+            : "\nDeze blokken staan al vast en blijven staan - genereer ze NIET opnieuw en herhaal hun inhoud niet: "
                 .collect($pinned)->map(fn (array $block) => $block['type'].' ("'.QuoteText::plain($block['data']['title'] ?? '').'")')->implode(', ').'.';
 
         $system = <<<PROMPT
@@ -124,7 +124,8 @@ class QuoteBlockAi
             - Kies 5 tot 8 blokken die bij deze klant en dit werk passen, in een logische volgorde (samenvatting eerst, investering en voorwaarden richting het einde).
             - Neem het blok "investment" precies één keer op; de posten en bedragen komen uit het systeem, jij schrijft alleen title/intro/note.
             - Houd per blok exact de sleutels en structuur van het bloktype aan. Geen nieuwe sleutels.
-            - Schrijf professioneel maar toegankelijk Nederlands, in de toon van Renovion: "geen half werk en vage beloftes". U-vorm richting de klant. Concreet, zonder overdreven verkooppraat.{$pinnedNote}
+            - Schrijf professioneel maar toegankelijk Nederlands, in de toon van Renovion: "geen half werk en vage beloftes". U-vorm richting de klant. Concreet, zonder overdreven verkooppraat.
+            - Gebruik nooit een em-dash of het teken · in teksten; schrijf gewone zinnen met komma's en punten.{$pinnedNote}
 
             KLANTCONTEXT:
             {$this->context($quote)}
@@ -156,7 +157,7 @@ class QuoteBlockAi
         $items = is_array($decoded) ? (array_is_list($decoded) ? $decoded : [$decoded]) : null;
 
         if ($items === null || $items === []) {
-            return ['ok' => false, 'error' => 'Nova gaf geen bruikbaar resultaat — probeer het nog eens.'];
+            return ['ok' => false, 'error' => 'Nova gaf geen bruikbaar resultaat - probeer het nog eens.'];
         }
 
         // Alleen bekende types, structuur per blok bewaken, singletons één keer.
@@ -184,7 +185,7 @@ class QuoteBlockAi
         }
 
         if ($generated === []) {
-            return ['ok' => false, 'error' => 'Nova gaf geen bruikbare blokken terug — probeer het nog eens.'];
+            return ['ok' => false, 'error' => 'Nova gaf geen bruikbare blokken terug - probeer het nog eens.'];
         }
 
         if (! in_array('investment', $seen, true) && ! in_array('investment', $pinnedTypes, true)) {
@@ -244,6 +245,7 @@ class QuoteBlockAi
             - Schrijf professioneel maar toegankelijk Nederlands, in de toon van Renovion: "geen half werk en vage beloftes". U-vorm richting de klant.
             - Behoud arrays als arrays en objecten als objecten. Verzin geen nieuwe sleutels en laat geen sleutels weg.
             - Concreet en zonder overdreven verkooppraat.
+            - Gebruik nooit een em-dash of het teken · in teksten; schrijf gewone zinnen met komma's en punten.
 
             KLANTCONTEXT:
             {$context}

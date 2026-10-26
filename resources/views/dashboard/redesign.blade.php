@@ -4,7 +4,7 @@
     <section class="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-dashed border-gray-300 bg-white px-4 py-3">
         <p class="flex items-center gap-2 text-sm text-gray-600">
             <x-icon name="eye" class="h-4 w-4 shrink-0 text-brand-500" />
-            <span><span class="font-bold text-navy-900">Ontwerpvoorstel</span> — nieuwe layout, skeleton loaders en naadloze paginaovergangen. Het echte dashboard verandert pas na akkoord.</span>
+            <span><span class="font-bold text-navy-900">Ontwerpvoorstel</span> - nieuwe layout, skeleton loaders en naadloze paginaovergangen. Het echte dashboard verandert pas na akkoord.</span>
         </p>
         <a href="{{ route('styleguide') }}" class="text-sm font-semibold text-brand-600 transition hover:text-brand-500">Bekijk de stijlgids →</a>
     </section>
@@ -34,7 +34,7 @@
                      }" x-init="load()">
                     <x-nova-avatar class="h-10 w-10 shrink-0 ring-2 ring-brand-500" />
                     <div class="min-w-0 flex-1">
-                        <p class="text-sm font-bold">Nova <span class="font-medium text-navy-300">· jouw dagstart</span></p>
+                        <p class="text-sm font-bold">Nova <span class="font-medium text-navy-300">, jouw dagstart</span></p>
 
                         {{-- Skeleton zolang de briefing laadt --}}
                         <div x-show="loading && !briefing" class="mt-2 max-w-xl">
@@ -76,7 +76,7 @@
                         @endforeach
                     </div>
                 @else
-                    <p class="mt-3 text-sm text-navy-200">Geen uitzonderingen — alles loopt zoals gepland.</p>
+                    <p class="mt-3 text-sm text-navy-200">Geen uitzonderingen - alles loopt zoals gepland.</p>
                 @endif
                 <a href="{{ route('attention.index') }}" class="mt-4 block rounded-xl bg-brand-500 py-2.5 text-center text-sm font-bold text-white transition hover:bg-brand-600">
                     Bekijk alle inzichten →
@@ -92,7 +92,7 @@
             <span class="min-w-0">
                 <span class="block text-xl leading-tight font-bold text-navy-950">{{ $stats['actieve_projecten'] }}</span>
                 <span class="block truncate text-xs font-medium {{ $stats['projecten_aandacht'] > 0 ? 'text-red-600' : 'text-project-700/70' }}">
-                    {{ $stats['projecten_aandacht'] > 0 ? 'projecten · '.$stats['projecten_aandacht'].' aandacht' : 'projecten op schema' }}
+                    {{ $stats['projecten_aandacht'] > 0 ? 'projecten, '.$stats['projecten_aandacht'].' aandacht' : 'projecten op schema' }}
                 </span>
             </span>
         </a>
@@ -100,7 +100,7 @@
             <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-lead-500 text-white"><x-icon name="inbox" class="h-5 w-5" /></span>
             <span class="min-w-0">
                 <span class="block text-xl leading-tight font-bold text-navy-950">{{ $stats['nieuwe_aanvragen'] }}</span>
-                <span class="block truncate text-xs font-medium text-lead-700/70">nieuwe aanvragen · {{ $stats['open_aanvragen'] }} open</span>
+                <span class="block truncate text-xs font-medium text-lead-700/70">nieuwe aanvragen, {{ $stats['open_aanvragen'] }} open</span>
             </span>
         </a>
         @if ($quotesEnabled)
@@ -117,7 +117,7 @@
             <span class="min-w-0">
                 <span class="block text-xl leading-tight font-bold text-navy-950">{{ $stats['taken_deze_week'] }}</span>
                 <span class="block truncate text-xs font-medium {{ $stats['taken_te_laat'] > 0 ? 'text-red-600' : 'text-planning-700/70' }}">
-                    {{ $stats['taken_te_laat'] > 0 ? 'taken · '.$stats['taken_te_laat'].' te laat' : 'taken deze week' }}
+                    {{ $stats['taken_te_laat'] > 0 ? 'taken, '.$stats['taken_te_laat'].' te laat' : 'taken deze week' }}
                 </span>
             </span>
         </a>
@@ -159,7 +159,7 @@
                                 <span class="block truncate text-sm font-semibold text-navy-900">{{ $project->customer->name }}: aanbetaling nog niet ontvangen</span>
                                 <span class="block truncate text-xs text-gray-500">
                                     € {{ number_format((float) $project->deposit_amount, 0, ',', '.') }}
-                                    · start {{ $project->start_date->translatedFormat('j M') }}
+                                   , start {{ $project->start_date->translatedFormat('j M') }}
                                 </span>
                             </span>
                             <x-signal-dot color="red" />
@@ -173,7 +173,7 @@
                                 <span class="block truncate text-sm font-semibold text-navy-900">{{ $quote->customer->name }}: offerte {{ $quote->daysOpen() }} dagen open</span>
                                 <span class="block truncate text-xs text-gray-500">
                                     € {{ number_format((float) $quote->total, 0, ',', '.') }}
-                                    @if ($quote->viewed_count > 0) · {{ $quote->viewed_count }}× bekeken @endif
+                                    @if ($quote->viewed_count > 0), {{ $quote->viewed_count }}× bekeken @endif
                                 </span>
                             </span>
                             <x-signal-dot :color="$quote->daysOpen() >= 5 ? 'red' : 'amber'" />
@@ -190,7 +190,7 @@
                                 </span>
                                 <span class="block truncate text-xs text-gray-500">
                                     {{ $lead->service ?? 'Aanvraag' }}
-                                    @if ($lead->next_action_at) · {{ $lead->next_action_at->translatedFormat('j M H:i') }} @endif
+                                    @if ($lead->next_action_at), {{ $lead->next_action_at->translatedFormat('j M H:i') }} @endif
                                 </span>
                             </span>
                             <x-status-badge :status="$lead->status" />
@@ -209,7 +209,7 @@
                                 <span class="block truncate text-sm font-semibold {{ $task->isOverdue() ? 'text-red-700' : 'text-navy-900' }}">{{ $task->title }}</span>
                                 <span class="block truncate text-xs text-gray-500">
                                     {{ $task->customer?->name ?? $task->project?->name ?? 'Algemeen' }}
-                                    @if ($task->deadline) · {{ $task->deadline->isToday() ? 'vandaag' : $task->deadline->translatedFormat('j M') }} @endif
+                                    @if ($task->deadline), {{ $task->deadline->isToday() ? 'vandaag' : $task->deadline->translatedFormat('j M') }} @endif
                                 </span>
                             </span>
                             <span class="h-2.5 w-2.5 shrink-0 rounded-full {{ $task->priority->dotClasses() }}" title="Prioriteit: {{ $task->priority->label() }}"></span>
@@ -237,7 +237,7 @@
                                     <span class="absolute top-1.5 -left-[1.4rem] h-2.5 w-2.5 rounded-full border-2 border-white bg-planning-500"></span>
                                     <p class="text-xs font-bold text-planning-700">{{ $entry->start_time ? substr($entry->start_time, 0, 5) : 'Hele dag' }}</p>
                                     <p class="truncate text-sm font-semibold text-navy-900">{{ $entry->displayTitle() }}</p>
-                                    <p class="truncate text-xs text-gray-500">{{ $entry->user->name }} · {{ $entry->type->label() }}</p>
+                                    <p class="truncate text-xs text-gray-500">{{ $entry->user->name }}, {{ $entry->type->label() }}</p>
                                 </div>
                             @endforeach
                         </div>

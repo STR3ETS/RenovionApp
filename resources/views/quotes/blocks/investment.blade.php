@@ -20,7 +20,7 @@
 
     @if ($isEdit && $quote->lines->isEmpty())
         <a href="{{ route('quotes.edit', $quote) }}" class="mb-3 flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-gray-300 p-4 text-xs font-semibold text-gray-400 transition hover:border-brand-400 hover:text-brand-600">
-            <x-icon name="plus" class="h-3.5 w-3.5" /> Nog geen posten — voeg ze toe via "Posten bewerken"
+            <x-icon name="plus" class="h-3.5 w-3.5" /> Nog geen posten - voeg ze toe via "Posten bewerken"
         </a>
     @endif
 

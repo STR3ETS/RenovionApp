@@ -1,6 +1,6 @@
 <x-layouts.app :title="$calculation->title">
 
-    <x-page-header :title="$calculation->title" :subtitle="($calculation->customer?->name ?? 'Geen klant').' · aangemaakt '.$calculation->created_at->translatedFormat('j M Y').($calculation->creator ? ' door '.$calculation->creator->name : '')">
+    <x-page-header :title="$calculation->title" :subtitle="($calculation->customer?->name ?? 'Geen klant').', aangemaakt '.$calculation->created_at->translatedFormat('j M Y').($calculation->creator ? ' door '.$calculation->creator->name : '')">
         <span class="rounded-full px-2.5 py-1 text-xs font-semibold {{ $calculation->status->badgeClasses() }}">{{ $calculation->status->label() }}</span>
         @if ($calculation->lead)
             <a href="{{ route('leads.show', $calculation->lead) }}" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">Naar aanvraag</a>
@@ -10,7 +10,7 @@
     @if ($calculation->isLocked())
         <div class="mb-4 flex items-center gap-2 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800">
             <x-icon name="check" class="h-4 w-4" />
-            Deze calculatie is definitief. De regels en prijzen liggen vast — heropen de calculatie om iets te wijzigen.
+            Deze calculatie is definitief. De regels en prijzen liggen vast - heropen de calculatie om iets te wijzigen.
         </div>
     @endif
 
@@ -21,7 +21,7 @@
             <section class="overflow-hidden rounded-2xl border border-gray-200 bg-white">
                 <h2 class="border-b border-gray-100 px-5 py-4 text-sm font-bold text-navy-900">Calculatieregels</h2>
                 @if ($calculation->lines->isEmpty())
-                    <p class="px-5 py-6 text-sm text-gray-400">Nog geen regels — voeg ze hieronder toe of gebruik de AI-invoer bij een nieuwe calculatie.</p>
+                    <p class="px-5 py-6 text-sm text-gray-400">Nog geen regels - voeg ze hieronder toe of gebruik de AI-invoer bij een nieuwe calculatie.</p>
                 @else
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
@@ -59,9 +59,9 @@
                                                 </form>
                                             @endif
                                         </td>
-                                        <td class="px-3 py-2.5 text-gray-500">{{ $line->unit ?? '—' }}</td>
+                                        <td class="px-3 py-2.5 text-gray-500">{{ $line->unit ?? '-' }}</td>
                                         <td class="px-3 py-2.5 text-right">€ {{ number_format((float) $line->unit_price, 2, ',', '.') }}</td>
-                                        <td class="px-3 py-2.5 text-right text-gray-500">{{ (float) $line->surcharge_pct > 0 ? rtrim(rtrim(number_format((float) $line->surcharge_pct, 2, ',', '.'), '0'), ',').'%' : '—' }}</td>
+                                        <td class="px-3 py-2.5 text-right text-gray-500">{{ (float) $line->surcharge_pct > 0 ? rtrim(rtrim(number_format((float) $line->surcharge_pct, 2, ',', '.'), '0'), ',').'%' : '-' }}</td>
                                         <td class="px-3 py-2.5 text-right font-semibold text-navy-900">€ {{ number_format($line->total(), 2, ',', '.') }}</td>
                                         @unless ($calculation->isLocked())
                                             <td class="px-3 py-2.5">
@@ -98,7 +98,7 @@
                              },
                              pick(item) {
                                  this.line = { price_item_id: item.id, type: item.type, description: item.name, quantity: this.line.quantity || 1, unit: item.unit, unit_price: item.price, surcharge_pct: item.surcharge_pct };
-                                 this.q = item.name + ' — ' + item.source;
+                                 this.q = item.name + ' - ' + item.source;
                                  this.open = false;
                              },
                              clearPick() { this.line.price_item_id = ''; },
@@ -115,7 +115,7 @@
                                 <button type="button" @click="pick(item)" class="flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-sm hover:bg-brand-50">
                                     <span class="min-w-0">
                                         <span class="block truncate font-medium text-navy-900" x-text="item.name"></span>
-                                        <span class="block text-xs text-gray-400"><span x-text="item.type_label"></span> · <span x-text="item.source"></span></span>
+                                        <span class="block text-xs text-gray-400"><span x-text="item.type_label"></span>, <span x-text="item.source"></span></span>
                                     </span>
                                     <span class="shrink-0 text-sm font-semibold text-navy-900">€ <span x-text="item.price.toFixed(2).replace('.', ',')"></span><span class="text-xs font-normal text-gray-400"> / <span x-text="item.unit"></span></span></span>
                                 </button>
@@ -217,7 +217,7 @@
                                     <x-icon name="document-text" class="h-4 w-4" /> Offerte maken van deze calculatie
                                 </button>
                             </form>
-                            <p class="text-xs text-gray-400">De klant ziet commerciële posten — onvoorzien en marge worden verdeeld, stelposten blijven apart zichtbaar.</p>
+                            <p class="text-xs text-gray-400">De klant ziet commerciële posten - onvoorzien en marge worden verdeeld, stelposten blijven apart zichtbaar.</p>
                         @endif
                         <form method="POST" action="{{ route('calculations.update', $calculation) }}">
                             @csrf

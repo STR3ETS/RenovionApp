@@ -16,15 +16,15 @@
                 <div class="grid gap-4 sm:grid-cols-2">
                     <x-field label="Titel *" name="title" class="sm:col-span-2">
                         <input type="text" name="title" id="title" required
-                               value="{{ old('title', $lead ? 'Calculatie '.($lead->service ?? 'renovatie').' — '.$lead->customer->name : '') }}"
-                               placeholder="Bijv. Calculatie badkamer — Familie Jansen"
+                               value="{{ old('title', $lead ? 'Calculatie '.($lead->service ?? 'renovatie').' - '.$lead->customer->name : '') }}"
+                               placeholder="Bijv. Calculatie badkamer - Familie Jansen"
                                class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
                     </x-field>
                     <x-field label="Klant" name="customer_id" class="sm:col-span-2">
                         <select name="customer_id" id="customer_id" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
-                            <option value="">— Geen klant (losse calculatie) —</option>
+                            <option value="">- Geen klant (losse calculatie) -</option>
                             @foreach ($customers as $customer)
-                                <option value="{{ $customer->id }}" @selected(old('customer_id', $lead?->customer_id) == $customer->id)>{{ $customer->name }} ({{ $customer->city ?? '—' }})</option>
+                                <option value="{{ $customer->id }}" @selected(old('customer_id', $lead?->customer_id) == $customer->id)>{{ $customer->name }} ({{ $customer->city ?? '-' }})</option>
                             @endforeach
                         </select>
                     </x-field>
@@ -78,7 +78,7 @@
                     <div x-show="proposal" x-cloak class="mt-4 rounded-xl border border-brand-200 bg-brand-50/50">
                         <div class="flex items-center gap-2 border-b border-brand-100 px-4 py-3">
                             <x-nova-avatar class="h-6 w-6" />
-                            <p class="text-sm font-semibold text-navy-900">Voorstel van Nova — controleer de regels voordat je bevestigt</p>
+                            <p class="text-sm font-semibold text-navy-900">Voorstel van Nova - controleer de regels voordat je bevestigt</p>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm">
@@ -99,7 +99,7 @@
                                             <td class="px-4 py-2 text-xs font-semibold text-gray-500 capitalize" x-text="line.type"></td>
                                             <td class="px-4 py-2 font-medium text-navy-900" x-text="line.description"></td>
                                             <td class="px-4 py-2 text-right" x-text="line.quantity"></td>
-                                            <td class="px-4 py-2 text-gray-500" x-text="line.unit ?? '—'"></td>
+                                            <td class="px-4 py-2 text-gray-500" x-text="line.unit ?? '-'"></td>
                                             <td class="px-4 py-2 text-right" x-text="'€ ' + euro(line.unit_price)"></td>
                                             <td class="px-4 py-2 text-right font-semibold" x-text="'€ ' + euro(lineTotal(line))"></td>
                                             <td class="px-2 py-2">
@@ -171,7 +171,7 @@
                 <section class="mt-4 rounded-2xl border border-gray-200 bg-white p-5">
                     <h2 class="mb-2 text-sm font-bold text-navy-900">Gekoppelde aanvraag</h2>
                     <p class="text-sm font-medium text-navy-900">{{ $lead->customer->name }}</p>
-                    <p class="text-xs text-gray-500">{{ $lead->service ?? 'Aanvraag' }} · {{ $lead->customer->city ?? '—' }}</p>
+                    <p class="text-xs text-gray-500">{{ $lead->service ?? 'Aanvraag' }}, {{ $lead->customer->city ?? '-' }}</p>
                 </section>
             @endif
         </div>

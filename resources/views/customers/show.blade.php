@@ -38,13 +38,13 @@
                                     <p class="mt-0.5 text-sm whitespace-pre-line text-gray-600">{{ $event->body }}</p>
                                 @endif
                                 <p class="mt-1 text-xs text-gray-400">
-                                    {{ $event->happened_at->translatedFormat('j M Y · H:i') }}
+                                    {{ $event->happened_at->translatedFormat('j M Y, H:i') }}
                                     @if ($viaNova)
-                                        · Nova{{ $event->user ? ' · bevestigd door '.$event->user->name : '' }}
+                                       , Nova{{ $event->user ? ', bevestigd door '.$event->user->name : '' }}
                                     @else
-                                        · {{ $event->user?->name ?? $event->source->label() }}
+                                       , {{ $event->user?->name ?? $event->source->label() }}
                                     @endif
-                                    · {{ $event->type->label() }}
+                                   , {{ $event->type->label() }}
                                 </p>
                             </div>
                         </div>
@@ -60,9 +60,9 @@
             <section class="rounded-2xl border border-gray-200 bg-white p-5">
                 <h2 class="mb-3 text-sm font-bold text-navy-900">Gegevens</h2>
                 <dl class="space-y-2 text-sm">
-                    <div><dt class="text-gray-500">Telefoon</dt><dd class="font-medium">{{ $customer->phone ?? '—' }}</dd></div>
-                    <div><dt class="text-gray-500">E-mail</dt><dd class="font-medium break-all">{{ $customer->email ?? '—' }}</dd></div>
-                    <div><dt class="text-gray-500">Adres</dt><dd class="font-medium">{{ $customer->address ?? '—' }}<br>{{ trim(($customer->postal_code ?? '').' '.($customer->city ?? '')) }}</dd></div>
+                    <div><dt class="text-gray-500">Telefoon</dt><dd class="font-medium">{{ $customer->phone ?? '-' }}</dd></div>
+                    <div><dt class="text-gray-500">E-mail</dt><dd class="font-medium break-all">{{ $customer->email ?? '-' }}</dd></div>
+                    <div><dt class="text-gray-500">Adres</dt><dd class="font-medium">{{ $customer->address ?? '-' }}<br>{{ trim(($customer->postal_code ?? '').' '.($customer->city ?? '')) }}</dd></div>
                 </dl>
             </section>
 
@@ -145,7 +145,7 @@
                         <x-icon name="paper-clip" class="text-gray-400" />
                         <span class="min-w-0 flex-1">
                             <span class="block truncate font-medium text-navy-900">{{ $document->name }}</span>
-                            <span class="text-xs text-gray-500">{{ $document->category->label() }} · {{ $document->created_at->translatedFormat('j M Y') }}</span>
+                            <span class="text-xs text-gray-500">{{ $document->category->label() }}, {{ $document->created_at->translatedFormat('j M Y') }}</span>
                         </span>
                     </a>
                 @empty

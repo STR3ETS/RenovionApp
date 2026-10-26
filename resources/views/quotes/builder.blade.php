@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Offerte bouwen — {{ $quote->number }}</title>
+    <title>Offerte bouwen - {{ $quote->number }}</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter-tight:400,500,600,700,800" rel="stylesheet">
@@ -66,8 +66,8 @@
             </a>
             <div class="h-5 w-px bg-gray-200"></div>
             <div class="min-w-0">
-                <p class="truncate text-sm font-bold text-navy-950">Offerte bouwen <span class="font-semibold text-gray-400">· {{ $quote->number }} · v{{ $quote->version }}</span></p>
-                <p class="truncate text-xs text-gray-400">{{ $quote->customer->name }}{{ $quote->lead?->service ? ' · '.$quote->lead->service : '' }}</p>
+                <p class="truncate text-sm font-bold text-navy-950">Offerte bouwen <span class="font-semibold text-gray-400">, {{ $quote->number }}, v{{ $quote->version }}</span></p>
+                <p class="truncate text-xs text-gray-400">{{ $quote->customer->name }}{{ $quote->lead?->service ? ', '.$quote->lead->service : '' }}</p>
             </div>
         </div>
 
@@ -85,7 +85,7 @@
                 <span x-text="saving ? 'Opslaan…' : (saveError ? 'Opnieuw proberen' : (dirty ? 'Opslaan' : 'Opgeslagen'))"></span>
             </button>
             <div class="h-5 w-px bg-gray-200"></div>
-            <a href="{{ route('quotes.show', $quote) }}" class="h-9 rounded-full bg-brand-500 px-5 text-xs leading-9 font-bold text-white transition hover:bg-brand-600" title="Terug naar de offertepagina — daar verstuur je de offerte ook">Klaar</a>
+            <a href="{{ route('quotes.show', $quote) }}" class="h-9 rounded-full bg-brand-500 px-5 text-xs leading-9 font-bold text-white transition hover:bg-brand-600" title="Terug naar de offertepagina - daar verstuur je de offerte ook">Klaar</a>
         </div>
     </header>
 
@@ -315,7 +315,7 @@
                 </div>
             </div>
             <div class="relative">
-                <textarea x-model="ai.prompt" rows="4" placeholder="Wat wil je? Bijv. 'maak dit persoonlijker en noem de start in november' — of laat leeg voor een voorstel op basis van de klantgegevens."
+                <textarea x-model="ai.prompt" rows="4" placeholder="Wat wil je? Bijv. 'maak dit persoonlijker en noem de start in november' - of laat leeg voor een voorstel op basis van de klantgegevens."
                           class="w-full resize-none rounded-xl border-gray-300 pr-10 text-sm focus:border-brand-500 focus:ring-brand-500"></textarea>
                 <button type="button" @click="toggleMic('block')"
                         :class="(listening && speechTarget === 'block') ? 'animate-pulse bg-red-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'"
@@ -368,7 +368,7 @@
                 gen: { prompt: '', loading: false, error: null },
                 tplModal: { open: false, mode: 'nieuw', template_id: '', name: '', description: '', saving: false, error: null },
 
-                // Dicteren (Web Speech API, nl-NL — net als Nova elders in de app)
+                // Dicteren (Web Speech API, nl-NL - net als Nova elders in de app)
                 listening: false,
                 speechTarget: null,
                 recognition: null,

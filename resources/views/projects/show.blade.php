@@ -1,6 +1,6 @@
 <x-layouts.app :title="$project->name">
 
-    <x-page-header :title="$project->name" :subtitle="$project->customer->name.' · '.($project->city ?? 'plaats onbekend')"
+    <x-page-header :title="$project->name" :subtitle="$project->customer->name.', '.($project->city ?? 'plaats onbekend')"
                    :image="($project->cover_photo_path || $project->photos->where('client_visible', true)->isNotEmpty()) ? route('projects.cover', $project) : null">
         <x-status-badge :status="$project->status" class="text-sm" />
         @if ($project->chatChannel)
@@ -72,7 +72,7 @@
                     <input type="file" name="photos[]" multiple required accept="image/*" capture="environment"
                            class="w-full text-xs text-gray-500 file:mr-2 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-brand-700 hover:file:bg-brand-100">
                     <select name="project_phase_id" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
-                        <option value="">— Fase (optioneel) —</option>
+                        <option value="">- Fase (optioneel) -</option>
                         @foreach ($project->phases as $phase)
                             <option value="{{ $phase->id }}" @selected($project->currentPhase()?->is($phase))>{{ $phase->name }}</option>
                         @endforeach
@@ -90,7 +90,7 @@
             {{-- Fotogrid --}}
             <div class="lg:col-span-3">
                 @if ($project->photos->isEmpty())
-                    <x-empty-state title="Nog geen foto's" subtitle="Upload foto's per fase of vanaf een werkpakket — zo bouw je het bewijs voor de oplevering op." />
+                    <x-empty-state title="Nog geen foto's" subtitle="Upload foto's per fase of vanaf een werkpakket - zo bouw je het bewijs voor de oplevering op." />
                 @else
                     <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
                         @foreach ($project->photos as $photo)
@@ -99,7 +99,7 @@
                                 <img src="{{ route('photos.show', $photo) }}" alt="{{ $photo->caption ?? 'Projectfoto' }}" loading="lazy" class="h-36 w-full object-cover sm:h-40">
                                 <figcaption class="px-3 py-2">
                                     <span class="block truncate text-xs font-semibold text-navy-900">{{ $photo->caption ?? $photo->workPackage?->name ?? 'Projectfoto' }}</span>
-                                    <span class="block truncate text-[11px] text-gray-400">{{ $photo->created_at->translatedFormat('j M') }}{{ $photo->uploader ? ' · '.$photo->uploader->name : '' }}</span>
+                                    <span class="block truncate text-[11px] text-gray-400">{{ $photo->created_at->translatedFormat('j M') }}{{ $photo->uploader ? ', '.$photo->uploader->name : '' }}</span>
                                 </figcaption>
                                 @unless ($photo->client_visible)
                                     <span class="absolute top-2 left-2 rounded-full bg-navy-950/80 px-2 py-0.5 text-[10px] font-semibold text-white">Intern</span>
@@ -121,7 +121,7 @@
         </div>
     </div>
 
-    {{-- ===== Tab: Uitvoering — fasen, gates en werkpakketten (briefing §7) ===== --}}
+    {{-- ===== Tab: Uitvoering - fasen, gates en werkpakketten (briefing §7) ===== --}}
     <div x-show="tab === 'uitvoering'" x-cloak class="space-y-3">
         @foreach ($project->phases as $phase)
             @php $isActief = $project->currentPhase()?->is($phase); @endphp
@@ -134,8 +134,8 @@
                         <span class="block text-sm font-bold text-navy-900">{{ $phase->name }}</span>
                         <span class="block text-xs text-gray-400">
                             {{ $phase->responsible?->name ?? 'Geen verantwoordelijke' }}
-                            @if ($phase->approved_at) · vrijgegeven door {{ $phase->approver?->name ?? '—' }} op {{ $phase->approved_at->translatedFormat('j M') }} @endif
-                            @if ($phase->client_approved_at) · klant: gezien en akkoord ({{ $phase->client_approved_at->translatedFormat('j M') }}) @endif
+                            @if ($phase->approved_at), vrijgegeven door {{ $phase->approver?->name ?? '-' }} op {{ $phase->approved_at->translatedFormat('j M') }} @endif
+                            @if ($phase->client_approved_at), klant: gezien en akkoord ({{ $phase->client_approved_at->translatedFormat('j M') }}) @endif
                         </span>
                     </span>
 
@@ -174,8 +174,8 @@
                                         <span class="block truncate text-sm font-semibold text-navy-900 {{ $package->isDone() ? 'text-gray-400 line-through' : '' }}">{{ $package->name }}</span>
                                         <span class="block text-xs text-gray-400">
                                             {{ $package->responsible?->name ?? 'Niet toegewezen' }}
-                                            @if ($package->deadline) · {{ $package->deadline->translatedFormat('j M') }} @endif
-                                            @if ($package->items->isNotEmpty()) · checklist {{ $package->items->filter->isDone()->count() }}/{{ $package->items->count() }} @endif
+                                            @if ($package->deadline), {{ $package->deadline->translatedFormat('j M') }} @endif
+                                            @if ($package->items->isNotEmpty()), checklist {{ $package->items->filter->isDone()->count() }}/{{ $package->items->count() }} @endif
                                         </span>
                                     </span>
                                     <span class="rounded-full px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap {{ $package->status->badgeClasses() }}">{{ $package->status->label() }}</span>
@@ -215,7 +215,7 @@
             @php
                 $signalen = collect([
                     $project->isOverdue() ? ['color' => 'red', 'text' => 'Verwachte einddatum ('.$project->end_date_expected->translatedFormat('j M').') is verstreken.'] : null,
-                    $project->depositOutstanding() ? ['color' => 'amber', 'text' => 'Aanbetaling van € '.number_format((float) $project->deposit_amount, 0, ',', '.').' nog niet ontvangen'.($project->start_date ? ' — start '.$project->start_date->translatedFormat('j M') : '').'.'] : null,
+                    $project->depositOutstanding() ? ['color' => 'amber', 'text' => 'Aanbetaling van € '.number_format((float) $project->deposit_amount, 0, ',', '.').' nog niet ontvangen'.($project->start_date ? ' - start '.$project->start_date->translatedFormat('j M') : '').'.'] : null,
                     $project->next_payment_due_at?->isPast() ? ['color' => 'amber', 'text' => 'Betaaltermijn verstreken ('.$project->next_payment_due_at->translatedFormat('j M').').'] : null,
                 ])->filter();
             @endphp
@@ -269,7 +269,7 @@
                     <div>
                         <dt class="text-gray-500">Aanbetaling</dt>
                         <dd class="font-medium">
-                            {{ $project->deposit_amount ? '€ '.number_format((float) $project->deposit_amount, 2, ',', '.') : '—' }}
+                            {{ $project->deposit_amount ? '€ '.number_format((float) $project->deposit_amount, 2, ',', '.') : '-' }}
                             @if ($project->deposit_amount)
                                 @if ($project->deposit_received_at)
                                     <span class="ml-1 inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700"><x-icon name="check" class="h-3 w-3" /> ontvangen</span>
@@ -280,7 +280,7 @@
                         </dd>
                     </div>
                     <div><dt class="text-gray-500">Betaald</dt><dd class="font-medium">€ {{ number_format((float) $project->paid_amount, 2, ',', '.') }}</dd></div>
-                    <div><dt class="text-gray-500">Volgende betaaltermijn</dt><dd class="font-medium">{{ $project->next_payment_due_at?->translatedFormat('j M Y') ?? '—' }}</dd></div>
+                    <div><dt class="text-gray-500">Volgende betaaltermijn</dt><dd class="font-medium">{{ $project->next_payment_due_at?->translatedFormat('j M Y') ?? '-' }}</dd></div>
                 </dl>
             </section>
             @endcan
@@ -297,7 +297,7 @@
                             title="Afronden"></button>
                         <span class="min-w-0 flex-1">
                             <span class="block truncate font-medium text-navy-900">{{ $task->title }}</span>
-                            <span class="text-xs text-gray-500">{{ $task->deadline?->translatedFormat('j M') ?? 'geen deadline' }} · {{ $task->owner?->name ?? '—' }}</span>
+                            <span class="text-xs text-gray-500">{{ $task->deadline?->translatedFormat('j M') ?? 'geen deadline' }}, {{ $task->owner?->name ?? '-' }}</span>
                         </span>
                         <span class="h-2 w-2 shrink-0 rounded-full {{ $task->priority->dotClasses() }}"></span>
                     </div>
@@ -314,7 +314,7 @@
                         <x-icon :name="$document->isImage() ? 'camera' : 'paper-clip'" class="text-gray-400" />
                         <span class="min-w-0 flex-1">
                             <span class="block truncate font-medium text-navy-900">{{ $document->name }}</span>
-                            <span class="text-xs text-gray-500">{{ $document->category->label() }} · {{ $document->created_at->translatedFormat('j M Y') }} · {{ $document->uploader?->name ?? '—' }}</span>
+                            <span class="text-xs text-gray-500">{{ $document->category->label() }}, {{ $document->created_at->translatedFormat('j M Y') }}, {{ $document->uploader?->name ?? '-' }}</span>
                         </span>
                     </a>
                 @empty
@@ -348,9 +348,9 @@
                             {{ $project->customer->name }}
                         @endcan
                     </dd></div>
-                    <div><dt class="text-gray-500">Adres</dt><dd class="font-medium">{{ $project->address ?? '—' }}, {{ $project->city ?? '' }}</dd></div>
-                    <div><dt class="text-gray-500">Startdatum</dt><dd class="font-medium">{{ $project->start_date?->translatedFormat('j M Y') ?? '—' }}</dd></div>
-                    <div><dt class="text-gray-500">Verwachte oplevering</dt><dd class="font-medium {{ $project->isOverdue() ? 'text-red-600' : '' }}">{{ $project->end_date_expected?->translatedFormat('j M Y') ?? '—' }}</dd></div>
+                    <div><dt class="text-gray-500">Adres</dt><dd class="font-medium">{{ $project->address ?? '-' }}, {{ $project->city ?? '' }}</dd></div>
+                    <div><dt class="text-gray-500">Startdatum</dt><dd class="font-medium">{{ $project->start_date?->translatedFormat('j M Y') ?? '-' }}</dd></div>
+                    <div><dt class="text-gray-500">Verwachte oplevering</dt><dd class="font-medium {{ $project->isOverdue() ? 'text-red-600' : '' }}">{{ $project->end_date_expected?->translatedFormat('j M Y') ?? '-' }}</dd></div>
                     @if ($project->end_date_actual)
                         <div><dt class="text-gray-500">Opgeleverd</dt><dd class="font-medium text-green-700">{{ $project->end_date_actual->translatedFormat('j M Y') }}</dd></div>
                     @endif
@@ -370,11 +370,11 @@
                     <p class="text-xs text-gray-400">
                         Opgesteld {{ $project->deliveryReport->generated_at->translatedFormat('j M Y') }}
                         @if ($project->deliveryReport->isFullySigned())
-                            · <span class="font-semibold text-green-700">volledig ondertekend</span>
+                           , <span class="font-semibold text-green-700">volledig ondertekend</span>
                         @elseif ($project->deliveryReport->isSignedByClient())
-                            · <span class="font-semibold text-green-700">klant heeft getekend</span>
+                           , <span class="font-semibold text-green-700">klant heeft getekend</span>
                         @else
-                            · wacht op ondertekening
+                           , wacht op ondertekening
                         @endif
                     </p>
                     <a href="{{ route('delivery-reports.show', $project->deliveryReport) }}" class="mt-3 block rounded-xl bg-navy-950 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-navy-900">Rapport bekijken</a>

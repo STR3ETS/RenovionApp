@@ -1,6 +1,6 @@
 <x-layouts.app title="Aandacht">
 
-    <x-page-header title="Aandacht" subtitle="Alleen uitzonderingen — wat goed loopt zie je hier niet" />
+    <x-page-header title="Aandacht" subtitle="Alleen uitzonderingen - wat goed loopt zie je hier niet" />
 
     @if ($items->isEmpty())
         <x-empty-state title="Niets vraagt op dit moment aandacht"

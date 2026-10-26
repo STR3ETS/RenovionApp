@@ -56,7 +56,7 @@
                 </x-field>
                 <x-field label="Toegewezen aan" name="assigned_to">
                     <select name="assigned_to" id="assigned_to" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
-                        <option value="">— Niet toegewezen —</option>
+                        <option value="">- Niet toegewezen -</option>
                         @foreach ($users as $user)
                             <option value="{{ $user->id }}" @selected(old('assigned_to', $lead->assigned_to) == $user->id)>{{ $user->name }}</option>
                         @endforeach

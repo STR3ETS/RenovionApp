@@ -20,7 +20,7 @@ class CalculationQuoteController extends Controller
 
         if (! $calculation->isLocked()) {
             return redirect()->route('calculations.show', $calculation)
-                ->with('error', 'Maak de calculatie eerst definitief — de offerte legt vast met welke prijsset hij is gemaakt.');
+                ->with('error', 'Maak de calculatie eerst definitief - de offerte legt vast met welke prijsset hij is gemaakt.');
         }
 
         $quote = $action->handle($calculation);

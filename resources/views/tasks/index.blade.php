@@ -26,14 +26,14 @@
                     @endforeach
                 </select>
                 <select name="customer_id" class="rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
-                    <option value="">— Klant (optioneel) —</option>
+                    <option value="">- Klant (optioneel) -</option>
                     @foreach ($customers as $customer)
                         <option value="{{ $customer->id }}">{{ $customer->name }}</option>
                     @endforeach
                 </select>
             @endcan
             <select name="project_id" class="rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
-                <option value="">— Project (optioneel) —</option>
+                <option value="">- Project (optioneel) -</option>
                 @foreach ($projects as $project)
                     <option value="{{ $project->id }}">{{ $project->name }}</option>
                 @endforeach
@@ -68,11 +68,11 @@
                     <span class="min-w-0 flex-1">
                         <span class="block truncate text-sm font-semibold {{ $task->status->isOpen() ? 'text-navy-900' : 'text-gray-400 line-through' }}">{{ $task->title }}</span>
                         <span class="block text-xs text-gray-500">
-                            @if ($task->customer)@can('manage-crm')<a href="{{ route('customers.show', $task->customer) }}" class="text-steel-600">{{ $task->customer->name }}</a>@else{{ $task->customer->name }}@endcan · @endif
-                            @if ($task->project)<a href="{{ route('projects.show', $task->project) }}" class="text-steel-600">{{ $task->project->name }}</a> · @endif
+                            @if ($task->customer)@can('manage-crm')<a href="{{ route('customers.show', $task->customer) }}" class="text-steel-600">{{ $task->customer->name }}</a>@else{{ $task->customer->name }}@endcan, @endif
+                            @if ($task->project)<a href="{{ route('projects.show', $task->project) }}" class="text-steel-600">{{ $task->project->name }}</a>, @endif
                             {{ $task->owner?->name ?? 'geen eigenaar' }}
-                            @if ($task->deadline) · <span class="{{ $task->isOverdue() ? 'font-semibold text-red-600' : '' }}">{{ $task->deadline->isToday() ? 'vandaag' : $task->deadline->translatedFormat('j M') }}</span> @endif
-                            @if ($task->note) · {{ str($task->note)->limit(60) }} @endif
+                            @if ($task->deadline), <span class="{{ $task->isOverdue() ? 'font-semibold text-red-600' : '' }}">{{ $task->deadline->isToday() ? 'vandaag' : $task->deadline->translatedFormat('j M') }}</span> @endif
+                            @if ($task->note), {{ str($task->note)->limit(60) }} @endif
                         </span>
                     </span>
 

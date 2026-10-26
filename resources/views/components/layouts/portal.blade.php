@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="robots" content="noindex, nofollow">
-    <title>{{ $title ? $title.' — ' : '' }}Klantportaal Renovion</title>
+    <title>{{ $title ? $title.' - ' : '' }}Klantportaal Renovion</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter-tight:400,500,600,700,800" rel="stylesheet">
@@ -44,8 +44,8 @@
     </main>
 
     <footer class="border-t border-gray-200 bg-white py-5 text-center text-xs text-gray-400">
-        <p class="font-semibold text-gray-500">Renovion — geen half werk en vage beloftes</p>
-        <p class="mt-1">Mercatorweg 28, 6827 DC Arnhem · info@renovion.nl · +31 6 395 353 00</p>
+        <p class="font-semibold text-gray-500">Renovion - geen half werk en vage beloftes</p>
+        <p class="mt-1">Mercatorweg 28, 6827 DC Arnhem, info@renovion.nl, +31 6 395 353 00</p>
     </footer>
 
 </body>

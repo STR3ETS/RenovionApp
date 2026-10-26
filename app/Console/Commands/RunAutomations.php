@@ -24,7 +24,7 @@ class RunAutomations extends Command
 
             $count = $automation->run();
 
-            $this->line(sprintf('%-40s %s [%s]', $automation->name(), $count > 0 ? "{$count} actie(s)" : '—', $automation->mode()->value));
+            $this->line(sprintf('%-40s %s [%s]', $automation->name(), $count > 0 ? "{$count} actie(s)" : '-', $automation->mode()->value));
         }
 
         AttentionService::forgetCount();

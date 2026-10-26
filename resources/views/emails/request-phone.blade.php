@@ -27,7 +27,7 @@
                     </tr>
                     <tr>
                         <td style="padding: 16px 32px; background:#f9fafb; color:#9ca3af; font-size:12px;">
-                            Renovion · Mercatorweg 28, 6827 DC Arnhem · info@renovion.nl · +31 6 395 353 00
+                            Renovion, Mercatorweg 28, 6827 DC Arnhem, info@renovion.nl, +31 6 395 353 00
                         </td>
                     </tr>
                 </table>

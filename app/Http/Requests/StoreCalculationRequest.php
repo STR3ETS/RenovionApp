@@ -44,7 +44,7 @@ class StoreCalculationRequest extends FormRequest
     }
 
     /**
-     * Validatieregels voor één calculatieregel — ook gebruikt door de
+     * Validatieregels voor één calculatieregel - ook gebruikt door de
      * AI-assistent om voorgestelde regels te controleren.
      *
      * @return array<string, array<mixed>>

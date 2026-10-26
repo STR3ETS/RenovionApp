@@ -12,8 +12,8 @@
                     <span class="block truncate text-sm font-semibold text-navy-900">{{ $calculation->title }}</span>
                     <span class="block truncate text-xs text-gray-500">
                         {{ $calculation->customer?->name ?? 'Geen klant gekoppeld' }}
-                        · {{ $calculation->lines->count() }} regels
-                        · {{ $calculation->created_at->translatedFormat('j M Y') }}
+                       , {{ $calculation->lines->count() }} regels
+                       , {{ $calculation->created_at->translatedFormat('j M Y') }}
                     </span>
                 </span>
                 <span class="hidden text-sm font-bold text-navy-900 sm:block">€ {{ number_format($calculation->totalExcl(), 0, ',', '.') }} <span class="text-xs font-medium text-gray-400">excl.</span></span>

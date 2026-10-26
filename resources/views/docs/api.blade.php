@@ -1,6 +1,6 @@
 <x-layouts.app title="API-documentatie">
 
-    <x-page-header title="API-documentatie" subtitle="Koppel het CMS of de website aan Renovion Dash — bij formulierverzending ontstaat hier automatisch een lead." />
+    <x-page-header title="API-documentatie" subtitle="Koppel het CMS of de website aan Renovion Dash - bij formulierverzending ontstaat hier automatisch een lead." />
 
     <div class="max-w-3xl space-y-5">
 
@@ -8,9 +8,9 @@
         <section class="flex items-center gap-3 rounded-2xl border p-4 {{ filled(config('renovion.lead_intake_token')) ? 'border-green-200 bg-green-50' : 'border-amber-300 bg-amber-50' }}">
             <x-signal-dot :color="filled(config('renovion.lead_intake_token')) ? 'green' : 'amber'" />
             @if (filled(config('renovion.lead_intake_token')))
-                <p class="text-sm font-medium text-green-800">Er is een intake-token ingesteld — de API is actief. Het token zelf staat in de <code class="rounded bg-green-100 px-1">.env</code> (<code class="rounded bg-green-100 px-1">LEAD_INTAKE_TOKEN</code>) en wordt hier bewust niet getoond.</p>
+                <p class="text-sm font-medium text-green-800">Er is een intake-token ingesteld - de API is actief. Het token zelf staat in de <code class="rounded bg-green-100 px-1">.env</code> (<code class="rounded bg-green-100 px-1">LEAD_INTAKE_TOKEN</code>) en wordt hier bewust niet getoond.</p>
             @else
-                <p class="text-sm font-medium text-amber-800">Er is nog géén intake-token ingesteld. Zet <code class="rounded bg-amber-100 px-1">LEAD_INTAKE_TOKEN=&lt;lang willekeurig token&gt;</code> in de <code class="rounded bg-amber-100 px-1">.env</code> en draai <code class="rounded bg-amber-100 px-1">php artisan optimize:clear</code> — tot die tijd weigert de API alles.</p>
+                <p class="text-sm font-medium text-amber-800">Er is nog géén intake-token ingesteld. Zet <code class="rounded bg-amber-100 px-1">LEAD_INTAKE_TOKEN=&lt;lang willekeurig token&gt;</code> in de <code class="rounded bg-amber-100 px-1">.env</code> en draai <code class="rounded bg-amber-100 px-1">php artisan optimize:clear</code> - tot die tijd weigert de API alles.</p>
             @endif
         </section>
 
@@ -21,7 +21,7 @@
 Content-Type: application/json
 Accept: application/json
 X-Intake-Token: &lt;geheim token&gt;</code></pre>
-            <p class="mt-3 text-sm text-gray-600">Roep dit endpoint <strong>server-side</strong> aan vanuit de CMS-backend — nooit vanuit browser-JavaScript, anders ligt het token op straat. CORS staat er bewust niet voor open. Maximaal 30 verzoeken per minuut.</p>
+            <p class="mt-3 text-sm text-gray-600">Roep dit endpoint <strong>server-side</strong> aan vanuit de CMS-backend - nooit vanuit browser-JavaScript, anders ligt het token op straat. CORS staat er bewust niet voor open. Maximaal 30 verzoeken per minuut.</p>
         </section>
 
         {{-- Velden --}}
@@ -65,7 +65,7 @@ X-Intake-Token: &lt;geheim token&gt;</code></pre>
 
         {{-- Voorbeelden --}}
         <section class="rounded-2xl border border-gray-200 bg-white p-5">
-            <h2 class="mb-3 text-sm font-bold text-navy-900">Voorbeeld — cURL</h2>
+            <h2 class="mb-3 text-sm font-bold text-navy-900">Voorbeeld - cURL</h2>
             <pre class="overflow-x-auto rounded-xl bg-navy-950 p-4 text-xs leading-relaxed text-navy-100"><code>curl -X POST {{ rtrim(config('app.url'), '/') }}/api/aanvragen \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \
@@ -80,7 +80,7 @@ X-Intake-Token: &lt;geheim token&gt;</code></pre>
     "desired_start": "voorjaar 2027"
   }'</code></pre>
 
-            <h2 class="mt-5 mb-3 text-sm font-bold text-navy-900">Voorbeeld — PHP (Laravel-CMS)</h2>
+            <h2 class="mt-5 mb-3 text-sm font-bold text-navy-900">Voorbeeld - PHP (Laravel-CMS)</h2>
             <pre class="overflow-x-auto rounded-xl bg-navy-950 p-4 text-xs leading-relaxed text-navy-100"><code>$response = Http::withHeaders(['X-Intake-Token' => config('services.renovion.token')])
     ->acceptJson()
     ->post('{{ rtrim(config('app.url'), '/') }}/api/aanvragen', [
@@ -104,7 +104,7 @@ if ($response->status() === 201) {
             <ul class="space-y-1.5 text-sm text-gray-600">
                 <li class="flex items-start gap-2"><x-icon name="check" class="mt-0.5 h-4 w-4 shrink-0 text-brand-500" /> Bestaande klant wordt herkend op e-mailadres; anders ontstaat een nieuw klantdossier. Een ontbrekend telefoonnummer wordt aangevuld.</li>
                 <li class="flex items-start gap-2"><x-icon name="check" class="mt-0.5 h-4 w-4 shrink-0 text-brand-500" /> Er ontstaat een lead met status "Nieuw" en bron "Website", inclusief timeline-event en audit trail.</li>
-                <li class="flex items-start gap-2"><x-icon name="check" class="mt-0.5 h-4 w-4 shrink-0 text-brand-500" /> Dubbele verzending (zelfde klant en inhoud binnen 10 minuten) levert dezelfde lead op — geen duplicaten bij dubbelklikken.</li>
+                <li class="flex items-start gap-2"><x-icon name="check" class="mt-0.5 h-4 w-4 shrink-0 text-brand-500" /> Dubbele verzending (zelfde klant en inhoud binnen 10 minuten) levert dezelfde lead op - geen duplicaten bij dubbelklikken.</li>
                 <li class="flex items-start gap-2"><x-icon name="check" class="mt-0.5 h-4 w-4 shrink-0 text-brand-500" /> De automations volgen vanzelf: salestaak bij complete gegevens, of een e-mail om het telefoonnummer op te vragen als dat ontbreekt.</li>
             </ul>
         </section>

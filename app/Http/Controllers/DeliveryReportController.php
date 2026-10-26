@@ -18,7 +18,7 @@ class DeliveryReportController extends Controller
     {
         if ($project->deliveryReport?->isSignedByClient()) {
             return redirect()->route('delivery-reports.show', $project->deliveryReport)
-                ->with('error', 'De klant heeft dit rapport al ondertekend — het kan niet meer worden hergenereerd.');
+                ->with('error', 'De klant heeft dit rapport al ondertekend - het kan niet meer worden hergenereerd.');
         }
 
         $report = $action->handle($project, $request->user());

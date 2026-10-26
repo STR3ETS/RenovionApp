@@ -205,6 +205,6 @@ class Quote extends Model
         ])->save();
 
         AuditLog::record($this, 'nieuwe_versie', ['versie' => $this->version - 1], ['versie' => $this->version, 'toelichting' => $note]);
-        $this->customer->recordEvent(TimelineEventType::Offerte, "Offerte {$this->number} — nieuwe versie v{$this->version}", $note, $this);
+        $this->customer->recordEvent(TimelineEventType::Offerte, "Offerte {$this->number} - nieuwe versie v{$this->version}", $note, $this);
     }
 }

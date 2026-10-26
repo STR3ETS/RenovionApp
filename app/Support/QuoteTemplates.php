@@ -137,7 +137,7 @@ class QuoteTemplates
                 'werkzaamheden' => "- Sloop- en breekwerk volgens plan\n- Constructieve aanpassingen\n- Leidingwerk en elektra aanpassen\n- Wanden, plafonds en vloeren afwerken\n- Stuc-, tegel- en schilderwerk\n- Eindcontrole en oplevering",
             ],
             'onderhoud' => [
-                'samenvatting' => "Beste {klant},\n\nBedankt voor uw aanvraag. Hierbij onze offerte voor de onderhoudswerkzaamheden aan uw woning in {plaats}. Goed onderhoud voorkomt grotere kosten later — we werken netjes, snel en met oog voor detail.",
+                'samenvatting' => "Beste {klant},\n\nBedankt voor uw aanvraag. Hierbij onze offerte voor de onderhoudswerkzaamheden aan uw woning in {plaats}. Goed onderhoud voorkomt grotere kosten later - we werken netjes, snel en met oog voor detail.",
                 'scope' => 'Onderhoudswerkzaamheden zoals besproken, inclusief voorbereiding, herstelwerk en nette afwerking van de behandelde delen.',
                 'werkzaamheden' => "- Inspectie en voorbereiding van de ondergrond\n- Herstelwerkzaamheden\n- Schilder- en/of afwerkingswerk\n- Controle en oplevering",
             ],

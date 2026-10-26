@@ -44,7 +44,7 @@ class DeliveryReportConceptAutomation extends BaseAutomation
             }
 
             $this->act(
-                'Fase "Oplevering" van '.$phase->project->name.' is gereed — tijd voor het opleverrapport.',
+                'Fase "Oplevering" van '.$phase->project->name.' is gereed - tijd voor het opleverrapport.',
                 fn () => app(GenerateDeliveryReport::class)->handle($phase->project),
                 null,
                 route('projects.show', $phase->project),

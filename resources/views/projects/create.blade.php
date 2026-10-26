@@ -17,9 +17,9 @@
             <div x-show="bestaand">
                 <x-field label="Klant" name="customer_id">
                     <select name="customer_id" id="customer_id" x-bind:disabled="!bestaand" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
-                        <option value="">— Kies klant —</option>
+                        <option value="">- Kies klant -</option>
                         @foreach ($customers as $customer)
-                            <option value="{{ $customer->id }}" @selected(old('customer_id') == $customer->id)>{{ $customer->name }} ({{ $customer->city ?? '—' }})</option>
+                            <option value="{{ $customer->id }}" @selected(old('customer_id') == $customer->id)>{{ $customer->name }} ({{ $customer->city ?? '-' }})</option>
                         @endforeach
                     </select>
                 </x-field>
@@ -70,7 +70,7 @@
                 </x-field>
                 <x-field label="Projectleider" name="project_leader_id">
                     <select name="project_leader_id" id="project_leader_id" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
-                        <option value="">— Geen —</option>
+                        <option value="">- Geen -</option>
                         @foreach ($leaders as $leader)
                             <option value="{{ $leader->id }}" @selected(old('project_leader_id') == $leader->id)>{{ $leader->name }}</option>
                         @endforeach
@@ -110,7 +110,7 @@
                         {{ $uitvoerder->name }}
                     </label>
                 @empty
-                    <p class="text-sm text-gray-400 sm:col-span-2">Nog geen uitvoerders — voeg ze toe via Team.</p>
+                    <p class="text-sm text-gray-400 sm:col-span-2">Nog geen uitvoerders - voeg ze toe via Team.</p>
                 @endforelse
             </div>
         </section>

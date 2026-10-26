@@ -9,7 +9,7 @@
         <span class="text-navy-900">{{ $workPackage->name }}</span>
     </nav>
 
-    <x-page-header :title="$workPackage->name" :subtitle="$workPackage->project->name.' · '.$workPackage->phase->name">
+    <x-page-header :title="$workPackage->name" :subtitle="$workPackage->project->name.', '.$workPackage->phase->name">
         <span class="rounded-full px-2.5 py-1 text-xs font-semibold {{ $workPackage->status->badgeClasses() }}">{{ $workPackage->status->label() }}</span>
     </x-page-header>
 
@@ -41,7 +41,7 @@
                             <span class="min-w-0 flex-1">
                                 <span class="block text-sm font-medium {{ $item->isDone() ? 'text-gray-400 line-through' : 'text-navy-900' }}">{{ $item->label }}</span>
                                 @if ($item->isDone())
-                                    <span class="block text-xs text-gray-400">{{ $item->doneBy?->name ?? '—' }} · {{ $item->done_at->translatedFormat('j M H:i') }}</span>
+                                    <span class="block text-xs text-gray-400">{{ $item->doneBy?->name ?? '-' }}, {{ $item->done_at->translatedFormat('j M H:i') }}</span>
                                 @endif
                             </span>
                             @if ($item->requiresPhotos())
@@ -102,7 +102,7 @@
                                 <img src="{{ route('photos.show', $photo) }}" alt="{{ $photo->caption ?? 'Bewijsfoto' }}" loading="lazy" class="h-32 w-full object-cover">
                                 <figcaption class="px-2.5 py-1.5">
                                     <span class="block truncate text-[11px] font-semibold text-navy-900">{{ $photo->caption ?? $photo->checklistItem?->label ?? 'Bewijsfoto' }}</span>
-                                    <span class="block truncate text-[10px] text-gray-400">{{ $photo->created_at->translatedFormat('j M H:i') }}{{ $photo->uploader ? ' · '.$photo->uploader->name : '' }}</span>
+                                    <span class="block truncate text-[10px] text-gray-400">{{ $photo->created_at->translatedFormat('j M H:i') }}{{ $photo->uploader ? ', '.$photo->uploader->name : '' }}</span>
                                 </figcaption>
                                 @unless ($photo->client_visible)
                                     <span class="absolute top-1.5 left-1.5 rounded-full bg-navy-950/80 px-2 py-0.5 text-[10px] font-semibold text-white">Intern</span>
@@ -160,7 +160,7 @@
                         <p class="mt-2 text-xs text-gray-400">Kan pas afgerond worden als de checklist compleet is ({{ $checklistDone }}/{{ $workPackage->items->count() }}).</p>
                     @endunless
                     @if ($workPackage->checklistComplete() && ! $workPackage->evidenceComplete())
-                        <p class="mt-2 text-xs text-amber-600">Het verplichte foto-bewijs is nog niet compleet — upload eerst de ontbrekende foto's.</p>
+                        <p class="mt-2 text-xs text-amber-600">Het verplichte foto-bewijs is nog niet compleet - upload eerst de ontbrekende foto's.</p>
                     @endif
                 @endif
             </section>
@@ -170,7 +170,7 @@
                 <h2 class="mb-3 text-sm font-bold text-navy-900">Details</h2>
                 <dl class="space-y-2 text-sm">
                     <div><dt class="text-gray-500">Verantwoordelijke</dt><dd class="font-medium">{{ $workPackage->responsible?->name ?? 'Niet toegewezen' }}</dd></div>
-                    <div><dt class="text-gray-500">Deadline</dt><dd class="font-medium {{ $workPackage->isOverdue() ? 'text-red-600' : '' }}">{{ $workPackage->deadline?->translatedFormat('j M Y') ?? '—' }}</dd></div>
+                    <div><dt class="text-gray-500">Deadline</dt><dd class="font-medium {{ $workPackage->isOverdue() ? 'text-red-600' : '' }}">{{ $workPackage->deadline?->translatedFormat('j M Y') ?? '-' }}</dd></div>
                     <div><dt class="text-gray-500">Fase</dt><dd class="font-medium">{{ $workPackage->phase->name }}</dd></div>
                     <div><dt class="text-gray-500">Project</dt><dd class="font-medium"><a href="{{ route('projects.show', $workPackage->project) }}" class="text-brand-600 hover:text-brand-500">{{ $workPackage->project->name }}</a></dd></div>
                     <div><dt class="text-gray-500">Klant</dt><dd class="font-medium">{{ $workPackage->project->customer->name }}</dd></div>
@@ -188,7 +188,7 @@
                         </x-field>
                         <x-field label="Verantwoordelijke" name="responsible_id">
                             <select name="responsible_id" id="responsible_id" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
-                                <option value="">— Niet toegewezen —</option>
+                                <option value="">- Niet toegewezen -</option>
                                 @foreach ($team as $member)
                                     <option value="{{ $member->id }}" @selected(old('responsible_id', $workPackage->responsible_id) == $member->id)>{{ $member->name }}</option>
                                 @endforeach

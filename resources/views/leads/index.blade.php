@@ -55,12 +55,12 @@
                     <span class="min-w-0 flex-1">
                         <span class="block truncate text-sm font-semibold text-navy-900">{{ $lead->customer->name }}</span>
                         <span class="block truncate text-xs text-gray-500">
-                            {{ $lead->customer->city ?? '—' }} · {{ $lead->service ?? 'Aanvraag' }}
-                            @if ($lead->value) · € {{ number_format((float) $lead->value, 0, ',', '.') }} @endif
+                            {{ $lead->customer->city ?? '-' }}, {{ $lead->service ?? 'Aanvraag' }}
+                            @if ($lead->value), € {{ number_format((float) $lead->value, 0, ',', '.') }} @endif
                         </span>
                         <span class="mt-0.5 block text-xs text-gray-400">
                             {{ $lead->assignee?->name ?? 'Niet toegewezen' }}
-                            · laatste contact: {{ $lead->last_contact_at?->translatedFormat('j M') ?? 'nog geen' }}
+                           , laatste contact: {{ $lead->last_contact_at?->translatedFormat('j M') ?? 'nog geen' }}
                         </span>
                     </span>
                     @if ($lead->missingPhone())
@@ -86,7 +86,7 @@
                         <a href="{{ route('leads.show', $lead) }}" class="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 opacity-70 transition hover:opacity-100">
                             <span class="min-w-0 flex-1">
                                 <span class="block truncate text-sm font-semibold text-navy-900">{{ $lead->customer->name }}</span>
-                                <span class="block text-xs text-gray-500">{{ $lead->service ?? 'Aanvraag' }} @if ($lead->lost_reason) · {{ $lead->lost_reason }} @endif</span>
+                                <span class="block text-xs text-gray-500">{{ $lead->service ?? 'Aanvraag' }} @if ($lead->lost_reason), {{ $lead->lost_reason }} @endif</span>
                             </span>
                             <x-status-badge :status="$lead->status" />
                         </a>

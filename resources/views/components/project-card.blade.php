@@ -22,7 +22,7 @@
 
     <div class="flex flex-1 flex-col p-4">
         <p class="truncate text-sm font-bold text-navy-900">{{ $project->name }}</p>
-        <p class="mt-0.5 truncate text-xs text-gray-500">{{ $project->customer->name }}{{ $project->city ? ' · '.$project->city : '' }}</p>
+        <p class="mt-0.5 truncate text-xs text-gray-500">{{ $project->customer->name }}{{ $project->city ? ', '.$project->city : '' }}</p>
 
         <div class="mt-3 h-1.5 overflow-hidden rounded-full bg-gray-100">
             <div class="h-full rounded-full bg-brand-500" style="width: {{ $project->progress }}%"></div>

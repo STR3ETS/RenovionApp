@@ -318,7 +318,7 @@ class QuoteBlockRegistry
 
     /**
      * Bouw getypeerde blokken uit de tekst-templates per werktype
-     * ([QuoteTemplates]) — gebruikt door de seeder en als vangnet.
+     * ([QuoteTemplates]) - gebruikt door de seeder en als vangnet.
      *
      * @return list<array{id: string, type: string, data: array<string, mixed>}>
      */
@@ -363,7 +363,7 @@ class QuoteBlockRegistry
     }
 
     /**
-     * Vervang {klant}/{plaats}-tokens in alle tekstvelden — gebruikt bij het
+     * Vervang {klant}/{plaats}-tokens in alle tekstvelden - gebruikt bij het
      * toepassen van een template op een concrete offerte.
      *
      * @param  list<array{id: string, type: string, data: array<string, mixed>}>  $blocks

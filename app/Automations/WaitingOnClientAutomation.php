@@ -46,7 +46,7 @@ class WaitingOnClientAutomation extends BaseAutomation
             }
 
             $taak = [
-                'title' => 'Klant herinneren: '.$phase->project->customer->name.' — keuze/actie voor fase "'.$phase->name.'"',
+                'title' => 'Klant herinneren: '.$phase->project->customer->name.' - keuze/actie voor fase "'.$phase->name.'"',
                 'project_id' => $phase->project_id,
                 'customer_id' => $phase->project->customer_id,
                 'owner_id' => $phase->responsible_id ?? $phase->project->project_leader_id,

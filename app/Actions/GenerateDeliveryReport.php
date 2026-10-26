@@ -138,7 +138,7 @@ class GenerateDeliveryReport
                 ]))
                 ->values()->all(),
             'warranty' => 'Renovion staat voor kwaliteit: geen half werk en vage beloftes. Op de uitvoering geldt 5 jaar garantie; op materialen gelden de fabrieksgaranties. '
-                .'Garantiepunten of nazorgvragen meldt u eenvoudig via uw klantportaal of via info@renovion.nl — we plannen herstel binnen redelijke termijn in.',
+                .'Garantiepunten of nazorgvragen meldt u eenvoudig via uw klantportaal of via info@renovion.nl - we plannen herstel binnen redelijke termijn in.',
         ];
     }
 }

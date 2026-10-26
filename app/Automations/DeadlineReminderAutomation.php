@@ -57,7 +57,7 @@ class DeadlineReminderAutomation extends BaseAutomation
             ];
 
             $this->act(
-                'Werkpakket "'.$package->name.'" ('.$package->project->name.') moet '.$package->deadline->translatedFormat('j M').' gereed zijn'.($package->responsible ? ' — verantwoordelijke: '.$package->responsible->name : '').'.',
+                'Werkpakket "'.$package->name.'" ('.$package->project->name.') moet '.$package->deadline->translatedFormat('j M').' gereed zijn'.($package->responsible ? ' - verantwoordelijke: '.$package->responsible->name : '').'.',
                 fn () => Task::create([...$taak, 'priority' => TaskPriority::Hoog, 'source' => ActionSource::Automation]),
                 ['type' => 'create_task', 'params' => $taak],
                 route('work-packages.show', $package),

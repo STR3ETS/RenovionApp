@@ -15,9 +15,9 @@
                 </span>
                 <span class="min-w-0 flex-1">
                     <span class="block truncate text-sm font-semibold text-navy-900">{{ $customer->name }}</span>
-                    <span class="block text-xs text-gray-500">{{ $customer->city ?? '—' }} · {{ $customer->phone ?? 'geen telefoon' }}</span>
+                    <span class="block text-xs text-gray-500">{{ $customer->city ?? '-' }}, {{ $customer->phone ?? 'geen telefoon' }}</span>
                 </span>
-                <span class="text-xs text-gray-400">{{ $customer->leads_count }} {{ $customer->leads_count === 1 ? 'aanvraag' : 'aanvragen' }} · {{ $customer->projects_count }} {{ $customer->projects_count === 1 ? 'project' : 'projecten' }}</span>
+                <span class="text-xs text-gray-400">{{ $customer->leads_count }} {{ $customer->leads_count === 1 ? 'aanvraag' : 'aanvragen' }}, {{ $customer->projects_count }} {{ $customer->projects_count === 1 ? 'project' : 'projecten' }}</span>
             </a>
         @empty
             <x-empty-state title="Geen klanten gevonden" />

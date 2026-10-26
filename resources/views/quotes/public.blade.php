@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="robots" content="noindex, nofollow">
-    <title>Offerte {{ $quote->number }} — Renovion</title>
+    <title>Offerte {{ $quote->number }} - Renovion</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter-tight:400,500,600,700,800" rel="stylesheet">
@@ -27,7 +27,7 @@
             @if ($quote->status === \App\Enums\QuoteStatus::Akkoord)
                 <div class="flex items-center gap-2 rounded-2xl bg-green-600 px-6 py-3 text-sm font-semibold text-white">
                     <x-icon name="check" class="h-4 w-4" />
-                    Ondertekend door {{ $quote->signed_name ?? $quote->customer->name }} op {{ ($quote->signed_at ?? $quote->accepted_at)->translatedFormat('j F Y') }} — bedankt voor uw vertrouwen!
+                    Ondertekend door {{ $quote->signed_name ?? $quote->customer->name }} op {{ ($quote->signed_at ?? $quote->accepted_at)->translatedFormat('j F Y') }} - bedankt voor uw vertrouwen!
                 </div>
             @elseif ($quote->status === \App\Enums\QuoteStatus::Afgewezen)
                 <div class="rounded-2xl bg-gray-200 px-6 py-3 text-sm font-semibold text-gray-600">Deze offerte is afgewezen.</div>
@@ -42,7 +42,7 @@
             @if ($quote->status->isOpen() && ! $quote->isExpired())
                 <div class="rounded-2xl border border-gray-200 bg-white px-6 py-8 lg:px-8 print:hidden" id="ondertekenen">
                     <h2 class="text-lg font-bold text-navy-950">Akkoord?</h2>
-                    <p class="mt-1 mb-5 text-sm text-gray-500">Onderteken de offerte digitaal — wij nemen daarna direct contact met u op over de planning.</p>
+                    <p class="mt-1 mb-5 text-sm text-gray-500">Onderteken de offerte digitaal - wij nemen daarna direct contact met u op over de planning.</p>
 
                     <form method="POST" action="{{ route('quotes.public.sign', $quote->public_token) }}" class="space-y-3 rounded-2xl border border-gray-200 bg-white p-5">
                         @csrf
@@ -86,8 +86,8 @@
 
             {{-- Footer --}}
             <div class="px-6 py-4 text-center text-xs text-gray-400">
-                <p class="font-semibold text-gray-500">Renovion — geen half werk en vage beloftes</p>
-                <p class="mt-1">Mercatorweg 28, 6827 DC Arnhem · info@renovion.nl · +31 6 395 353 00 · KVK 95384782</p>
+                <p class="font-semibold text-gray-500">Renovion - geen half werk en vage beloftes</p>
+                <p class="mt-1">Mercatorweg 28, 6827 DC Arnhem, info@renovion.nl, +31 6 395 353 00, KVK 95384782</p>
             </div>
         </div>
 

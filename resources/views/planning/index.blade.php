@@ -2,7 +2,7 @@
 
     <div x-data="{ modal: false, formUser: '', formDate: '' }">
 
-        <x-page-header title="Planning" subtitle="Week {{ $start->isoWeek }} · {{ $start->translatedFormat('j M') }} – {{ $start->copy()->addDays(4)->translatedFormat('j M Y') }}">
+        <x-page-header title="Planning" subtitle="Week {{ $start->isoWeek }}, {{ $start->translatedFormat('j M') }} – {{ $start->copy()->addDays(4)->translatedFormat('j M Y') }}">
             <a href="{{ route('planning.index', ['week' => $start->copy()->subWeek()->toDateString()]) }}" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">←</a>
             <a href="{{ route('planning.index') }}" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">Vandaag</a>
             <a href="{{ route('planning.index', ['week' => $start->copy()->addWeek()->toDateString()]) }}" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">→</a>
@@ -81,7 +81,7 @@
 
                 <x-field label="Wie" name="user_id">
                     <select name="user_id" id="user_id" x-model="formUser" required class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
-                        <option value="">— Kies —</option>
+                        <option value="">- Kies -</option>
                         @foreach ($users as $user)
                             <option value="{{ $user->id }}">{{ $user->name }}</option>
                         @endforeach
@@ -103,7 +103,7 @@
 
                 <x-field label="Project (optioneel)" name="project_id">
                     <select name="project_id" id="project_id" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
-                        <option value="">— Geen project —</option>
+                        <option value="">- Geen project -</option>
                         @foreach ($projects as $project)
                             <option value="{{ $project->id }}">{{ $project->name }}</option>
                         @endforeach

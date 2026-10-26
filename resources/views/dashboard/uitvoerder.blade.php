@@ -29,7 +29,7 @@
                                 <span class="block truncate text-sm font-semibold">{{ $entry->displayTitle() }}</span>
                                 <span class="block text-xs opacity-70">
                                     {{ $entry->type->label() }}
-                                    @if ($entry->start_time) · {{ substr($entry->start_time, 0, 5) }}@if ($entry->end_time)–{{ substr($entry->end_time, 0, 5) }}@endif @endif
+                                    @if ($entry->start_time), {{ substr($entry->start_time, 0, 5) }}@if ($entry->end_time)–{{ substr($entry->end_time, 0, 5) }}@endif @endif
                                 </span>
                             </span>
                             @if ($entry->project)
@@ -59,7 +59,7 @@
                             <span class="block truncate text-sm font-semibold text-navy-900">{{ $task->title }}</span>
                             <span class="block text-xs text-gray-500">
                                 {{ $task->project?->name ?? $task->customer?->name ?? 'Algemeen' }}
-                                @if ($task->deadline) · {{ $task->deadline->isToday() ? 'vandaag' : $task->deadline->translatedFormat('j M') }} @endif
+                                @if ($task->deadline), {{ $task->deadline->isToday() ? 'vandaag' : $task->deadline->translatedFormat('j M') }} @endif
                             </span>
                         </span>
                         <span class="h-2.5 w-2.5 shrink-0 rounded-full {{ $task->priority->dotClasses() }}"></span>

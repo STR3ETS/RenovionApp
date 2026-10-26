@@ -3,7 +3,7 @@
 namespace App\Enums;
 
 /**
- * Briefing §12: per automation instelbaar — alleen signaleren / eerst
+ * Briefing §12: per automation instelbaar - alleen signaleren / eerst
  * bevestigen / automatisch uitvoeren (of helemaal uit).
  */
 enum AutomationMode: string

@@ -106,13 +106,13 @@ class QuoteController extends Controller
 
         if ($quote->status === QuoteStatus::Concept) {
             return redirect()->route('quotes.show', $quote)
-                ->with('error', 'Deze offerte is al een concept — je kunt hem direct bewerken.');
+                ->with('error', 'Deze offerte is al een concept - je kunt hem direct bewerken.');
         }
 
         $quote->startNewVersion($validated['note']);
 
         return redirect()->route('quotes.show', $quote)
-            ->with('success', "Versie v{$quote->version} gestart — de offerte staat weer op concept.");
+            ->with('success', "Versie v{$quote->version} gestart - de offerte staat weer op concept.");
     }
 
     public function edit(Quote $quote): View|RedirectResponse

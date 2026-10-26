@@ -169,7 +169,7 @@ class PortalController extends Controller
             ActionSource::Website,
         );
 
-        return back()->with('success', 'Bedankt voor uw ondertekening — het rapport is definitief.');
+        return back()->with('success', 'Bedankt voor uw ondertekening - het rapport is definitief.');
     }
 
     private function customerFor(Request $request): Customer
@@ -211,7 +211,7 @@ class PortalController extends Controller
             $acties->push([
                 'type' => 'keuze',
                 'title' => 'Uw keuze of reactie is nodig',
-                'subtitle' => 'Fase: '.$phase->name.' — neem contact met ons op of reageer op ons laatste bericht.',
+                'subtitle' => 'Fase: '.$phase->name.' - neem contact met ons op of reageer op ons laatste bericht.',
             ]);
         }
 

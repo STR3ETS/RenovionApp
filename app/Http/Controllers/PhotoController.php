@@ -106,7 +106,7 @@ class PhotoController extends Controller
 
         abort_unless($magVerwijderen && $photo->project->isAccessibleBy($request->user()), 403);
 
-        AuditLog::record($photo->project, 'foto_verwijderd', ['caption' => $photo->caption ?? '—'], []);
+        AuditLog::record($photo->project, 'foto_verwijderd', ['caption' => $photo->caption ?? '-'], []);
         Storage::delete($photo->path);
         $photo->delete();
 

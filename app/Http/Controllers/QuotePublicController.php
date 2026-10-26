@@ -14,7 +14,7 @@ use Illuminate\View\View;
 
 /**
  * Klantview van de offerte (briefing §6): bekijken via een privélink,
- * digitaal ondertekenen, aanpassing aanvragen of afwijzen — zonder inlog.
+ * digitaal ondertekenen, aanpassing aanvragen of afwijzen - zonder inlog.
  */
 class QuotePublicController extends Controller
 {
@@ -105,7 +105,7 @@ class QuotePublicController extends Controller
         AuditLog::record($quote, 'aanpassing_gevraagd', [], ['toelichting' => $validated['message']], ActionSource::Website);
 
         return redirect()->route('quotes.public', $quote->public_token)
-            ->with('success', 'Uw verzoek is ontvangen — we nemen snel contact met u op.');
+            ->with('success', 'Uw verzoek is ontvangen - we nemen snel contact met u op.');
     }
 
     public function reject(Request $request, Quote $quote): RedirectResponse
@@ -130,7 +130,7 @@ class QuotePublicController extends Controller
             $quote,
             ActionSource::Website,
         );
-        AuditLog::record($quote, 'afgewezen', [], ['reden' => $validated['reason'] ?? '—'], ActionSource::Website);
+        AuditLog::record($quote, 'afgewezen', [], ['reden' => $validated['reason'] ?? '-'], ActionSource::Website);
 
         return redirect()->route('quotes.public', $quote->public_token)
             ->with('success', 'Bedankt voor uw reactie.');

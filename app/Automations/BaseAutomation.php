@@ -45,7 +45,7 @@ abstract class BaseAutomation implements Automation
 
     /**
      * Nova meldt het signaal (en eventueel een bevestigbaar voorstel) in het
-     * teamkanaal "Algemeen" — dezelfde flow als @Nova in de chat.
+     * teamkanaal "Algemeen" - dezelfde flow als @Nova in de chat.
      *
      * @param  array{type: string, params: array<string, mixed>}|null  $novaAction
      */

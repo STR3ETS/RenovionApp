@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Van calculatie naar offerte met één actie (briefing §5): de klant ziet
- * geen interne kostregels — de offerte toont commerciële posten waarin
+ * geen interne kostregels - de offerte toont commerciële posten waarin
  * onvoorzien en marge zijn verdeeld. Stelposten blijven herkenbaar apart.
  */
 class CreateQuoteFromCalculation

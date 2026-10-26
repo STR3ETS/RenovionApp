@@ -115,7 +115,7 @@ class ChatMessageController extends Controller
 
         Task::create([
             'title' => str($message->body)->limit(120),
-            'note' => 'Vanuit de chat'.($message->user ? ' — bericht van '.$message->user->name : ''),
+            'note' => 'Vanuit de chat'.($message->user ? ' - bericht van '.$message->user->name : ''),
             'project_id' => $project?->id,
             'customer_id' => $project?->customer_id,
             'owner_id' => $request->user()->id,
@@ -160,7 +160,7 @@ class ChatMessageController extends Controller
         } catch (\Throwable) {
             return $channel->messages()->create([
                 'user_id' => null,
-                'body' => 'Ik kon dit even niet verwerken — probeer het zo nog eens.',
+                'body' => 'Ik kon dit even niet verwerken - probeer het zo nog eens.',
             ]);
         }
     }

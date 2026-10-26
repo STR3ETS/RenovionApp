@@ -68,7 +68,7 @@ class CustomerController extends Controller
             $portalUser->update(['password' => $password]);
             AuditLog::record($portalUser, 'portaal_wachtwoord_reset', [], ['klant' => $customer->name]);
 
-            return back()->with('success', "Nieuw portaalwachtwoord voor {$customer->name}: {$password} — geef dit eenmalig door, het wordt niet nog eens getoond.");
+            return back()->with('success', "Nieuw portaalwachtwoord voor {$customer->name}: {$password} - geef dit eenmalig door, het wordt niet nog eens getoond.");
         }
 
         if (User::where('email', $customer->email)->exists()) {
@@ -86,7 +86,7 @@ class CustomerController extends Controller
         AuditLog::record($portalUser, 'portaal_account_aangemaakt', [], ['klant' => $customer->name]);
         $customer->recordEvent(TimelineEventType::Intern, 'Klantportaal-account aangemaakt', $customer->email);
 
-        return back()->with('success', 'Portaal-account aangemaakt. Inloggen op '.config('app.url')." met {$customer->email} en wachtwoord: {$password} — geef dit eenmalig door.");
+        return back()->with('success', 'Portaal-account aangemaakt. Inloggen op '.config('app.url')." met {$customer->email} en wachtwoord: {$password} - geef dit eenmalig door.");
     }
 
     public function storeNote(Request $request, Customer $customer): RedirectResponse

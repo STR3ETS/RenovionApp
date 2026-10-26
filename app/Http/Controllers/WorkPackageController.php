@@ -35,7 +35,7 @@ class WorkPackageController extends Controller
 
         return redirect()
             ->route('work-packages.show', $package)
-            ->with('success', 'Werkpakket aangemaakt — voeg de checklist toe.');
+            ->with('success', 'Werkpakket aangemaakt - voeg de checklist toe.');
     }
 
     public function show(Request $request, WorkPackage $workPackage): View
@@ -92,13 +92,13 @@ class WorkPackageController extends Controller
 
         if (! $workPackage->checklistComplete()) {
             return redirect()->route('work-packages.show', $workPackage)
-                ->with('error', 'Nog niet alle checklistitems zijn afgevinkt — rond eerst de checklist af.');
+                ->with('error', 'Nog niet alle checklistitems zijn afgevinkt - rond eerst de checklist af.');
         }
 
         // Briefing §9: zonder verplicht foto-bewijs kan de taak niet definitief dicht.
         if (! $workPackage->evidenceComplete()) {
             return redirect()->route('work-packages.show', $workPackage)
-                ->with('error', 'Het verplichte foto-bewijs is nog niet compleet — upload eerst de ontbrekende foto\'s.');
+                ->with('error', 'Het verplichte foto-bewijs is nog niet compleet - upload eerst de ontbrekende foto\'s.');
         }
 
         $workPackage->update([

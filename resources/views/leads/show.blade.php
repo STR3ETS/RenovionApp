@@ -1,6 +1,6 @@
 <x-layouts.app :title="$lead->customer->name">
 
-    <x-page-header :title="$lead->customer->name" :subtitle="($lead->service ?? 'Aanvraag').' · '.($lead->customer->city ?? 'plaats onbekend')">
+    <x-page-header :title="$lead->customer->name" :subtitle="($lead->service ?? 'Aanvraag').', '.($lead->customer->city ?? 'plaats onbekend')">
         <x-status-badge :status="$lead->status" class="text-sm" />
         <a href="{{ route('leads.edit', $lead) }}" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">Bewerken</a>
     </x-page-header>
@@ -14,7 +14,7 @@
                     $lead->missingPhone() ? ['color' => 'amber', 'text' => 'Geen telefoonnummer bekend'] : null,
                     $lead->next_action_at?->isPast() ? ['color' => 'red', 'text' => 'Opvolging verlopen: '.($lead->next_action ?? 'actie').' ('.$lead->next_action_at->translatedFormat('j M H:i').')'] : null,
                     $lead->isSilent() ? ['color' => 'amber', 'text' => 'Geen volgende actie gepland en al '.((int) ($lead->last_contact_at ?? $lead->created_at)->diffInDays()).' dagen geen contact'] : null,
-                    $lead->status->isOpen() && $lead->qualification === \App\Enums\LeadQualification::Onbeoordeeld ? ['color' => 'gray', 'text' => 'Nog niet gekwalificeerd — beoordeel de aanvraag (koud/warm/heet)'] : null,
+                    $lead->status->isOpen() && $lead->qualification === \App\Enums\LeadQualification::Onbeoordeeld ? ['color' => 'gray', 'text' => 'Nog niet gekwalificeerd - beoordeel de aanvraag (koud/warm/heet)'] : null,
                 ])->filter();
             @endphp
             @if ($signalen->isNotEmpty())
@@ -102,18 +102,18 @@
             <section class="rounded-2xl border border-gray-200 bg-white p-5">
                 <h2 class="mb-3 text-sm font-bold text-navy-900">Aanvraag</h2>
                 <dl class="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
-                    <div><dt class="text-gray-500">Dienst</dt><dd class="font-medium">{{ $lead->service ?? '—' }}</dd></div>
-                    <div><dt class="text-gray-500">Waarde</dt><dd class="font-medium">{{ $lead->value ? '€ '.number_format((float) $lead->value, 0, ',', '.') : '—' }}</dd></div>
+                    <div><dt class="text-gray-500">Dienst</dt><dd class="font-medium">{{ $lead->service ?? '-' }}</dd></div>
+                    <div><dt class="text-gray-500">Waarde</dt><dd class="font-medium">{{ $lead->value ? '€ '.number_format((float) $lead->value, 0, ',', '.') : '-' }}</dd></div>
                     <div>
                         <dt class="text-gray-500">Kwalificatie</dt>
                         <dd><span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold {{ $lead->qualification->badgeClasses() }}"><x-signal-dot :color="$lead->qualification->dotColor()" /> {{ $lead->qualification->label() }}</span></dd>
                     </div>
-                    <div><dt class="text-gray-500">Gewenste start</dt><dd class="font-medium">{{ $lead->desired_start ?? '—' }}</dd></div>
+                    <div><dt class="text-gray-500">Gewenste start</dt><dd class="font-medium">{{ $lead->desired_start ?? '-' }}</dd></div>
                     <div><dt class="text-gray-500">Bron</dt><dd class="font-medium">{{ $lead->source->label() }}</dd></div>
                     <div><dt class="text-gray-500">Binnengekomen</dt><dd class="font-medium">{{ $lead->created_at->translatedFormat('j M Y H:i') }}</dd></div>
                     <div><dt class="text-gray-500">Toegewezen aan</dt><dd class="font-medium">{{ $lead->assignee?->name ?? 'Niet toegewezen' }}</dd></div>
                     <div><dt class="text-gray-500">Laatste contact</dt><dd class="font-medium">{{ $lead->last_contact_at?->translatedFormat('j M Y H:i') ?? 'Nog geen' }}</dd></div>
-                    <div class="sm:col-span-2"><dt class="text-gray-500">Volgende actie</dt><dd class="font-medium">{{ $lead->next_action ?? '—' }} @if ($lead->next_action_at) ({{ $lead->next_action_at->translatedFormat('j M H:i') }}) @endif</dd></div>
+                    <div class="sm:col-span-2"><dt class="text-gray-500">Volgende actie</dt><dd class="font-medium">{{ $lead->next_action ?? '-' }} @if ($lead->next_action_at) ({{ $lead->next_action_at->translatedFormat('j M H:i') }}) @endif</dd></div>
                     @if ($lead->description)
                         <div class="sm:col-span-2"><dt class="text-gray-500">Omschrijving</dt><dd class="font-medium whitespace-pre-line">{{ $lead->description }}</dd></div>
                     @endif
@@ -130,7 +130,7 @@
                     <a href="{{ route('calculations.show', $calculation) }}" class="mb-2 flex items-center justify-between gap-2 rounded-xl border border-gray-200 p-3 transition hover:border-brand-400">
                         <span class="min-w-0">
                             <span class="block truncate text-sm font-semibold text-navy-900">{{ $calculation->title }}</span>
-                            <span class="block text-xs text-gray-500">€ {{ number_format($calculation->totalExcl(), 2, ',', '.') }} excl. btw · {{ $calculation->lines->count() }} regels</span>
+                            <span class="block text-xs text-gray-500">€ {{ number_format($calculation->totalExcl(), 2, ',', '.') }} excl. btw, {{ $calculation->lines->count() }} regels</span>
                         </span>
                         <span class="rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap {{ $calculation->status->badgeClasses() }}">{{ $calculation->status->label() }}</span>
                     </a>
@@ -150,7 +150,7 @@
                     <a href="{{ route('quotes.show', $quote) }}" class="mb-2 flex items-center justify-between gap-2 rounded-xl border border-gray-200 p-3 transition hover:border-brand-400">
                         <span>
                             <span class="block text-sm font-semibold text-navy-900">{{ $quote->number }}</span>
-                            <span class="block text-xs text-gray-500">€ {{ number_format((float) $quote->total, 2, ',', '.') }} @if ($quote->daysOpen()) · {{ $quote->daysOpen() }} dagen open @endif</span>
+                            <span class="block text-xs text-gray-500">€ {{ number_format((float) $quote->total, 2, ',', '.') }} @if ($quote->daysOpen()), {{ $quote->daysOpen() }} dagen open @endif</span>
                         </span>
                         <x-status-badge :status="$quote->status" />
                     </a>
@@ -166,9 +166,9 @@
             <section class="rounded-2xl border border-gray-200 bg-white p-5">
                 <h2 class="mb-3 text-sm font-bold text-navy-900">Contactgegevens</h2>
                 <dl class="space-y-2 text-sm">
-                    <div><dt class="text-gray-500">Telefoon</dt><dd class="font-medium">{{ $lead->customer->phone ?? '— ontbreekt —' }}</dd></div>
-                    <div><dt class="text-gray-500">E-mail</dt><dd class="font-medium break-all">{{ $lead->customer->email ?? '—' }}</dd></div>
-                    <div><dt class="text-gray-500">Adres</dt><dd class="font-medium">{{ $lead->customer->address ?? '—' }}<br>{{ trim(($lead->customer->postal_code ?? '').' '.($lead->customer->city ?? '')) ?: '' }}</dd></div>
+                    <div><dt class="text-gray-500">Telefoon</dt><dd class="font-medium">{{ $lead->customer->phone ?? '- ontbreekt -' }}</dd></div>
+                    <div><dt class="text-gray-500">E-mail</dt><dd class="font-medium break-all">{{ $lead->customer->email ?? '-' }}</dd></div>
+                    <div><dt class="text-gray-500">Adres</dt><dd class="font-medium">{{ $lead->customer->address ?? '-' }}<br>{{ trim(($lead->customer->postal_code ?? '').' '.($lead->customer->city ?? '')) ?: '' }}</dd></div>
                 </dl>
             </section>
 
@@ -178,7 +178,7 @@
                 @forelse ($lead->tasks as $task)
                     <div class="mb-2 rounded-lg border border-gray-200 p-2.5 text-sm">
                         <p class="font-medium text-navy-900">{{ $task->title }}</p>
-                        <p class="text-xs text-gray-500">{{ $task->deadline?->translatedFormat('j M') ?? 'geen deadline' }} · {{ $task->owner?->name ?? '—' }}</p>
+                        <p class="text-xs text-gray-500">{{ $task->deadline?->translatedFormat('j M') ?? 'geen deadline' }}, {{ $task->owner?->name ?? '-' }}</p>
                     </div>
                 @empty
                     <p class="text-sm text-gray-400">Geen open taken.</p>
@@ -202,7 +202,7 @@
                             @endif
                             <div class="min-w-0">
                                 <p class="font-medium text-navy-900">{{ $event->title }}</p>
-                                <p class="text-xs text-gray-400">{{ $event->happened_at->translatedFormat('j M H:i') }} · {{ $viaNova ? 'Nova' : ($event->user?->name ?? $event->source->label()) }}</p>
+                                <p class="text-xs text-gray-400">{{ $event->happened_at->translatedFormat('j M H:i') }}, {{ $viaNova ? 'Nova' : ($event->user?->name ?? $event->source->label()) }}</p>
                             </div>
                         </div>
                     @empty

@@ -45,6 +45,7 @@ MVP eerst als één verticale flow: lead → calculatie → offerte → akkoord 
 - **Look:** witte kaarten (`rounded-2xl border-gray-200`), veel witruimte, sidebar met iconen + oranje actieve pill, topbar met zoekbalk + "+ Nieuw", projectkaarten met foto (omslagfoto uploadbaar in het projectformulier, gestreamd via route `projects.cover` uit private storage — geen storage:link nodig; foto-bewijs kan de omslag later automatisch aanleveren), voortgangsbalken, avatar-stacks.
 - **Font:** Inter Tight (bunny.net). **Logo:** [renovion-logo.svg](public/images/renovion-logo.svg) — alleen op donkere achtergrond.
 - **Geen emoji's in de UI** (keuze Raphael): `<x-icon name="...">` (heroicons outline, [icon.blade.php](resources/views/components/icon.blade.php)), `<x-signal-dot>`, `<x-status-badge>`, `<x-stat-tile>`, `<x-project-card>`, `<x-phase-stepper>`.
+- **Geen middots of em-dashes in UI-teksten** (keuze Raphael, "te AI-achtig"): metadata scheiden met komma's, verder gewone streepjes/dubbelepunten. Geldt ook voor AI-output (regel zit in de prompts van NovaAssistant, QuoteBlockAi en CalculationAssistant) — in deze CLAUDE.md mag het wel, dit is geen UI.
 - Alle UI-teksten Nederlands. Bedrijfsgegevens: Mercatorweg 28, 6827 DC Arnhem · info@renovion.nl · +31 6 395 353 00 · KVK 95384782.
 
 ## Nova (AI-assistent)

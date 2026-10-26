@@ -114,7 +114,7 @@ class NovaAssistant
                 'text' => "Je bent Nova, de AI-assistent van renovatiebedrijf Renovion. Vandaag is het {$this->today()}. "
                     .'Schrijf de dagelijkse briefing voor het dashboard, gericht aan '.str($user->name)->before(' ').'. '
                     .'Maximaal 4 korte regels, in volgorde van urgentie, direct en concreet ("bel", "controleer", "volg op"). '
-                    .'Geen begroeting en geen afsluiting — die staan al op het scherm. Geen opsommingstekens of emoji. '
+                    .'Geen begroeting en geen afsluiting - die staan al op het scherm. Geen opsommingstekens of emoji. '
                     .'Als er niets speelt, zeg je dat alles op schema loopt.',
             ]],
             messages: [['role' => 'user', 'content' => "SIGNALEN (urgentie | type | omschrijving):\n".($signalen ?: 'geen')."\n\nPLANNING VANDAAG:\n".($planning ?: 'niets gepland')]],
@@ -126,7 +126,7 @@ class NovaAssistant
             }
         }
 
-        return 'Vandaag geen bijzonderheden — alles loopt op schema.';
+        return 'Vandaag geen bijzonderheden - alles loopt op schema.';
     }
 
     /**
@@ -209,7 +209,7 @@ class NovaAssistant
                 isset($params['deadline']) ? 'deadline: '.Carbon::parse($params['deadline'])->translatedFormat('D j M') : null,
                 isset($params['priority']) ? 'prioriteit: '.$params['priority'] : null,
                 isset($params['owner_id']) ? 'voor: '.User::find($params['owner_id'])?->name : null,
-            ])->filter()->implode(' · '),
+            ])->filter()->implode(', '),
             'create_appointment' => collect([
                 ScheduleEntryType::from($params['type'])->label().' inplannen',
                 'voor: '.User::find($params['user_id'])?->name,
@@ -217,15 +217,15 @@ class NovaAssistant
                 isset($params['start_time']) ? 'om '.$params['start_time'] : null,
                 $customer?->name ? 'met '.$customer->name : null,
                 $project?->name ? 'project: '.$project->name : null,
-                isset($params['title']) ? '— '.$params['title'] : null,
-            ])->filter()->implode(' · '),
+                isset($params['title']) ? '- '.$params['title'] : null,
+            ])->filter()->implode(', '),
             'create_note' => 'Notitie bij '.($customer?->name ?? 'klant').': "'.str($params['body'])->limit(120).'"',
             'log_contact' => collect([
                 'Contactmoment ('.$params['type'].') vastleggen bij '.(Lead::find($params['lead_id'])?->customer->name ?? 'aanvraag'),
                 '"'.str($params['summary'])->limit(120).'"',
                 isset($params['next_action']) ? 'volgende actie: '.$params['next_action'] : null,
                 isset($params['next_action_at']) ? 'gepland '.Carbon::parse($params['next_action_at'])->translatedFormat('D j M H:i') : null,
-            ])->filter()->implode(' · '),
+            ])->filter()->implode(', '),
             default => 'Onbekende actie',
         };
     }
@@ -353,12 +353,12 @@ class NovaAssistant
             ->map(fn (Lead $l) => "{$l->id} | {$l->customer->name} | ".($l->service ?? '-')." | {$l->status->label()}")->implode("\n");
 
         return <<<PROMPT
-            Je bent Nova, de AI-assistent van Renovion Dash — het CRM- en projectmanagementsysteem van renovatiebedrijf Renovion uit Arnhem.
+            Je bent Nova, de AI-assistent van Renovion Dash - het CRM- en projectmanagementsysteem van renovatiebedrijf Renovion uit Arnhem.
             Je praat met {$user->name} ({$user->role->label()}). Antwoord altijd in het Nederlands, kort en to-the-point.
             Vandaag is het {$this->today()}.
 
             Jouw taak: herken wat de gebruiker wil en zet er een actie voor klaar met een van je tools (taak aanmaken, afspraak/terugbelafspraak inplannen, notitie toevoegen, contactmoment vastleggen bij een aanvraag).
-            De gebruiker bevestigt of annuleert het voorstel — jij voert zelf nooit iets definitief uit.
+            De gebruiker bevestigt of annuleert het voorstel - jij voert zelf nooit iets definitief uit.
 
             Regels:
             - Gebruik de juiste id's uit de onderstaande context. Verzin nooit id's.
@@ -367,6 +367,7 @@ class NovaAssistant
             - Bij onduidelijkheid (welke klant, welke datum) vraag je kort terug in plaats van te gokken.
             - Informatieve vragen over klanten, projecten of planning beantwoord je direct op basis van de context hieronder.
             - Vragen buiten Renovion Dash (nieuws, algemene kennis) wimpel je vriendelijk af.
+            - Gebruik nooit een em-dash of het teken · in je teksten; schrijf gewone zinnen met komma's en punten.
 
             MEDEWERKERS (id | naam | rol):
             {$users}

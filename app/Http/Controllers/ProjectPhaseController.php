@@ -82,11 +82,11 @@ class ProjectPhaseController extends Controller
 
         AuditLog::record($phase, 'gate_vrijgegeven', [], [
             'fase' => $phase->name,
-            'notitie' => $validated['gate_note'] ?? '—',
+            'notitie' => $validated['gate_note'] ?? '-',
         ]);
         $phase->project->customer->recordEvent(
             TimelineEventType::Projectupdate,
-            'Fase afgerond: '.$phase->name.($next ? ' — gestart met '.$next->name : ''),
+            'Fase afgerond: '.$phase->name.($next ? ' - gestart met '.$next->name : ''),
             $validated['gate_note'] ?? null,
             $phase,
         );

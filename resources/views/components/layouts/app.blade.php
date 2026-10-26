@@ -6,7 +6,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title ? $title.' — ' : '' }}{{ config('app.name') }}</title>
+    <title>{{ $title ? $title.' - ' : '' }}{{ config('app.name') }}</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter-tight:400,500,600,700,800" rel="stylesheet">
@@ -190,7 +190,7 @@
                     <x-nova-avatar class="ring-2 ring-brand-500" />
                     <div class="flex-1">
                         <p class="font-bold text-navy-900">Nova</p>
-                        <p class="text-xs text-gray-500">Stelt voor — jij bevestigt</p>
+                        <p class="text-xs text-gray-500">Stelt voor - jij bevestigt</p>
                     </div>
                     <button @click="open = false" class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600" title="Sluiten">
                         <x-icon name="x-mark" class="h-5 w-5" />

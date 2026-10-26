@@ -27,7 +27,7 @@ class ChecklistItemController extends Controller
     }
 
     /**
-     * Afvinken / weer openzetten — ook voor uitvoerders op het project (mobile-first).
+     * Afvinken / weer openzetten - ook voor uitvoerders op het project (mobile-first).
      */
     public function toggle(Request $request, WorkPackage $workPackage, ChecklistItem $item): RedirectResponse
     {
@@ -38,7 +38,7 @@ class ChecklistItemController extends Controller
             $ontbrekend = $item->requires_photos - $item->photos()->count();
 
             return redirect()->route('work-packages.show', $workPackage)
-                ->with('error', '"'.$item->label.'" vereist nog '.$ontbrekend.' '.($ontbrekend === 1 ? 'bewijsfoto' : 'bewijsfoto\'s').' — upload die eerst.');
+                ->with('error', '"'.$item->label.'" vereist nog '.$ontbrekend.' '.($ontbrekend === 1 ? 'bewijsfoto' : 'bewijsfoto\'s').' - upload die eerst.');
         }
 
         $item->update($item->isDone()

@@ -71,7 +71,7 @@ class AttentionService
                 'icon' => 'wrench-screwdriver',
                 'label' => 'Project loopt uit',
                 'title' => $project->name,
-                'subtitle' => 'Verwachte oplevering was '.$project->end_date_expected->translatedFormat('j M').' · '.$project->customer->name,
+                'subtitle' => 'Verwachte oplevering was '.$project->end_date_expected->translatedFormat('j M').', '.$project->customer->name,
                 'url' => route('projects.show', $project),
             ]);
     }
@@ -92,7 +92,7 @@ class AttentionService
                 'severity' => 'rood',
                 'icon' => 'exclamation-triangle',
                 'label' => 'Fase geblokkeerd',
-                'title' => $phase->project->name.' — '.$phase->name,
+                'title' => $phase->project->name.' - '.$phase->name,
                 'subtitle' => 'Blokkade oplossen om het project door te laten lopen',
                 'url' => route('projects.show', $phase->project),
             ]);
@@ -113,7 +113,7 @@ class AttentionService
                     $package->project->name,
                     $package->deadline ? 'deadline '.$package->deadline->translatedFormat('j M') : null,
                     $package->responsible?->name,
-                ])->filter()->implode(' · '),
+                ])->filter()->implode(', '),
                 'url' => route('work-packages.show', $package),
             ]);
 
@@ -138,8 +138,8 @@ class AttentionService
                 'severity' => $quote->daysOpen() >= 5 ? 'rood' : 'oranje',
                 'icon' => 'document-text',
                 'label' => 'Offerte niet opgevolgd',
-                'title' => $quote->customer->name.' — € '.number_format((float) $quote->total, 0, ',', '.'),
-                'subtitle' => $quote->number.' · '.$quote->daysOpen().' dagen open'.($quote->viewed_count > 0 ? ' · '.$quote->viewed_count.'× bekeken' : ''),
+                'title' => $quote->customer->name.' - € '.number_format((float) $quote->total, 0, ',', '.'),
+                'subtitle' => $quote->number.', '.$quote->daysOpen().' dagen open'.($quote->viewed_count > 0 ? ', '.$quote->viewed_count.'× bekeken' : ''),
                 'url' => route('quotes.show', $quote),
             ]);
     }
@@ -159,8 +159,8 @@ class AttentionService
                 'severity' => $project->start_date !== null && $project->start_date->lte(today()->addDays(4)) ? 'rood' : 'oranje',
                 'icon' => 'currency-euro',
                 'label' => 'Aanbetaling ontbreekt',
-                'title' => $project->customer->name.' — € '.number_format((float) $project->deposit_amount, 0, ',', '.'),
-                'subtitle' => $project->name.($project->start_date ? ' · start '.$project->start_date->translatedFormat('j M') : ''),
+                'title' => $project->customer->name.' - € '.number_format((float) $project->deposit_amount, 0, ',', '.'),
+                'subtitle' => $project->name.($project->start_date ? ', start '.$project->start_date->translatedFormat('j M') : ''),
                 'url' => route('projects.show', $project),
             ])
             ->values();
@@ -222,7 +222,7 @@ class AttentionService
                     'severity' => 'rood',
                     'icon' => 'calendar',
                     'label' => 'Planningconflict',
-                    'title' => $project->name.' loopt uit — '.$upcomingElsewhere->user->name.' staat '.$upcomingElsewhere->date->translatedFormat('D j M').' bij '.($upcomingElsewhere->project?->name ?? 'een ander project').' gepland',
+                    'title' => $project->name.' loopt uit - '.$upcomingElsewhere->user->name.' staat '.$upcomingElsewhere->date->translatedFormat('D j M').' bij '.($upcomingElsewhere->project?->name ?? 'een ander project').' gepland',
                     'subtitle' => 'Planning aanpassen of iemand anders inzetten?',
                     'url' => route('planning.index', ['week' => $upcomingElsewhere->date->toDateString()]),
                 ]);
@@ -247,7 +247,7 @@ class AttentionService
                 'icon' => 'phone',
                 'label' => 'Klant wacht op reactie',
                 'title' => $lead->customer->name,
-                'subtitle' => ($lead->next_action ?? 'Opvolgen').' · gepland '.$lead->next_action_at->translatedFormat('j M H:i'),
+                'subtitle' => ($lead->next_action ?? 'Opvolgen').', gepland '.$lead->next_action_at->translatedFormat('j M H:i'),
                 'url' => route('leads.show', $lead),
             ]);
     }
@@ -273,7 +273,7 @@ class AttentionService
                 'title' => $lead->customer->name,
                 'subtitle' => ($lead->last_contact_at === null
                     ? 'nog geen contactmoment sinds de aanvraag ('.(int) $lead->created_at->diffInDays().' dagen)'
-                    : 'laatste contact '.$lead->last_contact_at->translatedFormat('j M')).' · geen volgende actie gepland',
+                    : 'laatste contact '.$lead->last_contact_at->translatedFormat('j M')).', geen volgende actie gepland',
                 'url' => route('leads.show', $lead),
             ]);
     }
@@ -296,7 +296,7 @@ class AttentionService
                     $task->customer?->name ?? $task->project?->name,
                     'deadline '.$task->deadline->translatedFormat('j M'),
                     $task->owner?->name,
-                ])->filter()->implode(' · '),
+                ])->filter()->implode(', '),
                 'url' => route('tasks.index'),
             ]);
     }

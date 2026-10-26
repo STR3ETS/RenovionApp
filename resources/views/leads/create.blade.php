@@ -17,9 +17,9 @@
             <div x-show="bestaand" x-cloak>
                 <x-field label="Klant" name="customer_id">
                     <select name="customer_id" id="customer_id" x-bind:disabled="!bestaand" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
-                        <option value="">— Kies klant —</option>
+                        <option value="">- Kies klant -</option>
                         @foreach ($customers as $customer)
-                            <option value="{{ $customer->id }}" @selected($selectedCustomerId === $customer->id)>{{ $customer->name }} ({{ $customer->city ?? '—' }})</option>
+                            <option value="{{ $customer->id }}" @selected($selectedCustomerId === $customer->id)>{{ $customer->name }} ({{ $customer->city ?? '-' }})</option>
                         @endforeach
                     </select>
                 </x-field>
@@ -75,7 +75,7 @@
                 </x-field>
                 <x-field label="Toegewezen aan" name="assigned_to">
                     <select name="assigned_to" id="assigned_to" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
-                        <option value="">— Niet toegewezen —</option>
+                        <option value="">- Niet toegewezen -</option>
                         @foreach ($users as $user)
                             <option value="{{ $user->id }}" @selected(old('assigned_to') == $user->id)>{{ $user->name }}</option>
                         @endforeach
