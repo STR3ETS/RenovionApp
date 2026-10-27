@@ -555,6 +555,44 @@
                     } catch { /* volgende keer opnieuw */ }
                 },
 
+                // Achtergrond van de kop (hero): zelfde regels als App\Support\QuoteHeroStyle,
+                // zodat de builder live toont wat de klant straks ziet.
+                heroPresets: {{ Js::from(collect(\App\Support\QuoteHeroStyle::presets())->map(fn ($hex, $label) => ['label' => $label, 'hex' => $hex])->values()) }},
+                heroResolve(d) {
+                    const hex = (value) => {
+                        const v = String(value || '').trim().toLowerCase();
+                        if (/^#[0-9a-f]{6}$/.test(v)) return v;
+                        if (/^#[0-9a-f]{3}$/.test(v)) return '#' + v[1] + v[1] + v[2] + v[2] + v[3] + v[3];
+                        return null;
+                    };
+                    const rgb = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+                    const lum = (h) => {
+                        const [r, g, b] = rgb(h).map(c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); });
+                        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+                    };
+                    const contrast = (a, b) => (Math.max(lum(a), lum(b)) + 0.05) / (Math.min(lum(a), lum(b)) + 0.05);
+
+                    const bg = hex(d.bg) || '{{ \App\Support\QuoteHeroStyle::DEFAULT_BG }}';
+                    const rawImage = String(d.image || '').trim();
+                    const image = /^(https?:\/\/[^\s"'()<>\\]+|\/[^\s"'()<>\\]*)$/i.test(rawImage) ? rawImage : null;
+                    const overlay = Math.max(0, Math.min(95, parseInt(d.overlay ?? {{ \App\Support\QuoteHeroStyle::DEFAULT_OVERLAY }}, 10) || 0));
+                    const text = ['light', 'dark'].includes(d.text) ? d.text : 'auto';
+                    const theme = text !== 'auto' ? text : ((image && overlay < 35) ? 'light' : (lum(bg) > 0.6 ? 'dark' : 'light'));
+
+                    const vars = theme === 'dark'
+                        ? { fg: '#070724', soft: '#1f204f', muted: '#414382', accent: '#e04c06', line: 'rgba(7,7,36,.12)', chip: 'rgba(7,7,36,.06)' }
+                        : { fg: '#ffffff', soft: '#d9d9eb', muted: '#8b8cc0', accent: '#fc7737', line: 'rgba(255,255,255,.12)', chip: 'rgba(255,255,255,.1)' };
+                    if (!image && contrast(vars.accent, bg) < 2.0) vars.accent = vars.fg;
+
+                    let style = `--hero-bg: ${bg}; --hero-fg: ${vars.fg}; --hero-fg-soft: ${vars.soft}; --hero-fg-muted: ${vars.muted}; --hero-accent: ${vars.accent}; --hero-line: ${vars.line}; --hero-chip: ${vars.chip}; background-color: ${bg};`;
+                    if (image) {
+                        const [r, g, b] = rgb(bg);
+                        const a = (overlay / 100).toFixed(2);
+                        style += ` background-image: linear-gradient(rgba(${r},${g},${b},${a}), rgba(${r},${g},${b},${a})), url("${image}"); background-size: cover; background-position: center;`;
+                    }
+                    return { bg, image, overlay, text, theme, style };
+                },
+
                 // Upload voor foto-blokken; geeft een promise met de URL terug.
                 async upload(file) {
                     if (!file) return null;

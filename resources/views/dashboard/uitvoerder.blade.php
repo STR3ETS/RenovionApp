@@ -1,5 +1,17 @@
 <x-layouts.app title="Vandaag">
 
+    @if ($onboarding)
+        {{-- Aan de slag: korte uitleg voor op het werk, tot de uitvoerder hem uit het menu haalt --}}
+        <a href="{{ route('onboarding') }}" class="group mb-4 flex items-center gap-3 rounded-2xl border border-brand-200 bg-brand-50 p-4 transition hover:border-brand-300 hover:shadow-sm">
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-500 text-white"><x-icon name="sparkles" class="h-5 w-5" /></span>
+            <span class="min-w-0 flex-1">
+                <span class="block text-sm font-semibold text-navy-900">Aan de slag: zo werkt het op het werk</span>
+                <span class="block text-xs text-brand-700/70">Planning, werkpakketten, checklist afvinken en foto's maken. In vijf stappen uitgelegd.</span>
+            </span>
+            <x-icon name="chevron-right" class="h-5 w-5 shrink-0 text-brand-400 transition group-hover:translate-x-0.5" />
+        </a>
+    @endif
+
     <section class="mb-5 rounded-2xl bg-gradient-to-br from-navy-950 to-navy-900 p-5 text-white lg:p-6">
         <p class="text-[11px] font-bold tracking-widest text-navy-300 uppercase">{{ now()->translatedFormat('l j F') }}</p>
         <h1 class="mt-1 text-xl font-bold lg:text-2xl">

@@ -18,6 +18,7 @@ use App\Http\Controllers\LeadContactController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\LeadStatusController;
 use App\Http\Controllers\NovaController;
+use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\PlanningController;
 use App\Http\Controllers\PortalController;
@@ -70,6 +71,11 @@ Route::middleware('auth')->group(function () {
 
     // Interne omgeving: niet voor klanten.
     Route::middleware('can:internal')->group(function () {
+        // "Aan de slag": uitleg van het systeem voor het hele team, checklist voor wie het CRM beheert.
+        Route::get('aan-de-slag', [OnboardingController::class, 'show'])->name('onboarding');
+        Route::post('aan-de-slag/verbergen', [OnboardingController::class, 'dismiss'])->name('onboarding.dismiss');
+        Route::post('aan-de-slag/tonen', [OnboardingController::class, 'restore'])->name('onboarding.restore');
+
         // Voor het hele team (uitvoerders zien alleen hun eigen projecten, taken en planning).
         Route::get('projecten', [ProjectController::class, 'index'])->name('projects.index');
         Route::get('projecten/aanmaken', [ProjectController::class, 'create'])->middleware('can:manage-crm')->name('projects.create');

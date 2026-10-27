@@ -2,6 +2,20 @@
 
     @php $quotesEnabled = config('renovion.modules.quotes'); @endphp
 
+    @if ($onboarding)
+        {{-- Aan de slag: uitleg en checklist, tot de gebruiker hem uit het menu haalt --}}
+        <a href="{{ route('onboarding') }}" class="group mb-4 flex items-center gap-3 rounded-2xl border border-brand-200 bg-brand-50 p-4 transition hover:border-brand-300 hover:shadow-sm">
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-500 text-white"><x-icon name="sparkles" class="h-5 w-5" /></span>
+            <span class="min-w-0 flex-1">
+                <span class="block text-sm font-semibold text-navy-900">
+                    {{ $onboarding['complete'] ? 'Aan de slag: alles staat klaar om te beginnen' : 'Aan de slag: '.$onboarding['open'].' '.($onboarding['open'] === 1 ? 'stap' : 'stappen').' nog te doen' }}
+                </span>
+                <span class="block text-xs text-brand-700/70">Lees hoe het systeem werkt en loop de checklist door. {{ $onboarding['done'] }} van {{ $onboarding['total'] }} stappen zijn klaar.</span>
+            </span>
+            <x-icon name="chevron-right" class="h-5 w-5 shrink-0 text-brand-400 transition group-hover:translate-x-0.5" />
+        </a>
+    @endif
+
     {{-- Hero-band: begroeting + Nova in één donker anker --}}
     <section class="mb-4 overflow-hidden rounded-2xl bg-gradient-to-br from-navy-950 via-navy-950 to-navy-900 text-white">
         <div class="grid gap-6 p-6 lg:grid-cols-3 lg:p-8">

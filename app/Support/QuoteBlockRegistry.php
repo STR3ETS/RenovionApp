@@ -29,9 +29,14 @@ class QuoteBlockRegistry
                 'description' => 'Titel, klant en offertenummer',
                 'locked' => true,
                 'singleton' => true,
+                // Achtergrond: kleur (hex), optionele foto met kleur-overlay (0-95%) en tekstkleur (auto/light/dark), zie QuoteHeroStyle.
                 'default' => [
                     'title' => 'Offerte',
                     'subtitle' => 'Renovatiewerkzaamheden',
+                    'bg' => QuoteHeroStyle::DEFAULT_BG,
+                    'image' => '',
+                    'overlay' => QuoteHeroStyle::DEFAULT_OVERLAY,
+                    'text' => 'auto',
                 ],
             ],
             'summary' => [

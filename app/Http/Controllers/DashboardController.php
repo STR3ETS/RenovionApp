@@ -10,6 +10,7 @@ use App\Models\Quote;
 use App\Models\ScheduleEntry;
 use App\Models\Task;
 use App\Services\AttentionService;
+use App\Services\OnboardingGuide;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -19,14 +20,19 @@ class DashboardController extends Controller
     /**
      * Het Vandaag-scherm: actie gaat vóór informatie.
      */
-    public function __invoke(Request $request): View|RedirectResponse
+    public function __invoke(Request $request, OnboardingGuide $onboarding): View|RedirectResponse
     {
         if ($request->user()->role === UserRole::Klant) {
             return redirect()->route('portal.index');
         }
 
+        // "Aan de slag"-banner zolang de gebruiker de uitleg niet uit het menu heeft gehaald.
+        $onboardingSummary = $onboarding->summaryFor($request->user());
+        $onboardingBanner = $onboardingSummary['dismissed'] ? null : $onboardingSummary;
+
         if ($request->user()->cannot('manage-crm')) {
             return view('dashboard.uitvoerder', [
+                'onboarding' => $onboardingBanner,
                 'taken' => Task::open()
                     ->where('owner_id', $request->user()->id)
                     ->with(['customer', 'project'])
@@ -42,7 +48,7 @@ class DashboardController extends Controller
             ]);
         }
 
-        return view('dashboard.index', $this->managementData());
+        return view('dashboard.index', ['onboarding' => $onboardingBanner, ...$this->managementData()]);
     }
 
     /**

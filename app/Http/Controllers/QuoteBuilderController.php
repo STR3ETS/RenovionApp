@@ -101,6 +101,11 @@ class QuoteBuilderController extends Controller
             function (array $block) {
                 unset($block['data']['_keep']);
 
+                // De achtergrondfoto van de kop hoort bij één offerte (klantlink-URL); kleur en overlay gaan wel mee.
+                if ($block['type'] === 'hero') {
+                    unset($block['data']['image']);
+                }
+
                 return ['type' => $block['type'], 'data' => $block['data']];
             },
             QuoteBlockRegistry::normalize($quote->blocks ?? []),

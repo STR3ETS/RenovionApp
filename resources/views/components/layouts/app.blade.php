@@ -34,6 +34,9 @@
         $canCrm = auth()->user()->can('manage-crm');
         $aandachtCount = $canCrm ? \App\Services\AttentionService::cachedCount() : 0;
         $chatUnread = \App\Models\ChatChannel::unreadTotalFor(auth()->user());
+        // "Aan de slag" staat bovenaan het menu tot de gebruiker het zelf weghaalt; daarna via het sterretje bij je naam.
+        $onboarding = app(\App\Services\OnboardingGuide::class)->summaryFor(auth()->user());
+        $onboardingItem = $onboarding['dismissed'] ? null : ['label' => 'Aan de slag', 'icon' => 'sparkles', 'route' => 'onboarding', 'active' => request()->routeIs('onboarding'), 'badge' => $onboarding['open'], 'badgeTone' => 'brand'];
     @endphp
 
     {{-- Desktop sidebar --}}
@@ -47,6 +50,7 @@
         <nav class="flex-1 space-y-1 overflow-y-auto px-3 pb-6">
             @php
                 $items = $canCrm ? collect([
+                    $onboardingItem,
                     ['label' => 'Vandaag', 'icon' => 'home', 'route' => 'dashboard', 'active' => request()->routeIs('dashboard')],
                     ['label' => 'Aandacht', 'icon' => 'exclamation-triangle', 'route' => 'attention.index', 'active' => request()->routeIs('attention.*'), 'badge' => $aandachtCount],
                     ['label' => 'Aanvragen & Sales', 'icon' => 'inbox', 'route' => 'leads.index', 'active' => request()->routeIs('leads.*')],
@@ -61,12 +65,13 @@
                     ['label' => 'Team', 'icon' => 'chat-bubble', 'route' => 'chat.index', 'active' => request()->routeIs('chat.*'), 'badge' => $chatUnread],
                     auth()->user()->can('manage-team') ? ['label' => 'Teambeheer', 'icon' => 'user', 'route' => 'team.index', 'active' => request()->routeIs('team.*')] : null,
                 ])->filter() : collect([
+                    $onboardingItem,
                     ['label' => 'Vandaag', 'icon' => 'home', 'route' => 'dashboard', 'active' => request()->routeIs('dashboard')],
                     ['label' => 'Projecten', 'icon' => 'building-office', 'route' => 'projects.index', 'active' => request()->routeIs('projects.*')],
                     ['label' => 'Planning', 'icon' => 'calendar', 'route' => 'planning.index', 'active' => request()->routeIs('planning.*')],
                     ['label' => 'Taken', 'icon' => 'clipboard-check', 'route' => 'tasks.index', 'active' => request()->routeIs('tasks.*')],
                     ['label' => 'Team', 'icon' => 'chat-bubble', 'route' => 'chat.index', 'active' => request()->routeIs('chat.*'), 'badge' => $chatUnread],
-                ]);
+                ])->filter();
             @endphp
 
             @foreach ($items as $item)
@@ -75,7 +80,7 @@
                     <x-icon :name="$item['icon']" class="h-5 w-5 shrink-0 {{ $item['active'] ? 'text-white' : 'text-navy-300' }}" />
                     <span class="flex-1 truncate">{{ $item['label'] }}</span>
                     @if (($item['badge'] ?? 0) > 0)
-                        <span class="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold text-white">{{ $item['badge'] }}</span>
+                        <span class="rounded-full px-2 py-0.5 text-[10px] font-bold text-white {{ ($item['badgeTone'] ?? null) === 'brand' ? ($item['active'] ? 'bg-white/20' : 'bg-brand-500') : 'bg-red-500' }}">{{ $item['badge'] }}</span>
                     @endif
                 </a>
             @endforeach
@@ -92,12 +97,17 @@
                         <span class="block truncate text-xs text-navy-300">{{ auth()->user()->role->label() }}</span>
                     </span>
                 </div>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="rounded-lg p-2 text-navy-300 transition hover:bg-navy-900 hover:text-white" title="Uitloggen">
-                        <x-icon name="arrow-right-on-rectangle" class="h-5 w-5" />
-                    </button>
-                </form>
+                <div class="flex shrink-0 items-center">
+                    <a href="{{ route('onboarding') }}" class="rounded-lg p-2 text-navy-300 transition hover:bg-navy-900 hover:text-white" title="Aan de slag: zo werkt het systeem">
+                        <x-icon name="sparkles" class="h-5 w-5" />
+                    </a>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="rounded-lg p-2 text-navy-300 transition hover:bg-navy-900 hover:text-white" title="Uitloggen">
+                            <x-icon name="arrow-right-on-rectangle" class="h-5 w-5" />
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </aside>
@@ -111,6 +121,9 @@
             <span class="absolute left-1/2 -translate-x-1/2 text-sm font-semibold">{{ $title }}</span>
         @endif
         <div class="flex items-center gap-1">
+            <a href="{{ route('onboarding') }}" class="rounded-lg p-2 {{ request()->routeIs('onboarding') ? 'text-brand-400' : 'text-navy-300' }}" title="Aan de slag: zo werkt het systeem">
+                <x-icon name="sparkles" class="h-5 w-5" />
+            </a>
             @if ($canCrm)
                 <a href="{{ route('search') }}" class="rounded-lg p-2 text-navy-300" title="Zoeken">
                     <x-icon name="magnifying-glass" class="h-5 w-5" />
