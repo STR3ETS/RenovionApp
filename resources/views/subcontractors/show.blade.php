@@ -179,6 +179,26 @@
 
                 <button type="submit" class="w-full rounded-xl bg-brand-500 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600">Opslaan</button>
             </form>
+
+            {{-- Een inlog voor het partnerportaal, zodat de partij zijn eigen
+                 papieren aanlevert en zijn biedingen zelf indient. --}}
+            <div class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
+                <h2 class="mb-1 text-sm font-bold text-white">Partner<span class="text-brand-500">portaal</span></h2>
+                <p class="mb-3 text-xs text-slate-500">
+                    @if ($subcontractor->user)
+                        Inlog op {{ $subcontractor->user->email }}. De partner komt alleen bij zijn eigen gegevens.
+                    @else
+                        Nog geen inlog. Met een account levert de partner zijn eigen dossierstukken aan en dient hij zelf biedingen in.
+                    @endif
+                </p>
+
+                <form method="POST" action="{{ route('subcontractors.portal', $subcontractor) }}">
+                    @csrf
+                    <button type="submit" class="w-full rounded-xl border border-surface-600 py-2.5 text-sm font-semibold text-slate-200 transition hover:text-white">
+                        {{ $subcontractor->user ? 'Nieuw wachtwoord instellen' : 'Account aanmaken' }}
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </x-layouts.app>

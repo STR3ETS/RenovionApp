@@ -23,8 +23,14 @@ class DashboardController extends Controller
      */
     public function __invoke(Request $request, OnboardingGuide $onboarding): View|RedirectResponse
     {
+        // De twee buitenrollen komen de interne omgeving niet in: zij hebben hun
+        // eigen portaal.
         if ($request->user()->role === UserRole::Klant) {
             return redirect()->route('portal.index');
+        }
+
+        if ($request->user()->role === UserRole::Onderaannemer) {
+            return redirect()->route('partner.index');
         }
 
         // "Aan de slag"-banner zolang de gebruiker de uitleg niet uit het menu heeft gehaald.

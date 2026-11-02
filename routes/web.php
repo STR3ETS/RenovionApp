@@ -36,6 +36,7 @@ use App\Http\Controllers\MailTemplateController;
 use App\Http\Controllers\MotionPreferenceController;
 use App\Http\Controllers\NovaController;
 use App\Http\Controllers\OnboardingController;
+use App\Http\Controllers\PartnerPortalController;
 use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\PlanningController;
 use App\Http\Controllers\PortalController;
@@ -92,6 +93,12 @@ Route::middleware('auth')->group(function () {
 
     // Klantportaal (briefing §10): rol Klant, alleen eigen projecten en klantzichtbare content.
     Route::get('portaal', [PortalController::class, 'index'])->name('portal.index');
+
+    // Partnerportaal: wat een onderaannemer ziet als hij inlogt. Hij komt niet
+    // in de interne omgeving, net als een klant.
+    Route::get('partner', [PartnerPortalController::class, 'index'])->name('partner.index');
+    Route::post('partner/aanvragen/{rfq}/bieden', [PartnerPortalController::class, 'bid'])->middleware('throttle:10,1')->name('partner.bid');
+    Route::post('partner/{subcontractor}/dossier', [PartnerPortalController::class, 'document'])->middleware('throttle:10,1')->name('partner.document');
     Route::get('portaal/projecten/{project}', [PortalController::class, 'show'])->name('portal.show');
     Route::post('portaal/fasen/{phase}/akkoord', [PortalController::class, 'approvePhase'])->middleware('throttle:10,1')->name('portal.phases.approve');
     Route::get('portaal/opleverrapporten/{report}', [PortalController::class, 'report'])->name('portal.report');
@@ -279,6 +286,7 @@ Route::middleware('auth')->group(function () {
             Route::get('onderaannemers/{subcontractor}', [SubcontractorController::class, 'show'])->name('subcontractors.show');
             Route::match(['put', 'patch'], 'onderaannemers/{subcontractor}', [SubcontractorController::class, 'update'])->name('subcontractors.update');
             Route::post('onderaannemers/{subcontractor}/dossier', [SubcontractorController::class, 'storeDocument'])->name('subcontractor-documents.store');
+            Route::post('onderaannemers/{subcontractor}/portaal', [SubcontractorController::class, 'storePortalAccount'])->name('subcontractors.portal');
             Route::delete('partnerdossier/{document}', [SubcontractorController::class, 'destroyDocument'])->name('subcontractor-documents.destroy');
 
             Route::get('prijsaanvragen', [RfqController::class, 'index'])->name('rfqs.index');

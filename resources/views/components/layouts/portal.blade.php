@@ -1,4 +1,6 @@
-@props(['title' => null])
+{{-- Dezelfde buitenschil voor het klantportaal en het partnerportaal: licht,
+     smal en zonder het interne menu. --}}
+@props(['title' => null, 'portal' => 'Klantportaal', 'home' => 'portal.index'])
 
 <!DOCTYPE html>
 <html lang="nl">
@@ -7,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="robots" content="noindex, nofollow">
-    <title>{{ $title ? $title.' - ' : '' }}Klantportaal Renovion</title>
+    <title>{{ $title ? $title.' - ' : '' }}{{ $portal }} Renovion</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter-tight:400,500,600,700,800" rel="stylesheet">
@@ -18,7 +20,7 @@
 
     <header class="bg-navy-950 text-white">
         <div class="mx-auto flex h-16 w-full max-w-3xl items-center justify-between px-4">
-            <a href="{{ route('portal.index') }}">
+            <a href="{{ route($home) }}">
                 <img src="{{ asset('images/renovion-logo.svg') }}" alt="Renovion" class="h-9 w-auto">
             </a>
             <div class="flex items-center gap-3">

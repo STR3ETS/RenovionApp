@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserRole;
 use App\Models\AuditLog;
 use App\Models\Subcontractor;
 use App\Models\SubcontractorDocument;
+use App\Models\User;
 use App\Support\CertificateCatalogue;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 /**
@@ -156,5 +159,51 @@ class SubcontractorController extends Controller
         $document->delete();
 
         return back()->with('success', 'Dossierstuk verwijderd.');
+    }
+
+    /**
+     * Een inlog voor het partnerportaal. De partner levert daar zijn eigen
+     * papieren aan en doet zijn biedingen, zonder in onze omgeving te komen.
+     *
+     * Zonder mailserver verstuurt het systeem niets, dus het wachtwoord staat
+     * eenmalig in de melding. Daarna is het niet meer op te vragen.
+     */
+    public function storePortalAccount(Request $request, Subcontractor $subcontractor): RedirectResponse
+    {
+        abort_unless($request->user()->can('manage-crm'), 403);
+
+        if (blank($subcontractor->email)) {
+            return back()->with('error', 'Vul eerst een e-mailadres in bij deze partner.');
+        }
+
+        $password = Str::password(14);
+
+        if ($subcontractor->user !== null) {
+            $subcontractor->user->update(['password' => $password]);
+
+            AuditLog::record($subcontractor->user, 'partnerportaal wachtwoord opnieuw gezet', [], [
+                'partner' => $subcontractor->name,
+            ]);
+
+            return back()->with('success', "Nieuw wachtwoord voor {$subcontractor->name}: {$password}. Geef dit eenmalig door, het wordt niet nog eens getoond.");
+        }
+
+        if (User::where('email', $subcontractor->email)->exists()) {
+            return back()->with('error', 'Er bestaat al een account met dit e-mailadres.');
+        }
+
+        $user = User::create([
+            'name' => $subcontractor->contact_name ?: $subcontractor->name,
+            'email' => $subcontractor->email,
+            'role' => UserRole::Onderaannemer,
+            'password' => $password,
+            'plannable' => false,
+        ]);
+
+        $subcontractor->update(['user_id' => $user->id]);
+
+        AuditLog::record($user, 'partnerportaal account aangemaakt', [], ['partner' => $subcontractor->name]);
+
+        return back()->with('success', 'Account aangemaakt. Inloggen op '.config('app.url')." met {$subcontractor->email} en wachtwoord: {$password}. Geef dit eenmalig door.");
     }
 }
