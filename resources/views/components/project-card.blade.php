@@ -1,4 +1,4 @@
-@props(['project'])
+@props(['project', 'health' => null])
 
 @php
     /** Fotokaart per project (mockup §18): handmatige omslag of het laatste klantzichtbare foto-bewijs. */
@@ -7,7 +7,7 @@
 @endphp
 
 <a href="{{ route('projects.show', $project) }}"
-   class="group flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:border-brand-400 hover:shadow-md">
+   class="motion-lift group flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:border-brand-400 hover:shadow-md">
     <div class="relative h-28 overflow-hidden bg-gradient-to-br from-navy-700 via-navy-900 to-navy-950">
         @if ($hasCover)
             <img src="{{ route('projects.cover', $project) }}" alt="{{ $project->name }}" loading="lazy"
@@ -18,6 +18,13 @@
             </span>
         @endif
         <span class="absolute top-2.5 right-2.5"><x-status-badge :status="$project->status" /></span>
+        @if ($health && $health->overall !== \App\Enums\HealthLight::Grijs)
+            <span class="absolute top-2.5 left-2.5 flex items-center gap-1.5 rounded-full bg-white/95 px-2 py-1 text-[10px] font-bold {{ $health->overall->textClasses() }}"
+                  title="{{ $health->biggestBlocker ?? 'Alle stoplichten groen' }}">
+                <x-signal-dot :color="$health->overall->dotColor()" />
+                {{ $health->overall->label() }}
+            </span>
+        @endif
     </div>
 
     <div class="flex flex-1 flex-col p-4">

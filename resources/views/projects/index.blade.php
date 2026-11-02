@@ -15,9 +15,9 @@
         @endforeach
     </div>
 
-    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+    <div data-motion-fan class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
         @forelse ($projects as $project)
-            <x-project-card :project="$project" />
+            <x-project-card :project="$project" :health="$health[$project->id] ?? null" />
         @empty
             <div class="sm:col-span-2 xl:col-span-3 2xl:col-span-4">
                 <x-empty-state title="Geen projecten in deze weergave" subtitle="Maak een project aan of zet een aanvraag om naar een project." icon="building-office" category="project" />

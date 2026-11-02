@@ -17,11 +17,13 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\LeadContactController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\LeadStatusController;
+use App\Http\Controllers\MotionPreferenceController;
 use App\Http\Controllers\NovaController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\PlanningController;
 use App\Http\Controllers\PortalController;
+use App\Http\Controllers\PortfolioController;
 use App\Http\Controllers\PriceItemSearchController;
 use App\Http\Controllers\PriceListController;
 use App\Http\Controllers\ProjectController;
@@ -42,6 +44,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/login', [LoginController::class, 'create'])->name('login');
 Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:login')->name('login.store');
 Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+Route::post('/voorkeuren/beweging', MotionPreferenceController::class)->middleware('auth')->name('preferences.motion');
 
 // Klantview van de offerte: privélink zonder inlog (briefing §6).
 if (config('renovion.modules.quotes')) {
@@ -78,6 +81,7 @@ Route::middleware('auth')->group(function () {
 
         // Voor het hele team (uitvoerders zien alleen hun eigen projecten, taken en planning).
         Route::get('projecten', [ProjectController::class, 'index'])->name('projects.index');
+        Route::get('portfolio', PortfolioController::class)->middleware('can:manage-crm')->name('portfolio');
         Route::get('projecten/aanmaken', [ProjectController::class, 'create'])->middleware('can:manage-crm')->name('projects.create');
         Route::get('projecten/{project}', [ProjectController::class, 'show'])->name('projects.show');
 

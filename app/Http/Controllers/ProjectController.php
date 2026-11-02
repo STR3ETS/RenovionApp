@@ -13,6 +13,7 @@ use App\Models\Customer;
 use App\Models\Project;
 use App\Models\ProjectPhase;
 use App\Models\User;
+use App\Services\ProjectHealthService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +24,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ProjectController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request, ProjectHealthService $healthService): View
     {
         $request->validate([
             'status' => ['nullable', Rule::enum(ProjectStatus::class)],
@@ -45,6 +46,7 @@ class ProjectController extends Controller
         return view('projects.index', [
             'projects' => $projects,
             'status' => $status,
+            'health' => $healthService->forMany($projects->getCollection()),
         ]);
     }
 
@@ -108,7 +110,7 @@ class ProjectController extends Controller
         return redirect()->route('projects.show', $project)->with('success', 'Project "'.$project->name.'" aangemaakt.');
     }
 
-    public function show(Project $project): View
+    public function show(Project $project, ProjectHealthService $healthService): View
     {
         abort_unless($project->isAccessibleBy(auth()->user()), 403);
 
@@ -135,7 +137,10 @@ class ProjectController extends Controller
             'scheduleEntries.user',
         ]);
 
-        return view('projects.show', ['project' => $project]);
+        return view('projects.show', [
+            'project' => $project,
+            'health' => $healthService->for($project),
+        ]);
     }
 
     public function edit(Project $project): View

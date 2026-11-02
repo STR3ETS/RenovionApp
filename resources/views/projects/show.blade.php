@@ -11,15 +11,47 @@
         @endcan
     </x-page-header>
 
-    {{-- Fasering (briefing §7): voortgang + fase-stepper --}}
+    {{-- Cockpit (briefing hoofdstuk 7): vier stoplichten, voortgang tegen plan, mijlpaal en blokkades --}}
+    @can('manage-crm')
+        <section class="mb-4 space-y-3">
+            <x-health-lights :health="$health" />
+        </section>
+    @endcan
+
     <section class="mb-4 rounded-2xl border border-gray-200 bg-white p-5">
-        <div class="mb-2 flex items-center justify-between">
-            <h2 class="text-sm font-bold text-navy-900">Projectvoortgang</h2>
-            <span class="text-xs font-semibold text-gray-400">{{ $project->progress }}%</span>
-        </div>
-        <div class="mb-5 h-2 overflow-hidden rounded-full bg-gray-100">
-            <div class="h-full rounded-full bg-brand-500" style="width: {{ $project->progress }}%"></div>
-        </div>
+        @can('manage-crm')
+            <h2 class="mb-4 text-sm font-bold text-navy-900">Projectvoortgang</h2>
+            <div class="mb-5 grid gap-5 border-b border-gray-100 pb-5 lg:grid-cols-3">
+                <x-progress-vs-plan :health="$health" />
+
+                <div>
+                    <p class="text-xs font-semibold text-gray-500">Volgende mijlpaal</p>
+                    <p class="mt-1 text-sm font-bold text-navy-950">{{ $health->nextMilestone ?? 'Alle fasen gereed' }}</p>
+                    <p class="text-xs text-gray-400">{{ $health->nextMilestoneDue ?? 'geen datum gepland' }}</p>
+                </div>
+
+                <div>
+                    <p class="text-xs font-semibold text-gray-500">Acties en blokkades</p>
+                    @forelse ($health->attentionSignals() as $signal)
+                        <p class="mt-1 flex items-start gap-1.5 text-xs leading-relaxed {{ $signal->light->textClasses() }}">
+                            <x-signal-dot :color="$signal->light->dotColor()" class="mt-1" />
+                            <span><span class="font-semibold">{{ $signal->label }}:</span> {{ $signal->reason }}</span>
+                        </p>
+                    @empty
+                        <p class="mt-1 text-xs text-gray-400">Niets dat aandacht vraagt.</p>
+                    @endforelse
+                </div>
+            </div>
+        @else
+            <div class="mb-2 flex items-center justify-between">
+                <h2 class="text-sm font-bold text-navy-900">Projectvoortgang</h2>
+                <span class="text-xs font-semibold text-gray-400">{{ $project->progress }}%</span>
+            </div>
+            <div class="mb-5 h-2 overflow-hidden rounded-full bg-gray-100">
+                <div class="h-full rounded-full bg-brand-500" style="width: {{ $project->progress }}%"></div>
+            </div>
+        @endcan
+
         <x-phase-stepper :project="$project" />
     </section>
 

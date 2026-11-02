@@ -207,3 +207,86 @@
     text-decoration: underline;
     text-underline-offset: 2px;
 }
+
+/*
+ * Beweging (briefing hoofdstuk 6). Animaties spelen alleen bij het wisselen
+ * van pagina of het openen van iets, nooit bij opslaan, filteren of typen.
+ * Er wordt uitsluitend transform, opacity en filter geanimeerd, zodat het
+ * soepel blijft op telefoon en tablet.
+ *
+ * Alles staat uit bij prefers-reduced-motion en bij motion="off" op de body
+ * (per gebruiker in te stellen).
+ */
+@media (prefers-reduced-motion: no-preference) {
+    /* Pagina-opbouw: blokken komen na elkaar binnen, van onscherp en iets lager. */
+    body[data-motion='on'] .motion-block {
+        animation: motion-rise 620ms cubic-bezier(0.22, 0.68, 0.3, 1) both;
+        animation-delay: calc(var(--motion-i, 0) * 55ms);
+    }
+
+    /* Waaier: kaarten komen licht gedraaid binnen en vallen recht. */
+    body[data-motion='on'] .motion-fan {
+        animation: motion-fan 900ms cubic-bezier(0.16, 0.84, 0.28, 1) both;
+        animation-delay: calc(var(--motion-i, 0) * 55ms);
+    }
+
+    /* Pop-up: venster zoomt in van 94 procent en wordt scherp. */
+    body[data-motion='on'] .motion-pop {
+        animation: motion-pop 250ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+    }
+
+    /* Voortgangsbalken lopen vol van links. */
+    body[data-motion='on'] .motion-bar {
+        animation: motion-bar 340ms ease-out both;
+        transform-origin: left center;
+    }
+
+    /* Micro-interacties: knoppen veren in bij klik, klikbare kaarten tillen op. */
+    body[data-motion='on'] button:active:not(:disabled),
+    body[data-motion='on'] [role='button']:active {
+        transform: scale(0.96);
+    }
+
+    body[data-motion='on'] button,
+    body[data-motion='on'] [role='button'] {
+        transition: transform 150ms ease-out;
+    }
+
+    body[data-motion='on'] .motion-lift {
+        transition: transform 180ms ease-out, box-shadow 180ms ease-out;
+    }
+
+    body[data-motion='on'] .motion-lift:hover {
+        transform: translateY(-3px);
+    }
+}
+
+@keyframes motion-rise {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+        filter: blur(6px);
+    }
+}
+
+@keyframes motion-fan {
+    from {
+        opacity: 0;
+        transform: translateY(18px) rotate(var(--motion-rotate, 0deg));
+        filter: blur(5px);
+    }
+}
+
+@keyframes motion-pop {
+    from {
+        opacity: 0;
+        transform: scale(0.94);
+        filter: blur(4px);
+    }
+}
+
+@keyframes motion-bar {
+    from {
+        transform: scaleX(0);
+    }
+}

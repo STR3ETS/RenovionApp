@@ -28,7 +28,8 @@
     }
     </script>
 </head>
-<body class="min-h-screen bg-gray-100 font-sans text-gray-900 antialiased">
+<body class="min-h-screen bg-gray-100 font-sans text-gray-900 antialiased"
+      data-motion="{{ auth()->user()?->motion_enabled === false ? 'off' : 'on' }}">
 
     @php
         $canCrm = auth()->user()->can('manage-crm');
@@ -58,6 +59,7 @@
                     ['label' => 'Prijslijst', 'icon' => 'currency-euro', 'route' => 'price-items.index', 'active' => request()->routeIs('price-items.index')],
                     config('renovion.modules.quotes') ? ['label' => 'Offertes', 'icon' => 'document-text', 'route' => 'quotes.index', 'active' => request()->routeIs('quotes.*')] : null,
                     ['label' => 'Projecten', 'icon' => 'building-office', 'route' => 'projects.index', 'active' => request()->routeIs('projects.*')],
+                    ['label' => 'Portfolio', 'icon' => 'eye', 'route' => 'portfolio', 'active' => request()->routeIs('portfolio')],
                     ['label' => 'Planning', 'icon' => 'calendar', 'route' => 'planning.index', 'active' => request()->routeIs('planning.*')],
                     ['label' => 'Taken', 'icon' => 'clipboard-check', 'route' => 'tasks.index', 'active' => request()->routeIs('tasks.*')],
                     ['label' => 'Klanten', 'icon' => 'users', 'route' => 'customers.index', 'active' => request()->routeIs('customers.*')],
@@ -101,6 +103,13 @@
                     <a href="{{ route('onboarding') }}" class="rounded-lg p-2 text-navy-300 transition hover:bg-navy-900 hover:text-white" title="Aan de slag: zo werkt het systeem">
                         <x-icon name="sparkles" class="h-5 w-5" />
                     </a>
+                    <form method="POST" action="{{ route('preferences.motion') }}">
+                        @csrf
+                        <button type="submit" class="rounded-lg p-2 transition hover:bg-navy-900 hover:text-white {{ auth()->user()->motion_enabled === false ? 'text-navy-500' : 'text-navy-300' }}"
+                                title="{{ auth()->user()->motion_enabled === false ? 'Animaties staan uit, klik om ze aan te zetten' : 'Animaties staan aan, klik om ze uit te zetten' }}">
+                            <x-icon name="bolt" class="h-5 w-5" />
+                        </button>
+                    </form>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="rounded-lg p-2 text-navy-300 transition hover:bg-navy-900 hover:text-white" title="Uitloggen">

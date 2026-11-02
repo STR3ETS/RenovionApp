@@ -91,11 +91,11 @@
     </section>
 
     {{-- Statstrip: compacte tegels, categoriekleur als chip --}}
-    <section class="mb-6 grid grid-cols-2 gap-2 lg:gap-3 {{ $quotesEnabled ? 'xl:grid-cols-5' : 'xl:grid-cols-4' }}">
+    <section data-motion-fan class="mb-6 grid grid-cols-2 gap-2 lg:gap-3 {{ $quotesEnabled ? 'xl:grid-cols-5' : 'xl:grid-cols-4' }}">
         <a href="{{ route('projects.index') }}" class="flex items-center gap-3 rounded-2xl border border-project-200 bg-project-50 p-3.5 transition hover:shadow-sm">
             <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-project-500 text-white"><x-icon name="building-office" class="h-5 w-5" /></span>
             <span class="min-w-0">
-                <span class="block text-xl leading-tight font-bold text-navy-950">{{ $stats['actieve_projecten'] }}</span>
+                <span data-count class="block text-xl leading-tight font-bold text-navy-950">{{ $stats['actieve_projecten'] }}</span>
                 <span class="block truncate text-xs font-medium {{ $stats['projecten_aandacht'] > 0 ? 'text-red-600' : 'text-project-700/70' }}">
                     {{ $stats['projecten_aandacht'] > 0 ? 'projecten, '.$stats['projecten_aandacht'].' aandacht' : 'projecten op schema' }}
                 </span>
@@ -104,7 +104,7 @@
         <a href="{{ route('leads.index') }}" class="flex items-center gap-3 rounded-2xl border border-lead-200 bg-lead-50 p-3.5 transition hover:shadow-sm">
             <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-lead-500 text-white"><x-icon name="inbox" class="h-5 w-5" /></span>
             <span class="min-w-0">
-                <span class="block text-xl leading-tight font-bold text-navy-950">{{ $stats['nieuwe_aanvragen'] }}</span>
+                <span data-count class="block text-xl leading-tight font-bold text-navy-950">{{ $stats['nieuwe_aanvragen'] }}</span>
                 <span class="block truncate text-xs font-medium text-lead-700/70">nieuwe aanvragen, {{ $stats['open_aanvragen'] }} open</span>
             </span>
         </a>
@@ -112,7 +112,7 @@
             <a href="{{ route('quotes.index') }}" class="flex items-center gap-3 rounded-2xl border border-offerte-200 bg-offerte-50 p-3.5 transition hover:shadow-sm">
                 <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-offerte-500 text-white"><x-icon name="document-text" class="h-5 w-5" /></span>
                 <span class="min-w-0">
-                    <span class="block text-xl leading-tight font-bold text-navy-950">{{ $stats['open_offertes'] }}</span>
+                    <span data-count class="block text-xl leading-tight font-bold text-navy-950">{{ $stats['open_offertes'] }}</span>
                     <span class="block truncate text-xs font-medium text-offerte-700/70">offertes bij de klant</span>
                 </span>
             </a>
@@ -120,7 +120,7 @@
         <a href="{{ route('tasks.index') }}" class="flex items-center gap-3 rounded-2xl border border-planning-200 bg-planning-50 p-3.5 transition hover:shadow-sm">
             <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-planning-500 text-white"><x-icon name="clipboard-check" class="h-5 w-5" /></span>
             <span class="min-w-0">
-                <span class="block text-xl leading-tight font-bold text-navy-950">{{ $stats['taken_deze_week'] }}</span>
+                <span data-count class="block text-xl leading-tight font-bold text-navy-950">{{ $stats['taken_deze_week'] }}</span>
                 <span class="block truncate text-xs font-medium {{ $stats['taken_te_laat'] > 0 ? 'text-red-600' : 'text-planning-700/70' }}">
                     {{ $stats['taken_te_laat'] > 0 ? 'taken, '.$stats['taken_te_laat'].' te laat' : 'taken deze week' }}
                 </span>
@@ -129,7 +129,7 @@
         <a href="{{ route('projects.index') }}" class="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white p-3.5 transition hover:shadow-sm">
             <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy-950 text-white"><x-icon name="currency-euro" class="h-5 w-5" /></span>
             <span class="min-w-0">
-                <span class="block text-xl leading-tight font-bold text-navy-950">€ {{ number_format($stats['omzet_lopend'], 0, ',', '.') }}</span>
+                <span data-count class="block text-xl leading-tight font-bold text-navy-950">€ {{ number_format($stats['omzet_lopend'], 0, ',', '.') }}</span>
                 <span class="block truncate text-xs font-medium text-gray-400">€ {{ number_format($stats['omzet_open'], 0, ',', '.') }} open</span>
             </span>
         </a>
@@ -286,9 +286,9 @@
                     </div>
                     <a href="{{ route('projects.index') }}" class="text-xs font-semibold text-brand-600 transition hover:text-brand-500">Alle projecten →</a>
                 </div>
-                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div data-motion-fan class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
                     @foreach ($recenteProjecten as $project)
-                        <x-project-card :project="$project" />
+                        <x-project-card :project="$project" :health="$projectHealth[$project->id] ?? null" />
                     @endforeach
                 </div>
             </section>

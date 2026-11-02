@@ -11,6 +11,7 @@ use App\Models\ScheduleEntry;
 use App\Models\Task;
 use App\Services\AttentionService;
 use App\Services\OnboardingGuide;
+use App\Services\ProjectHealthService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -125,6 +126,7 @@ class DashboardController extends Controller
         return [
             'stats' => $stats,
             'recenteProjecten' => $recenteProjecten,
+            'projectHealth' => app(ProjectHealthService::class)->forMany($recenteProjecten),
             'aandachtItems' => $attentionItems->take(4),
             'attentionCount' => $attentionItems->count(),
             'taken' => $taken,
