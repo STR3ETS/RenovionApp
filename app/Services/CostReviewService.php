@@ -53,10 +53,17 @@ class CostReviewService
                 'name' => 'Arbeid',
                 'budgeted' => $totals->categories['arbeid'],
                 'actual' => $labour['cost'],
-                'expected' => max(
-                    $labour['cost'],
-                    $labour['cost'] + $totals->categories['arbeid'] * (1 - $progress) * $efficiency,
-                ),
+                // Zolang het werk loopt zakt de verwachting niet onder de begroting.
+                // Staat de voortgang op zestig procent met nauwelijks geboekte uren,
+                // dan klopt de voortgang niet of zijn de bonnen nog niet goedgekeurd;
+                // in beide gevallen moet dat werk nog betaald worden. Alleen een
+                // afgerond project kan echt onder de begroting uitkomen.
+                'expected' => $progress >= 1
+                    ? $labour['cost']
+                    : max(
+                        $totals->categories['arbeid'] * $efficiency,
+                        $labour['cost'] + $totals->categories['arbeid'] * (1 - $progress) * $efficiency,
+                    ),
                 'note' => sprintf(
                     '%s van %s begrote uren geboekt',
                     $this->hours($labour['hours']),

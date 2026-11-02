@@ -20,6 +20,9 @@ class DatabaseSeeder extends Seeder
 
         if (app()->environment(['local', 'testing'])) {
             $this->call(DemoSeeder::class);
+            // Demodata voor de modules uit briefing v3: begrotingen, klussen,
+            // werkbonnen, geld, partners, kwaliteit, nazorg en de agents.
+            $this->call(RenovionOsDemoSeeder::class);
         }
     }
 }
