@@ -14,6 +14,11 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeliveryReportController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\JobCompletionController;
+use App\Http\Controllers\JobController;
+use App\Http\Controllers\JobReportController;
+use App\Http\Controllers\JobStatusController;
+use App\Http\Controllers\JobStepController;
 use App\Http\Controllers\LeadContactController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\LeadStatusController;
@@ -38,6 +43,8 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TaskStatusController;
 use App\Http\Controllers\TeamController;
+use App\Http\Controllers\WorkOrderApprovalController;
+use App\Http\Controllers\WorkOrderController;
 use App\Http\Controllers\WorkPackageController;
 use Illuminate\Support\Facades\Route;
 
@@ -94,6 +101,22 @@ Route::middleware('auth')->group(function () {
         Route::post('werkpakketten/{workPackage}/afronden', [WorkPackageController::class, 'complete'])->name('work-packages.complete');
         Route::post('werkpakketten/{workPackage}/heropenen', [WorkPackageController::class, 'reopen'])->name('work-packages.reopen');
         Route::patch('werkpakketten/{workPackage}/items/{item}/toggle', [ChecklistItemController::class, 'toggle'])->scopeBindings()->name('checklist-items.toggle');
+
+        // Mijn klussen: de werkweergave voor op de bouwplaats. Uitvoeren mag alleen
+        // de eigenaar van het blok; meekijken mag de projectleiding.
+        Route::get('klussen', [JobController::class, 'index'])->name('jobs.index');
+        Route::get('klussen/{scheduleEntry}', [JobController::class, 'show'])->name('jobs.show');
+        Route::patch('klussen/{job}/status', [JobStatusController::class, 'update'])->name('jobs.status');
+        Route::patch('klussen/{job}/stappen/{step}/toggle', [JobStepController::class, 'toggle'])->name('job-steps.toggle');
+        Route::patch('klussen/{job}/stappen/{step}/notitie', [JobStepController::class, 'note'])->name('job-steps.note');
+        Route::post('klussen/{job}/stappen/{step}/fotos', [JobStepController::class, 'photo'])->middleware('throttle:30,1')->name('job-steps.photos');
+        Route::post('klussen/{job}/meldingen', [JobReportController::class, 'store'])->middleware('throttle:30,1')->name('job-reports.store');
+        Route::post('meldingen/{report}/afhandelen', [JobReportController::class, 'resolve'])->name('job-reports.resolve');
+        Route::post('klussen/{job}/afronden', JobCompletionController::class)->name('jobs.complete');
+
+        // Werkbonnen: uitvoerders zien hun eigen bonnen, de projectleiding alles.
+        Route::get('werkbonnen', [WorkOrderController::class, 'index'])->name('work-orders.index');
+        Route::get('werkbonnen/{workOrder}', [WorkOrderController::class, 'show'])->name('work-orders.show');
 
         // Opleverrapport (briefing §13): bekijken kan het hele team (toegangscheck in controller).
         Route::get('opleverrapporten/{deliveryReport}', [DeliveryReportController::class, 'show'])->name('delivery-reports.show');
@@ -180,6 +203,12 @@ Route::middleware('auth')->group(function () {
             Route::post('werkpakketten/{workPackage}/items', [ChecklistItemController::class, 'store'])->name('checklist-items.store');
             Route::delete('werkpakketten/{workPackage}/items/{item}', [ChecklistItemController::class, 'destroy'])->scopeBindings()->name('checklist-items.destroy');
             Route::patch('fotos/{photo}', [PhotoController::class, 'update'])->name('photos.update');
+            // Werkbonnen beheren en goedkeuren: alleen de projectleiding.
+            Route::post('werkbonnen', [WorkOrderController::class, 'store'])->name('work-orders.store');
+            Route::match(['put', 'patch'], 'werkbonnen/{workOrder}', [WorkOrderController::class, 'update'])->name('work-orders.update');
+            Route::post('werkbonnen/{workOrder}/goedkeuren', [WorkOrderApprovalController::class, 'approve'])->name('work-orders.approve');
+            Route::post('werkbonnen/{workOrder}/afkeuren', [WorkOrderApprovalController::class, 'reject'])->name('work-orders.reject');
+
             Route::patch('fasen/{phase}', [ProjectPhaseController::class, 'update'])->name('phases.update');
             Route::post('fasen/{phase}/vrijgeven', [ProjectPhaseController::class, 'approve'])->name('phases.approve');
 

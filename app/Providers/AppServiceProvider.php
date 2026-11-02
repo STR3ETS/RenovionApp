@@ -9,6 +9,9 @@ use App\Models\ChecklistItem;
 use App\Models\Customer;
 use App\Models\DeliveryReport;
 use App\Models\Document;
+use App\Models\JobExecution;
+use App\Models\JobReport;
+use App\Models\JobStep;
 use App\Models\Lead;
 use App\Models\Photo;
 use App\Models\Project;
@@ -17,6 +20,7 @@ use App\Models\Quote;
 use App\Models\ScheduleEntry;
 use App\Models\Task;
 use App\Models\User;
+use App\Models\WorkOrder;
 use App\Models\WorkPackage;
 use App\Support\Navigation;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -49,6 +53,9 @@ class AppServiceProvider extends ServiceProvider
             'customer' => Customer::class,
             'delivery_report' => DeliveryReport::class,
             'document' => Document::class,
+            'job_execution' => JobExecution::class,
+            'job_report' => JobReport::class,
+            'job_step' => JobStep::class,
             'lead' => Lead::class,
             'photo' => Photo::class,
             'project' => Project::class,
@@ -57,6 +64,7 @@ class AppServiceProvider extends ServiceProvider
             'schedule_entry' => ScheduleEntry::class,
             'task' => Task::class,
             'user' => User::class,
+            'work_order' => WorkOrder::class,
             'work_package' => WorkPackage::class,
         ]);
 
