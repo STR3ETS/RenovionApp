@@ -5,12 +5,14 @@ namespace App\Services;
 use App\Enums\LeadStatus;
 use App\Enums\PhaseStatus;
 use App\Enums\ScheduleEntryType;
+use App\Models\JobReport;
 use App\Models\Lead;
 use App\Models\Project;
 use App\Models\ProjectPhase;
 use App\Models\Quote;
 use App\Models\ScheduleEntry;
 use App\Models\Task;
+use App\Models\WorkOrder;
 use App\Models\WorkPackage;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -22,21 +24,94 @@ use Illuminate\Support\Facades\Cache;
 class AttentionService
 {
     /**
-     * @return Collection<int, array{severity: string, icon: string, label: string, title: string, subtitle: string|null, url: string}>
+     * De soorten in de inbox. "Te doen" is geen soort maar een doorsnede: alles
+     * wat een handeling van jou vraagt, dus iedere soort behalve informatie.
+     */
+    public const KINDS = [
+        'todo' => 'Te doen',
+        'actie' => 'Actie nodig',
+        'bevestigen' => 'Ter bevestiging',
+        'service' => 'Service',
+        'info' => 'Ter info',
+    ];
+
+    /**
+     * @return Collection<int, array{severity: string, kind: string, icon: string, label: string, title: string, subtitle: string|null, url: string}>
      */
     public function items(): Collection
     {
         return collect()
             ->concat($this->overdueProjects())
             ->concat($this->blockedWork())
+            ->concat($this->openSiteReports())
+            ->concat($this->workOrdersAwaitingApproval())
             ->concat($this->unansweredQuotes())
             ->concat($this->missingDeposits())
             ->concat($this->planningConflicts())
             ->concat($this->waitingCustomers())
             ->concat($this->silentLeads())
             ->concat($this->overdueTasks())
-            ->sortBy(fn (array $item) => $item['severity'] === 'rood' ? 0 : 1)
+            // Zonder expliciete soort is het gewoon actie.
+            ->map(fn (array $item) => [...$item, 'kind' => $item['kind'] ?? 'actie'])
+            ->sortBy(fn (array $item) => [
+                $item['kind'] === 'info' ? 1 : 0,
+                $item['severity'] === 'rood' ? 0 : 1,
+            ])
             ->values();
+    }
+
+    /**
+     * Meldingen vanaf de bouwplaats die nog open staan. Spoed betekent dat het
+     * werk stilligt, dus dat is altijd rood.
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function openSiteReports(): Collection
+    {
+        return JobReport::open()
+            ->with(['project', 'reporter', 'job.scheduleEntry'])
+            ->get()
+            ->map(fn (JobReport $report) => [
+                'severity' => $report->urgent || $report->type->isSevere() ? 'rood' : 'oranje',
+                'kind' => 'actie',
+                'icon' => $report->type->icon(),
+                'label' => $report->urgent ? 'Spoedmelding bouwplaats' : 'Melding bouwplaats',
+                'title' => $report->type->label().': '.str($report->body)->limit(60)->value(),
+                'subtitle' => collect([
+                    $report->project?->name,
+                    $report->reporter->name,
+                    $report->created_at->diffForHumans(),
+                ])->filter()->join(', '),
+                'url' => $report->job?->schedule_entry_id !== null
+                    ? route('jobs.show', [$report->job->schedule_entry_id, 'tab' => 'meldingen'])
+                    : route('projects.show', $report->project),
+            ]);
+    }
+
+    /**
+     * Werkbonnen die op goedkeuring wachten. Tot die goedkeuring tellen de uren
+     * nergens mee, dus blijft het beeld van kosten en voortgang incompleet.
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function workOrdersAwaitingApproval(): Collection
+    {
+        return WorkOrder::awaitingApproval()
+            ->with(['project', 'user'])
+            ->get()
+            ->map(fn (WorkOrder $order) => [
+                'severity' => $order->submitted_at?->lt(today()->subDays(3)) ? 'rood' : 'oranje',
+                'kind' => 'bevestigen',
+                'icon' => 'wrench',
+                'label' => 'Werkbon ter controle',
+                'title' => $order->number.': '.$order->title,
+                'subtitle' => collect([
+                    $order->project->name,
+                    $order->user?->name,
+                    rtrim(rtrim(number_format((float) $order->hours, 2, ',', '.'), '0'), ',').' uur',
+                ])->filter()->join(', '),
+                'url' => route('work-orders.show', $order),
+            ]);
     }
 
     public function count(): int
