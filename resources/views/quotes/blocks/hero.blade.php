@@ -20,7 +20,7 @@
     @endif
     <p class="mt-1 text-navy-100">{{ $quote->customer->name }}</p>
 
-    <div class="mt-6 grid gap-6 border-t border-white/10 pt-6 text-sm sm:grid-cols-3">
+    <div class="mt-6 grid grid-cols-1 gap-6 border-t border-white/10 pt-6 text-sm sm:grid-cols-3">
         <div class="space-y-3">
             <div>
                 <p class="text-xs font-bold text-navy-300">Offertenummer</p>

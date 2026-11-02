@@ -3,13 +3,13 @@
 @php
     // Eyebrow in de categoriekleur van de module (stijlgids §03).
     $eyebrowColor = match ($category) {
-        'lead' => 'text-lead-600',
-        'klant' => 'text-klant-600',
-        'calc' => 'text-calc-600',
-        'offerte' => 'text-offerte-600',
-        'project' => 'text-project-600',
-        'planning' => 'text-planning-600',
-        default => 'text-gray-400',
+        'lead' => 'text-lead-700',
+        'klant' => 'text-klant-700',
+        'calc' => 'text-calc-700',
+        'offerte' => 'text-offerte-700',
+        'project' => 'text-project-700',
+        'planning' => 'text-planning-700',
+        default => 'text-gray-600',
     };
 @endphp
 
@@ -22,9 +22,10 @@
             @if ($eyebrow)
                 <p class="text-[11px] font-bold tracking-widest uppercase {{ $eyebrowColor }}">{{ $eyebrow }}</p>
             @endif
-            <h1 class="truncate text-xl font-bold text-navy-950 lg:text-2xl">{{ $title }}</h1>
+            {{-- Op mobiel doorlopen op een tweede regel, zodat lange namen volledig leesbaar blijven. --}}
+            <h1 class="text-xl font-bold break-words text-navy-950 lg:truncate lg:text-2xl">{{ $title }}</h1>
             @if ($subtitle)
-                <p class="mt-0.5 truncate text-sm text-gray-500">{{ $subtitle }}</p>
+                <p class="mt-0.5 text-sm text-gray-600 lg:truncate">{{ $subtitle }}</p>
             @endif
         </div>
     </div>

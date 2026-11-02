@@ -37,7 +37,7 @@ X-Intake-Token: &lt;geheim token&gt;</code></pre>
                         </tr>
                     </thead>
                     <tbody class="text-gray-600">
-                        <tr class="border-b border-gray-100"><td class="py-2 pr-4 font-mono text-xs font-semibold text-navy-900">name <span class="text-brand-600">*</span></td><td class="py-2 pr-4">string, max 255</td><td class="py-2">Familie Jansen</td></tr>
+                        <tr class="border-b border-gray-100"><td class="py-2 pr-4 font-mono text-xs font-semibold text-navy-900">name <span class="text-brand-700">*</span></td><td class="py-2 pr-4">string, max 255</td><td class="py-2">Familie Jansen</td></tr>
                         <tr class="border-b border-gray-100"><td class="py-2 pr-4 font-mono text-xs font-semibold text-navy-900">email</td><td class="py-2 pr-4">e-mailadres</td><td class="py-2">jansen@example.nl</td></tr>
                         <tr class="border-b border-gray-100"><td class="py-2 pr-4 font-mono text-xs font-semibold text-navy-900">phone</td><td class="py-2 pr-4">string, max 30</td><td class="py-2">06-12345678</td></tr>
                         <tr class="border-b border-gray-100"><td class="py-2 pr-4 font-mono text-xs font-semibold text-navy-900">address</td><td class="py-2 pr-4">string, max 255</td><td class="py-2">Dorpsstraat 1</td></tr>
@@ -49,7 +49,7 @@ X-Intake-Token: &lt;geheim token&gt;</code></pre>
                     </tbody>
                 </table>
             </div>
-            <p class="mt-2 text-xs text-gray-400"><span class="text-brand-600">*</span> = verplicht. Alle overige velden zijn optioneel.</p>
+            <p class="mt-2 text-xs text-gray-500"><span class="text-brand-700">*</span> = verplicht. Alle overige velden zijn optioneel.</p>
         </section>
 
         {{-- Responses --}}
@@ -95,7 +95,7 @@ X-Intake-Token: &lt;geheim token&gt;</code></pre>
 if ($response->status() === 201) {
     // Lead staat in Renovion Dash: $response->json('id')
 }</code></pre>
-            <p class="mt-2 text-xs text-gray-400">De voorbeelden gebruiken de URL van deze omgeving; op live is dat het productiedomein. Bewaar het token in de CMS-config, niet hardcoded.</p>
+            <p class="mt-2 text-xs text-gray-500">De voorbeelden gebruiken de URL van deze omgeving; op live is dat het productiedomein. Bewaar het token in de CMS-config, niet hardcoded.</p>
         </section>
 
         {{-- Gedrag --}}

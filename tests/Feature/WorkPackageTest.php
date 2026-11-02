@@ -156,7 +156,10 @@ class WorkPackageTest extends TestCase
 
         $this->actingAs($uitvoerder)->get('/werkpakketten/'.$package->id)
             ->assertOk()
-            ->assertSee('Taak afronden');
+            ->assertSee('Taak afronden')
+            // Foto-bewijs: grote cameraknop die direct de camera opent.
+            ->assertSee('Foto maken')
+            ->assertSee('name="photos[]" multiple required accept="image/*" capture="environment"', false);
     }
 
     public function test_uitvoerders_cannot_manage_phases_or_work_packages(): void

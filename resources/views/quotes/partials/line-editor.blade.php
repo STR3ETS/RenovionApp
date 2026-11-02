@@ -86,7 +86,7 @@
                           placeholder="Bijv. 'Badkamer 6 m2 strippen, wanden en vloer tegelen, wandcloset en meubel plaatsen, sanitair als stelpost.'"
                           class="min-w-0 flex-1 resize-none rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500"></textarea>
                 <button type="button" @click="stelVoor()" :disabled="nova.loading || !nova.prompt.trim()"
-                        class="shrink-0 rounded-xl bg-brand-500 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600 disabled:opacity-50">
+                        class="shrink-0 rounded-xl bg-brand-500 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600 disabled:opacity-50">
                     <span x-text="nova.loading ? 'Nova zoekt…' : 'Stel posten voor'"></span>
                 </button>
             </div>
@@ -132,10 +132,10 @@
             <div class="col-span-12 flex items-center justify-between gap-2 sm:-mt-1">
                 <label class="flex cursor-pointer items-center gap-1.5 text-xs font-medium text-gray-500">
                     <input type="checkbox" x-model="line.is_estimate" class="rounded border-gray-300 text-amber-500 focus:ring-amber-400">
-                    stelpost <span class="text-gray-400">(wordt achteraf verrekend)</span>
+                    stelpost <span class="text-gray-500">(wordt achteraf verrekend)</span>
                 </label>
                 <button type="button" @click="remove(index)" x-show="lines.length > 1"
-                        class="inline-flex items-center gap-1 text-xs text-gray-400 transition hover:text-red-500"><x-icon name="x-mark" class="h-3 w-3" /> verwijderen</button>
+                        class="inline-flex items-center gap-1 text-xs text-gray-500 transition hover:text-red-500"><x-icon name="x-mark" class="h-3 w-3" /> verwijderen</button>
             </div>
         </div>
     </template>
@@ -146,7 +146,7 @@
             + Regel toevoegen
         </button>
         <button type="button" @click="picker = !picker; if (picker) { zoek(); $nextTick(() => $refs.pickerInput.focus()); }"
-                class="rounded-lg border border-dashed border-calc-500/50 px-4 py-2 text-sm font-semibold text-calc-600 transition hover:border-calc-500 hover:bg-calc-50">
+                class="rounded-lg border border-dashed border-calc-500/50 px-4 py-2 text-sm font-semibold text-calc-700 transition hover:border-calc-500 hover:bg-calc-50">
             + Uit de prijslijst
         </button>
 
@@ -162,13 +162,13 @@
                         <span class="w-16 shrink-0 rounded bg-calc-100 py-0.5 text-center font-mono text-[10px] font-bold text-calc-700" x-text="item.code"></span>
                         <span class="min-w-0 flex-1">
                             <span class="block truncate text-sm font-medium text-navy-900" x-text="item.name"></span>
-                            <span class="block text-xs text-gray-400" x-text="item.type_label + ', per ' + item.unit"></span>
+                            <span class="block text-xs text-gray-500" x-text="item.type_label + ', per ' + item.unit"></span>
                         </span>
                         <span class="shrink-0 text-sm font-semibold whitespace-nowrap text-navy-900" x-text="fmt(item.price)"></span>
                     </button>
                 </template>
-                <p x-show="!pickerLoading && pickerItems.length === 0" class="px-2 py-3 text-center text-xs text-gray-400">Niets gevonden in de prijslijst.</p>
-                <p x-show="pickerLoading" x-cloak class="px-2 py-3 text-center text-xs text-gray-400">Zoeken…</p>
+                <p x-show="!pickerLoading && pickerItems.length === 0" class="px-2 py-3 text-center text-xs text-gray-500">Niets gevonden in de prijslijst.</p>
+                <p x-show="pickerLoading" x-cloak class="px-2 py-3 text-center text-xs text-gray-500">Zoeken…</p>
             </div>
         </div>
     </div>

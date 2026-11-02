@@ -3,13 +3,13 @@
 @php
     // Lege staat met categorie-icoon (stijlgids §06): nooit alleen tekst.
     $chip = match ($category) {
-        'lead' => 'bg-lead-100 text-lead-600',
-        'klant' => 'bg-klant-100 text-klant-600',
-        'calc' => 'bg-calc-100 text-calc-600',
-        'offerte' => 'bg-offerte-100 text-offerte-600',
-        'project' => 'bg-project-100 text-project-600',
-        'planning' => 'bg-planning-100 text-planning-600',
-        default => 'bg-gray-100 text-gray-400',
+        'lead' => 'bg-lead-100 text-lead-700',
+        'klant' => 'bg-klant-100 text-klant-700',
+        'calc' => 'bg-calc-100 text-calc-700',
+        'offerte' => 'bg-offerte-100 text-offerte-700',
+        'project' => 'bg-project-100 text-project-700',
+        'planning' => 'bg-planning-100 text-planning-700',
+        default => 'bg-gray-100 text-gray-500',
     };
 @endphp
 
@@ -21,7 +21,7 @@
     @endif
     <p class="text-sm font-semibold text-navy-900">{{ $title }}</p>
     @if ($subtitle)
-        <p class="mt-1 text-xs text-gray-400">{{ $subtitle }}</p>
+        <p class="mt-1 text-xs text-gray-500">{{ $subtitle }}</p>
     @endif
     @if (trim($slot))
         <div class="mt-4">{{ $slot }}</div>

@@ -105,6 +105,87 @@
 }
 
 /*
+ * Safe areas (notch, statusbalk, home-indicator) voor de iOS-app en iPhone-Safari.
+ * Vereist viewport-fit=cover in de layout; op desktop zijn de waarden 0.
+ */
+@utility pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+}
+
+@utility pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/*
+ * Tikvlak van minimaal 44px op touchscreens, zonder dat het element er groter uitziet
+ * (filterchips, statusknoppen, kleine links). Niet combineren met absolute of fixed.
+ */
+@utility tap {
+    position: relative;
+
+    @media (pointer: coarse) {
+        &::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: max(100%, 2.75rem);
+            height: max(100%, 2.75rem);
+            transform: translate(-50%, -50%);
+        }
+    }
+}
+
+/*
+ * Toetsenbord open (app.js zet .keyboard-open op <html>): bottom-nav en dubbele koppen weg,
+ * zodat er ruimte is om te typen en je niet per ongeluk op "+" tikt.
+ */
+.keyboard-open .hide-on-keyboard {
+    display: none;
+}
+
+.keyboard-open main {
+    padding-bottom: 1rem;
+}
+
+.keyboard-open .chat-panel {
+    height: calc(100dvh - 5.5rem - env(safe-area-inset-top, 0px));
+    min-height: 0;
+}
+
+/* Telefoon in landschap: de balken mogen niet de helft van de hoogte opeten. */
+@media (orientation: landscape) and (max-height: 31rem) {
+    .phone-header {
+        position: static;
+    }
+
+    .phone-tabbar a,
+    .phone-tabbar > button {
+        padding-block: 0.25rem;
+    }
+
+    .phone-tabbar .tab-label {
+        display: none;
+    }
+
+    .phone-tabbar .tab-plus {
+        width: 2.25rem;
+        height: 2.25rem;
+        margin-block: 0.25rem;
+    }
+}
+
+/* Native app (Capacitor, resources/js/native.js): geen grijze tik-flits en geen linkvoorbeeld bij lang drukken. */
+.native-app {
+    -webkit-tap-highlight-color: transparent;
+}
+
+.native-app a,
+.native-app button {
+    -webkit-touch-callout: none;
+}
+
+/*
  * Naadloze paginaovergangen (stijlgids §08): cross-document view transitions.
  * De oude pagina blijft staan tot de nieuwe klaar is (geen witte flits) en
  * faden zacht in elkaar over. Browsers zonder ondersteuning negeren dit.
@@ -179,6 +260,47 @@
 @media (prefers-reduced-motion: reduce) {
     .skeleton::after {
         animation: none;
+    }
+}
+
+/*
+ * Scrollbar van de donkere sidebar: smalle navy duim die los van de rand zweeft.
+ * De balk is 10px voor een ruim grijpvlak, de transparante rand maakt de duim 6px.
+ * De gutter blijft gereserveerd, zodat de menu-items niet verspringen als de balk verschijnt.
+ */
+.sidebar-scroll {
+    scrollbar-gutter: stable;
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+    width: 10px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-track {
+    background: transparent;
+    margin-block: 0.25rem;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background: var(--color-navy-700) padding-box;
+}
+
+.sidebar-scroll:hover::-webkit-scrollbar-thumb {
+    background: var(--color-navy-600) padding-box;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb:hover,
+.sidebar-scroll::-webkit-scrollbar-thumb:active {
+    background: var(--color-navy-400) padding-box;
+}
+
+/* Firefox: scrollbar-color alleen hier, anders negeert Chrome de regels hierboven. */
+@supports not selector(::-webkit-scrollbar) {
+    .sidebar-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: var(--color-navy-700) transparent;
     }
 }
 

@@ -20,7 +20,7 @@
                 </li>
             </template>
         </ul>
-        <button type="button" @click="block.data.items.push('Nieuw punt'); save()" class="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-brand-600 hover:text-brand-500">
+        <button type="button" @click="block.data.items.push('Nieuw punt'); save()" class="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-brand-700 hover:text-brand-500">
             <x-icon name="plus" class="h-3.5 w-3.5" /> Punt toevoegen
         </button>
     @else

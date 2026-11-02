@@ -1,19 +1,22 @@
 <x-layouts.app title="Projecten">
 
-    <x-page-header eyebrow="Uitvoering" category="project" title="Projecten" subtitle="{{ $projects->total() }} projecten">
+    <x-page-header eyebrow="Uitvoering" category="project" title="Projecten" subtitle="{{ \App\Support\Tally::of($projects->total(), 'project', 'projecten') }}">
         @can('manage-crm')
-            <a href="{{ route('projects.create') }}" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-500">+ Project</a>
+            <a href="{{ route('projects.create') }}" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600">+ Project</a>
         @endcan
     </x-page-header>
 
+    {{-- Uitvoerders met een paar projecten hebben geen filters nodig. --}}
+    @if (auth()->user()->can('manage-crm') || $status !== null || $projects->total() > 4)
     <div class="mb-4 flex flex-wrap gap-1.5">
         <a href="{{ route('projects.index') }}"
-           class="rounded-full px-3 py-1.5 text-xs font-semibold {{ $status === null ? 'bg-navy-900 text-white' : 'bg-white text-gray-600 border border-gray-300' }}">Lopend</a>
+           class="tap rounded-full px-3 py-1.5 text-xs font-semibold {{ $status === null ? 'bg-navy-900 text-white' : 'bg-white text-gray-600 border border-gray-300' }}">Lopend</a>
         @foreach (\App\Enums\ProjectStatus::cases() as $statusOption)
             <a href="{{ route('projects.index', ['status' => $statusOption->value]) }}"
-               class="rounded-full px-3 py-1.5 text-xs font-semibold {{ $status === $statusOption ? 'bg-navy-900 text-white' : 'bg-white text-gray-600 border border-gray-300' }}">{{ $statusOption->label() }}</a>
+               class="tap rounded-full px-3 py-1.5 text-xs font-semibold {{ $status === $statusOption ? 'bg-navy-900 text-white' : 'bg-white text-gray-600 border border-gray-300' }}">{{ $statusOption->label() }}</a>
         @endforeach
     </div>
+    @endif
 
     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
         @forelse ($projects as $project)

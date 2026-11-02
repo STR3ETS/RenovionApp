@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="robots" content="noindex, nofollow">
     <title>Offerte {{ $quote->number }} - Renovion</title>
+    @include('partials.favicon')
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter-tight:400,500,600,700,800" rel="stylesheet">
@@ -12,6 +13,8 @@
     @vite(['resources/css/app.css'])
 </head>
 <body class="min-h-screen bg-gray-100 font-sans text-gray-900 antialiased">
+    {{-- In de app schuift de pagina anders onder de klok door. --}}
+    <div class="fixed inset-x-0 top-0 z-40 h-[env(safe-area-inset-top)] bg-gray-100"></div>
 
     <div class="mx-auto max-w-3xl px-4 py-6 lg:py-10">
 
@@ -25,7 +28,7 @@
         <div class="space-y-4">
             {{-- Statusbanner --}}
             @if ($quote->status === \App\Enums\QuoteStatus::Akkoord)
-                <div class="flex items-center gap-2 rounded-2xl bg-green-600 px-6 py-3 text-sm font-semibold text-white">
+                <div class="flex items-center gap-2 rounded-2xl bg-green-700 px-6 py-3 text-sm font-semibold text-white">
                     <x-icon name="check" class="h-4 w-4" />
                     Ondertekend door {{ $quote->signed_name ?? $quote->customer->name }} op {{ ($quote->signed_at ?? $quote->accepted_at)->translatedFormat('j F Y') }} - bedankt voor uw vertrouwen!
                 </div>
@@ -51,22 +54,22 @@
                                    class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
                         </x-field>
                         <label class="flex items-start gap-2 text-sm text-gray-600">
-                            <input type="checkbox" name="agree" value="1" required class="mt-0.5 rounded border-gray-300 text-brand-600 focus:ring-brand-500">
+                            <input type="checkbox" name="agree" value="1" required class="mt-0.5 rounded border-gray-300 text-brand-700 focus:ring-brand-500">
                             Ik heb de offerte gelezen en ga akkoord met de werkzaamheden, het totaalbedrag en de voorwaarden.
                         </label>
                         @error('agree')<p class="text-xs font-medium text-red-600">{{ $message }}</p>@enderror
-                        <button type="submit" class="w-full rounded-xl bg-brand-500 py-3.5 text-base font-bold text-white transition hover:bg-brand-600 sm:w-auto sm:px-10">
+                        <button type="submit" class="w-full rounded-xl bg-brand-500 py-3.5 text-base font-bold text-white transition hover:bg-brand-600 active:bg-brand-600 sm:w-auto sm:px-10">
                             Offerte ondertekenen
                         </button>
-                        <p class="text-xs text-gray-400">Uw naam, datum, tijd en IP-adres worden vastgelegd als digitale ondertekening van versie v{{ $quote->version }}.</p>
+                        <p class="text-xs text-gray-500">Uw naam, datum, tijd en IP-adres worden vastgelegd als digitale ondertekening van versie v{{ $quote->version }}.</p>
                     </form>
 
-                    <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                    <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <details class="rounded-2xl border border-gray-200 bg-white p-5">
                             <summary class="cursor-pointer text-sm font-semibold text-navy-900">Aanpassing aanvragen</summary>
                             <form method="POST" action="{{ route('quotes.public.change', $quote->public_token) }}" class="mt-3 space-y-2">
                                 @csrf
-                                <textarea name="message" rows="3" required placeholder="Wat wilt u aangepast zien?"
+                                <textarea aria-label="Wat wilt u aangepast zien" name="message" rows="3" required placeholder="Wat wilt u aangepast zien?"
                                           class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500"></textarea>
                                 <button type="submit" class="rounded-xl border border-gray-300 bg-white px-5 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">Versturen</button>
                             </form>
@@ -75,7 +78,7 @@
                             <summary class="cursor-pointer text-sm font-semibold text-navy-900">Offerte afwijzen</summary>
                             <form method="POST" action="{{ route('quotes.public.reject', $quote->public_token) }}" class="mt-3 space-y-2">
                                 @csrf
-                                <textarea name="reason" rows="3" placeholder="Mogen we vragen waarom? (niet verplicht)"
+                                <textarea aria-label="Reden van afwijzen" name="reason" rows="3" placeholder="Mogen we vragen waarom? (niet verplicht)"
                                           class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500"></textarea>
                                 <button type="submit" class="rounded-xl border border-red-200 bg-white px-5 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50">Afwijzen</button>
                             </form>
@@ -85,7 +88,7 @@
             @endif
 
             {{-- Footer --}}
-            <div class="px-6 py-4 text-center text-xs text-gray-400">
+            <div class="px-6 py-4 text-center text-xs text-gray-500">
                 <p class="font-semibold text-gray-500">Renovion - geen half werk en vage beloftes</p>
                 <p class="mt-1">Mercatorweg 28, 6827 DC Arnhem, info@renovion.nl, +31 6 395 353 00, KVK 95384782</p>
             </div>

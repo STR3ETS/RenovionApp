@@ -5,7 +5,7 @@
         <x-page-header eyebrow="Offerte" category="offerte" :title="$quote->number.', v'.$quote->version" :subtitle="$quote->customer->name.', aangemaakt '.$quote->created_at->translatedFormat('j M Y')">
             <x-status-badge :status="$quote->status" class="text-sm" />
             @if ($quote->status === \App\Enums\QuoteStatus::Concept)
-                <a href="{{ route('quotes.builder', $quote) }}" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-600">Offerte bouwen</a>
+                <a href="{{ route('quotes.builder', $quote) }}" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600">Offerte bouwen</a>
                 <a href="{{ route('quotes.edit', $quote) }}" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">Posten bewerken</a>
             @endif
         </x-page-header>
@@ -18,7 +18,7 @@
 
         {{-- ===== Tab: Overzicht ===== --}}
         <div x-show="tab === 'overzicht'">
-            <div class="grid gap-4 lg:grid-cols-3">
+            <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
                 <div class="space-y-4 lg:col-span-2">
 
                     @if ($quote->change_request)
@@ -32,12 +32,10 @@
                         <div class="rounded-xl border p-4 {{ $quote->daysOpen() >= 5 ? 'border-red-300 bg-red-50' : 'border-amber-300 bg-amber-50' }}">
                             <p class="flex items-center gap-2 text-sm font-semibold {{ $quote->daysOpen() >= 5 ? 'text-red-800' : 'text-amber-800' }}">
                                 <x-signal-dot :color="$quote->daysOpen() >= 5 ? 'red' : 'amber'" />
-                                Offerte staat {{ $quote->daysOpen() }} dagen open
-                                @if ($quote->viewed_count > 0), {{ $quote->viewed_count }}× bekeken @endif
-                                - vandaag opvolgen.
+                                Offerte staat {{ $quote->daysOpen() }} dagen open{{ $quote->viewed_count > 0 ? ', '.$quote->viewed_count.'× bekeken' : '' }} - vandaag opvolgen.
                             </p>
                             @if ($quote->customer->phone)
-                                <a href="tel:{{ $quote->customer->phone }}" class="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-600"><x-icon name="phone" /> {{ $quote->customer->name }} bellen</a>
+                                <a href="tel:{{ $quote->customer->phone }}" class="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600"><x-icon name="phone" /> {{ $quote->customer->name }} bellen</a>
                             @endif
                         </div>
                     @endif
@@ -46,9 +44,9 @@
                     @if ($quote->status !== \App\Enums\QuoteStatus::Concept)
                         <section class="rounded-2xl border border-gray-200 bg-white p-5" x-data="{ copied: false }">
                             <h2 class="mb-2 text-sm font-bold text-navy-900">Klantlink</h2>
-                            <p class="mb-3 text-xs text-gray-400">Via deze privélink bekijkt en ondertekent de klant de offerte. Elke keer dat de klant kijkt, zie je dat hier terug.</p>
+                            <p class="mb-3 text-xs text-gray-500">Via deze privélink bekijkt en ondertekent de klant de offerte. Elke keer dat de klant kijkt, zie je dat hier terug.</p>
                             <div class="flex gap-2">
-                                <input type="text" readonly value="{{ $quote->publicUrl() }}" class="flex-1 rounded-xl border-gray-200 bg-gray-50 text-xs text-gray-600">
+                                <input type="text" readonly value="{{ $quote->publicUrl() }}" aria-label="Klantlink" class="min-w-0 flex-1 rounded-xl border-gray-200 bg-gray-50 text-xs text-gray-600">
                                 <button type="button"
                                         @click="navigator.clipboard.writeText(@js($quote->publicUrl())).then(() => { copied = true; setTimeout(() => copied = false, 2000) })"
                                         class="rounded-xl bg-navy-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-navy-900">
@@ -66,23 +64,21 @@
                     {{-- Posten --}}
                     <section class="rounded-2xl border border-gray-200 bg-white p-5">
                         <h2 class="mb-4 text-sm font-bold text-navy-900">Investering</h2>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-sm">
-                                <tbody>
-                                    @foreach ($quote->lines as $line)
-                                        <tr class="border-b border-gray-100">
-                                            <td class="py-2.5 font-medium text-navy-900">
-                                                {{ $line->description }}
-                                                @if ($line->is_estimate)
-                                                    <span class="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">stelpost</span>
-                                                @endif
-                                            </td>
-                                            <td class="py-2.5 text-right text-gray-600">{{ rtrim(rtrim(number_format((float) $line->quantity, 2, ',', '.'), '0'), ',') }} {{ $line->unit }}</td>
-                                            <td class="py-2.5 text-right font-semibold text-navy-900">€ {{ number_format((float) $line->total, 2, ',', '.') }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                        <div class="divide-y divide-gray-100 border-b border-gray-100">
+                            @foreach ($quote->lines as $line)
+                                <div class="flex items-start justify-between gap-4 py-2.5 text-sm">
+                                    <div class="min-w-0">
+                                        <p class="font-medium text-navy-900">
+                                            {{ $line->description }}
+                                            @if ($line->is_estimate)
+                                                <span class="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">stelpost</span>
+                                            @endif
+                                        </p>
+                                        <p class="text-xs text-gray-500">{{ rtrim(rtrim(number_format((float) $line->quantity, 2, ',', '.'), '0'), ',') }} {{ $line->unit }}</p>
+                                    </div>
+                                    <p class="shrink-0 font-semibold whitespace-nowrap text-navy-900">€ {{ number_format((float) $line->total, 2, ',', '.') }}</p>
+                                </div>
+                            @endforeach
                         </div>
                         <dl class="mt-4 ml-auto w-full max-w-xs space-y-1 text-sm">
                             <div class="flex justify-between"><dt class="text-gray-500">Subtotaal</dt><dd class="font-semibold">€ {{ number_format((float) $quote->subtotal, 2, ',', '.') }}</dd></div>
@@ -104,12 +100,12 @@
                                     <span class="font-bold text-gray-500">v{{ $version->version }}</span>
                                     <span class="min-w-0 flex-1">
                                         <span class="block truncate text-gray-600">{{ $version->note ?? 'Verstuurde versie' }}</span>
-                                        <span class="text-xs text-gray-400">{{ $version->created_at->translatedFormat('j M Y H:i') }}{{ $version->creator ? ', '.$version->creator->name : '' }}</span>
+                                        <span class="text-xs text-gray-500">{{ $version->created_at->translatedFormat('j M Y H:i') }}{{ $version->creator ? ', '.$version->creator->name : '' }}</span>
                                     </span>
                                     <span class="text-xs font-semibold whitespace-nowrap text-gray-500">€ {{ number_format((float) ($version->snapshot['total'] ?? 0), 0, ',', '.') }}</span>
                                 </div>
                             @empty
-                                <p class="text-xs text-gray-400">Nog geen eerdere versies - bij versturen wordt de inhoud bevroren als v{{ $quote->version }}.</p>
+                                <p class="text-xs text-gray-500">Nog geen eerdere versies - bij versturen wordt de inhoud bevroren als v{{ $quote->version }}.</p>
                             @endforelse
                         </div>
 
@@ -117,7 +113,7 @@
                             <form method="POST" action="{{ route('quotes.version', $quote) }}" class="mt-4 flex gap-2"
                                   @if ($quote->status === \App\Enums\QuoteStatus::Akkoord) onsubmit="return confirm('Deze offerte is al akkoord. Een nieuwe versie betekent dat de klant opnieuw moet tekenen. Doorgaan?');" @endif>
                                 @csrf
-                                <input type="text" name="note" required maxlength="255" placeholder="Wat wijzigt er in deze versie? (wijzigingslog)"
+                                <input aria-label="Wijziging in deze versie" type="text" name="note" required maxlength="255" placeholder="Wat wijzigt er in deze versie? (wijzigingslog)"
                                        class="flex-1 rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
                                 <button type="submit" class="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">Nieuwe versie</button>
                             </form>
@@ -142,9 +138,9 @@
                                 @if ($quote->status === \App\Enums\QuoteStatus::Concept)
                                     <form method="POST" action="{{ route('quotes.status', $quote) }}">
                                         @csrf @method('PATCH')
-                                        <button type="submit" name="status" value="verstuurd" class="flex w-full items-center justify-center gap-1.5 rounded-xl bg-brand-500 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600"><x-icon name="paper-airplane" /> Versturen (versie bevriezen)</button>
+                                        <button type="submit" name="status" value="verstuurd" class="flex w-full items-center justify-center gap-1.5 rounded-xl bg-brand-500 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600"><x-icon name="paper-airplane" /> Versturen (versie bevriezen)</button>
                                     </form>
-                                    <p class="text-xs text-gray-400">Versturen bevriest v{{ $quote->version }} en activeert de klantlink. Daarna deel je de link met de klant.</p>
+                                    <p class="text-xs text-gray-500">Versturen bevriest v{{ $quote->version }} en activeert de klantlink. Daarna deel je de link met de klant.</p>
                                 @else
                                     <form method="POST" action="{{ route('quotes.status', $quote) }}">
                                         @csrf @method('PATCH')
@@ -155,7 +151,7 @@
                                 <form method="POST" action="{{ route('quotes.status', $quote) }}"
                                       onsubmit="return confirm('Offerte akkoord? Er wordt automatisch een project aangemaakt.');">
                                     @csrf @method('PATCH')
-                                    <button type="submit" name="status" value="akkoord" class="flex w-full items-center justify-center gap-1.5 rounded-xl bg-green-600 py-2.5 text-sm font-semibold text-white transition hover:bg-green-500"><x-icon name="check" /> Akkoord - maak project</button>
+                                    <button type="submit" name="status" value="akkoord" class="flex w-full items-center justify-center gap-1.5 rounded-xl bg-green-700 py-2.5 text-sm font-semibold text-white transition hover:bg-green-500"><x-icon name="check" /> Akkoord - maak project</button>
                                 </form>
                                 <form method="POST" action="{{ route('quotes.status', $quote) }}"
                                       onsubmit="return confirm('Offerte markeren als afgewezen?');">
@@ -166,7 +162,7 @@
                         @elseif ($quote->project)
                             <a href="{{ route('projects.show', $quote->project) }}" class="block rounded-xl bg-navy-950 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-navy-900">→ Naar project</a>
                         @else
-                            <p class="text-sm text-gray-400">Deze offerte is afgehandeld.</p>
+                            <p class="text-sm text-gray-500">Deze offerte is afgehandeld.</p>
                         @endif
                     </section>
 
@@ -194,7 +190,7 @@
                                 <div><dt class="text-gray-500">Afgewezen op</dt><dd class="font-medium text-red-700">{{ $quote->rejected_at->translatedFormat('j M Y H:i') }}</dd></div>
                             @endif
                             @if ($quote->calculation)
-                                <div><dt class="text-gray-500">Calculatie</dt><dd class="font-medium"><a href="{{ route('calculations.show', $quote->calculation) }}" class="text-brand-600 hover:text-brand-500">{{ $quote->calculation->title }}</a></dd></div>
+                                <div><dt class="text-gray-500">Calculatie</dt><dd class="font-medium"><a href="{{ route('calculations.show', $quote->calculation) }}" class="text-brand-700 hover:text-brand-500">{{ $quote->calculation->title }}</a></dd></div>
                             @endif
                         </dl>
                     </section>
@@ -204,7 +200,7 @@
                         <h2 class="mb-3 text-sm font-bold text-navy-900">Klant</h2>
                         <p class="text-sm font-semibold text-navy-900">{{ $quote->customer->name }}</p>
                         <p class="text-sm text-gray-500">{{ $quote->customer->city ?? '-' }}</p>
-                        <a href="{{ route('customers.show', $quote->customer) }}" class="mt-2 inline-block text-xs font-semibold text-brand-600 hover:text-brand-500">Klantdossier →</a>
+                        <a href="{{ route('customers.show', $quote->customer) }}" class="mt-2 inline-block text-xs font-semibold text-brand-700 hover:text-brand-500">Klantdossier →</a>
                     </section>
 
                     @if ($quote->status === \App\Enums\QuoteStatus::Concept)
@@ -222,7 +218,7 @@
             <div class="mx-auto max-w-3xl">
                 @include('quotes.partials.document', ['quote' => $quote])
             </div>
-            <p class="mt-3 text-center text-xs text-gray-400">Zo ziet de klant de offerte via de klantlink (inclusief knoppen voor ondertekenen, aanpassing aanvragen en afwijzen).</p>
+            <p class="mt-3 text-center text-xs text-gray-500">Zo ziet de klant de offerte via de klantlink (inclusief knoppen voor ondertekenen, aanpassing aanvragen en afwijzen).</p>
         </div>
 
     </div>

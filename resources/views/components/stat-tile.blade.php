@@ -9,7 +9,7 @@
         'offerte' => ['card' => 'border-offerte-200 bg-offerte-50', 'chip' => 'bg-offerte-500 text-white', 'label' => 'text-offerte-700', 'sub' => 'text-offerte-700/60'],
         'project' => ['card' => 'border-project-200 bg-project-50', 'chip' => 'bg-project-500 text-white', 'label' => 'text-project-700', 'sub' => 'text-project-700/60'],
         'planning' => ['card' => 'border-planning-200 bg-planning-50', 'chip' => 'bg-planning-500 text-white', 'label' => 'text-planning-700', 'sub' => 'text-planning-700/60'],
-        default => ['card' => 'border-gray-200 bg-white', 'chip' => 'bg-navy-950 text-white', 'label' => 'text-gray-500', 'sub' => 'text-gray-400'],
+        default => ['card' => 'border-gray-200 bg-white', 'chip' => 'bg-navy-950 text-white', 'label' => 'text-gray-500', 'sub' => 'text-gray-500'],
     };
 @endphp
 

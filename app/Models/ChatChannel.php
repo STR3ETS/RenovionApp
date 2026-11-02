@@ -94,7 +94,22 @@ class ChatChannel extends Model
      */
     public static function unreadTotalFor(User $user): int
     {
-        return (int) Cache::remember('chat-unread.'.$user->id, 60, fn () => self::forUser($user)
-            ->sum(fn (self $channel) => $channel->unreadCountFor($user)));
+        return (int) Cache::remember('chat-unread.'.$user->id, 60, fn () => self::countUnreadFor($user));
+    }
+
+    /**
+     * Zonder cache, voor de live badge in de bottom-nav; ververst meteen de cache voor de volgende pagina.
+     */
+    public static function freshUnreadTotalFor(User $user): int
+    {
+        $total = self::countUnreadFor($user);
+        Cache::put('chat-unread.'.$user->id, $total, 60);
+
+        return $total;
+    }
+
+    private static function countUnreadFor(User $user): int
+    {
+        return (int) self::forUser($user)->sum(fn (self $channel) => $channel->unreadCountFor($user));
     }
 }

@@ -8,7 +8,7 @@
 
         <section class="rounded-2xl border border-gray-200 bg-white p-5">
             <h2 class="mb-4 text-sm font-bold text-navy-900">Project</h2>
-            <div class="grid gap-4 sm:grid-cols-2">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <x-field label="Klant" name="customer_id" class="sm:col-span-2">
                     <select name="customer_id" id="customer_id" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
                         @foreach ($customers as $customer)
@@ -45,7 +45,7 @@
                             <option value="{{ $phase->position }}" @selected(old('current_phase', $project->currentPhase()?->position) == $phase->position)>{{ $phase->position }}. {{ $phase->name }}</option>
                         @endforeach
                     </select>
-                    <p class="mt-1 text-xs text-gray-400">Eerdere fasen worden gereed gemarkeerd, latere fasen gaan terug naar "niet gestart". De voortgang% wordt automatisch berekend uit de fasen en werkpakketten.</p>
+                    <p class="mt-1 text-xs text-gray-500">Eerdere fasen worden gereed gemarkeerd, latere fasen gaan terug naar "niet gestart". De voortgang% wordt automatisch berekend uit de fasen en werkpakketten.</p>
                 </x-field>
                 <x-field label="Notities" name="notes" class="sm:col-span-2">
                     <textarea name="notes" id="notes" rows="3" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">{{ old('notes', $project->notes) }}</textarea>
@@ -58,30 +58,30 @@
                         <input type="file" name="cover_photo" id="cover_photo" accept="image/*"
                                class="w-full text-sm text-gray-500 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-brand-700 hover:file:bg-brand-100">
                     </div>
-                    <p class="mt-1 text-xs text-gray-400">Deze foto verschijnt op de projectkaarten (jpg/png, max 5 MB).</p>
+                    <p class="mt-1 text-xs text-gray-500">Deze foto verschijnt op de projectkaarten (jpg/png, max 5 MB).</p>
                 </x-field>
             </div>
         </section>
 
         <section class="rounded-2xl border border-gray-200 bg-white p-5">
             <h2 class="mb-4 text-sm font-bold text-navy-900">Uitvoerders op dit project</h2>
-            <div class="grid gap-2 sm:grid-cols-2">
+            <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 @forelse ($uitvoerders as $uitvoerder)
                     <label class="flex items-center gap-2 rounded-xl border border-gray-200 p-3 text-sm font-medium text-navy-900 transition has-checked:border-brand-400 has-checked:bg-brand-50">
                         <input type="checkbox" name="craftsmen[]" value="{{ $uitvoerder->id }}"
                                @checked(in_array($uitvoerder->id, old('craftsmen', $project->craftsmen->pluck('id')->all())))
-                               class="rounded border-gray-300 text-brand-600 focus:ring-brand-500">
+                               class="rounded border-gray-300 text-brand-700 focus:ring-brand-500">
                         {{ $uitvoerder->name }}
                     </label>
                 @empty
-                    <p class="text-sm text-gray-400 sm:col-span-2">Nog geen uitvoerders aangemaakt (gebruikers met rol "Uitvoerder").</p>
+                    <p class="text-sm text-gray-500 sm:col-span-2">Nog geen uitvoerders aangemaakt (gebruikers met rol "Uitvoerder").</p>
                 @endforelse
             </div>
         </section>
 
         <section class="rounded-2xl border border-gray-200 bg-white p-5">
             <h2 class="mb-4 text-sm font-bold text-navy-900">Betalingen</h2>
-            <div class="grid gap-4 sm:grid-cols-2">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <x-field label="Projectwaarde (€)" name="value">
                     <input type="number" name="value" id="value" value="{{ old('value', $project->value) }}" min="0" step="0.01" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
                 </x-field>
@@ -96,14 +96,14 @@
                 </x-field>
                 <label class="flex items-center gap-2 text-sm font-medium text-navy-900 sm:col-span-2">
                     <input type="hidden" name="deposit_received" value="0">
-                    <input type="checkbox" name="deposit_received" value="1" @checked(old('deposit_received', $project->deposit_received_at !== null)) class="rounded border-gray-300 text-brand-600 focus:ring-brand-500">
+                    <input type="checkbox" name="deposit_received" value="1" @checked(old('deposit_received', $project->deposit_received_at !== null)) class="rounded border-gray-300 text-brand-700 focus:ring-brand-500">
                     Aanbetaling ontvangen
                 </label>
             </div>
         </section>
 
         <div class="flex gap-2">
-            <button type="submit" class="rounded-xl bg-brand-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-brand-500">Opslaan</button>
+            <button type="submit" class="rounded-xl bg-brand-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600">Opslaan</button>
             <a href="{{ route('projects.show', $project) }}" class="rounded-xl border border-gray-300 bg-white px-6 py-3 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">Annuleren</a>
         </div>
     </form>

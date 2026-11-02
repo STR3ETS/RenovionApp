@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ChatChannel;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -18,6 +19,14 @@ class ChatController extends Controller
             'channels' => ChatChannel::forUser($request->user()),
             'user' => $request->user(),
         ]);
+    }
+
+    /**
+     * Aantal ongelezen berichten voor de badge op "Chat" in de bottom-nav (live bijgewerkt).
+     */
+    public function unread(Request $request): JsonResponse
+    {
+        return response()->json(['count' => ChatChannel::freshUnreadTotalFor($request->user())]);
     }
 
     public function show(Request $request, ChatChannel $channel): View

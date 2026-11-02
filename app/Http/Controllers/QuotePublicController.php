@@ -6,10 +6,14 @@ use App\Actions\AcceptQuote;
 use App\Enums\ActionSource;
 use App\Enums\QuoteStatus;
 use App\Enums\TimelineEventType;
+use App\Enums\UserRole;
 use App\Models\AuditLog;
 use App\Models\Quote;
+use App\Models\User;
+use App\Notifications\QuoteSigned;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\View\View;
 
 /**
@@ -75,6 +79,12 @@ class QuotePublicController extends Controller
         ], ActionSource::Website);
 
         $acceptQuote->handle($quote, ActionSource::Website);
+
+        // Melding naar de verkoper van de aanvraag, anders naar de admins.
+        $ontvangers = $quote->lead?->assignee
+            ? collect([$quote->lead->assignee])
+            : User::where('role', UserRole::Admin)->get();
+        Notification::send($ontvangers, new QuoteSigned($quote->fresh()));
 
         return redirect()->route('quotes.public', $quote->public_token)
             ->with('success', 'Bedankt voor uw akkoord! We nemen snel contact met u op over de planning.');

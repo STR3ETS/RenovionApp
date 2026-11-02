@@ -32,7 +32,7 @@
                 <x-signal-dot :color="$project->isOverdue() ? 'red' : ($phase?->status->dotColor() ?? 'gray')" />
                 <span class="truncate">{{ $phase?->name ?? $project->status->label() }}</span>
             </span>
-            <span class="shrink-0 text-xs font-semibold text-gray-400">{{ $project->progress }}%</span>
+            <span class="shrink-0 text-xs font-semibold text-gray-500">{{ $project->progress }}%</span>
         </div>
 
         <div class="mt-3 flex items-center justify-between gap-2">

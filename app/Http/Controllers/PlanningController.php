@@ -44,11 +44,40 @@ class PlanningController extends Controller
         return view('planning.index', [
             'start' => $start,
             'days' => $days,
+            'details' => $entries->mapWithKeys(fn (ScheduleEntry $entry) => [$entry->id => $this->detail($entry, $request->user())]),
             'entries' => $entries->groupBy(fn (ScheduleEntry $entry) => $entry->user_id.'|'.$entry->date->toDateString()),
             'rows' => $rows,
             'users' => User::orderBy('name')->get(['id', 'name']),
             'projects' => Project::active()->orderBy('name')->get(['id', 'name']),
         ]);
+    }
+
+    /**
+     * Gegevens voor het detailpaneel op mobiel (tikken op een planningsblok).
+     *
+     * @return array<string, string|null>
+     */
+    private function detail(ScheduleEntry $entry, User $viewer): array
+    {
+        $address = $entry->project?->address
+            ? collect([$entry->project->address, $entry->project->city])->filter()->implode(', ')
+            : collect([$entry->customer?->address, $entry->customer?->postal_code, $entry->customer?->city])->filter()->implode(', ');
+
+        return [
+            'title' => $entry->displayTitle(),
+            'type' => $entry->type->label(),
+            'classes' => $entry->type->blockClasses(),
+            'user' => $entry->user?->name,
+            'date' => $entry->date->translatedFormat('l j F'),
+            'time' => $entry->start_time
+                ? substr($entry->start_time, 0, 5).($entry->end_time ? '-'.substr($entry->end_time, 0, 5) : '')
+                : 'Hele dag',
+            'notes' => $entry->notes,
+            'address' => $address ?: null,
+            'maps' => $address ? 'https://www.google.com/maps/search/?api=1&query='.urlencode($address) : null,
+            'project' => $entry->project ? route('projects.show', $entry->project) : null,
+            'delete' => $viewer->can('manage-crm') ? route('planning.destroy', $entry) : null,
+        ];
     }
 
     public function store(StoreScheduleEntryRequest $request): RedirectResponse

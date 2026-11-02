@@ -1,6 +1,6 @@
 <x-layouts.app :title="$channel->displayName()">
 
-    <div class="grid gap-4 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
 
         {{-- Kanalen (desktop) --}}
         <div class="hidden rounded-2xl border border-gray-200 bg-white p-4 lg:block">
@@ -15,19 +15,19 @@
                  confirmUrl: @js(route('chat.nova.confirm', ['message' => '__ID__'])),
                  taskUrl: @js(route('chat.task', ['message' => '__ID__'])),
              })">
-            <div class="flex h-[calc(100dvh-14rem)] min-h-96 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white lg:h-[calc(100vh-12rem)]">
+            <div class="chat-panel flex h-[calc(100dvh_-_14rem_-_env(safe-area-inset-top)_-_env(safe-area-inset-bottom))] min-h-96 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white lg:h-[calc(100vh-12rem)]">
 
                 {{-- Kop --}}
-                <div class="flex items-center gap-3 border-b border-gray-100 px-4 py-3">
-                    <a href="{{ route('chat.index') }}" class="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 lg:hidden" title="Alle kanalen">
+                <div class="hide-on-keyboard flex items-center gap-3 border-b border-gray-100 px-4 py-3">
+                    <a href="{{ route('chat.index') }}" class="tap rounded-lg p-1.5 text-gray-500 transition hover:bg-gray-100 lg:hidden" title="Alle kanalen">
                         <x-icon name="chevron-right" class="h-4 w-4 rotate-180" />
                     </a>
                     <span class="min-w-0 flex-1">
                         <span class="block truncate text-sm font-bold text-navy-900">{{ $channel->displayName() }}</span>
-                        <span class="block text-xs text-gray-400">{{ $channel->isProjectChannel() ? 'Projectchat - intern, de klant leest niet mee' : 'Teamkanaal' }}</span>
+                        <span class="block text-xs text-gray-500">{{ $channel->isProjectChannel() ? 'Projectchat - intern, de klant leest niet mee' : 'Teamkanaal' }}</span>
                     </span>
                     @if ($channel->isProjectChannel() && $channel->project)
-                        <a href="{{ route('projects.show', $channel->project) }}" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-50">Project →</a>
+                        <a href="{{ route('projects.show', $channel->project) }}" class="tap rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-50">Project →</a>
                     @endif
                 </div>
 
@@ -47,7 +47,7 @@
                                                 <p class="text-xs text-navy-100" x-text="message.nova.preview"></p>
                                                 <div class="mt-2.5 flex gap-2" x-show="!message.nova.executed">
                                                     <button type="button" @click="confirmNova(message)"
-                                                            class="rounded-lg bg-brand-500 px-4 py-1.5 text-xs font-bold text-white transition hover:bg-brand-600">Ja, doe maar</button>
+                                                            class="rounded-lg bg-brand-500 px-4 py-1.5 text-xs font-bold text-white transition hover:bg-brand-600 active:bg-brand-600">Ja, doe maar</button>
                                                     <button type="button" @click="$refs.chatInput.focus()"
                                                             class="rounded-lg border border-navy-700 px-4 py-1.5 text-xs font-semibold text-navy-200 transition hover:bg-navy-800">Eerst aanpassen</button>
                                                 </div>
@@ -79,9 +79,13 @@
                                             </template>
                                         </div>
                                         <div class="mt-0.5 flex items-center gap-2 px-1" :class="message.mine ? 'justify-end' : ''">
-                                            <span class="text-[10px] text-gray-400" x-text="message.time"></span>
+                                            <span class="text-[10px] text-gray-500" x-text="message.time"></span>
+                                            {{-- Touchscreen: altijd zichtbaar (hover bestaat daar niet); met muis pas bij hover. --}}
                                             <button type="button" x-show="message.body" @click="toTask(message)"
-                                                    class="text-[10px] font-semibold text-gray-400 opacity-0 transition group-hover:opacity-100 hover:text-brand-600">→ Taak</button>
+                                                    class="-my-1.5 flex items-center gap-1 rounded-full px-2 py-1.5 text-[11px] font-semibold text-gray-500 transition active:bg-gray-100 pointer-fine:py-0.5 pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 hover:text-brand-600"
+                                                    title="Van dit bericht een taak maken">
+                                                <x-icon name="clipboard-check" class="h-3.5 w-3.5" /> Taak maken
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -89,7 +93,7 @@
                         </div>
                     </template>
 
-                    <p x-show="messages.length === 0" class="py-10 text-center text-sm text-gray-400">
+                    <p x-show="messages.length === 0" class="py-10 text-center text-sm text-gray-500">
                         Nog geen berichten - trap af!{{ auth()->user()->can('manage-crm') ? ' Tip: noem @Nova om iets te laten klaarzetten.' : '' }}
                     </p>
                 </div>
@@ -109,10 +113,10 @@
                         <x-icon name="microphone" class="h-5 w-5" />
                     </button>
                     <input x-ref="chatInput" x-model="input" type="text" :disabled="busy" maxlength="5000"
-                           placeholder="Typ een bericht{{ auth()->user()->can('manage-crm') ? ', of @Nova om iets te laten klaarzetten' : '' }}…"
+                           placeholder="Typ een bericht{{ auth()->user()->can('manage-crm') ? ' of @Nova' : '' }}…" aria-label="Bericht"
                            class="min-w-0 flex-1 rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
                     <button type="submit" :disabled="busy || !input.trim()"
-                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-500 text-white transition hover:bg-brand-600 disabled:opacity-40" title="Versturen">
+                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-500 text-white transition hover:bg-brand-600 active:bg-brand-600 disabled:opacity-40" title="Versturen">
                         <x-icon name="paper-airplane" class="h-4 w-4" />
                     </button>
                 </form>

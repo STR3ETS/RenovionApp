@@ -1,8 +1,8 @@
 <x-layouts.app title="Klanten">
 
-    <x-page-header eyebrow="Relaties" category="klant" title="Klanten" subtitle="{{ $customers->total() }} klanten">
+    <x-page-header eyebrow="Relaties" category="klant" title="Klanten" subtitle="{{ \App\Support\Tally::of($customers->total(), 'klant', 'klanten') }}">
         <form method="GET" action="{{ route('customers.index') }}">
-            <input type="search" name="q" value="{{ $search }}" placeholder="Zoek op naam, plaats of e-mail…"
+            <input aria-label="Zoeken" type="search" name="q" value="{{ $search }}" placeholder="Zoek op naam, plaats of e-mail…"
                    class="w-64 rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
         </form>
     </x-page-header>
@@ -17,7 +17,7 @@
                     <span class="block truncate text-sm font-semibold text-navy-900">{{ $customer->name }}</span>
                     <span class="block text-xs text-gray-500">{{ $customer->city ?? '-' }}, {{ $customer->phone ?? 'geen telefoon' }}</span>
                 </span>
-                <span class="text-xs text-gray-400">{{ $customer->leads_count }} {{ $customer->leads_count === 1 ? 'aanvraag' : 'aanvragen' }}, {{ $customer->projects_count }} {{ $customer->projects_count === 1 ? 'project' : 'projecten' }}</span>
+                <span class="text-xs text-gray-500">{{ $customer->leads_count }} {{ $customer->leads_count === 1 ? 'aanvraag' : 'aanvragen' }}, {{ $customer->projects_count }} {{ $customer->projects_count === 1 ? 'project' : 'projecten' }}</span>
             </a>
         @empty
             <x-empty-state title="Geen klanten gevonden" icon="users" category="klant" />

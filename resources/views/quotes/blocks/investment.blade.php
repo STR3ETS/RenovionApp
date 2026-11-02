@@ -19,7 +19,7 @@
     @endif
 
     @if ($isEdit && $quote->lines->isEmpty())
-        <a href="{{ route('quotes.edit', $quote) }}" class="mb-3 flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-gray-300 p-4 text-xs font-semibold text-gray-400 transition hover:border-brand-400 hover:text-brand-600">
+        <a href="{{ route('quotes.edit', $quote) }}" class="mb-3 flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-gray-300 p-4 text-xs font-semibold text-gray-500 transition hover:border-brand-400 hover:text-brand-600">
             <x-icon name="plus" class="h-3.5 w-3.5" /> Nog geen posten - voeg ze toe via "Posten bewerken"
         </a>
     @endif
@@ -32,7 +32,7 @@
                         <td class="px-4 py-3 font-medium text-navy-900">
                             {{ $line->description }}
                             @if ((float) $line->quantity != 1.0)
-                                <span class="text-xs text-gray-400">({{ rtrim(rtrim(number_format((float) $line->quantity, 2, ',', '.'), '0'), ',') }} {{ $line->unit }})</span>
+                                <span class="text-xs text-gray-500">({{ rtrim(rtrim(number_format((float) $line->quantity, 2, ',', '.'), '0'), ',') }} {{ $line->unit }})</span>
                             @endif
                         </td>
                         <td class="px-4 py-3 text-right font-semibold whitespace-nowrap text-navy-900">€ {{ number_format((float) $line->total, 2, ',', '.') }}</td>
@@ -56,7 +56,7 @@
                 </tr>
                 <tr class="border-t-2 border-navy-950/10">
                     <td class="px-4 py-3 text-right text-sm font-bold text-navy-950">Totaal incl. btw</td>
-                    <td class="px-4 py-3 text-right text-base font-bold whitespace-nowrap text-brand-600">€ {{ number_format((float) $quote->total, 2, ',', '.') }}</td>
+                    <td class="px-4 py-3 text-right text-base font-bold whitespace-nowrap text-brand-700">€ {{ number_format((float) $quote->total, 2, ',', '.') }}</td>
                 </tr>
             </tfoot>
         </table>
@@ -64,7 +64,7 @@
 
     @if ($isEdit)
         <div x-rich="block.data.note" @blur="save()" data-ph="Notitie onder de tabel (bijv. over stelposten)" class="mt-3 text-xs text-gray-500"></div>
-        <p class="mt-2 text-[11px] text-gray-400">De posten en bedragen bewerk je via <a href="{{ route('quotes.edit', $quote) }}" class="font-semibold text-brand-600 hover:text-brand-500">Posten bewerken</a>.</p>
+        <p class="mt-2 text-[11px] text-gray-500">De posten en bedragen bewerk je via <a href="{{ route('quotes.edit', $quote) }}" class="font-semibold text-brand-700 hover:text-brand-500">Posten bewerken</a>.</p>
     @elseif ($stelposten->isNotEmpty() && filled($d['note'] ?? ''))
         <div class="mt-3 text-xs text-gray-500">{!! QuoteText::render($d['note']) !!}</div>
     @endif

@@ -6,7 +6,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    {{-- De iOS/Android-app meldt hier het Firebase-token aan voor pushmeldingen (native.js). --}}
+    <meta name="push-register" content="{{ route('devices.store') }}" data-user="{{ auth()->id() }}">
     <title>{{ $title ? $title.' - ' : '' }}{{ config('app.name') }}</title>
+    @include('partials.favicon')
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter-tight:400,500,600,700,800" rel="stylesheet">
@@ -37,14 +40,14 @@
     @endphp
 
     {{-- Desktop sidebar --}}
-    <aside class="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col bg-navy-950 text-white lg:flex">
+    <aside class="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col bg-navy-950 pt-safe text-white lg:flex">
         <div class="flex h-20 items-center px-6">
             <a href="{{ route('dashboard') }}">
                 <img src="{{ asset('images/renovion-logo.svg') }}" alt="Renovion" class="h-12 w-auto">
             </a>
         </div>
 
-        <nav class="flex-1 space-y-1 overflow-y-auto px-3 pb-6">
+        <nav class="sidebar-scroll flex-1 space-y-1 overflow-y-auto pb-6 pl-3 pr-0.5">
             @php
                 $items = $canCrm ? collect([
                     ['label' => 'Vandaag', 'icon' => 'home', 'route' => 'dashboard', 'active' => request()->routeIs('dashboard')],
@@ -92,46 +95,40 @@
                         <span class="block truncate text-xs text-navy-300">{{ auth()->user()->role->label() }}</span>
                     </span>
                 </div>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="rounded-lg p-2 text-navy-300 transition hover:bg-navy-900 hover:text-white" title="Uitloggen">
-                        <x-icon name="arrow-right-on-rectangle" class="h-5 w-5" />
-                    </button>
-                </form>
+                <div class="flex shrink-0 items-center">
+                    <a href="{{ route('notification-settings.edit') }}" class="rounded-lg p-2 transition hover:bg-navy-900 hover:text-white {{ request()->routeIs('notification-settings.*') ? 'text-white' : 'text-navy-300' }}" title="Instellingen: meldingen">
+                        <x-icon name="cog" class="h-5 w-5" />
+                    </a>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="rounded-lg p-2 text-navy-300 transition hover:bg-navy-900 hover:text-white" title="Uitloggen">
+                            <x-icon name="arrow-right-on-rectangle" class="h-5 w-5" />
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </aside>
 
-    {{-- Mobiele header --}}
-    <header class="sticky top-0 z-30 flex h-14 items-center justify-between bg-navy-950 px-4 text-white lg:hidden">
+    {{-- Mobiele header (mockup §18): wit met donker logo; uitloggen zit onder "Meer" in de bottom-nav --}}
+    <header class="phone-header sticky top-0 z-30 box-content flex h-14 items-center justify-between border-b border-gray-200 bg-white px-4 pt-safe lg:hidden">
         <a href="{{ route('dashboard') }}">
-            <img src="{{ asset('images/renovion-logo.svg') }}" alt="Renovion" class="h-8 w-auto">
+            <img src="{{ asset('images/renovion-logo-dark.svg') }}" alt="Renovion" class="h-8 w-auto">
         </a>
-        @if ($title)
-            <span class="absolute left-1/2 -translate-x-1/2 text-sm font-semibold">{{ $title }}</span>
+        @if ($canCrm)
+            <a href="{{ route('search') }}" class="tap rounded-lg p-2 text-gray-500" title="Zoeken">
+                <x-icon name="magnifying-glass" class="h-5 w-5" />
+            </a>
         @endif
-        <div class="flex items-center gap-1">
-            @if ($canCrm)
-                <a href="{{ route('search') }}" class="rounded-lg p-2 text-navy-300" title="Zoeken">
-                    <x-icon name="magnifying-glass" class="h-5 w-5" />
-                </a>
-            @endif
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="rounded-lg p-2 text-navy-300" title="Uitloggen">
-                    <x-icon name="arrow-right-on-rectangle" class="h-5 w-5" />
-                </button>
-            </form>
-        </div>
     </header>
 
     <div class="lg:pl-64">
         {{-- Desktop topbar: zoeken + snel aanmaken --}}
-        <header class="sticky top-0 z-30 hidden h-16 items-center gap-4 border-b border-gray-200 bg-white px-8 lg:flex">
+        <header class="sticky top-0 z-30 box-content hidden h-16 items-center gap-4 border-b border-gray-200 bg-white px-8 pt-safe lg:flex">
             @if ($canCrm)
                 <form action="{{ route('search') }}" method="GET" class="relative w-full max-w-md">
-                    <x-icon name="magnifying-glass" class="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                    <input type="search" name="q" value="{{ request()->routeIs('search') ? request('q') : '' }}"
+                    <x-icon name="magnifying-glass" class="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-500" />
+                    <input aria-label="Zoeken" type="search" name="q" value="{{ request()->routeIs('search') ? request('q') : '' }}"
                            placeholder="Zoek klanten, projecten, aanvragen…"
                            class="w-full rounded-xl border-gray-200 bg-gray-50 py-2 pl-9 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:bg-white focus:ring-brand-500">
                 </form>
@@ -139,16 +136,16 @@
                 <div class="ml-auto flex items-center gap-3">
                     <div x-data="{ open: false }" class="relative">
                         <button @click="open = !open" @click.outside="open = false"
-                                class="flex items-center gap-1.5 rounded-xl bg-brand-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-600">
+                                class="flex items-center gap-1.5 rounded-xl bg-brand-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600">
                             <x-icon name="plus" class="h-4 w-4" />
                             Nieuw
                             <x-icon name="chevron-down" class="h-3.5 w-3.5" />
                         </button>
                         <div x-show="open" x-cloak x-transition.origin.top.right
                              class="absolute right-0 z-40 mt-2 w-48 overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
-                            <a href="{{ route('leads.create') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-navy-900 hover:bg-gray-50"><x-icon name="inbox" class="h-4 w-4 text-gray-400" /> Nieuwe aanvraag</a>
-                            <a href="{{ route('projects.create') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-navy-900 hover:bg-gray-50"><x-icon name="building-office" class="h-4 w-4 text-gray-400" /> Nieuw project</a>
-                            <a href="{{ route('tasks.index') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-navy-900 hover:bg-gray-50"><x-icon name="clipboard-check" class="h-4 w-4 text-gray-400" /> Nieuwe taak</a>
+                            <a href="{{ route('leads.create') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-navy-900 hover:bg-gray-50"><x-icon name="inbox" class="h-4 w-4 text-gray-500" /> Nieuwe aanvraag</a>
+                            <a href="{{ route('projects.create') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-navy-900 hover:bg-gray-50"><x-icon name="building-office" class="h-4 w-4 text-gray-500" /> Nieuw project</a>
+                            <a href="{{ route('tasks.index') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-navy-900 hover:bg-gray-50"><x-icon name="clipboard-check" class="h-4 w-4 text-gray-500" /> Nieuwe taak</a>
                         </div>
                     </div>
                 </div>
@@ -156,13 +153,13 @@
         </header>
 
         {{-- Content --}}
-        <main class="px-4 pt-4 pb-28 lg:px-8 lg:pt-6 lg:pb-12">
+        <main class="px-4 pt-4 pb-[calc(7rem_+_env(safe-area-inset-bottom))] lg:px-8 lg:pt-6 lg:pb-12">
             {{-- Flash messages --}}
             @if (session('success') || session('error'))
                 <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)" x-cloak
                      class="mb-4 flex items-center justify-between rounded-xl px-4 py-3 text-sm font-medium {{ session('error') ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800' }}">
                     <span>{{ session('error') ?? session('success') }}</span>
-                    <button @click="show = false" class="ml-3 opacity-60 hover:opacity-100" title="Sluiten"><x-icon name="x-mark" class="h-3.5 w-3.5" /></button>
+                    <button @click="show = false" class="tap ml-3 opacity-60 hover:opacity-100" title="Sluiten"><x-icon name="x-mark" class="h-3.5 w-3.5" /></button>
                 </div>
             @endif
 
@@ -172,9 +169,11 @@
 
     {{-- Nova AI-assistent --}}
     @can('manage-crm')
-    <div x-data="nova('{{ route('nova.propose') }}', '{{ route('nova.execute') }}')">
+    <div x-data="nova('{{ route('nova.propose') }}', '{{ route('nova.execute') }}')" @nova-open.window="openPanel()"
+         @renovion-back.window="if (open) { open = false; $event.preventDefault(); }">
+        {{-- Op mobiel opent Nova via de "+"-knop in de bottom-nav --}}
         <button @click="openPanel()"
-                class="fixed right-4 bottom-24 z-40 rounded-full shadow-lg shadow-navy-950/30 transition hover:scale-105 active:scale-95 lg:bottom-8"
+                class="fixed right-8 bottom-8 z-40 hidden rounded-full shadow-lg shadow-navy-950/30 transition hover:scale-105 active:scale-95 lg:block"
                 title="Nova">
             <x-nova-avatar class="h-14 w-14 ring-2 ring-brand-500" />
             <span class="absolute -right-0.5 -bottom-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-brand-500 text-white ring-2 ring-white">
@@ -193,7 +192,7 @@
                         <p class="font-bold text-navy-900">Nova</p>
                         <p class="text-xs text-gray-500">Stelt voor - jij bevestigt</p>
                     </div>
-                    <button @click="open = false" class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600" title="Sluiten">
+                    <button @click="open = false" class="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-600" title="Sluiten">
                         <x-icon name="x-mark" class="h-5 w-5" />
                     </button>
                 </div>
@@ -211,7 +210,7 @@
                                      class="rounded-2xl px-4 py-2.5 text-sm whitespace-pre-line">
                                     <span x-text="message.text"></span>
                                     <template x-if="message.url">
-                                        <a :href="message.url" class="mt-1 block text-xs font-semibold text-brand-600 hover:text-brand-500">Bekijken →</a>
+                                        <a :href="message.url" class="mt-1 block text-xs font-semibold text-brand-700 hover:text-brand-500">Bekijken →</a>
                                     </template>
                                 </div>
 
@@ -221,7 +220,7 @@
                                         <p class="text-sm font-medium text-navy-900" x-text="message.proposal.preview"></p>
                                         <div class="mt-3 flex gap-2" x-show="message.proposal.state === 'open' || message.proposal.state === 'busy'">
                                             <button @click="confirm(message)" :disabled="message.proposal.state === 'busy'"
-                                                    class="flex-1 rounded-lg bg-brand-500 py-2 text-xs font-bold text-white transition hover:bg-brand-600 disabled:opacity-50">
+                                                    class="flex-1 rounded-lg bg-brand-500 py-2 text-xs font-bold text-white transition hover:bg-brand-600 active:bg-brand-600 disabled:opacity-50">
                                                 <span x-text="message.proposal.state === 'busy' ? 'Bezig…' : 'Bevestigen'"></span>
                                             </button>
                                             <button @click="cancel(message)" :disabled="message.proposal.state === 'busy'"
@@ -230,7 +229,7 @@
                                             </button>
                                         </div>
                                         <p x-show="message.proposal.state === 'done'" class="mt-2 flex items-center gap-1 text-xs font-semibold text-green-700"><x-icon name="check" class="h-3.5 w-3.5" /> Uitgevoerd</p>
-                                        <p x-show="message.proposal.state === 'cancelled'" class="mt-2 text-xs font-semibold text-gray-400">Geannuleerd</p>
+                                        <p x-show="message.proposal.state === 'cancelled'" class="mt-2 text-xs font-semibold text-gray-500">Geannuleerd</p>
                                     </div>
                                 </template>
                             </div>
@@ -247,7 +246,7 @@
                 </div>
 
                 {{-- Invoer --}}
-                <form @submit.prevent="send()" class="flex items-center gap-2 border-t border-gray-100 p-3">
+                <form @submit.prevent="send()" class="flex items-center gap-2 border-t border-gray-100 p-3 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))]">
                     <button type="button" @click="toggleMic()" x-show="speechSupported"
                             :class="listening ? 'bg-red-500 text-white animate-pulse' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'"
                             class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition"
@@ -255,10 +254,10 @@
                         <x-icon name="microphone" class="h-5 w-5" />
                     </button>
                     <input x-ref="novaInput" x-model="input" type="text" :disabled="busy"
-                           placeholder="Typ of spreek je opdracht…"
+                           placeholder="Typ of spreek je opdracht…" aria-label="Opdracht voor Nova"
                            class="flex-1 rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
                     <button type="submit" :disabled="busy || !input.trim()"
-                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-500 text-white transition hover:bg-brand-600 disabled:opacity-40" title="Versturen">
+                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-500 text-white transition hover:bg-brand-600 active:bg-brand-600 disabled:opacity-40" title="Versturen">
                         <x-icon name="paper-airplane" class="h-4 w-4" />
                     </button>
                 </form>
@@ -267,31 +266,144 @@
     </div>
     @endcan
 
-    {{-- Mobiele bottom-nav --}}
+    {{-- Mobiele bottom-nav (mockup §18): Vandaag, Projecten, "+", Chat, Meer --}}
     @php
-        $tabs = $canCrm ? [
-            ['label' => 'Vandaag', 'route' => 'dashboard', 'active' => request()->routeIs('dashboard'), 'icon' => 'home'],
-            ['label' => 'Aanvragen', 'route' => 'leads.index', 'active' => request()->routeIs('leads.*'), 'icon' => 'inbox'],
-            ['label' => 'Projecten', 'route' => 'projects.index', 'active' => request()->routeIs('projects.*'), 'icon' => 'building-office'],
-            ['label' => 'Planning', 'route' => 'planning.index', 'active' => request()->routeIs('planning.*'), 'icon' => 'calendar'],
-            ['label' => 'Chat', 'route' => 'chat.index', 'active' => request()->routeIs('chat.*'), 'icon' => 'chat-bubble'],
-            ['label' => 'Acties', 'route' => 'tasks.index', 'active' => request()->routeIs('tasks.*'), 'icon' => 'clipboard-check'],
-        ] : [
+        $tabs = [
             ['label' => 'Vandaag', 'route' => 'dashboard', 'active' => request()->routeIs('dashboard'), 'icon' => 'home'],
             ['label' => 'Projecten', 'route' => 'projects.index', 'active' => request()->routeIs('projects.*'), 'icon' => 'building-office'],
-            ['label' => 'Planning', 'route' => 'planning.index', 'active' => request()->routeIs('planning.*'), 'icon' => 'calendar'],
-            ['label' => 'Chat', 'route' => 'chat.index', 'active' => request()->routeIs('chat.*'), 'icon' => 'chat-bubble'],
-            ['label' => 'Acties', 'route' => 'tasks.index', 'active' => request()->routeIs('tasks.*'), 'icon' => 'clipboard-check'],
         ];
+        $nieuw = $canCrm ? [
+            ['label' => 'Nieuwe aanvraag', 'route' => 'leads.create', 'icon' => 'inbox', 'chip' => 'bg-lead-100 text-lead-700'],
+            ['label' => 'Nieuw project', 'route' => 'projects.create', 'icon' => 'building-office', 'chip' => 'bg-project-100 text-project-700'],
+            ['label' => 'Nieuwe taak', 'route' => 'tasks.index', 'icon' => 'clipboard-check', 'chip' => 'bg-planning-100 text-planning-700'],
+            ['label' => 'Bericht aan team', 'route' => 'chat.index', 'icon' => 'chat-bubble', 'chip' => 'bg-gray-100 text-navy-900'],
+        ] : [
+            ['label' => 'Foto bij project', 'route' => 'projects.index', 'icon' => 'camera', 'chip' => 'bg-project-100 text-project-700'],
+            ['label' => 'Nieuwe taak', 'route' => 'tasks.index', 'icon' => 'clipboard-check', 'chip' => 'bg-planning-100 text-planning-700'],
+            ['label' => 'Bericht aan team', 'route' => 'chat.index', 'icon' => 'chat-bubble', 'chip' => 'bg-gray-100 text-navy-900'],
+        ];
+        // "Meer" = alles uit de sidebar dat niet al als tab in de bottom-nav staat.
+        $meer = $items->reject(fn ($item) => in_array($item['route'], ['dashboard', 'projects.index', 'chat.index']));
+        $meerActief = $meer->contains('active', true);
+        $meerBadge = $meer->sum(fn ($item) => $item['badge'] ?? 0);
     @endphp
-    <nav class="fixed inset-x-0 bottom-0 z-40 grid border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)] lg:hidden {{ ['4' => 'grid-cols-4', '5' => 'grid-cols-5', '6' => 'grid-cols-6'][count($tabs)] }}">
-        @foreach ($tabs as $tab)
-            <a href="{{ route($tab['route']) }}" class="flex flex-col items-center gap-0.5 py-2 {{ $tab['active'] ? 'text-brand-600' : 'text-gray-400' }}">
-                <x-icon :name="$tab['icon']" class="h-6 w-6" />
-                <span class="text-[10px] font-semibold">{{ $tab['label'] }}</span>
+    {{-- Ongelezen chatberichten live bijhouden: bij een push terwijl de app open is (native.js stuurt
+         "renovion-push"), bij terugkeren naar de app, en elke 30 seconden zolang het scherm zichtbaar is. --}}
+    <nav x-data="{
+             sheet: null,
+             unread: {{ $chatUnread }},
+             async refresh() {
+                 if (getComputedStyle(this.$el).display === 'none') return; // desktop: bottom-nav verborgen
+                 try {
+                     const response = await fetch(@js(route('chat.unread')), { headers: { Accept: 'application/json' } });
+                     if (response.ok) this.unread = (await response.json()).count;
+                 } catch { /* volgende keer opnieuw */ }
+             },
+             init() {
+                 setInterval(() => document.visibilityState === 'visible' && this.refresh(), 30000);
+                 document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && this.refresh());
+             },
+         }"
+         @renovion-push.window="refresh()"
+         @renovion-back.window="if (sheet) { sheet = null; $event.preventDefault(); }"
+         @keydown.escape.window="sheet = null" class="lg:hidden">
+        <div class="phone-tabbar hide-on-keyboard fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 items-end border-t border-gray-200 bg-white pb-safe">
+            @foreach ($tabs as $tab)
+                <a href="{{ route($tab['route']) }}" class="flex flex-col items-center gap-0.5 py-2 {{ $tab['active'] ? 'text-brand-700' : 'text-gray-500' }}">
+                    <x-icon :name="$tab['icon']" class="h-6 w-6" />
+                    <span class="tab-label text-[10px] font-semibold">{{ $tab['label'] }}</span>
+                </a>
+            @endforeach
+
+            <div class="flex justify-center">
+                <button type="button" @click="sheet = 'nieuw'"
+                        class="tab-plus -mt-5 mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-brand-500 text-white shadow-lg shadow-brand-500/30 ring-4 ring-white transition active:scale-95"
+                        title="Nieuw">
+                    <x-icon name="plus" class="h-7 w-7" />
+                </button>
+            </div>
+
+            <a href="{{ route('chat.index') }}" class="relative flex flex-col items-center gap-0.5 py-2 {{ request()->routeIs('chat.*') ? 'text-brand-700' : 'text-gray-500' }}">
+                <x-icon name="chat-bubble" class="h-6 w-6" />
+                <span class="tab-label text-[10px] font-semibold">Chat</span>
+                <span x-show="unread > 0" @if ($chatUnread === 0) style="display: none" @endif
+                      x-text="unread > 9 ? '9+' : unread"
+                      class="absolute top-0.5 left-1/2 ml-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-brand-500 px-1 text-[10px] leading-none font-bold text-white ring-2 ring-white">{{ $chatUnread > 9 ? '9+' : $chatUnread }}</span>
             </a>
-        @endforeach
+
+            <button type="button" @click="sheet = 'meer'" class="relative flex flex-col items-center gap-0.5 py-2 {{ $meerActief ? 'text-brand-700' : 'text-gray-500' }}">
+                <x-icon name="squares-2x2" class="h-6 w-6" />
+                <span class="tab-label text-[10px] font-semibold">Meer</span>
+                @if ($meerBadge > 0)
+                    <span class="absolute top-1.5 left-1/2 ml-1.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white"></span>
+                @endif
+            </button>
+        </div>
+
+        {{-- Sheets voor "+" en "Meer" --}}
+        <div x-show="sheet" x-cloak x-transition.opacity @click.self="sheet = null"
+             class="fixed inset-0 z-50 flex items-end bg-navy-950/60 backdrop-blur-sm">
+            <div class="max-h-[85dvh] w-full overflow-y-auto rounded-t-2xl bg-white px-4 pt-3 pb-[calc(1rem_+_env(safe-area-inset-bottom))]">
+                <div class="mx-auto mb-3 h-1 w-10 rounded-full bg-gray-200"></div>
+
+                <div x-show="sheet === 'nieuw'">
+                    <p class="mb-3 text-[11px] font-bold tracking-widest text-gray-600 uppercase">Nieuw</p>
+                    @if ($canCrm)
+                        <button type="button" @click="sheet = null; $dispatch('nova-open')"
+                                class="mb-3 flex w-full items-center gap-3 rounded-2xl bg-navy-950 p-3 text-left text-white">
+                            <x-nova-avatar class="h-10 w-10 ring-2 ring-brand-500" />
+                            <span class="min-w-0 flex-1">
+                                <span class="block text-sm font-bold">Vraag Nova</span>
+                                <span class="block text-xs text-navy-300">Inspreken of typen, Nova zet het klaar</span>
+                            </span>
+                            <x-icon name="microphone" class="h-5 w-5 text-brand-400" />
+                        </button>
+                    @endif
+                    <div class="grid grid-cols-2 gap-2">
+                        @foreach ($nieuw as $actie)
+                            <a href="{{ route($actie['route']) }}" class="flex items-center gap-2.5 rounded-2xl border border-gray-200 p-3">
+                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl {{ $actie['chip'] }}">
+                                    <x-icon :name="$actie['icon']" class="h-5 w-5" />
+                                </span>
+                                <span class="text-sm font-semibold text-navy-900">{{ $actie['label'] }}</span>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div x-show="sheet === 'meer'">
+                    <p class="mb-1 text-[11px] font-bold tracking-widest text-gray-600 uppercase">Meer</p>
+                    <div class="divide-y divide-gray-100">
+                        @foreach ($meer as $item)
+                            <a href="{{ route($item['route']) }}" class="flex items-center gap-3 py-3 {{ $item['active'] ? 'text-brand-700' : 'text-navy-900' }}">
+                                <x-icon :name="$item['icon']" class="h-5 w-5 {{ $item['active'] ? 'text-brand-500' : 'text-gray-500' }}" />
+                                <span class="flex-1 text-sm font-semibold">{{ $item['label'] }}</span>
+                                @if (($item['badge'] ?? 0) > 0)
+                                    <span class="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold text-white">{{ $item['badge'] }}</span>
+                                @endif
+                                <x-icon name="chevron-right" class="h-4 w-4 text-gray-300" />
+                            </a>
+                        @endforeach
+                        <a href="{{ route('notification-settings.edit') }}" class="flex items-center gap-3 py-3 {{ request()->routeIs('notification-settings.*') ? 'text-brand-700' : 'text-navy-900' }}">
+                            <x-icon name="cog" class="h-5 w-5 {{ request()->routeIs('notification-settings.*') ? 'text-brand-500' : 'text-gray-500' }}" />
+                            <span class="flex-1 text-sm font-semibold">Meldingsinstellingen</span>
+                            <x-icon name="chevron-right" class="h-4 w-4 text-gray-300" />
+                        </a>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="flex w-full items-center gap-3 py-3 text-left text-navy-900">
+                                <x-icon name="arrow-right-on-rectangle" class="h-5 w-5 text-gray-500" />
+                                <span class="flex-1 text-sm font-semibold">Uitloggen</span>
+                                <span class="text-xs text-gray-500">{{ auth()->user()->name }}</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
     </nav>
+
+    <x-photo-viewer />
 
 </body>
 </html>

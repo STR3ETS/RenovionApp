@@ -13,10 +13,12 @@ use App\Http\Controllers\ChecklistItemController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeliveryReportController;
+use App\Http\Controllers\DeviceTokenController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\LeadContactController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\LeadStatusController;
+use App\Http\Controllers\NotificationSettingsController;
 use App\Http\Controllers\NovaController;
 use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\PlanningController;
@@ -61,6 +63,7 @@ Route::middleware('auth')->group(function () {
     Route::get('portaal', [PortalController::class, 'index'])->name('portal.index');
     Route::get('portaal/projecten/{project}', [PortalController::class, 'show'])->name('portal.show');
     Route::post('portaal/fasen/{phase}/akkoord', [PortalController::class, 'approvePhase'])->middleware('throttle:10,1')->name('portal.phases.approve');
+    Route::post('portaal/projecten/{project}/fasen-akkoord', [PortalController::class, 'approveAllPhases'])->middleware('throttle:10,1')->name('portal.phases.approve-all');
     Route::get('portaal/opleverrapporten/{report}', [PortalController::class, 'report'])->name('portal.report');
     Route::post('portaal/opleverrapporten/{report}/ondertekenen', [PortalController::class, 'signReport'])->middleware('throttle:10,1')->name('portal.report.sign');
 
@@ -90,6 +93,8 @@ Route::middleware('auth')->group(function () {
 
         // Teamchat (briefing §11): teamkanalen voor iedereen intern, projectkanalen volgen projecttoegang.
         Route::get('chat', [ChatController::class, 'index'])->name('chat.index');
+        // Vóór chat/{channel}: anders wordt "ongelezen" als kanaal gelezen.
+        Route::get('chat/ongelezen', [ChatController::class, 'unread'])->middleware('throttle:60,1')->name('chat.unread');
         Route::post('chat/kanalen', [ChatController::class, 'store'])->name('chat.channels.store');
         Route::get('chat/bijlagen/{message}', [ChatMessageController::class, 'attachment'])->name('chat.attachment');
         Route::post('chat/berichten/{message}/nova-bevestigen', [ChatMessageController::class, 'confirmNova'])->name('chat.nova.confirm');
@@ -104,6 +109,14 @@ Route::middleware('auth')->group(function () {
         Route::patch('taken/{task}/status', [TaskStatusController::class, 'update'])->name('tasks.status');
 
         Route::get('planning', [PlanningController::class, 'index'])->name('planning.index');
+
+        // Pushmeldingen: de app registreert hier het token van de telefoon.
+        Route::post('apparaten', [DeviceTokenController::class, 'store'])->middleware('throttle:30,1')->name('devices.store');
+
+        // Instellingen > Meldingen: welke pushmeldingen je wilt krijgen, plus een testmelding.
+        Route::get('instellingen/meldingen', [NotificationSettingsController::class, 'edit'])->name('notification-settings.edit');
+        Route::patch('instellingen/meldingen', [NotificationSettingsController::class, 'update'])->middleware('throttle:60,1')->name('notification-settings.update');
+        Route::post('instellingen/meldingen/test', [NotificationSettingsController::class, 'test'])->middleware('throttle:5,1')->name('notification-settings.test');
 
         Route::post('documenten', [DocumentController::class, 'store'])->name('documents.store');
         Route::get('documenten/{document}', [DocumentController::class, 'show'])->name('documents.show');

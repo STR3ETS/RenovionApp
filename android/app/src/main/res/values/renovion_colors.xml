@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Huisstijl-oranje (brand-500) voor het accent van pushmeldingen. -->
+    <color name="renovion_orange">#F85B0B</color>
+</resources>

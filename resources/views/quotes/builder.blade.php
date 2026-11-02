@@ -2,9 +2,10 @@
 <html lang="nl">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Offerte bouwen - {{ $quote->number }}</title>
+    @include('partials.favicon')
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter-tight:400,500,600,700,800" rel="stylesheet">
@@ -33,6 +34,13 @@
         .block-action-btn.drag-handle { cursor: grab; }
         .block-action-btn.drag-handle:active { cursor: grabbing; }
         .block-action-btn.pinned { background: #F85B0B; border-color: #F85B0B; color: #fff; opacity: 1; }
+        .block-action-btn.touch-only { display: none; }
+        @media (pointer: coarse) {
+            .block-actions { right: -12px; }
+            .block-action-btn { width: 36px; height: 36px; }
+            .block-action-btn.touch-only:not([style*="none"]) { display: flex; }
+            .block-action-btn.drag-handle { display: none; }
+        }
         @keyframes blockFlash {
             0%   { outline-color: rgba(248, 91, 11, 0); box-shadow: 0 0 0 rgba(248, 91, 11, 0); }
             30%  { outline-color: rgba(248, 91, 11, .9); box-shadow: 0 0 24px rgba(248, 91, 11, .25); }
@@ -41,7 +49,7 @@
         .block-flash { animation: blockFlash 1.2s ease-out; }
     </style>
 </head>
-<body class="flex h-screen flex-col bg-gray-100 font-sans text-gray-900 antialiased"
+<body class="flex h-screen flex-col bg-gray-100 pt-safe font-sans text-gray-900 antialiased"
       x-data="quoteBuilder({{ Js::from([
           'saveUrl' => route('quotes.builder.update', $quote),
           'applyTplUrl' => route('quotes.builder.template', $quote),
@@ -55,6 +63,7 @@
           'registry' => $registry,
           'templates' => $templates->map(fn ($t) => ['id' => $t->id, 'name' => $t->name, 'description' => $t->description, 'is_default' => (bool) $t->is_default])->all(),
       ]) }})"
+      @renovion-back.window="if (mobilePanel) { mobilePanel = null; $event.preventDefault(); }"
       @keydown.ctrl.s.prevent.window="save()"
       @keydown.meta.s.prevent.window="save()">
 
@@ -66,14 +75,14 @@
             </a>
             <div class="h-5 w-px bg-gray-200"></div>
             <div class="min-w-0">
-                <p class="truncate text-sm font-bold text-navy-950">Offerte bouwen <span class="font-semibold text-gray-400">, {{ $quote->number }}, v{{ $quote->version }}</span></p>
-                <p class="truncate text-xs text-gray-400">{{ $quote->customer->name }}{{ $quote->lead?->service ? ', '.$quote->lead->service : '' }}</p>
+                <p class="truncate text-sm font-bold text-navy-950">Offerte bouwen <span class="font-semibold text-gray-500">, {{ $quote->number }}, v{{ $quote->version }}</span></p>
+                <p class="truncate text-xs text-gray-500">{{ $quote->customer->name }}{{ $quote->lead?->service ? ', '.$quote->lead->service : '' }}</p>
             </div>
         </div>
 
         <div class="flex items-center gap-3">
             <span class="hidden items-center gap-1.5 text-xs font-semibold xl:flex"
-                  :class="saveError ? 'text-red-600' : (dirty ? 'text-amber-600' : 'text-gray-400')"
+                  :class="saveError ? 'text-red-600' : (dirty ? 'text-amber-700' : 'text-gray-500')"
                   title="Wijzigingen worden ook vanzelf opgeslagen. Sneltoets: Ctrl+S">
                 <span x-show="dirty && !saveError" x-cloak class="h-1.5 w-1.5 rounded-full bg-amber-400"></span>
                 <span x-text="saveStatus()"></span>
@@ -85,29 +94,30 @@
                 <span x-text="saving ? 'Opslaan…' : (saveError ? 'Opnieuw proberen' : (dirty ? 'Opslaan' : 'Opgeslagen'))"></span>
             </button>
             <div class="h-5 w-px bg-gray-200"></div>
-            <a href="{{ route('quotes.show', $quote) }}" class="h-9 rounded-full bg-brand-500 px-5 text-xs leading-9 font-bold text-white transition hover:bg-brand-600" title="Terug naar de offertepagina - daar verstuur je de offerte ook">Klaar</a>
+            <a href="{{ route('quotes.show', $quote) }}" class="h-9 rounded-full bg-brand-500 px-5 text-xs leading-9 font-bold text-white transition hover:bg-brand-600 active:bg-brand-600" title="Terug naar de offertepagina - daar verstuur je de offerte ook">Klaar</a>
         </div>
     </header>
 
     <div class="flex min-h-0 flex-1">
 
         {{-- Links: blokbibliotheek --}}
-        <aside class="hidden w-60 shrink-0 flex-col border-r border-gray-200 bg-white lg:flex">
+        <aside :class="mobilePanel === 'blokken' ? 'fixed inset-x-0 bottom-0 z-40 flex max-h-[75dvh] rounded-t-2xl shadow-2xl' : 'hidden'"
+               class="w-full shrink-0 flex-col border-gray-200 bg-white pb-safe lg:static lg:flex lg:max-h-none lg:w-60 lg:rounded-none lg:border-r lg:pb-0 lg:shadow-none">
             <div class="border-b border-gray-200 p-4">
-                <p class="text-[10px] font-bold tracking-widest text-gray-400 uppercase">Blokken</p>
-                <p class="mt-1 text-xs text-gray-400">Klik om toe te voegen</p>
+                <p class="text-[10px] font-bold tracking-widest text-gray-600 uppercase">Blokken</p>
+                <p class="mt-1 text-xs text-gray-500">Kies een blok om toe te voegen</p>
             </div>
             <div class="no-scrollbar flex-1 space-y-1 overflow-y-auto p-3">
                 @foreach ($registry as $item)
                     @continue($item['locked'] ?? false)
-                    <button type="button" @click="addBlock('{{ $item['type'] }}')" :disabled="isDisabled('{{ $item['type'] }}')"
+                    <button type="button" @click="addBlock('{{ $item['type'] }}'); mobilePanel = null" :disabled="isDisabled('{{ $item['type'] }}')"
                             class="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-40">
                         <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-500 transition group-hover:bg-brand-100">
                             <x-icon :name="$item['icon']" class="h-4 w-4" />
                         </span>
                         <span class="min-w-0 flex-1">
                             <span class="block truncate text-xs font-bold text-navy-900">{{ $item['label'] }}</span>
-                            <span class="block truncate text-[11px] text-gray-400">{{ $item['description'] }}</span>
+                            <span class="block truncate text-[11px] text-gray-500">{{ $item['description'] }}</span>
                         </span>
                         @if ($item['singleton'] ?? false)
                             <span x-show="hasBlock('{{ $item['type'] }}')" x-cloak title="Al toegevoegd"><x-icon name="check" class="h-3.5 w-3.5 shrink-0 text-brand-500" /></span>
@@ -126,7 +136,7 @@
                     <div class="rounded-2xl border border-gray-200 bg-white p-12 text-center">
                         <span class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-brand-50 text-brand-500"><x-icon name="document-text" class="h-6 w-6" /></span>
                         <p class="text-sm font-bold text-navy-900">Nog geen blokken</p>
-                        <p class="mt-1 text-xs text-gray-400">Begin met een template (rechts) of voeg losse blokken toe (links).</p>
+                        <p class="mt-1 text-xs text-gray-500">Begin met een template of voeg losse blokken toe.</p>
                     </div>
                 </template>
 
@@ -146,6 +156,13 @@
 
                         {{-- Zwevende blokacties --}}
                         <div class="block-actions">
+                            {{-- Slepen kan niet op touch: daar omhoog en omlaag. --}}
+                            <button type="button" class="block-action-btn touch-only" x-show="canMove(index, -1)" @click.stop="moveBlock(index, -1)" title="Omhoog">
+                                <x-icon name="chevron-down" class="h-3.5 w-3.5 rotate-180" />
+                            </button>
+                            <button type="button" class="block-action-btn touch-only" x-show="canMove(index, 1)" @click.stop="moveBlock(index, 1)" title="Omlaag">
+                                <x-icon name="chevron-down" class="h-3.5 w-3.5" />
+                            </button>
                             <button type="button" class="block-action-btn drag-handle" @mousedown="dragHandle = index" @mouseup="dragHandle = null" @click.stop title="Sleep om te verplaatsen">
                                 <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
                             </button>
@@ -175,26 +192,27 @@
                     </div>
                 </template>
 
-                <p x-show="blocks.length > 0" class="pb-2 text-center text-xs text-gray-400">Tekst pas je direct in het document aan. Beweeg over een blok voor slepen, Nova, dupliceren of verwijderen.</p>
+                <p x-show="blocks.length > 0" class="pb-2 text-center text-xs text-gray-500">Tekst pas je direct in het document aan. Kies een blok voor verplaatsen, Nova, dupliceren of verwijderen.</p>
             </div>
         </main>
 
         {{-- Rechts: templates + Nova --}}
-        <aside class="hidden w-[300px] shrink-0 flex-col border-l border-gray-200 bg-white xl:flex">
+        <aside :class="['templates', 'nova'].includes(mobilePanel) ? 'fixed inset-x-0 bottom-0 z-40 flex max-h-[80dvh] rounded-t-2xl shadow-2xl' : 'hidden'"
+               class="w-full shrink-0 flex-col border-gray-200 bg-white pb-safe xl:static xl:flex xl:max-h-none xl:w-[300px] xl:rounded-none xl:border-l xl:pb-0 xl:shadow-none">
             <div class="flex border-b border-gray-200">
                 <button type="button" @click="rightTab = 'templates'"
-                        :class="rightTab === 'templates' ? 'border-brand-500 text-navy-950' : 'border-transparent text-gray-400 hover:text-gray-600'"
+                        :class="rightTab === 'templates' ? 'border-brand-500 text-navy-950' : 'border-transparent text-gray-500 hover:text-gray-600'"
                         class="h-12 flex-1 border-b-2 text-[11px] font-bold tracking-wider uppercase transition">Templates</button>
                 <button type="button" @click="rightTab = 'nova'"
-                        :class="rightTab === 'nova' ? 'border-brand-500 text-navy-950' : 'border-transparent text-gray-400 hover:text-gray-600'"
+                        :class="rightTab === 'nova' ? 'border-brand-500 text-navy-950' : 'border-transparent text-gray-500 hover:text-gray-600'"
                         class="h-12 flex-1 border-b-2 text-[11px] font-bold tracking-wider uppercase transition">Nova</button>
             </div>
 
             {{-- Tab: templates --}}
             <div x-show="rightTab === 'templates'" class="no-scrollbar flex-1 space-y-3 overflow-y-auto p-4">
-                <p class="text-xs text-gray-400">Klik op een template om hem toe te passen. Dat vervangt alle blokken van deze offerte; klantgegevens worden ingevuld.</p>
+                <p class="text-xs text-gray-500">Klik op een template om hem toe te passen. Dat vervangt alle blokken van deze offerte; klantgegevens worden ingevuld.</p>
                 <button type="button" @click="openTplModal()" :disabled="blocks.length === 0"
-                        class="w-full rounded-full bg-brand-50 py-2.5 text-xs font-bold text-brand-600 transition hover:bg-brand-100 disabled:cursor-not-allowed disabled:opacity-40">
+                        class="w-full rounded-full bg-brand-50 py-2.5 text-xs font-bold text-brand-700 transition hover:bg-brand-100 disabled:cursor-not-allowed disabled:opacity-40">
                     Deze offerte bewaren als template
                 </button>
 
@@ -203,10 +221,10 @@
                         <button type="button" @click="applyTemplate(tpl)"
                                 class="w-full rounded-2xl border border-gray-200 p-4 text-left transition hover:border-brand-400 hover:bg-brand-50/50">
                             <p class="pr-5 text-xs font-bold text-navy-900" x-text="tpl.name"></p>
-                            <p class="mt-1 text-[11px] leading-snug text-gray-400" x-text="tpl.description"></p>
+                            <p class="mt-1 text-[11px] leading-snug text-gray-500" x-text="tpl.description"></p>
                         </button>
                         <button type="button" x-show="!tpl.is_default" @click.stop="deleteTemplate(tpl)"
-                                class="absolute top-2 right-2 flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-300 opacity-0 transition group-hover:opacity-100 hover:text-red-500" title="Template verwijderen">
+                                class="absolute top-2 right-2 flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 transition hover:text-red-500 pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100" title="Template verwijderen">
                             <x-icon name="trash" class="h-3 w-3" />
                         </button>
                     </div>
@@ -241,7 +259,7 @@
                         <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-red-400"></span> Aan het luisteren… klik op de microfoon om te stoppen.
                     </p>
                     <button type="button" @click="generate()" :disabled="gen.loading"
-                            class="w-full rounded-full bg-brand-500 py-2.5 text-xs font-bold text-white transition hover:bg-brand-600 disabled:opacity-50">
+                            class="w-full rounded-full bg-brand-500 py-2.5 text-xs font-bold text-white transition hover:bg-brand-600 active:bg-brand-600 disabled:opacity-50">
                         <span x-text="gen.loading ? 'Nova bouwt de offerte…' : 'Bouw de offerte'"></span>
                     </button>
                     <p x-show="gen.error" x-text="gen.error" x-cloak class="mt-2 text-[11px] font-medium text-red-400"></p>
@@ -250,7 +268,7 @@
 
                 <div class="rounded-xl border border-brand-100 bg-brand-50 p-3 text-[11px] leading-relaxed text-gray-600">
                     <span class="font-bold text-navy-900">Blok vastzetten?</span>
-                    Zet een blok vast met het slotje (beweeg over een blok). Vastgezette blokken blijven mét inhoud staan; Nova bouwt alleen de rest opnieuw.
+                    Zet een blok vast met het slotje bij dat blok. Vastgezette blokken blijven mét inhoud staan; Nova bouwt alleen de rest opnieuw.
                 </div>
                 <div class="rounded-xl border border-amber-100 bg-amber-50 p-3 text-[11px] leading-relaxed text-amber-800">
                     Zonder vastgezette blokken vervangt Nova alle blokken (behalve de kop). Eén los blok bijwerken kan met de Nova-knop op dat blok.
@@ -259,12 +277,26 @@
         </aside>
     </div>
 
+    {{-- Telefoon en tablet: de zijpanelen openen als sheet vanuit deze balk. --}}
+    <div x-show="mobilePanel" x-cloak x-transition.opacity @click="mobilePanel = null" class="fixed inset-0 z-30 bg-navy-950/60 xl:hidden"></div>
+    <nav class="hide-on-keyboard z-20 flex shrink-0 border-t border-gray-200 bg-white pb-safe xl:hidden">
+        <button type="button" @click="mobilePanel = 'blokken'" class="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-semibold text-navy-900 lg:hidden">
+            <x-icon name="plus" class="h-5 w-5" /> Blok
+        </button>
+        <button type="button" @click="rightTab = 'templates'; mobilePanel = 'templates'" class="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-semibold text-navy-900">
+            <x-icon name="document-text" class="h-5 w-5" /> Templates
+        </button>
+        <button type="button" @click="rightTab = 'nova'; mobilePanel = 'nova'" class="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-semibold text-navy-900">
+            <img src="{{ asset('nova.jpg') }}" alt="" class="h-5 w-5 rounded-full object-cover"> Nova
+        </button>
+    </nav>
+
     {{-- Modal: bewaren als template --}}
     <div x-show="tplModal.open" x-cloak @keydown.escape.window="tplModal.open = false"
          class="fixed inset-0 z-50 flex items-center justify-center bg-navy-950/60 p-4 backdrop-blur-sm" @click.self="tplModal.open = false">
         <div class="w-full max-w-md rounded-2xl bg-white p-6">
             <h3 class="text-base font-bold text-navy-950">Bewaren als template</h3>
-            <p class="mt-1 mb-4 text-xs text-gray-400">De blokken van deze offerte worden bewaard, zodat je ze bij een volgende offerte met één klik gebruikt. Klantgegevens vervang je in de tekst door <code class="rounded bg-gray-100 px-1">{{ '{klant}' }}</code> en <code class="rounded bg-gray-100 px-1">{{ '{plaats}' }}</code>.</p>
+            <p class="mt-1 mb-4 text-xs text-gray-500">De blokken van deze offerte worden bewaard, zodat je ze bij een volgende offerte met één klik gebruikt. Klantgegevens vervang je in de tekst door <code class="rounded bg-gray-100 px-1">{{ '{klant}' }}</code> en <code class="rounded bg-gray-100 px-1">{{ '{plaats}' }}</code>.</p>
 
             <div class="mb-4 grid grid-cols-2 gap-1 rounded-full bg-gray-100 p-1">
                 <button type="button" @click="tplModal.mode = 'nieuw'"
@@ -311,7 +343,7 @@
                 <img src="{{ asset('nova.jpg') }}" alt="Nova" class="h-9 w-9 rounded-full object-cover ring-2 ring-brand-500">
                 <div>
                     <p class="text-sm font-bold text-navy-900">Nova schrijft dit blok</p>
-                    <p class="text-xs text-gray-400" x-text="'Blok: ' + aiLabel()"></p>
+                    <p class="text-xs text-gray-500" x-text="'Blok: ' + aiLabel()"></p>
                 </div>
             </div>
             <div class="relative">
@@ -330,7 +362,7 @@
             <p x-show="ai.error" x-text="ai.error" x-cloak class="mt-2 text-xs font-medium text-red-600"></p>
             <div class="mt-3 flex gap-2">
                 <button type="button" @click="runAi()" :disabled="ai.loading"
-                        class="flex-1 rounded-xl bg-brand-500 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600 disabled:opacity-50">
+                        class="flex-1 rounded-xl bg-brand-500 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600 disabled:opacity-50">
                     <span x-text="ai.loading ? 'Nova schrijft…' : 'Genereer'"></span>
                 </button>
                 <button type="button" @click="ai.open = false" class="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">Sluiten</button>
@@ -348,6 +380,7 @@
                 registry: cfg.registry,
                 templates: cfg.templates,
                 rightTab: 'templates',
+                mobilePanel: null,
                 selectedIdx: null,
 
                 // Opslaan: vanzelf (1,5s na een wijziging), met Ctrl+S en een statusknop.
@@ -480,6 +513,18 @@
                     this.dragFrom = null;
                     this.save();
                 },
+                canMove(index, step) {
+                    const target = index + step;
+                    return target >= 0 && target < this.blocks.length
+                        && !this.isLocked(this.blocks[index].type) && !this.isLocked(this.blocks[target].type);
+                },
+                moveBlock(index, step) {
+                    if (!this.canMove(index, step)) return;
+                    const [block] = this.blocks.splice(index, 1);
+                    this.blocks.splice(index + step, 0, block);
+                    this.selectedIdx = index + step;
+                    this.save();
+                },
                 toggleKeep(index) {
                     const block = this.blocks[index];
                     if (!block.data) block.data = {};
@@ -505,6 +550,7 @@
                         if (data.ok) {
                             this.blocks = data.blocks;
                             this.selectedIdx = null;
+                            this.mobilePanel = null;
                             this.lastSaved = this.snapshot();
                             this.$nextTick(() => this.checkDirty());
                         } else {
@@ -635,6 +681,7 @@
                         if (data.ok && data.blocks) {
                             this.blocks = data.blocks;
                             this.selectedIdx = null;
+                            this.mobilePanel = null;
                             this.lastSaved = this.snapshot();
                             this.$nextTick(() => this.checkDirty());
                             document.querySelector('.canvas-scroll')?.scrollTo({ top: 0, behavior: 'smooth' });

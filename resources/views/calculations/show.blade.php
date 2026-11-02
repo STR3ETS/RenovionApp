@@ -14,71 +14,78 @@
         </div>
     @endif
 
-    <div class="grid gap-4 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div class="space-y-4 lg:col-span-2">
 
             {{-- Regels --}}
             <section class="overflow-hidden rounded-2xl border border-gray-200 bg-white">
                 <h2 class="border-b border-gray-100 px-5 py-4 text-sm font-bold text-navy-900">Calculatieregels</h2>
                 @if ($calculation->lines->isEmpty())
-                    <p class="px-5 py-6 text-sm text-gray-400">Nog geen regels - voeg ze hieronder toe of gebruik de AI-invoer bij een nieuwe calculatie.</p>
+                    <p class="px-5 py-6 text-sm text-gray-500">Nog geen regels - voeg ze hieronder toe of gebruik de AI-invoer bij een nieuwe calculatie.</p>
                 @else
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr class="text-left text-xs font-bold text-gray-500 uppercase">
-                                    <th class="px-5 py-2.5">Omschrijving</th>
-                                    <th class="px-3 py-2.5 text-right">Aantal</th>
-                                    <th class="px-3 py-2.5">Eenheid</th>
-                                    <th class="px-3 py-2.5 text-right">Prijs</th>
-                                    <th class="px-3 py-2.5 text-right">Opslag</th>
-                                    <th class="px-3 py-2.5 text-right">Totaal</th>
-                                    @unless ($calculation->isLocked())<th class="px-3 py-2.5"></th>@endunless
+                    {{-- Onder xl is elke regel een kaartje: prijs en totaal blijven zo zonder zijwaarts scrollen in beeld. --}}
+                    <table class="block w-full text-sm xl:table">
+                        <thead class="hidden xl:table-header-group">
+                            <tr class="text-left text-xs font-bold text-gray-500 uppercase">
+                                <th class="px-5 py-2.5">Omschrijving</th>
+                                <th class="px-3 py-2.5 text-right">Aantal</th>
+                                <th class="px-3 py-2.5">Eenheid</th>
+                                <th class="px-3 py-2.5 text-right">Prijs</th>
+                                <th class="px-3 py-2.5 text-right">Opslag</th>
+                                <th class="px-3 py-2.5 text-right">Totaal</th>
+                                @unless ($calculation->isLocked())<th class="px-3 py-2.5"></th>@endunless
+                            </tr>
+                        </thead>
+                        <tbody class="block xl:table-row-group">
+                            @foreach ($calculation->lines as $line)
+                                @php $opslag = (float) $line->surcharge_pct > 0 ? rtrim(rtrim(number_format((float) $line->surcharge_pct, 2, ',', '.'), '0'), ',').'%' : null; @endphp
+                                <tr class="relative grid grid-cols-3 items-end gap-x-3 gap-y-2 border-t border-gray-100 px-5 py-3 xl:table-row xl:p-0">
+                                    <td class="col-span-3 pr-8 xl:px-5 xl:py-2.5">
+                                        <span class="block font-medium text-navy-900">{{ $line->description }}</span>
+                                        <span class="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs text-gray-500">
+                                            <span class="rounded-full px-1.5 py-0.5 text-[10px] font-semibold {{ $line->type->badgeClasses() }}">{{ $line->type->label() }}</span>
+                                            @if ($line->price_source) {{ $line->price_source }} ({{ $line->price_edition }}) @endif
+                                        </span>
+                                    </td>
+                                    <td class="xl:px-3 xl:py-2.5 xl:text-right">
+                                        <span class="mb-0.5 block text-[11px] font-semibold text-gray-500 xl:hidden">Aantal{{ $line->unit ? ' ('.$line->unit.')' : '' }}</span>
+                                        @if ($calculation->isLocked())
+                                            {{ rtrim(rtrim(number_format((float) $line->quantity, 2, ',', '.'), '0'), ',') }}
+                                        @else
+                                            <form method="POST" action="{{ route('calculations.lines.update', [$calculation, $line]) }}">
+                                                @csrf
+                                                @method('PATCH')
+                                                <input aria-label="Aantal" type="number" name="quantity" value="{{ (float) $line->quantity }}" min="0" step="0.01"
+                                                       onchange="this.form.submit()" aria-label="Aantal voor {{ $line->description }}"
+                                                       class="w-full rounded-lg border-gray-200 py-1 text-right text-sm focus:border-brand-500 focus:ring-brand-500 xl:w-20 pointer-coarse:py-2">
+                                            </form>
+                                        @endif
+                                    </td>
+                                    <td class="hidden px-3 py-2.5 text-gray-500 xl:table-cell">{{ $line->unit ?? '-' }}</td>
+                                    <td class="whitespace-nowrap xl:px-3 xl:py-2.5 xl:text-right">
+                                        <span class="mb-0.5 block text-[11px] font-semibold text-gray-500 xl:hidden">Prijs{{ $opslag ? ' + '.$opslag : '' }}</span>
+                                        € {{ number_format((float) $line->unit_price, 2, ',', '.') }}
+                                    </td>
+                                    <td class="hidden px-3 py-2.5 text-right text-gray-500 xl:table-cell">{{ $opslag ?? '-' }}</td>
+                                    <td class="text-right font-semibold whitespace-nowrap text-navy-900 xl:px-3 xl:py-2.5">
+                                        <span class="mb-0.5 block text-[11px] font-semibold text-gray-500 xl:hidden">Totaal</span>
+                                        € {{ number_format($line->total(), 2, ',', '.') }}
+                                    </td>
+                                    @unless ($calculation->isLocked())
+                                        <td class="absolute top-2 right-3 xl:static xl:table-cell xl:px-3 xl:py-2.5">
+                                            <form method="POST" action="{{ route('calculations.lines.destroy', [$calculation, $line]) }}" onsubmit="return confirm('Regel verwijderen?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="tap rounded p-1 text-gray-500 transition hover:text-red-500" title="Verwijderen">
+                                                    <x-icon name="trash" class="h-4 w-4" />
+                                                </button>
+                                            </form>
+                                        </td>
+                                    @endunless
                                 </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($calculation->lines as $line)
-                                    <tr class="border-t border-gray-100">
-                                        <td class="px-5 py-2.5">
-                                            <span class="block font-medium text-navy-900">{{ $line->description }}</span>
-                                            <span class="mt-0.5 flex items-center gap-1.5 text-xs text-gray-400">
-                                                <span class="rounded-full px-1.5 py-0.5 text-[10px] font-semibold {{ $line->type->badgeClasses() }}">{{ $line->type->label() }}</span>
-                                                @if ($line->price_source) {{ $line->price_source }} ({{ $line->price_edition }}) @endif
-                                            </span>
-                                        </td>
-                                        <td class="px-3 py-2.5 text-right">
-                                            @if ($calculation->isLocked())
-                                                {{ rtrim(rtrim(number_format((float) $line->quantity, 2, ',', '.'), '0'), ',') }}
-                                            @else
-                                                <form method="POST" action="{{ route('calculations.lines.update', [$calculation, $line]) }}">
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <input type="number" name="quantity" value="{{ (float) $line->quantity }}" min="0" step="0.01"
-                                                           onchange="this.form.submit()"
-                                                           class="w-20 rounded-lg border-gray-200 py-1 text-right text-sm focus:border-brand-500 focus:ring-brand-500">
-                                                </form>
-                                            @endif
-                                        </td>
-                                        <td class="px-3 py-2.5 text-gray-500">{{ $line->unit ?? '-' }}</td>
-                                        <td class="px-3 py-2.5 text-right">€ {{ number_format((float) $line->unit_price, 2, ',', '.') }}</td>
-                                        <td class="px-3 py-2.5 text-right text-gray-500">{{ (float) $line->surcharge_pct > 0 ? rtrim(rtrim(number_format((float) $line->surcharge_pct, 2, ',', '.'), '0'), ',').'%' : '-' }}</td>
-                                        <td class="px-3 py-2.5 text-right font-semibold text-navy-900">€ {{ number_format($line->total(), 2, ',', '.') }}</td>
-                                        @unless ($calculation->isLocked())
-                                            <td class="px-3 py-2.5">
-                                                <form method="POST" action="{{ route('calculations.lines.destroy', [$calculation, $line]) }}" onsubmit="return confirm('Regel verwijderen?');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="rounded p-1 text-gray-300 transition hover:text-red-500" title="Verwijderen">
-                                                        <x-icon name="trash" class="h-4 w-4" />
-                                                    </button>
-                                                </form>
-                                            </td>
-                                        @endunless
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
+                            @endforeach
+                        </tbody>
+                    </table>
                 @endif
             </section>
 
@@ -106,8 +113,8 @@
                     <h2 class="mb-3 text-sm font-bold text-navy-900">Regel toevoegen</h2>
 
                     <div class="relative mb-3">
-                        <x-icon name="magnifying-glass" class="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                        <input type="text" x-model="q" @input.debounce.300ms="search()" @focus="q.trim().length >= 2 && (open = true)" @click.outside="open = false"
+                        <x-icon name="magnifying-glass" class="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-500" />
+                        <input type="text" aria-label="Zoek in de prijsbibliotheek" x-model="q" @input.debounce.300ms="search()" @focus="q.trim().length >= 2 && (open = true)" @click.outside="open = false"
                                placeholder="Zoek in de prijsbibliotheek… (bijv. stucwerk, tegels, elektra)"
                                class="w-full rounded-xl border-gray-200 bg-gray-50 py-2.5 pl-9 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:bg-white focus:ring-brand-500">
                         <div x-show="open && results.length" x-cloak class="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg">
@@ -115,43 +122,43 @@
                                 <button type="button" @click="pick(item)" class="flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-sm hover:bg-brand-50">
                                     <span class="min-w-0">
                                         <span class="block truncate font-medium text-navy-900" x-text="item.name"></span>
-                                        <span class="block text-xs text-gray-400"><span x-text="item.type_label"></span>, <span x-text="item.source"></span></span>
+                                        <span class="block text-xs text-gray-500"><span x-text="item.type_label"></span>, <span x-text="item.source"></span></span>
                                     </span>
-                                    <span class="shrink-0 text-sm font-semibold text-navy-900">€ <span x-text="item.price.toFixed(2).replace('.', ',')"></span><span class="text-xs font-normal text-gray-400"> / <span x-text="item.unit"></span></span></span>
+                                    <span class="shrink-0 text-sm font-semibold text-navy-900">€ <span x-text="item.price.toFixed(2).replace('.', ',')"></span><span class="text-xs font-normal text-gray-500"> / <span x-text="item.unit"></span></span></span>
                                 </button>
                             </template>
                         </div>
                     </div>
 
-                    <form method="POST" action="{{ route('calculations.lines.store', $calculation) }}" class="grid gap-3 sm:grid-cols-12">
+                    <form method="POST" action="{{ route('calculations.lines.store', $calculation) }}" class="grid grid-cols-1 gap-3 sm:grid-cols-12">
                         @csrf
                         <input type="hidden" name="price_item_id" :value="line.price_item_id">
                         <div class="sm:col-span-2">
-                            <select name="type" x-model="line.type" @change="clearPick()" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+                            <select aria-label="Type" name="type" x-model="line.type" @change="clearPick()" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
                                 @foreach (\App\Enums\CalculationLineType::cases() as $type)
                                     <option value="{{ $type->value }}">{{ $type->label() }}</option>
                                 @endforeach
                             </select>
                         </div>
                         <div class="sm:col-span-4">
-                            <input type="text" name="description" x-model="line.description" required placeholder="Omschrijving"
+                            <input aria-label="Omschrijving" type="text" name="description" x-model="line.description" required placeholder="Omschrijving"
                                    class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
                         </div>
                         <div class="sm:col-span-1">
-                            <input type="number" name="quantity" x-model="line.quantity" min="0" step="0.01" required placeholder="Aantal"
+                            <input aria-label="Aantal" type="number" name="quantity" x-model="line.quantity" min="0" step="0.01" required placeholder="Aantal"
                                    class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
                         </div>
                         <div class="sm:col-span-1">
-                            <input type="text" name="unit" x-model="line.unit" placeholder="m2" maxlength="20"
+                            <input aria-label="Eenheid" type="text" name="unit" x-model="line.unit" placeholder="m2" maxlength="20"
                                    class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
                         </div>
                         <div class="sm:col-span-2">
-                            <input type="number" name="unit_price" x-model="line.unit_price" min="0" step="0.01" required placeholder="Prijs €"
+                            <input aria-label="Prijs" type="number" name="unit_price" x-model="line.unit_price" min="0" step="0.01" required placeholder="Prijs €"
                                    class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
                         </div>
                         <input type="hidden" name="surcharge_pct" :value="line.surcharge_pct">
                         <div class="sm:col-span-2">
-                            <button type="submit" class="w-full rounded-xl bg-brand-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600">+ Toevoegen</button>
+                            <button type="submit" class="w-full rounded-xl bg-brand-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600">+ Toevoegen</button>
                         </div>
                     </form>
                     @error('description')<p class="mt-2 text-xs font-medium text-red-600">{{ $message }}</p>@enderror
@@ -189,19 +196,19 @@
                         @csrf
                         @method('PATCH')
                         <x-field label="Onvoorzien %" name="risk_pct">
-                            <input type="number" name="risk_pct" value="{{ (float) $calculation->risk_pct }}" min="0" max="100" step="0.5" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+                            <input aria-label="Onvoorzien in procenten" type="number" name="risk_pct" value="{{ (float) $calculation->risk_pct }}" min="0" max="100" step="0.5" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
                         </x-field>
                         <x-field label="Marge %" name="margin_pct">
-                            <input type="number" name="margin_pct" value="{{ (float) $calculation->margin_pct }}" min="0" max="100" step="0.5" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+                            <input aria-label="Marge in procenten" type="number" name="margin_pct" value="{{ (float) $calculation->margin_pct }}" min="0" max="100" step="0.5" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
                         </x-field>
                         <x-field label="Btw %" name="vat_pct">
-                            <input type="number" name="vat_pct" value="{{ (float) $calculation->vat_pct }}" min="0" max="100" step="0.5" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+                            <input aria-label="Btw in procenten" type="number" name="vat_pct" value="{{ (float) $calculation->vat_pct }}" min="0" max="100" step="0.5" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
                         </x-field>
                         <div class="col-span-3">
                             <button type="submit" class="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">Opslaan</button>
                         </div>
                     </form>
-                    <p class="mt-2 text-xs text-gray-400">Tip: voor stuc- en schilderwerk aan woningen ouder dan 2 jaar geldt 9% btw op arbeid.</p>
+                    <p class="mt-2 text-xs text-gray-500">Tip: voor stuc- en schilderwerk aan woningen ouder dan 2 jaar geldt 9% btw op arbeid.</p>
                 </section>
             @endunless
 
@@ -213,11 +220,11 @@
                         @if (config('renovion.modules.quotes'))
                             <form method="POST" action="{{ route('calculations.quote', $calculation) }}">
                                 @csrf
-                                <button type="submit" class="flex w-full items-center justify-center gap-1.5 rounded-xl bg-brand-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600">
+                                <button type="submit" class="flex w-full items-center justify-center gap-1.5 rounded-xl bg-brand-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600">
                                     <x-icon name="document-text" class="h-4 w-4" /> Offerte maken van deze calculatie
                                 </button>
                             </form>
-                            <p class="text-xs text-gray-400">De klant ziet commerciële posten - onvoorzien en marge worden verdeeld, stelposten blijven apart zichtbaar.</p>
+                            <p class="text-xs text-gray-500">De klant ziet commerciële posten - onvoorzien en marge worden verdeeld, stelposten blijven apart zichtbaar.</p>
                         @endif
                         <form method="POST" action="{{ route('calculations.update', $calculation) }}">
                             @csrf
@@ -240,7 +247,7 @@
                     @endif
                 </div>
                 @unless ($calculation->isLocked())
-                    <p class="mt-3 text-xs text-gray-400">Definitief maken zet de regels vast; daarna maak je er met één actie een offerte van.</p>
+                    <p class="mt-3 text-xs text-gray-500">Definitief maken zet de regels vast; daarna maak je er met één actie een offerte van.</p>
                 @endunless
             </section>
         </div>

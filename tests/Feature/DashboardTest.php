@@ -30,6 +30,17 @@ class DashboardTest extends TestCase
         $response->assertSee('Nu doen');
     }
 
+    public function test_the_attention_sentence_and_badge_show_the_same_total(): void
+    {
+        $user = User::factory()->create();
+        Task::factory()->count(2)->create(['deadline' => today()->subDays(2), 'owner_id' => $user->id]);
+
+        $response = $this->actingAs($user)->get('/');
+
+        $response->assertViewHas('attentionCount', 2);
+        $response->assertSee('Vandaag vragen 2 zaken je aandacht.');
+    }
+
     public function test_main_pages_are_accessible_for_authenticated_users(): void
     {
         $user = User::factory()->create();

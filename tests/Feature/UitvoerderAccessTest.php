@@ -37,9 +37,25 @@ class UitvoerderAccessTest extends TestCase
         $response = $this->actingAs($uitvoerder)->get('/');
 
         $response->assertOk();
-        $response->assertSee('Jouw taken');
+        $response->assertSee('Jouw week');
         $response->assertSee('Stucwerk afronden');
         $response->assertDontSee('Nieuwe aanvragen');
+    }
+
+    public function test_uitvoerder_dashboard_leads_with_own_project_and_shortcuts(): void
+    {
+        $uitvoerder = $this->uitvoerder();
+        $own = Project::factory()->create(['name' => 'Eigen Badkamer']);
+        $own->craftsmen()->attach($uitvoerder);
+        Project::factory()->create(['name' => 'Andermans Keuken']);
+
+        $response = $this->actingAs($uitvoerder)->get('/');
+
+        $response->assertOk();
+        $response->assertSee('Eigen Badkamer');
+        $response->assertDontSee('Andermans Keuken');
+        $response->assertSee(route('projects.show', [$own, 'tab' => 'fotos']), false);
+        $response->assertSee(route('chat.show', $own->chatChannel), false);
     }
 
     public function test_uitvoerder_sees_only_own_projects(): void

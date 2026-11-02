@@ -31,7 +31,7 @@
         </section>
 
         <div class="flex gap-2">
-            <button type="submit" class="rounded-xl bg-brand-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-brand-600">Start de offerte-builder</button>
+            <button type="submit" class="rounded-xl bg-brand-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600">Start de offerte-builder</button>
             <a href="{{ route('quotes.index') }}" class="rounded-xl border border-gray-300 bg-white px-6 py-3 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">Annuleren</a>
         </div>
     </form>

@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    // Pushmeldingen via Firebase Cloud Messaging: pad (t.o.v. de projectmap of absoluut) naar de
+    // serviceaccount-sleutel uit de Firebase-console. Leeg = geen push (meldingen blijven in de database).
+    'firebase' => [
+        'credentials' => env('FIREBASE_CREDENTIALS'),
+    ],
+
 ];

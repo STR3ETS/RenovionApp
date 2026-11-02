@@ -13,6 +13,14 @@ class SearchTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_the_search_term_is_shown_without_html_codes(): void
+    {
+        $response = $this->actingAs(User::factory()->create())->get('/zoeken?q=badkamer');
+
+        $response->assertSee('Resultaten voor “badkamer”');
+        $response->assertDontSee('&amp;quot;', false);
+    }
+
     public function test_search_finds_customers_projects_and_tasks(): void
     {
         $user = User::factory()->create();

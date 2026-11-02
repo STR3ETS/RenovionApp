@@ -1,24 +1,162 @@
 <x-layouts.app title="Planning">
 
-    <div x-data="{ modal: false, formUser: '', formDate: '' }">
+    @php
+        // Mobiel opent op vandaag als die in deze week valt, anders op maandag.
+        $todayIndex = $days->search(fn ($day) => $day->isToday());
+        $isCurrentWeek = $todayIndex !== false;
+        $todayIndex = $isCurrentWeek ? $todayIndex : 0;
+    @endphp
 
-        <x-page-header eyebrow="Capaciteit" category="planning" title="Planning" subtitle="Week {{ $start->isoWeek }}, {{ $start->translatedFormat('j M') }} t/m {{ $start->copy()->addDays(4)->translatedFormat('j M Y') }}">
+    <div x-data="{ modal: false, formUser: '', formDate: '', day: {{ $todayIndex }}, dates: @js($days->map->toDateString()), detail: null, details: @js($details) }">
+
+        <x-page-header :eyebrow="auth()->user()->can('manage-crm') ? 'Capaciteit' : 'Mijn week'" category="planning" title="Planning" subtitle="Week {{ $start->isoWeek }}, {{ $start->translatedFormat('j M') }} t/m {{ $start->copy()->addDays(4)->translatedFormat('j M Y') }}">
             <a href="{{ route('planning.index', ['week' => $start->copy()->subWeek()->toDateString()]) }}" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">←</a>
             <a href="{{ route('planning.index') }}" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">Vandaag</a>
             <a href="{{ route('planning.index', ['week' => $start->copy()->addWeek()->toDateString()]) }}" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">→</a>
             @can('manage-crm')
-                <button @click="modal = true; formUser = ''; formDate = '{{ $start->toDateString() }}'" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-500">+ Inplannen</button>
+                <button @click="modal = true; formUser = ''; formDate = dates[day]" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600">+ Inplannen</button>
             @endcan
         </x-page-header>
 
-        {{-- Weekgrid: capaciteit per uitvoerder per dag --}}
-        <div class="-mx-4 overflow-x-auto px-4 lg:mx-0 lg:px-0">
+        {{-- ===== Mobiel ===== --}}
+        <div class="lg:hidden">
+            @can('manage-crm')
+                {{-- Planner: dagbalk + per persoon wat er die dag staat, en wie vrij is --}}
+                <div class="mb-4 grid grid-cols-5 gap-1.5">
+                    @foreach ($days as $i => $day)
+                        @php $heeftPlanning = $rows->contains(fn ($rowUser) => $entries->has($rowUser->id.'|'.$day->toDateString())); @endphp
+                        <button type="button" @click="day = {{ $i }}"
+                                :class="day === {{ $i }} ? 'border-navy-950 bg-navy-950 text-white' : 'border-gray-200 bg-white {{ $day->isToday() ? 'text-brand-700' : 'text-navy-900' }}'"
+                                class="flex flex-col items-center rounded-xl border py-2 transition">
+                            <span class="text-[10px] font-bold uppercase opacity-70">{{ $day->translatedFormat('D') }}</span>
+                            <span class="text-base leading-tight font-bold">{{ $day->day }}</span>
+                            <span class="mt-1 h-1.5 w-1.5 rounded-full {{ $heeftPlanning ? 'bg-planning-500' : 'bg-transparent' }}"></span>
+                        </button>
+                    @endforeach
+                </div>
+
+                @foreach ($days as $i => $day)
+                    <section x-show="day === {{ $i }}" @if ($i !== $todayIndex) x-cloak @endif>
+                        <h2 class="mb-2 text-sm font-bold text-navy-950">
+                            {{ $day->isToday() ? 'Vandaag, ' : '' }}{{ $day->translatedFormat('l j F') }}
+                        </h2>
+                        <div class="divide-y divide-gray-100 rounded-2xl border border-gray-200 bg-white">
+                            @forelse ($rows as $rowUser)
+                                @php $cellEntries = $entries->get($rowUser->id.'|'.$day->toDateString(), collect()); @endphp
+                                <div class="flex gap-3 p-3">
+                                    <div class="w-20 shrink-0 pt-1">
+                                        <p class="truncate text-sm font-semibold text-navy-900">{{ str($rowUser->name)->before(' ') }}</p>
+                                        <p class="truncate text-[11px] text-gray-500">{{ $rowUser->role->label() }}</p>
+                                    </div>
+                                    <div class="min-w-0 flex-1 space-y-1.5">
+                                        @forelse ($cellEntries as $entry)
+                                            <button type="button" @click="detail = details[{{ $entry->id }}]"
+                                                    class="block w-full rounded-lg border px-2.5 py-1.5 text-left {{ $entry->type->blockClasses() }}">
+                                                <span class="block truncate text-sm font-semibold">{{ $entry->displayTitle() }}</span>
+                                                <span class="block text-xs opacity-70">{{ $details[$entry->id]['time'] }}, {{ $entry->type->label() }}</span>
+                                            </button>
+                                        @empty
+                                            <div class="flex items-center justify-between gap-2 py-1">
+                                                <span class="flex items-center gap-1.5 text-sm font-medium text-green-700"><x-signal-dot color="green" /> Vrij</span>
+                                                <button type="button" @click="modal = true; formUser = '{{ $rowUser->id }}'; formDate = '{{ $day->toDateString() }}'"
+                                                        class="tap rounded-lg border border-dashed border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-500 transition active:border-brand-400 active:text-brand-600">
+                                                    + Inplannen
+                                                </button>
+                                            </div>
+                                        @endforelse
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="p-4">
+                                    <x-empty-state title="Nog geen uitvoerders" subtitle="Maak gebruikers aan met rol Uitvoerder om de capaciteitsplanning te vullen." icon="calendar" category="planning" />
+                                </div>
+                            @endforelse
+                        </div>
+                    </section>
+                @endforeach
+            @else
+                {{-- Uitvoerder: agenda van vandaag tot en met vrijdag (andere weken: hele week) --}}
+                @foreach ($isCurrentWeek ? $days->slice($todayIndex) : $days as $day)
+                    @php $cellEntries = $entries->get(auth()->id().'|'.$day->toDateString(), collect()); @endphp
+                    <section class="{{ $cellEntries->isEmpty() ? 'mb-1 flex items-baseline gap-2 rounded-xl bg-white px-3 py-2.5' : 'mt-3 mb-5' }}">
+                        <h2 class="{{ $cellEntries->isEmpty() ? 'contents' : 'mb-2 flex items-baseline gap-2' }}">
+                            <span class="{{ $cellEntries->isEmpty() ? 'text-sm font-semibold' : 'text-base font-bold' }} {{ $day->isToday() ? 'text-brand-700' : 'text-navy-950' }}">
+                                {{ $day->isToday() ? 'Vandaag' : ($day->isTomorrow() ? 'Morgen' : ucfirst($day->translatedFormat('l'))) }}
+                            </span>
+                            <span class="text-xs text-gray-500">{{ $day->translatedFormat('j F') }}</span>
+                        </h2>
+                        @forelse ($cellEntries as $entry)
+                            <button type="button" @click="detail = details[{{ $entry->id }}]"
+                                    class="mb-2 flex w-full items-center gap-3 rounded-2xl border border-gray-200 border-l-4 border-l-planning-500 bg-white p-3 text-left">
+                                <span class="min-w-0 flex-1">
+                                    <span class="block truncate text-sm font-semibold text-navy-900">{{ $entry->displayTitle() }}</span>
+                                    <span class="block text-xs text-gray-500">{{ $details[$entry->id]['time'] }}, {{ $entry->type->label() }}</span>
+                                    @if ($details[$entry->id]['address'])
+                                        <span class="mt-0.5 block truncate text-xs text-gray-500">{{ $details[$entry->id]['address'] }}</span>
+                                    @endif
+                                </span>
+                                <x-icon name="chevron-right" class="h-4 w-4 text-gray-300" />
+                            </button>
+                        @empty
+                            <span class="ml-auto text-xs text-gray-500">Niets gepland</span>
+                        @endforelse
+                    </section>
+                @endforeach
+            @endcan
+        </div>
+
+        {{-- Detailpaneel (mobiel): tikken op een planningsblok --}}
+        <div x-show="detail" x-cloak x-transition.opacity @click.self="detail = null" @keydown.escape.window="detail = null"
+             class="fixed inset-0 z-50 flex items-end bg-navy-950/60 backdrop-blur-sm lg:hidden">
+            <template x-if="detail">
+                <div class="w-full rounded-t-2xl bg-white px-4 pt-3 pb-[calc(1rem_+_env(safe-area-inset-bottom))]">
+                    <div class="mx-auto mb-3 h-1 w-10 rounded-full bg-gray-200"></div>
+                    <span class="inline-block rounded-full border px-2 py-0.5 text-[11px] font-semibold" :class="detail.classes" x-text="detail.type"></span>
+                    <h2 class="mt-2 text-lg font-bold text-navy-950" x-text="detail.title"></h2>
+
+                    <dl class="mt-3 space-y-2 text-sm">
+                        <div class="flex gap-3" x-show="detail.user">
+                            <dt class="w-16 shrink-0 text-gray-500">Wie</dt>
+                            <dd class="font-medium text-navy-900" x-text="detail.user"></dd>
+                        </div>
+                        <div class="flex gap-3">
+                            <dt class="w-16 shrink-0 text-gray-500">Wanneer</dt>
+                            <dd class="font-medium text-navy-900"><span x-text="detail.date"></span>, <span x-text="detail.time.toLowerCase()"></span></dd>
+                        </div>
+                        <div class="flex gap-3" x-show="detail.address">
+                            <dt class="w-16 shrink-0 text-gray-500">Adres</dt>
+                            <dd class="font-medium text-navy-900" x-text="detail.address"></dd>
+                        </div>
+                        <div class="flex gap-3" x-show="detail.notes">
+                            <dt class="w-16 shrink-0 text-gray-500">Notitie</dt>
+                            <dd class="whitespace-pre-line text-navy-900" x-text="detail.notes"></dd>
+                        </div>
+                    </dl>
+
+                    <div class="mt-4 grid grid-cols-2 gap-2">
+                        <a :href="detail.project" x-show="detail.project" class="flex items-center justify-center gap-1.5 rounded-xl bg-brand-500 py-2.5 text-sm font-bold text-white">
+                            <x-icon name="building-office" class="h-4 w-4" /> Project openen
+                        </a>
+                        <a :href="detail.maps" x-show="detail.maps" target="_blank" rel="noopener" class="flex items-center justify-center gap-1.5 rounded-xl border border-gray-300 py-2.5 text-sm font-semibold text-navy-900">
+                            <x-icon name="paper-airplane" class="h-4 w-4" /> Route
+                        </a>
+                    </div>
+                    <form method="POST" :action="detail.delete" x-show="detail.delete" class="mt-2" onsubmit="return confirm('Planningsregel verwijderen?');">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="w-full rounded-xl py-2.5 text-sm font-semibold text-red-600 transition active:bg-red-50">Verwijderen</button>
+                    </form>
+                </div>
+            </template>
+        </div>
+
+        {{-- ===== Desktop: weekgrid, capaciteit per uitvoerder per dag ===== --}}
+        <div class="hidden overflow-x-auto lg:block">
             <table class="w-full min-w-[760px] border-separate border-spacing-1">
                 <thead>
                     <tr>
                         <th class="w-32 p-2 text-left text-xs font-bold text-gray-500 uppercase">Uitvoerder</th>
                         @foreach ($days as $day)
-                            <th class="p-2 text-left text-xs font-bold uppercase {{ $day->isToday() ? 'text-brand-600' : 'text-gray-500' }}">
+                            <th class="p-2 text-left text-xs font-bold uppercase {{ $day->isToday() ? 'text-brand-700' : 'text-gray-500' }}">
                                 {{ $day->translatedFormat('D j M') }}
                             </th>
                         @endforeach
@@ -29,7 +167,7 @@
                         <tr>
                             <td class="rounded-lg bg-white p-2 align-top">
                                 <p class="text-sm font-semibold text-navy-900">{{ $rowUser->name }}</p>
-                                <p class="text-xs text-gray-400">{{ $rowUser->role->label() }}</p>
+                                <p class="text-xs text-gray-500">{{ $rowUser->role->label() }}</p>
                             </td>
                             @foreach ($days as $day)
                                 @php $cellEntries = $entries->get($rowUser->id.'|'.$day->toDateString(), collect()); @endphp
@@ -55,7 +193,7 @@
                                         @endforeach
                                         @can('manage-crm')
                                             <button @click="modal = true; formUser = '{{ $rowUser->id }}'; formDate = '{{ $day->toDateString() }}'"
-                                                    class="hidden w-full rounded-md border border-dashed border-gray-300 py-0.5 text-[10px] text-gray-400 transition group-hover:block hover:border-brand-400 hover:text-brand-600">+</button>
+                                                    class="hidden w-full rounded-md border border-dashed border-gray-300 py-0.5 text-[10px] text-gray-500 transition group-hover:block hover:border-brand-400 hover:text-brand-600">+</button>
                                         @endcan
                                     </div>
                                 </td>
@@ -124,7 +262,7 @@
                 </div>
 
                 <div class="flex gap-2 pt-1">
-                    <button type="submit" class="flex-1 rounded-xl bg-brand-600 py-2.5 text-sm font-bold text-white transition hover:bg-brand-500">Inplannen</button>
+                    <button type="submit" class="flex-1 rounded-xl bg-brand-500 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600">Inplannen</button>
                     <button type="button" @click="modal = false" class="rounded-xl border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-600">Annuleren</button>
                 </div>
             </form>

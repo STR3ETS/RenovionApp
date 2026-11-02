@@ -25,7 +25,7 @@
                 </x-field>
             </div>
 
-            <div x-show="!bestaand" x-cloak class="grid gap-4 sm:grid-cols-2">
+            <div x-show="!bestaand" x-cloak class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <x-field label="Naam *" name="customer_name" class="sm:col-span-2">
                     <input type="text" name="customer_name" id="customer_name" value="{{ old('customer_name') }}" placeholder="Familie Jansen" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
                 </x-field>
@@ -51,7 +51,7 @@
 
         <section class="rounded-2xl border border-gray-200 bg-white p-5">
             <h2 class="mb-4 text-sm font-bold text-navy-900">Project</h2>
-            <div class="grid gap-4 sm:grid-cols-2">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <x-field label="Projectnaam *" name="name" class="sm:col-span-2">
                     <input type="text" name="name" id="name" value="{{ old('name') }}" required placeholder="Badkamer Jansen" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
                 </x-field>
@@ -94,29 +94,29 @@
                 <x-field label="Omslagfoto" name="cover_photo" class="sm:col-span-2">
                     <input type="file" name="cover_photo" id="cover_photo" accept="image/*"
                            class="w-full text-sm text-gray-500 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-brand-700 hover:file:bg-brand-100">
-                    <p class="mt-1 text-xs text-gray-400">Deze foto verschijnt op de projectkaarten (jpg/png, max 5 MB).</p>
+                    <p class="mt-1 text-xs text-gray-500">Deze foto verschijnt op de projectkaarten (jpg/png, max 5 MB).</p>
                 </x-field>
             </div>
         </section>
 
         <section class="rounded-2xl border border-gray-200 bg-white p-5">
             <h2 class="mb-4 text-sm font-bold text-navy-900">Uitvoerders op dit project</h2>
-            <div class="grid gap-2 sm:grid-cols-2">
+            <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 @forelse ($uitvoerders as $uitvoerder)
                     <label class="flex items-center gap-2 rounded-xl border border-gray-200 p-3 text-sm font-medium text-navy-900 transition has-checked:border-brand-400 has-checked:bg-brand-50">
                         <input type="checkbox" name="craftsmen[]" value="{{ $uitvoerder->id }}"
                                @checked(in_array($uitvoerder->id, old('craftsmen', [])))
-                               class="rounded border-gray-300 text-brand-600 focus:ring-brand-500">
+                               class="rounded border-gray-300 text-brand-700 focus:ring-brand-500">
                         {{ $uitvoerder->name }}
                     </label>
                 @empty
-                    <p class="text-sm text-gray-400 sm:col-span-2">Nog geen uitvoerders - voeg ze toe via Team.</p>
+                    <p class="text-sm text-gray-500 sm:col-span-2">Nog geen uitvoerders - voeg ze toe via Team.</p>
                 @endforelse
             </div>
         </section>
 
         <div class="flex gap-2">
-            <button type="submit" class="rounded-xl bg-brand-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-brand-500">Project aanmaken</button>
+            <button type="submit" class="rounded-xl bg-brand-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600">Project aanmaken</button>
             <a href="{{ route('projects.index') }}" class="rounded-xl border border-gray-300 bg-white px-6 py-3 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">Annuleren</a>
         </div>
     </form>

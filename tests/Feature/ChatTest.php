@@ -41,6 +41,24 @@ class ChatTest extends TestCase
         $this->assertSame(0, $kanaal->fresh()->load('readers')->unreadCountFor($raphael));
     }
 
+    public function test_bottom_nav_badge_shows_the_live_unread_count(): void
+    {
+        $imad = User::factory()->create(['name' => 'Imad']);
+        $raphael = User::factory()->create(['name' => 'Raphael']);
+        $kanaal = ChatChannel::create(['type' => 'team', 'name' => 'Algemeen']);
+
+        // Cache vullen met 0, daarna komen er berichten bij: het endpoint telt live (zonder cache).
+        $this->actingAs($raphael)->getJson(route('chat.unread'))->assertOk()->assertExactJson(['count' => 0]);
+        $this->actingAs($imad)->postJson(route('chat.messages.store', $kanaal), ['body' => 'Een']);
+        $this->actingAs($imad)->postJson(route('chat.messages.store', $kanaal), ['body' => 'Twee']);
+
+        $this->actingAs($raphael)->getJson(route('chat.unread'))->assertOk()->assertExactJson(['count' => 2]);
+        $this->actingAs($imad)->getJson(route('chat.unread'))->assertExactJson(['count' => 0]);
+
+        // De pagina toont het getal meteen in het bolletje op "Chat".
+        $this->actingAs($raphael)->get(route('dashboard'))->assertOk()->assertSee('unread: 2', false);
+    }
+
     public function test_uitvoerders_see_team_channels_and_only_their_own_project_channels(): void
     {
         $uitvoerder = User::factory()->uitvoerder()->create();

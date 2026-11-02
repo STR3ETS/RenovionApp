@@ -39,6 +39,11 @@ class LoginController extends Controller
 
     public function destroy(Request $request): RedirectResponse
     {
+        // Uitloggen in de app: deze telefoon krijgt geen pushmeldingen meer voor deze gebruiker.
+        if ($request->filled('push_token')) {
+            $request->user()?->deviceTokens()->where('token', $request->input('push_token'))->delete();
+        }
+
         Auth::logout();
 
         $request->session()->invalidate();

@@ -12,7 +12,20 @@ class AuthenticationTest extends TestCase
 
     public function test_login_page_is_accessible(): void
     {
-        $this->get('/login')->assertOk();
+        $this->get('/login')->assertOk()
+            ->assertSee('favicon.svg', false)
+            ->assertSee('apple-touch-icon.png', false);
+    }
+
+    public function test_remember_me_is_checked_by_default_in_the_native_app(): void
+    {
+        $this->withHeader('User-Agent', 'Mozilla/5.0 (iPhone) AppleWebKit/605.1.15 RenovionApp')
+            ->get('/login')
+            ->assertSee('name="remember" value="1" checked', false);
+
+        $this->withHeader('User-Agent', 'Mozilla/5.0 (iPhone) Safari/605.1.15')
+            ->get('/login')
+            ->assertDontSee('name="remember" value="1" checked', false);
     }
 
     public function test_user_can_login_with_correct_credentials(): void

@@ -8,7 +8,7 @@
 <section class="rounded-2xl border border-gray-200 bg-white p-6 lg:p-8">
     @if ($isEdit)
         <div x-rich="block.data.title" @blur="save()" data-ph="Wat onze klanten zeggen" class="mb-4 text-lg font-bold text-navy-950"></div>
-        <div class="grid gap-3 sm:grid-cols-2">
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <template x-for="(item, i) in block.data.items" :key="i">
                 <div class="group relative rounded-xl border border-brand-100 bg-brand-50 p-5">
                     <div x-rich="item.quote" @blur="save()" data-ph="Wat zei de klant…" class="mb-3 text-sm leading-relaxed text-navy-900"></div>
@@ -31,7 +31,7 @@
         </div>
     @else
         <h2 class="mb-4 text-lg font-bold text-navy-950">{!! QuoteText::render($d['title'] ?? 'Wat onze klanten zeggen') !!}</h2>
-        <div class="grid gap-3 sm:grid-cols-2">
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
             @foreach (($d['items'] ?? []) as $item)
                 @continue(blank($item['quote'] ?? ''))
                 <div class="rounded-xl border border-brand-100 bg-brand-50 p-5">

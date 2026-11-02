@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Actions\GenerateDeliveryReport;
 use App\Enums\PhaseStatus;
 use App\Enums\UserRole;
+use App\Models\AuditLog;
 use App\Models\Customer;
 use App\Models\Photo;
 use App\Models\Project;
@@ -95,6 +97,55 @@ class PortalTest extends TestCase
         // Nog een keer tekenen kan niet.
         $this->actingAs($klant)->post('/portaal/fasen/'.$fase->id.'/akkoord');
         $this->assertSame($fase->client_approved_at->timestamp, $fase->refresh()->client_approved_at->timestamp);
+    }
+
+    public function test_a_klant_can_approve_all_completed_phases_at_once(): void
+    {
+        [$klant, $project] = $this->klantMetProject();
+        $fasen = $project->phases()->orderBy('position')->take(3)->get();
+        $fasen->each->update(['status' => PhaseStatus::Gereed, 'completed_at' => now()]);
+        $openFase = $project->phases()->where('status', '!=', PhaseStatus::Gereed)->first();
+
+        $response = $this->actingAs($klant)->get('/portaal/projecten/'.$project->id);
+        $response->assertSee('3 afgeronde fasen om te bevestigen');
+        $response->assertSee('Alles gezien en akkoord');
+
+        $this->actingAs($klant)->post('/portaal/projecten/'.$project->id.'/fasen-akkoord')
+            ->assertSessionHas('success');
+
+        foreach ($fasen as $fase) {
+            $this->assertNotNull($fase->fresh()->client_approved_at);
+        }
+        $this->assertNull($openFase->fresh()->client_approved_at);
+        $this->assertSame(3, AuditLog::where('action', 'klant_akkoord')->count());
+    }
+
+    public function test_a_klant_cannot_approve_phases_of_someone_elses_project(): void
+    {
+        [$klant] = $this->klantMetProject();
+        $anderProject = Project::factory()->create();
+
+        $this->actingAs($klant)->post('/portaal/projecten/'.$anderProject->id.'/fasen-akkoord')->assertForbidden();
+    }
+
+    public function test_a_waiting_delivery_report_has_a_button_in_the_portal(): void
+    {
+        [$klant, $project] = $this->klantMetProject();
+        $report = (new GenerateDeliveryReport)->handle($project);
+
+        $response = $this->actingAs($klant)->get('/portaal/projecten/'.$project->id);
+
+        $response->assertSee('Bekijk rapport');
+        $response->assertSee(route('portal.report', $report));
+    }
+
+    public function test_a_portal_photo_opens_in_the_viewer(): void
+    {
+        [$klant, $project] = $this->klantMetProject();
+        $foto = Photo::factory()->create(['project_id' => $project->id]);
+
+        $this->actingAs($klant)->get('/portaal/projecten/'.$project->id)
+            ->assertSee('data-photo="'.route('photos.show', $foto).'"', false);
     }
 
     public function test_an_open_phase_cannot_be_signed(): void

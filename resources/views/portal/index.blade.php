@@ -17,12 +17,12 @@
                     <span class="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-gray-100">
                         <span class="block h-full rounded-full bg-brand-500" style="width: {{ $project->progress }}%"></span>
                     </span>
-                    <span class="mt-1 block text-xs text-gray-400">{{ $project->progress }}% gereed</span>
+                    <span class="mt-1 block text-xs text-gray-500">{{ $project->progress }}% gereed</span>
                 </span>
                 <x-icon name="chevron-right" class="h-4 w-4 shrink-0 text-gray-300" />
             </a>
         @empty
-            <div class="rounded-2xl border border-gray-200 bg-white p-8 text-center text-sm text-gray-400">
+            <div class="rounded-2xl border border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
                 Er zijn nog geen projecten aan uw account gekoppeld.
             </div>
         @endforelse

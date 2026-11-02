@@ -25,16 +25,16 @@
                        @change="upload($event.target.files[0]).then(url => { if (url) { block.data.url = url; save(); } $event.target.value = ''; })">
                 <span class="flex h-12 w-12 items-center justify-center rounded-full bg-brand-50 text-brand-500"><x-icon name="camera" class="h-5 w-5" /></span>
                 <span class="text-sm font-bold text-navy-900" x-text="uploading ? 'Uploaden…' : 'Klik of sleep een foto hierheen'"></span>
-                <span class="text-xs text-gray-400">JPG, PNG of WebP, max 10 MB</span>
+                <span class="text-xs text-gray-500">JPG, PNG of WebP, max 10 MB</span>
             </label>
         </template>
-        <div x-rich="block.data.caption" @blur="save()" data-ph="Bijschrift (optioneel)" class="mt-3 text-center text-xs text-gray-400"></div>
+        <div x-rich="block.data.caption" @blur="save()" data-ph="Bijschrift (optioneel)" class="mt-3 text-center text-xs text-gray-500"></div>
     </figure>
 @elseif (filled($d['url'] ?? ''))
     <figure class="rounded-2xl border border-gray-200 bg-white p-4">
         <img src="{{ $d['url'] }}" alt="{{ \App\Support\QuoteText::plain($d['caption'] ?? 'Foto') }}" loading="lazy" class="max-h-[480px] w-full rounded-xl bg-gray-50 object-contain">
         @if (filled($d['caption'] ?? ''))
-            <figcaption class="mt-3 text-center text-xs text-gray-400">{!! QuoteText::render($d['caption']) !!}</figcaption>
+            <figcaption class="mt-3 text-center text-xs text-gray-500">{!! QuoteText::render($d['caption']) !!}</figcaption>
         @endif
     </figure>
 @endif

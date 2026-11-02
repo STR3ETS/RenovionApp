@@ -18,7 +18,7 @@
             </div>
         </template>
         <button type="button" @click="block.data.items.push({ q: 'Nieuwe vraag?', a: '' }); save()"
-                class="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-gray-300 p-4 text-xs font-semibold text-gray-400 transition hover:border-brand-400 hover:text-brand-600">
+                class="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-gray-300 p-4 text-xs font-semibold text-gray-500 transition hover:border-brand-400 hover:text-brand-600">
             <x-icon name="plus" class="h-3.5 w-3.5" /> Vraag toevoegen
         </button>
     @else

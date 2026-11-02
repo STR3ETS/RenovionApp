@@ -25,7 +25,7 @@
                 </x-field>
             </div>
 
-            <div x-show="!bestaand" class="grid gap-4 sm:grid-cols-2">
+            <div x-show="!bestaand" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <x-field label="Naam *" name="name" class="sm:col-span-2">
                     <input type="text" name="name" id="name" value="{{ old('name') }}" placeholder="Familie Jansen" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
                 </x-field>
@@ -51,7 +51,7 @@
 
         <section class="rounded-2xl border border-gray-200 bg-white p-5">
             <h2 class="mb-4 text-sm font-bold text-navy-900">Aanvraag</h2>
-            <div class="grid gap-4 sm:grid-cols-2">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <x-field label="Dienst" name="service">
                     <input type="text" name="service" id="service" value="{{ old('service') }}" placeholder="Complete renovatie" list="diensten" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
                     <datalist id="diensten">
@@ -91,7 +91,7 @@
         </section>
 
         <div class="flex gap-2">
-            <button type="submit" class="rounded-xl bg-brand-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-brand-500">Aanvraag opslaan</button>
+            <button type="submit" class="rounded-xl bg-brand-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600">Aanvraag opslaan</button>
             <a href="{{ route('leads.index') }}" class="rounded-xl border border-gray-300 bg-white px-6 py-3 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">Annuleren</a>
         </div>
     </form>

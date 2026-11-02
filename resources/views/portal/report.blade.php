@@ -19,12 +19,12 @@
                            class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
                 </x-field>
                 <label class="flex items-start gap-2 text-sm text-gray-600">
-                    <input type="checkbox" name="agree" value="1" required class="mt-0.5 rounded border-gray-300 text-brand-600 focus:ring-brand-500">
+                    <input type="checkbox" name="agree" value="1" required class="mt-0.5 rounded border-gray-300 text-brand-700 focus:ring-brand-500">
                     Ik heb het opleverrapport gelezen en ga akkoord met de oplevering.
                 </label>
                 @error('agree')<p class="text-xs font-medium text-red-600">{{ $message }}</p>@enderror
-                <button type="submit" class="w-full rounded-xl bg-brand-500 py-3.5 text-base font-bold text-white transition hover:bg-brand-600 sm:w-auto sm:px-10">Rapport ondertekenen</button>
-                <p class="text-xs text-gray-400">Uw naam, datum, tijd en IP-adres worden vastgelegd als digitale ondertekening.</p>
+                <button type="submit" class="w-full rounded-xl bg-brand-500 py-3.5 text-base font-bold text-white transition hover:bg-brand-600 active:bg-brand-600 sm:w-auto sm:px-10">Rapport ondertekenen</button>
+                <p class="text-xs text-gray-500">Uw naam, datum, tijd en IP-adres worden vastgelegd als digitale ondertekening.</p>
             </form>
         </div>
     @endunless

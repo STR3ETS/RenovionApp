@@ -4,20 +4,35 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "mobile:sync": "cap sync",
+        "mobile:open": "cap open ios",
+        "mobile:assets": "node mobile/make-assets.mjs",
+        "mobile:android": "cap open android"
     },
     "devDependencies": {
+        "@capacitor/cli": "^8.5.3",
         "@tailwindcss/forms": "^0.5.11",
         "@tailwindcss/vite": "^4.0.0",
         "concurrently": "^10.0.3",
         "laravel-vite-plugin": "^3.1",
+        "sharp": "^0.34.5",
         "tailwindcss": "^4.0.0",
+        "typescript": "^7.0.2",
         "vite": "^8.0.0"
     },
     "optionalDependencies": {
         "@laravel/multiplex": "^0.4.1"
     },
     "dependencies": {
+        "@capacitor-firebase/messaging": "^8.5.2",
+        "@capacitor/android": "^8.5.3",
+        "@capacitor/app": "^8.1.2",
+        "@capacitor/core": "^8.5.3",
+        "@capacitor/ios": "^8.5.3",
+        "@capacitor/local-notifications": "^8.3.1",
+        "@capacitor/splash-screen": "^8.0.2",
+        "@capgo/capacitor-speech-recognition": "^8.4.5",
         "alpinejs": "^3.17.2"
     }
 }

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Geen verbinding - Renovion</title>
+    <style>
+        * { box-sizing: border-box; }
+        html, body { margin: 0; height: 100%; }
+        body {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: calc(env(safe-area-inset-top) + 24px) 24px calc(env(safe-area-inset-bottom) + 24px);
+            background: #070724; color: #fff; text-align: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter Tight', system-ui, sans-serif;
+            -webkit-user-select: none; user-select: none;
+        }
+        img { height: 72px; width: auto; margin-bottom: 40px; }
+        h1 { margin: 0 0 8px; font-size: 20px; font-weight: 700; }
+        p { margin: 0 0 28px; max-width: 280px; font-size: 15px; line-height: 1.5; color: #b4b4cc; }
+        button {
+            border: 0; border-radius: 14px; padding: 14px 28px;
+            background: #F85B0B; color: #fff; font: inherit; font-size: 15px; font-weight: 700;
+        }
+        button:active { background: #d94c06; }
+        button[disabled] { opacity: .6; }
+    </style>
+</head>
+<body>
+    <img src="renovion-logo.svg" alt="Renovion">
+    <h1>Geen verbinding</h1>
+    <p>Renovion kan de server nu niet bereiken. Controleer je internet; zodra je weer online bent, gaan we automatisch verder.</p>
+    <button type="button" id="retry">Opnieuw proberen</button>
+
+    <script>
+        const cap = window.Capacitor;
+        const button = document.getElementById('retry');
+
+        cap?.Plugins?.SplashScreen?.hide();
+
+        // Android geeft de mislukte URL mee (?retry=, RenovionWebViewClient); iOS kent de server-URL.
+        // Op Android wijst getServerUrl() naar de lokale schil, die is dan geen doel.
+        const failedUrl = new URLSearchParams(window.location.search).get('retry');
+        const serverUrl = cap?.getServerUrl?.();
+        const target = failedUrl || (serverUrl && !serverUrl.startsWith(window.location.origin) ? serverUrl : null);
+
+        function retry() {
+            button.disabled = true;
+            button.textContent = 'Verbinden...';
+            if (target) window.location.href = target;
+            else window.history.back();
+        }
+
+        button.addEventListener('click', retry);
+        window.addEventListener('online', retry);
+    </script>
+</body>
+</html>

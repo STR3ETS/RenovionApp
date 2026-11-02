@@ -1,18 +1,52 @@
 <x-layouts.app title="Aanvragen">
 
-    <x-page-header eyebrow="Sales" category="lead" title="Aanvragen & Sales" subtitle="{{ $leads->filter(fn ($lead) => $lead->status->isOpen())->count() }} open aanvragen">
+    <x-page-header eyebrow="Sales" category="lead" title="Aanvragen & Sales" subtitle="{{ \App\Support\Tally::of($leads->filter(fn ($lead) => $lead->status->isOpen())->count(), 'open aanvraag', 'open aanvragen') }}">
         <div class="flex rounded-lg border border-gray-300 bg-white p-0.5 text-xs font-semibold">
             <a href="{{ route('leads.index', ['view' => 'kanban']) }}"
-               class="rounded-md px-3 py-1.5 {{ $view === 'kanban' ? 'bg-navy-900 text-white' : 'text-gray-600' }}">Kanban</a>
+               class="tap rounded-md px-3 py-1.5 {{ $view === 'kanban' ? 'bg-navy-900 text-white' : 'text-gray-600' }}">Kanban</a>
             <a href="{{ route('leads.index', ['view' => 'lijst']) }}"
-               class="rounded-md px-3 py-1.5 {{ $view === 'lijst' ? 'bg-navy-900 text-white' : 'text-gray-600' }}">Lijst</a>
+               class="tap rounded-md px-3 py-1.5 {{ $view === 'lijst' ? 'bg-navy-900 text-white' : 'text-gray-600' }}">Lijst</a>
         </div>
-        <a href="{{ route('leads.create') }}" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-500">+ Aanvraag</a>
+        <a href="{{ route('leads.create') }}" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600">+ Aanvraag</a>
     </x-page-header>
 
     @if ($view === 'kanban')
-        {{-- Kanban: horizontaal scrollbaar, drag & drop --}}
-        <div class="-mx-4 overflow-x-auto px-4 pb-4 lg:mx-0 lg:px-0"
+        @php
+            $pipeline = \App\Enums\LeadStatus::pipeline();
+            // Mobiel opent op de eerste status met aanvragen (meestal "Nieuw").
+            $startStatus = collect($pipeline)->first(fn ($status) => $columns[$status->value]->isNotEmpty()) ?? $pipeline[0];
+        @endphp
+
+        {{-- Mobiel: statusbalk (zoals de dagbalk in Planning) + alleen de kaarten van de gekozen status --}}
+        <div class="lg:hidden" x-data="{ status: @js($startStatus->value) }">
+            {{-- scroll-px-4: snap houdt de 16px marge aan, anders springt de eerste knop tegen de schermrand.
+                 De spacer aan het eind doet hetzelfde voor de laatste knop (padding-right telt niet mee bij scrollen). --}}
+            <div class="-mx-4 mb-4 flex snap-x scroll-px-4 gap-1.5 overflow-x-auto px-4 pb-1">
+                @foreach ($pipeline as $statusColumn)
+                    <button type="button" @click="status = @js($statusColumn->value)"
+                            :class="status === @js($statusColumn->value) ? 'border-navy-950 bg-navy-950 text-white' : 'border-gray-200 bg-white text-navy-900'"
+                            class="flex shrink-0 snap-start items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-semibold transition">
+                        {{ $statusColumn->label() }}
+                        <span :class="status === @js($statusColumn->value) ? 'bg-white/20 text-white' : 'bg-lead-100 text-lead-700'"
+                              class="rounded-full px-1.5 py-0.5 text-[11px] leading-none font-bold">{{ $columns[$statusColumn->value]->count() }}</span>
+                    </button>
+                @endforeach
+                <span class="w-2.5 shrink-0" aria-hidden="true"></span>
+            </div>
+
+            @foreach ($pipeline as $statusColumn)
+                <section x-show="status === @js($statusColumn->value)" @if ($statusColumn !== $startStatus) x-cloak @endif class="space-y-2">
+                    @forelse ($columns[$statusColumn->value] as $lead)
+                        <x-lead-card :lead="$lead" />
+                    @empty
+                        <div class="rounded-2xl border border-dashed border-gray-300 bg-white py-8 text-center text-sm text-gray-500">Geen aanvragen met status {{ strtolower($statusColumn->label()) }}</div>
+                    @endforelse
+                </section>
+            @endforeach
+        </div>
+
+        {{-- Desktop: Kanban, horizontaal scrollbaar, drag & drop --}}
+        <div class="-mx-4 hidden overflow-x-auto px-4 pb-4 lg:mx-0 lg:block lg:px-0"
              x-data="{
                  dragging: null,
                  async drop(status) {
@@ -22,7 +56,7 @@
                  }
              }">
             <div class="flex min-w-max gap-3">
-                @foreach (\App\Enums\LeadStatus::pipeline() as $statusColumn)
+                @foreach ($pipeline as $statusColumn)
                     <div class="w-72 shrink-0 rounded-xl bg-gray-200/70 p-2"
                          @dragover.prevent
                          @drop="drop('{{ $statusColumn->value }}')">
@@ -40,7 +74,7 @@
                                 </div>
                             @endforeach
                             @if ($columns[$statusColumn->value]->isEmpty())
-                                <div class="rounded-lg border border-dashed border-gray-300 py-6 text-center text-xs text-gray-400">Leeg</div>
+                                <div class="rounded-lg border border-dashed border-gray-300 py-6 text-center text-xs text-gray-500">Leeg</div>
                             @endif
                         </div>
                     </div>
@@ -52,16 +86,14 @@
         <div class="space-y-2">
             @forelse ($leads->filter(fn ($lead) => $lead->status->isOpen()) as $lead)
                 <a href="{{ route('leads.show', $lead) }}" class="flex items-center gap-3 rounded-xl border border-gray-200 border-l-4 border-l-lead-500 bg-white p-3 transition hover:shadow-sm">
-                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-lead-100 text-lead-600"><x-icon name="inbox" class="h-4 w-4" /></span>
+                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-lead-100 text-lead-700"><x-icon name="inbox" class="h-4 w-4" /></span>
                     <span class="min-w-0 flex-1">
                         <span class="block truncate text-sm font-semibold text-navy-900">{{ $lead->customer->name }}</span>
                         <span class="block truncate text-xs text-gray-500">
-                            {{ $lead->customer->city ?? '-' }}, {{ $lead->service ?? 'Aanvraag' }}
-                            @if ($lead->value), € {{ number_format((float) $lead->value, 0, ',', '.') }} @endif
+                            {{ $lead->customer->city ?? '-' }}, {{ $lead->service ?? 'Aanvraag' }}@if ($lead->value), € {{ number_format((float) $lead->value, 0, ',', '.') }}@endif
                         </span>
-                        <span class="mt-0.5 block text-xs text-gray-400">
-                            {{ $lead->assignee?->name ?? 'Niet toegewezen' }}
-                           , laatste contact: {{ $lead->last_contact_at?->translatedFormat('j M') ?? 'nog geen' }}
+                        <span class="mt-0.5 block text-xs text-gray-500">
+                            {{ $lead->assignee?->name ?? 'Niet toegewezen' }}, laatste contact: {{ $lead->last_contact_at?->translatedFormat('j M') ?? 'nog geen' }}
                         </span>
                     </span>
                     @if ($lead->missingPhone())
@@ -74,7 +106,7 @@
                 </a>
             @empty
                 <x-empty-state title="Nog geen open aanvragen" icon="inbox" category="lead">
-                    <a href="{{ route('leads.create') }}" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white">+ Eerste aanvraag</a>
+                    <a href="{{ route('leads.create') }}" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white">+ Eerste aanvraag</a>
                 </x-empty-state>
             @endforelse
         </div>

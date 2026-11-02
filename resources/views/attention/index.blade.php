@@ -10,7 +10,7 @@
             @foreach ($items as $item)
                 <a href="{{ $item['url'] }}"
                    class="flex items-center gap-3 rounded-xl border border-gray-200 border-l-4 bg-white p-3 transition hover:shadow-sm {{ $item['severity'] === 'rood' ? 'border-l-red-500' : 'border-l-amber-400' }}">
-                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full {{ $item['severity'] === 'rood' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600' }}">
+                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full {{ $item['severity'] === 'rood' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-700' }}">
                         <x-icon :name="$item['icon']" class="h-4.5 w-4.5" />
                     </span>
                     <span class="min-w-0 flex-1">

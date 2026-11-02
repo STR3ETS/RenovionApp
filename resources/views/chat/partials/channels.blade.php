@@ -6,7 +6,7 @@
 
 <div class="space-y-4">
     <div>
-        <p class="mb-1.5 px-1 text-xs font-bold tracking-wide text-gray-400 uppercase">Team</p>
+        <p class="mb-1.5 px-1 text-xs font-bold tracking-wide text-gray-600 uppercase">Team</p>
         <div class="space-y-1">
             @foreach ($teamKanalen as $kanaal)
                 @php $unread = $kanaal->unreadCountFor($user); @endphp
@@ -16,7 +16,7 @@
                     <span class="min-w-0 flex-1">
                         <span class="block truncate text-sm font-semibold text-navy-900">{{ $kanaal->displayName() }}</span>
                         @if ($kanaal->last_message_at)
-                            <span class="block text-xs text-gray-400">{{ \Illuminate\Support\Carbon::parse($kanaal->last_message_at)->translatedFormat('j M H:i') }}</span>
+                            <span class="block text-xs text-gray-500">{{ \Illuminate\Support\Carbon::parse($kanaal->last_message_at)->translatedFormat('j M H:i') }}</span>
                         @endif
                     </span>
                     @if ($unread > 0)
@@ -28,7 +28,7 @@
         @can('manage-crm')
             <form method="POST" action="{{ route('chat.channels.store') }}" class="mt-2 flex gap-1.5 px-1">
                 @csrf
-                <input type="text" name="name" required maxlength="60" placeholder="+ Nieuw kanaal"
+                <input aria-label="Naam" type="text" name="name" required maxlength="60" placeholder="+ Nieuw kanaal"
                        class="min-w-0 flex-1 rounded-lg border-gray-200 bg-gray-50 py-1.5 text-xs placeholder:text-gray-400 focus:border-brand-500 focus:bg-white focus:ring-brand-500">
                 <button type="submit" class="rounded-lg bg-gray-100 px-2.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-200">OK</button>
             </form>
@@ -37,7 +37,7 @@
 
     @if ($projectKanalen->isNotEmpty())
         <div>
-            <p class="mb-1.5 px-1 text-xs font-bold tracking-wide text-gray-400 uppercase">Projecten</p>
+            <p class="mb-1.5 px-1 text-xs font-bold tracking-wide text-gray-600 uppercase">Projecten</p>
             <div class="space-y-1">
                 @foreach ($projectKanalen as $kanaal)
                     @php $unread = $kanaal->unreadCountFor($user); @endphp
@@ -49,7 +49,7 @@
                         <span class="min-w-0 flex-1">
                             <span class="block truncate text-sm font-semibold text-navy-900">{{ $kanaal->displayName() }}</span>
                             @if ($kanaal->last_message_at)
-                                <span class="block text-xs text-gray-400">{{ \Illuminate\Support\Carbon::parse($kanaal->last_message_at)->translatedFormat('j M H:i') }}</span>
+                                <span class="block text-xs text-gray-500">{{ \Illuminate\Support\Carbon::parse($kanaal->last_message_at)->translatedFormat('j M H:i') }}</span>
                             @endif
                         </span>
                         @if ($unread > 0)

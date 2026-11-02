@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\NotificationType;
 use App\Enums\UserRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -42,7 +43,16 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
+            'notification_preferences' => 'array',
         ];
+    }
+
+    /**
+     * Pushmeldingen staan standaard aan; alleen wat iemand zelf uitzet, wordt overgeslagen.
+     */
+    public function wantsPush(NotificationType $type): bool
+    {
+        return ($this->notification_preferences[$type->value] ?? true) !== false;
     }
 
     public function projects(): BelongsToMany
@@ -58,6 +68,11 @@ class User extends Authenticatable
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class, 'owner_id');
+    }
+
+    public function deviceTokens(): HasMany
+    {
+        return $this->hasMany(DeviceToken::class);
     }
 
     public function scheduleEntries(): HasMany

@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Enums\LeadStatus;
+use App\Enums\PhaseStatus;
 use App\Enums\UserRole;
 use App\Models\Lead;
 use App\Models\Project;
 use App\Models\Quote;
 use App\Models\ScheduleEntry;
 use App\Models\Task;
+use App\Models\User;
 use App\Services\AttentionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,23 +28,61 @@ class DashboardController extends Controller
         }
 
         if ($request->user()->cannot('manage-crm')) {
-            return view('dashboard.uitvoerder', [
-                'taken' => Task::open()
-                    ->where('owner_id', $request->user()->id)
-                    ->with(['customer', 'project'])
-                    ->orderByRaw('deadline is null, deadline asc')
-                    ->limit(20)
-                    ->get(),
-                'planningWeek' => ScheduleEntry::where('user_id', $request->user()->id)
-                    ->whereBetween('date', [today(), today()->addDays(7)])
-                    ->with(['project', 'customer'])
-                    ->orderBy('date')
-                    ->orderByRaw('start_time is null, start_time asc')
-                    ->get(),
-            ]);
+            return view('dashboard.uitvoerder', $this->uitvoerderData($request->user()));
         }
 
         return view('dashboard.index', $this->managementData());
+    }
+
+    /**
+     * Uitvoerder (mockup §18, telefoon): het project van vandaag voorop, met snelkoppelingen
+     * naar chat, werk, foto's en documenten, daarna de taken van vandaag en de week.
+     *
+     * @return array<string, mixed>
+     */
+    private function uitvoerderData(User $user): array
+    {
+        $planningWeek = ScheduleEntry::where('user_id', $user->id)
+            ->whereBetween('date', [today(), today()->addDays(7)])
+            ->with(['project', 'customer'])
+            ->orderBy('date')
+            ->orderByRaw('start_time is null, start_time asc')
+            ->get();
+
+        $taken = Task::open()
+            ->where('owner_id', $user->id)
+            ->with(['customer', 'project'])
+            ->orderByRaw('deadline is null, deadline asc')
+            ->limit(20)
+            ->get();
+
+        // Alleen projecten waar de uitvoerder op staat (briefing §15); voorkeur voor vandaag gepland.
+        $projecten = Project::active()
+            ->whereHas('craftsmen', fn ($query) => $query->whereKey($user->id))
+            ->with(['customer', 'phases', 'chatChannel.readers'])
+            ->withCount([
+                'workPackages as open_werk_count' => fn ($query) => $query->where('status', '!=', PhaseStatus::Gereed),
+                'photos',
+                'photos as nieuwe_fotos_count' => fn ($query) => $query->where('created_at', '>=', now()->subDays(7)),
+                'documents',
+            ])
+            ->latest('updated_at')
+            ->get();
+
+        $geplandVandaag = $planningWeek->filter(fn ($entry) => $entry->date->isToday())->pluck('project_id');
+        $geplandDezeWeek = $planningWeek->pluck('project_id');
+
+        $project = $projecten->first(fn ($project) => $geplandVandaag->contains($project->id))
+            ?? $projecten->first(fn ($project) => $geplandDezeWeek->contains($project->id))
+            ?? $projecten->first();
+
+        return [
+            'project' => $project,
+            'chatOngelezen' => $project?->chatChannel?->unreadCountFor($user) ?? 0,
+            'takenVandaag' => $taken->filter(fn (Task $task) => $task->deadline === null || $task->deadline->lte(today())),
+            'takenLater' => $taken->filter(fn (Task $task) => $task->deadline !== null && $task->deadline->gt(today())),
+            'planningWeek' => $planningWeek,
+        ];
     }
 
     /**

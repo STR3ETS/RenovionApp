@@ -2,8 +2,9 @@
 <html lang="nl">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Inloggen - {{ config('app.name') }}</title>
+    @include('partials.favicon')
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter-tight:400,500,600,700,800" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -29,12 +30,14 @@
             </x-field>
 
             <label class="flex items-center gap-2 text-sm text-gray-600">
-                <input type="checkbox" name="remember" value="1" class="rounded border-gray-300 text-brand-600 focus:ring-brand-500">
+                {{-- In de iOS/Android-app (user agent "RenovionApp") staat dit standaard aan. --}}
+                <input type="checkbox" name="remember" value="1" @checked(str_contains((string) request()->userAgent(), 'RenovionApp'))
+                       class="rounded border-gray-300 text-brand-700 focus:ring-brand-500">
                 Ingelogd blijven
             </label>
 
             <button type="submit"
-                    class="w-full rounded-xl bg-brand-600 py-3 text-sm font-bold text-white transition hover:bg-brand-500">
+                    class="w-full rounded-xl bg-brand-500 py-3 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600">
                 Inloggen
             </button>
         </form>

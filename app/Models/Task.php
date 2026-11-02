@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ActionSource;
 use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
+use App\Notifications\TaskAssigned;
 use Database\Factories\TaskFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Auth;
 
 #[Fillable([
     'title', 'note', 'customer_id', 'project_id', 'lead_id', 'owner_id',
@@ -21,6 +23,25 @@ class Task extends Model
 {
     /** @use HasFactory<TaskFactory> */
     use HasFactory;
+
+    /**
+     * Melding als iemand anders (of Nova namens iemand) een taak op jouw naam zet. Automations
+     * draaien zonder ingelogde gebruiker en melden zich al via Nova in "Algemeen".
+     */
+    protected static function booted(): void
+    {
+        static::saved(function (Task $task) {
+            $assigner = Auth::user();
+
+            if ($assigner === null || $task->owner_id === null || $task->owner_id === $assigner->id) {
+                return;
+            }
+
+            if ($task->wasRecentlyCreated || $task->wasChanged('owner_id')) {
+                $task->owner?->notify(new TaskAssigned($task, $assigner));
+            }
+        });
+    }
 
     /**
      * @return array<string, string>

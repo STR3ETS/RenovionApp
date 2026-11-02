@@ -37,7 +37,7 @@
         <section>
             <p class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">01. Principes</p>
             <h2 class="mt-1 mb-4 text-xl font-bold text-navy-950">Waar alles op rust</h2>
-            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <div class="rounded-2xl border border-gray-200 bg-white p-5">
                     <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-500 text-white"><x-icon name="bolt" class="h-4 w-4" /></span>
                     <p class="mt-3 text-sm font-bold text-navy-900">Eén actiekleur</p>
@@ -65,7 +65,7 @@
         <section>
             <p class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">02. Merkkleuren</p>
             <h2 class="mt-1 mb-4 text-xl font-bold text-navy-950">Oranje doet, navy draagt</h2>
-            <div class="grid gap-3 sm:grid-cols-2">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white">
                     <div class="flex h-24 items-end bg-brand-500 p-4"><p class="text-sm font-bold text-white">brand-500. #F85B0B</p></div>
                     <div class="p-4 text-xs leading-relaxed text-gray-500">
@@ -91,7 +91,7 @@
                 Elke module een vaste tint, altijd in drie vormen: een gevulde icon-chip, een zachte pill en (spaarzaam) een getinte kaart
                 of accentlijn links. Nooit voor knoppen - dat blijft oranje.
             </p>
-            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($categories as $cat)
                     <div class="rounded-2xl border border-gray-200 bg-white p-5">
                         <div class="flex items-center justify-between gap-3">
@@ -193,7 +193,7 @@
                 <div class="rounded-2xl border border-gray-200 bg-white p-6">
                     <p class="mb-1 text-sm font-bold text-navy-900">Statcard - zachte categorietint + gevulde chip</p>
                     <p class="mb-3 text-xs text-gray-400">Zo herken je op afstand welk cijfer bij welk domein hoort. Alert-regel in signaalkleur.</p>
-                    <div class="grid gap-3 sm:grid-cols-3">
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
                         <div class="rounded-2xl border border-project-200 bg-project-50 p-4">
                             <div class="flex items-start justify-between gap-2">
                                 <p class="text-xs font-semibold text-project-700">Actieve projecten</p>
@@ -246,7 +246,7 @@
                 </div>
 
                 {{-- Kaartvarianten --}}
-                <div class="grid gap-3 lg:grid-cols-3">
+                <div class="grid grid-cols-1 gap-3 lg:grid-cols-3">
                     <div class="rounded-2xl border border-gray-200 bg-white p-5">
                         <p class="text-sm font-bold text-navy-900">Standaardkaart</p>
                         <p class="mt-1 text-xs leading-relaxed text-gray-500">Wit, <code>rounded-2xl border-gray-200</code>. Het werkpaard - maar nooit vijf identieke naast elkaar zonder chip of accent.</p>
@@ -264,7 +264,7 @@
                 </div>
 
                 {{-- Formulier + empty state --}}
-                <div class="grid gap-3 lg:grid-cols-2">
+                <div class="grid grid-cols-1 gap-3 lg:grid-cols-2">
                     <div class="rounded-2xl border border-gray-200 bg-white p-6">
                         <p class="mb-3 text-sm font-bold text-navy-900">Formulierveld</p>
                         <label class="mb-1 block text-xs font-semibold text-gray-500" for="sg-veld">Klantnaam</label>
@@ -287,7 +287,7 @@
         <section>
             <p class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">07. Spelregels</p>
             <h2 class="mt-1 mb-4 text-xl font-bold text-navy-950">Zo blijft het fris</h2>
-            <div class="grid gap-3 lg:grid-cols-2">
+            <div class="grid grid-cols-1 gap-3 lg:grid-cols-2">
                 <div class="rounded-2xl border border-project-200 bg-project-50 p-6">
                     <p class="mb-3 flex items-center gap-2 text-sm font-bold text-project-700"><x-icon name="check" class="h-4 w-4" /> Wel doen</p>
                     <ul class="space-y-2 text-sm text-gray-700">
@@ -343,7 +343,7 @@
                 <div class="rounded-2xl border border-gray-200 bg-white p-6">
                     <p class="mb-1 text-sm font-bold text-navy-900">Skeleton loaders - geen spinners</p>
                     <p class="mb-4 text-xs text-gray-400">Alles wat async laadt (Nova-briefing, chatberichten, zoekresultaten) toont een shimmer in de vorm van de content die komt: <code class="rounded bg-gray-100 px-1">&lt;x-skeleton&gt;</code>, of <code class="rounded bg-gray-100 px-1">.skeleton</code> op een eigen blokje. Op donkere kaarten de <code class="rounded bg-gray-100 px-1">dark</code>-variant.</p>
-                    <div class="grid gap-3 sm:grid-cols-2">
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <div class="rounded-xl border border-gray-200 p-4">
                             <x-skeleton :lines="3" avatar />
                         </div>

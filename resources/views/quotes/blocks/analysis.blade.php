@@ -8,9 +8,9 @@
 <section class="rounded-2xl border border-gray-200 bg-white p-6 lg:p-8">
     @if ($isEdit)
         <div x-rich="block.data.title" @blur="save()" data-ph="Bevindingen uit de opname" class="mb-4 text-lg font-bold text-navy-950"></div>
-        <div class="grid gap-6 sm:grid-cols-2">
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div>
-                <h3 class="mb-3 flex items-center gap-2 text-sm font-bold text-navy-900"><x-icon name="check" class="h-4 w-4 text-green-600" /> Wat goed zit</h3>
+                <h3 class="mb-3 flex items-center gap-2 text-sm font-bold text-navy-900"><x-icon name="check" class="h-4 w-4 text-green-700" /> Wat goed zit</h3>
                 <template x-for="(p, i) in block.data.good" :key="i">
                     <div class="group mb-2 flex items-center gap-2">
                         <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-green-500"></span>
@@ -20,7 +20,7 @@
                         </button>
                     </div>
                 </template>
-                <button type="button" @click="block.data.good.push('Nieuw punt'); save()" class="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-green-600 hover:text-green-500">
+                <button type="button" @click="block.data.good.push('Nieuw punt'); save()" class="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-green-700 hover:text-green-500">
                     <x-icon name="plus" class="h-3.5 w-3.5" /> Toevoegen
                 </button>
             </div>
@@ -35,16 +35,16 @@
                         </button>
                     </div>
                 </template>
-                <button type="button" @click="block.data.attention.push('Nieuw punt'); save()" class="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-amber-600 hover:text-amber-500">
+                <button type="button" @click="block.data.attention.push('Nieuw punt'); save()" class="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-amber-700 hover:text-amber-500">
                     <x-icon name="plus" class="h-3.5 w-3.5" /> Toevoegen
                 </button>
             </div>
         </div>
     @else
         <h2 class="mb-4 text-lg font-bold text-navy-950">{!! QuoteText::render($d['title'] ?? 'Bevindingen uit de opname') !!}</h2>
-        <div class="grid gap-6 sm:grid-cols-2">
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div>
-                <h3 class="mb-3 flex items-center gap-2 text-sm font-bold text-navy-900"><x-icon name="check" class="h-4 w-4 text-green-600" /> Wat goed zit</h3>
+                <h3 class="mb-3 flex items-center gap-2 text-sm font-bold text-navy-900"><x-icon name="check" class="h-4 w-4 text-green-700" /> Wat goed zit</h3>
                 @foreach (($d['good'] ?? []) as $point)
                     @continue(blank($point))
                     <div class="mb-2 flex items-start gap-2">

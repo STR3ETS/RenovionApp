@@ -1,7 +1,7 @@
 <x-layouts.app title="Team">
 
-    <x-page-header eyebrow="Teambeheer" title="Team" subtitle="{{ $users->count() }} teamleden">
-        <a href="{{ route('team.create') }}" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-500">+ Teamlid</a>
+    <x-page-header eyebrow="Teambeheer" title="Teamleden" subtitle="{{ \App\Support\Tally::of($users->count(), 'teamlid', 'teamleden') }}">
+        <a href="{{ route('team.create') }}" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600">+ Teamlid</a>
     </x-page-header>
 
     <div class="space-y-2">
@@ -18,17 +18,13 @@
                         @endif
                     </span>
                     <span class="block truncate text-xs text-gray-500">
-                        {{ $user->email }}{{ $user->phone ? ', '.$user->phone : '' }}
-                        @if ($user->role === \App\Enums\UserRole::Uitvoerder)
-                           , {{ $user->projects_count }} {{ $user->projects_count === 1 ? 'project' : 'projecten' }}
-                        @endif
-                       , {{ $user->tasks_count }} open {{ $user->tasks_count === 1 ? 'taak' : 'taken' }}
+                        {{ $user->email }}{{ $user->phone ? ', '.$user->phone : '' }}{{ $user->role === \App\Enums\UserRole::Uitvoerder ? ', '.$user->projects_count.' '.($user->projects_count === 1 ? 'project' : 'projecten') : '' }}, {{ $user->tasks_count }} open {{ $user->tasks_count === 1 ? 'taak' : 'taken' }}
                     </span>
                 </span>
                 <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap {{ $user->role->badgeClasses() }}">
                     {{ $user->role->label() }}
                 </span>
-                <a href="{{ route('team.edit', $user) }}" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-50">Bewerken</a>
+                <a href="{{ route('team.edit', $user) }}" class="tap rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-50">Bewerken</a>
             </div>
         @endforeach
     </div>

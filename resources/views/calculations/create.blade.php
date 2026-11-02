@@ -4,7 +4,7 @@
 
     <form method="POST" action="{{ route('calculations.store') }}"
           x-data="calcCreate(@js(route('calculations.propose')), @js(old('description', $lead?->description)), @js($sources->pluck('source')->values()))"
-          class="grid gap-4 lg:grid-cols-3">
+          class="grid grid-cols-1 gap-4 lg:grid-cols-3">
         @csrf
         @if ($lead)
             <input type="hidden" name="lead_id" value="{{ $lead->id }}">
@@ -13,7 +13,7 @@
         <div class="space-y-4 lg:col-span-2">
             {{-- Basis --}}
             <section class="rounded-2xl border border-gray-200 bg-white p-5">
-                <div class="grid gap-4 sm:grid-cols-2">
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <x-field label="Titel *" name="title" class="sm:col-span-2">
                         <input type="text" name="title" id="title" required
                                value="{{ old('title', $lead ? 'Calculatie '.($lead->service ?? 'renovatie').' - '.$lead->customer->name : '') }}"
@@ -45,7 +45,7 @@
                 </div>
 
                 <div class="relative">
-                    <textarea name="description" id="description" rows="4" x-model="description"
+                    <textarea aria-label="Omschrijving van het project" name="description" id="description" rows="4" x-model="description"
                               placeholder="Beschrijf het project… Bijv. 'Badkamer 6 m2 volledig renoveren: strippen, leidingwerk verleggen, vloer- en wandtegels, inloopdouche, wandcloset, stucwerk plafond, elektra met spots.'"
                               class="w-full rounded-xl border-gray-300 pr-12 text-sm focus:border-brand-500 focus:ring-brand-500"></textarea>
                     <button type="button" @click="toggleMic()" x-show="speechSupported"
@@ -58,8 +58,8 @@
 
                 {{-- Handmatig --}}
                 <div x-show="mode === 'handmatig'" class="mt-4">
-                    <p class="mb-3 text-xs text-gray-400">Je maakt een calculatie aan en voegt daarna zelf regels toe vanuit de prijsbibliotheek.</p>
-                    <button type="submit" class="rounded-xl bg-brand-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-brand-600">Calculatie aanmaken</button>
+                    <p class="mb-3 text-xs text-gray-500">Je maakt een calculatie aan en voegt daarna zelf regels toe vanuit de prijsbibliotheek.</p>
+                    <button type="submit" class="rounded-xl bg-brand-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600">Calculatie aanmaken</button>
                 </div>
 
                 {{-- AI --}}
@@ -129,7 +129,7 @@
                     </template>
 
                     <button type="submit" x-show="proposal" x-cloak
-                            class="mt-4 rounded-xl bg-brand-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-brand-600">
+                            class="mt-4 rounded-xl bg-brand-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600">
                         Calculatie aanmaken met <span x-text="proposal?.lines.length"></span> regels
                     </button>
                 </div>
@@ -140,14 +140,14 @@
         <div>
             <section class="rounded-2xl border border-gray-200 bg-white p-5">
                 <h2 class="mb-1 text-sm font-bold text-navy-900">Geselecteerde kostendatabase</h2>
-                <p class="mb-4 text-xs text-gray-400">Nova gebruikt alleen prijzen uit de ingeschakelde bronnen.</p>
+                <p class="mb-4 text-xs text-gray-500">Nova gebruikt alleen prijzen uit de ingeschakelde bronnen.</p>
 
                 <div class="space-y-3">
                     @foreach ($sources as $source)
                         <label class="flex cursor-pointer items-center justify-between gap-3">
                             <span class="min-w-0">
                                 <span class="block truncate text-sm font-medium text-navy-900">{{ $source->source }}</span>
-                                <span class="block text-xs text-gray-400">Editie {{ $source->edition }}</span>
+                                <span class="block text-xs text-gray-500">Editie {{ $source->edition }}</span>
                             </span>
                             <input type="checkbox" class="peer sr-only" :checked="sources.includes(@js($source->source))" @change="toggleSource(@js($source->source))">
                             <span class="relative h-5 w-9 shrink-0 rounded-full bg-gray-200 transition peer-checked:bg-brand-500 after:absolute after:top-0.5 after:left-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-4"></span>
@@ -159,7 +159,7 @@
                         <div class="flex items-center justify-between gap-3 opacity-50" title="Wordt geladen zodra de Archidat-licentie rond is">
                             <span class="min-w-0">
                                 <span class="block truncate text-sm font-medium text-gray-500">{{ $pending }}</span>
-                                <span class="block text-xs text-gray-400">Nog niet geladen (licentie vereist)</span>
+                                <span class="block text-xs text-gray-500">Nog niet geladen (licentie vereist)</span>
                             </span>
                             <span class="relative h-5 w-9 shrink-0 rounded-full bg-gray-100 after:absolute after:top-0.5 after:left-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow"></span>
                         </div>

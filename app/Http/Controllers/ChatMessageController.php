@@ -6,9 +6,11 @@ use App\Enums\ActionSource;
 use App\Models\ChatChannel;
 use App\Models\ChatMessage;
 use App\Models\Task;
+use App\Notifications\ChatMention;
 use App\Services\NovaAssistant;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -56,6 +58,8 @@ class ChatMessageController extends Controller
         ]);
 
         $channel->markReadFor($request->user());
+
+        Notification::send($message->mentionedUsers(), new ChatMention($message));
 
         $nieuw = collect([$message]);
 

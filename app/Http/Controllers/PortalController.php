@@ -97,10 +97,40 @@ class PortalController extends Controller
     {
         abort_unless($phase->project->isViewableByClient($request->user()), 403);
 
-        if ($phase->status !== PhaseStatus::Gereed || $phase->client_approved_at !== null) {
+        if (! $this->awaitsApproval($phase)) {
             return back()->with('error', 'Deze fase kan niet (meer) worden bevestigd.');
         }
 
+        $this->recordApproval($phase, $request);
+
+        return back()->with('success', 'Bedankt voor uw bevestiging!');
+    }
+
+    /**
+     * Alle afgeronde fasen in één keer bevestigen. Per fase blijft een eigen audit-regel staan.
+     */
+    public function approveAllPhases(Request $request, Project $project): RedirectResponse
+    {
+        abort_unless($project->isViewableByClient($request->user()), 403);
+
+        $phases = $project->phases()->get()->filter(fn (ProjectPhase $phase) => $this->awaitsApproval($phase) && $phase->completed_at !== null);
+
+        if ($phases->isEmpty()) {
+            return back()->with('error', 'Er zijn geen fasen om te bevestigen.');
+        }
+
+        $phases->each(fn (ProjectPhase $phase) => $this->recordApproval($phase, $request));
+
+        return back()->with('success', 'Bedankt voor uw bevestiging!');
+    }
+
+    private function awaitsApproval(ProjectPhase $phase): bool
+    {
+        return $phase->status === PhaseStatus::Gereed && $phase->client_approved_at === null;
+    }
+
+    private function recordApproval(ProjectPhase $phase, Request $request): void
+    {
         $phase->update([
             'client_approved_at' => now(),
             'client_approved_by' => $request->user()->id,
@@ -118,8 +148,6 @@ class PortalController extends Controller
             $phase,
             ActionSource::Website,
         );
-
-        return back()->with('success', 'Bedankt voor uw bevestiging!');
     }
 
     /**

@@ -29,7 +29,7 @@
         </div>
 
         @unless ($report->isSignedByClient())
-            <p class="mb-4 text-xs text-gray-400">De klant vindt dit rapport onder "Actie van u nodig" in het klantportaal en ondertekent daar digitaal.</p>
+            <p class="mb-4 text-xs text-gray-500">De klant vindt dit rapport onder "Actie van u nodig" in het klantportaal en ondertekent daar digitaal.</p>
         @endunless
     </div>
 

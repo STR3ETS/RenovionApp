@@ -2,14 +2,14 @@
 
     <x-page-header eyebrow="Klantdossier" category="klant" :title="$customer->name" :subtitle="trim(($customer->address ? $customer->address.', ' : '').($customer->city ?? '')) ?: 'Klantdossier'">
         @if ($customer->phone)
-            <a href="tel:{{ $customer->phone }}" class="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-500"><x-icon name="phone" /> Bellen</a>
+            <a href="tel:{{ $customer->phone }}" class="inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600"><x-icon name="phone" /> Bellen</a>
         @endif
         @if ($customer->email)
             <a href="mailto:{{ $customer->email }}" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-navy-900 transition hover:border-brand-400"><x-icon name="envelope" /> Mailen</a>
         @endif
     </x-page-header>
 
-    <div class="grid gap-4 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
 
         {{-- Timeline: het centrale dossier --}}
         <div class="lg:col-span-2">
@@ -18,7 +18,7 @@
 
                 <form method="POST" action="{{ route('customers.notes.store', $customer) }}" class="mb-5 flex gap-2">
                     @csrf
-                    <input type="text" name="body" required placeholder="Notitie toevoegen…"
+                    <input aria-label="Notitie" type="text" name="body" required placeholder="Notitie toevoegen…"
                            class="flex-1 rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
                     <button type="submit" class="rounded-xl bg-navy-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-navy-800">+</button>
                 </form>
@@ -37,19 +37,13 @@
                                 @if ($event->body)
                                     <p class="mt-0.5 text-sm whitespace-pre-line text-gray-600">{{ $event->body }}</p>
                                 @endif
-                                <p class="mt-1 text-xs text-gray-400">
-                                    {{ $event->happened_at->translatedFormat('j M Y, H:i') }}
-                                    @if ($viaNova)
-                                       , Nova{{ $event->user ? ', bevestigd door '.$event->user->name : '' }}
-                                    @else
-                                       , {{ $event->user?->name ?? $event->source->label() }}
-                                    @endif
-                                   , {{ $event->type->label() }}
+                                <p class="mt-1 text-xs text-gray-500">
+                                    {{ $event->happened_at->translatedFormat('j M Y, H:i') }}, {{ $viaNova ? 'Nova'.($event->user ? ', bevestigd door '.$event->user->name : '') : ($event->user?->name ?? $event->source->label()) }}, {{ $event->type->label() }}
                                 </p>
                             </div>
                         </div>
                     @empty
-                        <p class="text-sm text-gray-400">Nog geen activiteit in dit dossier.</p>
+                        <p class="text-sm text-gray-500">Nog geen activiteit in dit dossier.</p>
                     @endforelse
                 </div>
             </section>
@@ -71,21 +65,21 @@
                 <h2 class="mb-3 text-sm font-bold text-navy-900">Klantportaal</h2>
                 @if ($customer->portalUser)
                     <p class="flex items-center gap-1.5 text-sm font-medium text-green-700"><x-icon name="check" class="h-4 w-4" /> Account actief</p>
-                    <p class="mt-1 text-xs text-gray-400">Inloggen met {{ $customer->portalUser->email }} sinds {{ $customer->portalUser->created_at->translatedFormat('j M Y') }}.</p>
+                    <p class="mt-1 text-xs text-gray-500">Inloggen met {{ $customer->portalUser->email }} sinds {{ $customer->portalUser->created_at->translatedFormat('j M Y') }}.</p>
                     <form method="POST" action="{{ route('customers.portal', $customer) }}" class="mt-3" onsubmit="return confirm('Nieuw wachtwoord genereren? Het oude wachtwoord werkt daarna niet meer.');">
                         @csrf
                         <button type="submit" class="w-full rounded-xl border border-gray-300 bg-white py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">Wachtwoord resetten</button>
                     </form>
                 @else
-                    <p class="text-xs text-gray-400">De klant volgt hiermee zelf de voortgang, foto's en acties via {{ rtrim(config('app.url'), '/') }}/portaal.</p>
+                    <p class="text-xs text-gray-500">De klant volgt hiermee zelf de voortgang, foto's en acties via {{ rtrim(config('app.url'), '/') }}/portaal.</p>
                     <form method="POST" action="{{ route('customers.portal', $customer) }}" class="mt-3">
                         @csrf
-                        <button type="submit" class="w-full rounded-xl bg-brand-500 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600" @disabled(blank($customer->email))>
+                        <button type="submit" class="w-full rounded-xl bg-brand-500 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600" @disabled(blank($customer->email))>
                             Portaal-account aanmaken
                         </button>
                     </form>
                     @if (blank($customer->email))
-                        <p class="mt-2 text-xs text-amber-600">Vul eerst een e-mailadres in bij deze klant.</p>
+                        <p class="mt-2 text-xs text-amber-700">Vul eerst een e-mailadres in bij deze klant.</p>
                     @endif
                 @endif
             </section>
@@ -94,7 +88,7 @@
             <section class="rounded-2xl border border-gray-200 bg-white p-5">
                 <div class="mb-3 flex items-center justify-between">
                     <h2 class="text-sm font-bold text-navy-900">Aanvragen</h2>
-                    <a href="{{ route('leads.create', ['klant' => $customer->id]) }}" class="text-xs font-semibold text-brand-600 hover:text-brand-500">+ Nieuw</a>
+                    <a href="{{ route('leads.create', ['klant' => $customer->id]) }}" class="text-xs font-semibold text-brand-700 hover:text-brand-500">+ Nieuw</a>
                 </div>
                 @forelse ($customer->leads as $lead)
                     <a href="{{ route('leads.show', $lead) }}" class="mb-2 flex items-center justify-between gap-2 rounded-lg border border-gray-200 p-2.5 text-sm transition hover:border-brand-400">
@@ -102,7 +96,7 @@
                         <x-status-badge :status="$lead->status" />
                     </a>
                 @empty
-                    <p class="text-sm text-gray-400">Geen aanvragen.</p>
+                    <p class="text-sm text-gray-500">Geen aanvragen.</p>
                 @endforelse
             </section>
 
@@ -119,7 +113,7 @@
                         <x-status-badge :status="$quote->status" />
                     </a>
                 @empty
-                    <p class="text-sm text-gray-400">Geen offertes.</p>
+                    <p class="text-sm text-gray-500">Geen offertes.</p>
                 @endforelse
             </section>
             @endif
@@ -133,7 +127,7 @@
                         <x-status-badge :status="$project->status" />
                     </a>
                 @empty
-                    <p class="text-sm text-gray-400">Geen projecten.</p>
+                    <p class="text-sm text-gray-500">Geen projecten.</p>
                 @endforelse
             </section>
 
@@ -142,14 +136,14 @@
                 <h2 class="mb-3 text-sm font-bold text-navy-900">Documenten</h2>
                 @forelse ($customer->documents as $document)
                     <a href="{{ route('documents.show', $document) }}" class="mb-2 flex items-center gap-2 rounded-lg border border-gray-200 p-2.5 text-sm transition hover:border-brand-400">
-                        <x-icon name="paper-clip" class="text-gray-400" />
+                        <x-icon name="paper-clip" class="text-gray-500" />
                         <span class="min-w-0 flex-1">
                             <span class="block truncate font-medium text-navy-900">{{ $document->name }}</span>
                             <span class="text-xs text-gray-500">{{ $document->category->label() }}, {{ $document->created_at->translatedFormat('j M Y') }}</span>
                         </span>
                     </a>
                 @empty
-                    <p class="mb-3 text-sm text-gray-400">Geen documenten.</p>
+                    <p class="mb-3 text-sm text-gray-500">Geen documenten.</p>
                 @endforelse
 
                 <form method="POST" action="{{ route('documents.store') }}" enctype="multipart/form-data" class="mt-2 space-y-2">
