@@ -39,7 +39,7 @@
                     {{ str($project->customer->name)->substr(0, 1)->upper() }}
                 </span>
                 <span class="min-w-0 flex-1">
-                    <b class="block truncate text-sm font-semibold text-white">{{ $project->customer->contact_name ?: $project->customer->name }}</b>
+                    <b class="block truncate text-sm font-semibold text-white">{{ $project->customer->name }}</b>
                     <small class="block text-xs text-slate-500">Klant</small>
                 </span>
                 @if ($project->customer->phone)

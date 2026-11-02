@@ -2,7 +2,8 @@
 
     <div x-data="{ modal: false, formUser: '', formDate: '' }">
 
-        <x-page-header eyebrow="Capaciteit" category="planning" title="Planning" subtitle="Week {{ $start->isoWeek }}, {{ $start->translatedFormat('j M') }} t/m {{ $start->copy()->addDays(4)->translatedFormat('j M Y') }}">
+        <x-page-header eyebrow="Uitvoering" category="planning" title="Planning" subtitle="Week {{ $start->isoWeek }}, {{ $start->translatedFormat('j M') }} t/m {{ $start->copy()->addDays(4)->translatedFormat('j M Y') }}">
+            @include('planning.partials.view-switch', ['view' => $view ?? 'week'])
             <a href="{{ route('planning.index', ['week' => $start->copy()->subWeek()->toDateString()]) }}" class="rounded-lg border border-surface-600 bg-surface-800 px-3 py-2 text-sm font-semibold text-slate-300 transition hover:bg-surface-850">←</a>
             <a href="{{ route('planning.index') }}" class="rounded-lg border border-surface-600 bg-surface-800 px-3 py-2 text-sm font-semibold text-slate-300 transition hover:bg-surface-850">Vandaag</a>
             <a href="{{ route('planning.index', ['week' => $start->copy()->addWeek()->toDateString()]) }}" class="rounded-lg border border-surface-600 bg-surface-800 px-3 py-2 text-sm font-semibold text-slate-300 transition hover:bg-surface-850">→</a>

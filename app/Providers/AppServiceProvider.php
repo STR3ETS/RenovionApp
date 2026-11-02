@@ -25,6 +25,7 @@ use App\Models\JobExecution;
 use App\Models\JobReport;
 use App\Models\JobStep;
 use App\Models\Lead;
+use App\Models\MailTemplate;
 use App\Models\Photo;
 use App\Models\Project;
 use App\Models\ProjectDeduction;
@@ -96,6 +97,7 @@ class AppServiceProvider extends ServiceProvider
             'job_report' => JobReport::class,
             'job_step' => JobStep::class,
             'lead' => Lead::class,
+            'mail_template' => MailTemplate::class,
             'photo' => Photo::class,
             'project' => Project::class,
             'project_deduction' => ProjectDeduction::class,

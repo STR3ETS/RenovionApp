@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AcademyController;
 use App\Http\Controllers\AgentController;
 use App\Http\Controllers\AttentionController;
 use App\Http\Controllers\Auth\LoginController;
@@ -31,6 +32,7 @@ use App\Http\Controllers\JobStepController;
 use App\Http\Controllers\LeadContactController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\LeadStatusController;
+use App\Http\Controllers\MailTemplateController;
 use App\Http\Controllers\MotionPreferenceController;
 use App\Http\Controllers\NovaController;
 use App\Http\Controllers\OnboardingController;
@@ -163,6 +165,11 @@ Route::middleware('auth')->group(function () {
 
         Route::get('planning', [PlanningController::class, 'index'])->name('planning.index');
 
+        // De Academy is voor iedereen met een interne rol, ook voor uitvoerders.
+        Route::get('academy', [AcademyController::class, 'index'])->name('academy.index');
+        Route::get('academy/{tour}', [AcademyController::class, 'show'])->name('academy.show');
+        Route::post('academy/{tour}/afronden', [AcademyController::class, 'complete'])->name('academy.complete');
+
         Route::post('documenten', [DocumentController::class, 'store'])->name('documents.store');
         Route::get('documenten/{document}', [DocumentController::class, 'show'])->name('documents.show');
 
@@ -210,6 +217,10 @@ Route::middleware('auth')->group(function () {
             Route::post('calculaties/{calculation}/regels', [CalculationLineController::class, 'store'])->name('calculations.lines.store');
             Route::patch('calculaties/{calculation}/regels/{line}', [CalculationLineController::class, 'update'])->scopeBindings()->name('calculations.lines.update');
             Route::delete('calculaties/{calculation}/regels/{line}', [CalculationLineController::class, 'destroy'])->scopeBindings()->name('calculations.lines.destroy');
+            // Mailbuilder: de teksten die naar klanten gaan, op één plek.
+            Route::get('mailteksten', [MailTemplateController::class, 'index'])->name('mail-templates.index');
+            Route::match(['put', 'patch'], 'mailteksten/{mailTemplate}', [MailTemplateController::class, 'update'])->name('mail-templates.update');
+
             // Rapportages en marketing: momentopnames uit de data die er is.
             Route::get('rapportages', [ReportController::class, 'index'])->name('reports.index');
             Route::get('marketing', [ReportController::class, 'marketing'])->name('marketing.index');
