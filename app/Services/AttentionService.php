@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\LeadStatus;
 use App\Enums\PhaseStatus;
 use App\Enums\ScheduleEntryType;
+use App\Models\AgentApproval;
 use App\Models\JobReport;
 use App\Models\Lead;
 use App\Models\Project;
@@ -49,6 +50,7 @@ class AttentionService
             ->concat($this->workOrdersAwaitingApproval())
             ->concat($this->serviceTickets())
             ->concat($this->overdueSnags())
+            ->concat($this->agentApprovals())
             ->concat($this->unansweredQuotes())
             ->concat($this->missingDeposits())
             ->concat($this->planningConflicts())
@@ -89,6 +91,34 @@ class AttentionService
                 'url' => $report->job?->schedule_entry_id !== null
                     ? route('jobs.show', [$report->job->schedule_entry_id, 'tab' => 'meldingen'])
                     : route('projects.show', $report->project),
+            ]);
+    }
+
+    /**
+     * Voorstellen van agents die op een menselijk besluit wachten. Zolang die
+     * open staan gebeurt er niets, dus moeten ze zichtbaar blijven.
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function agentApprovals(): Collection
+    {
+        return AgentApproval::open()
+            ->with('project')
+            ->get()
+            ->map(fn (AgentApproval $approval) => [
+                'severity' => $approval->waitingDays() >= 2 ? 'rood' : 'oranje',
+                'kind' => 'bevestigen',
+                'icon' => 'sparkles',
+                'label' => $approval->agentMeta()['name'].' vraagt een besluit',
+                'title' => $approval->action,
+                'subtitle' => collect([
+                    $approval->summary,
+                    $approval->project?->name,
+                    $approval->waitingDays() > 0
+                        ? $approval->waitingDays().' '.($approval->waitingDays() === 1 ? 'dag' : 'dagen').' onbesloten'
+                        : 'net gevraagd',
+                ])->filter()->join(', '),
+                'url' => route('approvals.index'),
             ]);
     }
 

@@ -4,6 +4,10 @@ namespace App\Providers;
 
 use App\Enums\UserRole;
 use App\Models\Absence;
+use App\Models\AgentApproval;
+use App\Models\AgentEvent;
+use App\Models\AgentRun;
+use App\Models\AgentSkillSetting;
 use App\Models\AutomationSetting;
 use App\Models\Budget;
 use App\Models\BudgetLine;
@@ -70,6 +74,10 @@ class AppServiceProvider extends ServiceProvider
     {
         Relation::enforceMorphMap([
             'absence' => Absence::class,
+            'agent_approval' => AgentApproval::class,
+            'agent_event' => AgentEvent::class,
+            'agent_run' => AgentRun::class,
+            'agent_skill_setting' => AgentSkillSetting::class,
             'automation_setting' => AutomationSetting::class,
             'budget' => Budget::class,
             'budget_line' => BudgetLine::class,

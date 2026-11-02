@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AgentController;
 use App\Http\Controllers\AttentionController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\AutomationController;
@@ -206,6 +207,18 @@ Route::middleware('auth')->group(function () {
             Route::post('calculaties/{calculation}/regels', [CalculationLineController::class, 'store'])->name('calculations.lines.store');
             Route::patch('calculaties/{calculation}/regels/{line}', [CalculationLineController::class, 'update'])->scopeBindings()->name('calculations.lines.update');
             Route::delete('calculaties/{calculation}/regels/{line}', [CalculationLineController::class, 'destroy'])->scopeBindings()->name('calculations.lines.destroy');
+            // Nova en de agents: uitvoeringen, goedkeuringen, audit en skills.
+            Route::get('agents', [AgentController::class, 'runs'])->name('agents.index');
+            Route::get('goedkeuringen', [AgentController::class, 'approvals'])->name('approvals.index');
+            Route::post('goedkeuringen/{approval}', [AgentController::class, 'decide'])->name('approvals.decide');
+            Route::get('audit', [AgentController::class, 'audit'])->name('audit.index');
+
+            // Wat de agents mogen is inrichting: dat bepaalt de directie.
+            Route::middleware('can:manage-team')->group(function () {
+                Route::get('skills', [AgentController::class, 'skills'])->name('skills.index');
+                Route::match(['put', 'patch'], 'skills/{skill}', [AgentController::class, 'updateSkill'])->name('skills.update');
+            });
+
             // Kwaliteit, oplevering en nazorg.
             Route::patch('controlepunten/{check}/toggle', [QualityController::class, 'toggleCheck'])->name('quality-checks.toggle');
             Route::post('kwaliteit/{review}/volgende-stap', [QualityController::class, 'advance'])->name('quality.advance');
