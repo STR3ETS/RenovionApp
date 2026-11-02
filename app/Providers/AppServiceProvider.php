@@ -41,6 +41,7 @@ use App\Models\Rfq;
 use App\Models\RfqBid;
 use App\Models\ScheduleEntry;
 use App\Models\ServiceTicket;
+use App\Models\Setting;
 use App\Models\SnagItem;
 use App\Models\Subcontractor;
 use App\Models\SubcontractorDocument;
@@ -111,6 +112,7 @@ class AppServiceProvider extends ServiceProvider
             'rfq_bid' => RfqBid::class,
             'schedule_entry' => ScheduleEntry::class,
             'service_ticket' => ServiceTicket::class,
+            'setting' => Setting::class,
             'snag_item' => SnagItem::class,
             'subcontractor' => Subcontractor::class,
             'subcontractor_document' => SubcontractorDocument::class,

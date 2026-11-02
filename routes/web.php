@@ -37,6 +37,7 @@ use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\PlanningController;
 use App\Http\Controllers\PortalController;
+use App\Http\Controllers\PortalPreviewController;
 use App\Http\Controllers\PortfolioController;
 use App\Http\Controllers\PriceItemSearchController;
 use App\Http\Controllers\PriceListController;
@@ -52,9 +53,11 @@ use App\Http\Controllers\QuoteDashboardController;
 use App\Http\Controllers\QuoteLineProposalController;
 use App\Http\Controllers\QuotePublicController;
 use App\Http\Controllers\QuoteStatusController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RfqController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ServiceTicketController;
+use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SubcontractorController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TaskStatusController;
@@ -207,6 +210,14 @@ Route::middleware('auth')->group(function () {
             Route::post('calculaties/{calculation}/regels', [CalculationLineController::class, 'store'])->name('calculations.lines.store');
             Route::patch('calculaties/{calculation}/regels/{line}', [CalculationLineController::class, 'update'])->scopeBindings()->name('calculations.lines.update');
             Route::delete('calculaties/{calculation}/regels/{line}', [CalculationLineController::class, 'destroy'])->scopeBindings()->name('calculations.lines.destroy');
+            // Rapportages en marketing: momentopnames uit de data die er is.
+            Route::get('rapportages', [ReportController::class, 'index'])->name('reports.index');
+            Route::get('marketing', [ReportController::class, 'marketing'])->name('marketing.index');
+
+            // Het klantportaal zoals de klant het ziet, van binnenuit te openen.
+            Route::get('klantportaal', [PortalPreviewController::class, 'index'])->name('portal-preview.index');
+            Route::get('klantportaal/{project}', [PortalPreviewController::class, 'show'])->name('portal-preview.show');
+
             // Nova en de agents: uitvoeringen, goedkeuringen, audit en skills.
             Route::get('agents', [AgentController::class, 'runs'])->name('agents.index');
             Route::get('goedkeuringen', [AgentController::class, 'approvals'])->name('approvals.index');
@@ -379,6 +390,11 @@ Route::middleware('auth')->group(function () {
             Route::post('team', [TeamController::class, 'store'])->name('team.store');
             Route::get('team/{user}/bewerken', [TeamController::class, 'edit'])->name('team.edit');
             Route::match(['put', 'patch'], 'team/{user}', [TeamController::class, 'update'])->name('team.update');
+
+            // Instellingen: bedrijfsgegevens en de standaardwaarden waarmee het
+            // systeem rekent. Geheimen blijven in .env.
+            Route::get('instellingen', [SettingController::class, 'index'])->name('settings.index');
+            Route::match(['put', 'patch'], 'instellingen', [SettingController::class, 'update'])->name('settings.update');
         });
     });
 });
