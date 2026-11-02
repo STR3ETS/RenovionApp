@@ -18,6 +18,8 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeliveryReportController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\FinanceController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\JobCompletionController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\JobReportController;
@@ -38,6 +40,8 @@ use App\Http\Controllers\PriceListController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectPhaseController;
 use App\Http\Controllers\ProjectStatusController;
+use App\Http\Controllers\PurchaseInvoiceController;
+use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\QuoteBuilderController;
 use App\Http\Controllers\QuoteController;
 use App\Http\Controllers\QuoteLineProposalController;
@@ -189,6 +193,27 @@ Route::middleware('auth')->group(function () {
             Route::post('calculaties/{calculation}/regels', [CalculationLineController::class, 'store'])->name('calculations.lines.store');
             Route::patch('calculaties/{calculation}/regels/{line}', [CalculationLineController::class, 'update'])->scopeBindings()->name('calculations.lines.update');
             Route::delete('calculaties/{calculation}/regels/{line}', [CalculationLineController::class, 'destroy'])->scopeBindings()->name('calculations.lines.destroy');
+            // Geld: facturatie, inkoop, nacalculatie en het financiële beeld.
+            Route::get('financieel', [FinanceController::class, 'index'])->name('finance.index');
+            Route::get('nacalculatie', [FinanceController::class, 'costReviews'])->name('cost-reviews.index');
+
+            Route::get('facturen', [InvoiceController::class, 'index'])->name('invoices.index');
+            Route::get('facturen/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
+            Route::match(['put', 'patch'], 'facturen/{invoice}', [InvoiceController::class, 'update'])->name('invoices.update');
+            Route::delete('facturen/{invoice}', [InvoiceController::class, 'destroy'])->name('invoices.destroy');
+            Route::post('begrotingstermijnen/{term}/factureren', [InvoiceController::class, 'storeTerm'])->name('invoices.term');
+            Route::post('projecten/{project}/eindafrekening', [InvoiceController::class, 'storeFinal'])->name('invoices.final');
+
+            Route::get('inkoop', [PurchaseOrderController::class, 'index'])->name('purchase-orders.index');
+            Route::post('inkoop', [PurchaseOrderController::class, 'store'])->name('purchase-orders.store');
+            Route::get('inkoop/{purchaseOrder}', [PurchaseOrderController::class, 'show'])->name('purchase-orders.show');
+            Route::match(['put', 'patch'], 'inkoop/{purchaseOrder}', [PurchaseOrderController::class, 'update'])->name('purchase-orders.update');
+            Route::post('inkoop/{purchaseOrder}/regels', [PurchaseOrderController::class, 'storeLine'])->name('purchase-order-lines.store');
+            Route::delete('inkoopregels/{line}', [PurchaseOrderController::class, 'destroyLine'])->name('purchase-order-lines.destroy');
+            Route::post('inkoopfacturen', [PurchaseInvoiceController::class, 'store'])->name('purchase-invoices.store');
+            Route::match(['put', 'patch'], 'inkoopfacturen/{purchaseInvoice}', [PurchaseInvoiceController::class, 'update'])->name('purchase-invoices.update');
+            Route::delete('inkoopfacturen/{purchaseInvoice}', [PurchaseInvoiceController::class, 'destroy'])->name('purchase-invoices.destroy');
+
             // Begrotingen met hoofdstukken: de calculatietafel van Renovion.
             Route::get('begrotingen', [BudgetController::class, 'index'])->name('budgets.index');
             Route::get('begrotingen/nieuw', [BudgetController::class, 'create'])->name('budgets.create');

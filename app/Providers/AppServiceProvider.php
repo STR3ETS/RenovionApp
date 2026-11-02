@@ -12,13 +12,19 @@ use App\Models\ChecklistItem;
 use App\Models\Customer;
 use App\Models\DeliveryReport;
 use App\Models\Document;
+use App\Models\Invoice;
+use App\Models\InvoiceLine;
 use App\Models\JobExecution;
 use App\Models\JobReport;
 use App\Models\JobStep;
 use App\Models\Lead;
 use App\Models\Photo;
 use App\Models\Project;
+use App\Models\ProjectDeduction;
 use App\Models\ProjectPhase;
+use App\Models\PurchaseInvoice;
+use App\Models\PurchaseOrder;
+use App\Models\PurchaseOrderLine;
 use App\Models\Quote;
 use App\Models\ScheduleEntry;
 use App\Models\Task;
@@ -59,13 +65,19 @@ class AppServiceProvider extends ServiceProvider
             'customer' => Customer::class,
             'delivery_report' => DeliveryReport::class,
             'document' => Document::class,
+            'invoice' => Invoice::class,
+            'invoice_line' => InvoiceLine::class,
             'job_execution' => JobExecution::class,
             'job_report' => JobReport::class,
             'job_step' => JobStep::class,
             'lead' => Lead::class,
             'photo' => Photo::class,
             'project' => Project::class,
+            'project_deduction' => ProjectDeduction::class,
             'project_phase' => ProjectPhase::class,
+            'purchase_invoice' => PurchaseInvoice::class,
+            'purchase_order' => PurchaseOrder::class,
+            'purchase_order_line' => PurchaseOrderLine::class,
             'quote' => Quote::class,
             'schedule_entry' => ScheduleEntry::class,
             'task' => Task::class,

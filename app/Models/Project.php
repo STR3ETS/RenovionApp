@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 #[Fillable([
     'customer_id', 'lead_id', 'quote_id', 'name', 'type', 'address', 'city', 'status',
     'value', 'deposit_amount', 'deposit_received_at', 'paid_amount', 'next_payment_due_at',
+    'retention_type', 'retention_amount', 'retention_release_on', 'retention_released_at',
     'start_date', 'end_date_expected', 'end_date_actual', 'project_leader_id', 'progress', 'notes',
     'cover_photo_path',
 ])]
@@ -65,6 +66,9 @@ class Project extends Model
             'start_date' => 'date',
             'end_date_expected' => 'date',
             'end_date_actual' => 'date',
+            'retention_amount' => 'decimal:2',
+            'retention_release_on' => 'date',
+            'retention_released_at' => 'datetime',
         ];
     }
 
