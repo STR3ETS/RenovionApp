@@ -11,6 +11,8 @@ use App\Models\Project;
 use App\Models\ProjectPhase;
 use App\Models\Quote;
 use App\Models\ScheduleEntry;
+use App\Models\ServiceTicket;
+use App\Models\SnagItem;
 use App\Models\Task;
 use App\Models\WorkOrder;
 use App\Models\WorkPackage;
@@ -45,6 +47,8 @@ class AttentionService
             ->concat($this->blockedWork())
             ->concat($this->openSiteReports())
             ->concat($this->workOrdersAwaitingApproval())
+            ->concat($this->serviceTickets())
+            ->concat($this->overdueSnags())
             ->concat($this->unansweredQuotes())
             ->concat($this->missingDeposits())
             ->concat($this->planningConflicts())
@@ -85,6 +89,62 @@ class AttentionService
                 'url' => $report->job?->schedule_entry_id !== null
                     ? route('jobs.show', [$report->job->schedule_entry_id, 'tab' => 'meldingen'])
                     : route('projects.show', $report->project),
+            ]);
+    }
+
+    /**
+     * Nieuwe servicemeldingen. Een spoedmelding betekent lekkage of een onveilige
+     * situatie, dus die kan niet wachten.
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function serviceTickets(): Collection
+    {
+        return ServiceTicket::where('status', ServiceTicket::STATUS_NEW)
+            ->with(['customer', 'project'])
+            ->get()
+            ->map(fn (ServiceTicket $ticket) => [
+                'severity' => $ticket->priority === 'spoed' || $ticket->daysOpen() >= 3 ? 'rood' : 'oranje',
+                'kind' => 'service',
+                'icon' => 'wrench',
+                'label' => $ticket->priority === 'spoed' ? 'Spoedmelding service' : 'Servicemelding',
+                'title' => $ticket->title,
+                'subtitle' => collect([
+                    $ticket->customer->name,
+                    $ticket->project?->name,
+                    $ticket->warranty ? 'onder garantie' : 'buiten garantie',
+                    $ticket->daysOpen().' '.($ticket->daysOpen() === 1 ? 'dag' : 'dagen').' open',
+                ])->filter()->join(', '),
+                'url' => route('service.index'),
+            ]);
+    }
+
+    /**
+     * Restpunten waarvan de hersteldatum voorbij is. Die houden de oplevering
+     * tegen, want je komt niet bij de klantinspectie met open punten.
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function overdueSnags(): Collection
+    {
+        return SnagItem::open()
+            ->whereNotNull('due_on')
+            ->whereDate('due_on', '<', today())
+            ->with(['project', 'assignee', 'subcontractor'])
+            ->get()
+            ->map(fn (SnagItem $snag) => [
+                'severity' => 'oranje',
+                'kind' => 'actie',
+                'icon' => 'exclamation-triangle',
+                'label' => 'Restpunt over de datum',
+                'title' => $snag->title,
+                'subtitle' => collect([
+                    $snag->project->name,
+                    $snag->location,
+                    $snag->ownerName(),
+                    'moest voor '.$snag->due_on->translatedFormat('j M'),
+                ])->filter()->join(', '),
+                'url' => route('quality.show', $snag->project),
             ]);
     }
 

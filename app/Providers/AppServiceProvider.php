@@ -28,12 +28,16 @@ use App\Models\ProjectPhase;
 use App\Models\PurchaseInvoice;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderLine;
+use App\Models\QualityCheck;
+use App\Models\QualityReview;
 use App\Models\Quote;
 use App\Models\QuoteQuestion;
 use App\Models\QuoteView;
 use App\Models\Rfq;
 use App\Models\RfqBid;
 use App\Models\ScheduleEntry;
+use App\Models\ServiceTicket;
+use App\Models\SnagItem;
 use App\Models\Subcontractor;
 use App\Models\SubcontractorDocument;
 use App\Models\Task;
@@ -90,12 +94,16 @@ class AppServiceProvider extends ServiceProvider
             'purchase_invoice' => PurchaseInvoice::class,
             'purchase_order' => PurchaseOrder::class,
             'purchase_order_line' => PurchaseOrderLine::class,
+            'quality_check' => QualityCheck::class,
+            'quality_review' => QualityReview::class,
             'quote' => Quote::class,
             'quote_question' => QuoteQuestion::class,
             'quote_view' => QuoteView::class,
             'rfq' => Rfq::class,
             'rfq_bid' => RfqBid::class,
             'schedule_entry' => ScheduleEntry::class,
+            'service_ticket' => ServiceTicket::class,
+            'snag_item' => SnagItem::class,
             'subcontractor' => Subcontractor::class,
             'subcontractor_document' => SubcontractorDocument::class,
             'task' => Task::class,

@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
     'customer_id', 'lead_id', 'quote_id', 'name', 'type', 'address', 'city', 'status',
     'value', 'deposit_amount', 'deposit_received_at', 'paid_amount', 'next_payment_due_at',
     'retention_type', 'retention_amount', 'retention_release_on', 'retention_released_at',
+    'warranty_months',
     'start_date', 'end_date_expected', 'end_date_actual', 'project_leader_id', 'progress', 'notes',
     'cover_photo_path',
 ])]
@@ -143,6 +144,36 @@ class Project extends Model
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
+    }
+
+    public function snags(): HasMany
+    {
+        return $this->hasMany(SnagItem::class);
+    }
+
+    public function serviceTickets(): HasMany
+    {
+        return $this->hasMany(ServiceTicket::class)->latest();
+    }
+
+    public function workOrders(): HasMany
+    {
+        return $this->hasMany(WorkOrder::class)->latest('date');
+    }
+
+    public function budgets(): HasMany
+    {
+        return $this->hasMany(Budget::class)->latest('id');
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class)->latest('date');
+    }
+
+    public function qualityReview(): HasOne
+    {
+        return $this->hasOne(QualityReview::class);
     }
 
     /**

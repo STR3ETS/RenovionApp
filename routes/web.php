@@ -44,6 +44,7 @@ use App\Http\Controllers\ProjectPhaseController;
 use App\Http\Controllers\ProjectStatusController;
 use App\Http\Controllers\PurchaseInvoiceController;
 use App\Http\Controllers\PurchaseOrderController;
+use App\Http\Controllers\QualityController;
 use App\Http\Controllers\QuoteBuilderController;
 use App\Http\Controllers\QuoteController;
 use App\Http\Controllers\QuoteDashboardController;
@@ -52,6 +53,7 @@ use App\Http\Controllers\QuotePublicController;
 use App\Http\Controllers\QuoteStatusController;
 use App\Http\Controllers\RfqController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\ServiceTicketController;
 use App\Http\Controllers\SubcontractorController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TaskStatusController;
@@ -128,6 +130,11 @@ Route::middleware('auth')->group(function () {
         Route::post('meldingen/{report}/afhandelen', [JobReportController::class, 'resolve'])->name('job-reports.resolve');
         Route::post('klussen/{job}/afronden', JobCompletionController::class)->name('jobs.complete');
 
+        // Kwaliteit bekijken mag het hele team op eigen projecten; de controlepunten
+        // afvinken en de oplevering doorzetten is voor de projectleiding.
+        Route::get('kwaliteit', [QualityController::class, 'index'])->name('quality.index');
+        Route::get('kwaliteit/{project}', [QualityController::class, 'show'])->name('quality.show');
+
         // Werkbonnen: uitvoerders zien hun eigen bonnen, de projectleiding alles.
         Route::get('werkbonnen', [WorkOrderController::class, 'index'])->name('work-orders.index');
         Route::get('werkbonnen/{workOrder}', [WorkOrderController::class, 'show'])->name('work-orders.show');
@@ -199,6 +206,20 @@ Route::middleware('auth')->group(function () {
             Route::post('calculaties/{calculation}/regels', [CalculationLineController::class, 'store'])->name('calculations.lines.store');
             Route::patch('calculaties/{calculation}/regels/{line}', [CalculationLineController::class, 'update'])->scopeBindings()->name('calculations.lines.update');
             Route::delete('calculaties/{calculation}/regels/{line}', [CalculationLineController::class, 'destroy'])->scopeBindings()->name('calculations.lines.destroy');
+            // Kwaliteit, oplevering en nazorg.
+            Route::patch('controlepunten/{check}/toggle', [QualityController::class, 'toggleCheck'])->name('quality-checks.toggle');
+            Route::post('kwaliteit/{review}/volgende-stap', [QualityController::class, 'advance'])->name('quality.advance');
+            Route::post('kwaliteit/{review}/ondertekenen', [QualityController::class, 'sign'])->name('quality.sign');
+            Route::post('kwaliteit/{project}/restpunten', [QualityController::class, 'storeSnag'])->name('snags.store');
+            Route::match(['put', 'patch'], 'restpunten/{snag}', [QualityController::class, 'updateSnag'])->name('snags.update');
+            Route::delete('restpunten/{snag}', [QualityController::class, 'destroySnag'])->name('snags.destroy');
+
+            Route::get('nazorg', [ServiceTicketController::class, 'index'])->name('service.index');
+            Route::post('nazorg', [ServiceTicketController::class, 'store'])->name('service.store');
+            Route::match(['put', 'patch'], 'nazorg/{serviceTicket}', [ServiceTicketController::class, 'update'])->name('service.update');
+
+            Route::get('documenten', [DocumentController::class, 'index'])->name('documents.index');
+
             // Verkoop: intake in vijf stappen, opvolging en het offertedashboard.
             Route::get('intakes', [IntakeController::class, 'index'])->name('intakes.index');
             Route::post('intakes', [IntakeController::class, 'store'])->name('intakes.store');
