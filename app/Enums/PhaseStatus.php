@@ -40,11 +40,11 @@ enum PhaseStatus: string
     public function badgeClasses(): string
     {
         return match ($this) {
-            self::NietGestart => 'bg-gray-100 text-gray-600',
-            self::Bezig => 'bg-brand-100 text-brand-800',
-            self::WachtOpKlant, self::WachtOpLeverancier => 'bg-amber-100 text-amber-800',
-            self::Geblokkeerd => 'bg-red-100 text-red-800',
-            self::Gereed => 'bg-green-100 text-green-800',
+            self::NietGestart => 'bg-white/10 text-slate-400',
+            self::Bezig => 'bg-brand-500/15 text-brand-300',
+            self::WachtOpKlant, self::WachtOpLeverancier => 'bg-amber-500/15 text-amber-300',
+            self::Geblokkeerd => 'bg-red-500/15 text-red-300',
+            self::Gereed => 'bg-green-500/15 text-green-300',
         };
     }
 }

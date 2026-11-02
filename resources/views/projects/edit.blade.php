@@ -6,33 +6,33 @@
         @csrf
         @method('PATCH')
 
-        <section class="rounded-2xl border border-gray-200 bg-white p-5">
-            <h2 class="mb-4 text-sm font-bold text-navy-900">Project</h2>
+        <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
+            <h2 class="mb-4 text-sm font-bold text-white">Project</h2>
             <div class="grid gap-4 sm:grid-cols-2">
                 <x-field label="Klant" name="customer_id" class="sm:col-span-2">
-                    <select name="customer_id" id="customer_id" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+                    <select name="customer_id" id="customer_id" class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
                         @foreach ($customers as $customer)
                             <option value="{{ $customer->id }}" @selected(old('customer_id', $project->customer_id) == $customer->id)>{{ $customer->name }} ({{ $customer->city ?? '-' }})</option>
                         @endforeach
                     </select>
                 </x-field>
                 <x-field label="Naam" name="name" class="sm:col-span-2">
-                    <input type="text" name="name" id="name" value="{{ old('name', $project->name) }}" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+                    <input type="text" name="name" id="name" value="{{ old('name', $project->name) }}" class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
                 </x-field>
                 <x-field label="Adres" name="address">
-                    <input type="text" name="address" id="address" value="{{ old('address', $project->address) }}" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+                    <input type="text" name="address" id="address" value="{{ old('address', $project->address) }}" class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
                 </x-field>
                 <x-field label="Plaats" name="city">
-                    <input type="text" name="city" id="city" value="{{ old('city', $project->city) }}" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+                    <input type="text" name="city" id="city" value="{{ old('city', $project->city) }}" class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
                 </x-field>
                 <x-field label="Startdatum" name="start_date">
-                    <input type="date" name="start_date" id="start_date" value="{{ old('start_date', $project->start_date?->toDateString()) }}" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+                    <input type="date" name="start_date" id="start_date" value="{{ old('start_date', $project->start_date?->toDateString()) }}" class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
                 </x-field>
                 <x-field label="Verwachte oplevering" name="end_date_expected">
-                    <input type="date" name="end_date_expected" id="end_date_expected" value="{{ old('end_date_expected', $project->end_date_expected?->toDateString()) }}" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+                    <input type="date" name="end_date_expected" id="end_date_expected" value="{{ old('end_date_expected', $project->end_date_expected?->toDateString()) }}" class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
                 </x-field>
                 <x-field label="Projectleider" name="project_leader_id">
-                    <select name="project_leader_id" id="project_leader_id" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+                    <select name="project_leader_id" id="project_leader_id" class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
                         <option value="">- Geen -</option>
                         @foreach ($leaders as $leader)
                             <option value="{{ $leader->id }}" @selected(old('project_leader_id', $project->project_leader_id) == $leader->id)>{{ $leader->name }}</option>
@@ -40,15 +40,15 @@
                     </select>
                 </x-field>
                 <x-field label="Huidige fase" name="current_phase" class="sm:col-span-2">
-                    <select name="current_phase" id="current_phase" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+                    <select name="current_phase" id="current_phase" class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
                         @foreach ($project->phases as $phase)
                             <option value="{{ $phase->position }}" @selected(old('current_phase', $project->currentPhase()?->position) == $phase->position)>{{ $phase->position }}. {{ $phase->name }}</option>
                         @endforeach
                     </select>
-                    <p class="mt-1 text-xs text-gray-400">Eerdere fasen worden gereed gemarkeerd, latere fasen gaan terug naar "niet gestart". De voortgang% wordt automatisch berekend uit de fasen en werkpakketten.</p>
+                    <p class="mt-1 text-xs text-slate-500">Eerdere fasen worden gereed gemarkeerd, latere fasen gaan terug naar "niet gestart". De voortgang% wordt automatisch berekend uit de fasen en werkpakketten.</p>
                 </x-field>
                 <x-field label="Notities" name="notes" class="sm:col-span-2">
-                    <textarea name="notes" id="notes" rows="3" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">{{ old('notes', $project->notes) }}</textarea>
+                    <textarea name="notes" id="notes" rows="3" class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">{{ old('notes', $project->notes) }}</textarea>
                 </x-field>
                 <x-field label="Omslagfoto" name="cover_photo" class="sm:col-span-2">
                     <div class="flex items-center gap-3">
@@ -56,47 +56,47 @@
                             <img src="{{ route('projects.cover', $project) }}" alt="Omslagfoto" class="h-14 w-20 shrink-0 rounded-lg object-cover">
                         @endif
                         <input type="file" name="cover_photo" id="cover_photo" accept="image/*"
-                               class="w-full text-sm text-gray-500 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-brand-700 hover:file:bg-brand-100">
+                               class="w-full text-sm text-slate-400 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-500/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-brand-300 hover:file:bg-brand-500/15">
                     </div>
-                    <p class="mt-1 text-xs text-gray-400">Deze foto verschijnt op de projectkaarten (jpg/png, max 5 MB).</p>
+                    <p class="mt-1 text-xs text-slate-500">Deze foto verschijnt op de projectkaarten (jpg/png, max 5 MB).</p>
                 </x-field>
             </div>
         </section>
 
-        <section class="rounded-2xl border border-gray-200 bg-white p-5">
-            <h2 class="mb-4 text-sm font-bold text-navy-900">Uitvoerders op dit project</h2>
+        <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
+            <h2 class="mb-4 text-sm font-bold text-white">Uitvoerders op dit project</h2>
             <div class="grid gap-2 sm:grid-cols-2">
                 @forelse ($uitvoerders as $uitvoerder)
-                    <label class="flex items-center gap-2 rounded-xl border border-gray-200 p-3 text-sm font-medium text-navy-900 transition has-checked:border-brand-400 has-checked:bg-brand-50">
+                    <label class="flex items-center gap-2 rounded-xl border border-surface-700 p-3 text-sm font-medium text-white transition has-checked:border-brand-400 has-checked:bg-brand-500/10">
                         <input type="checkbox" name="craftsmen[]" value="{{ $uitvoerder->id }}"
                                @checked(in_array($uitvoerder->id, old('craftsmen', $project->craftsmen->pluck('id')->all())))
-                               class="rounded border-gray-300 text-brand-600 focus:ring-brand-500">
+                               class="rounded border-surface-600 text-brand-400 focus:ring-brand-500">
                         {{ $uitvoerder->name }}
                     </label>
                 @empty
-                    <p class="text-sm text-gray-400 sm:col-span-2">Nog geen uitvoerders aangemaakt (gebruikers met rol "Uitvoerder").</p>
+                    <p class="text-sm text-slate-500 sm:col-span-2">Nog geen uitvoerders aangemaakt (gebruikers met rol "Uitvoerder").</p>
                 @endforelse
             </div>
         </section>
 
-        <section class="rounded-2xl border border-gray-200 bg-white p-5">
-            <h2 class="mb-4 text-sm font-bold text-navy-900">Betalingen</h2>
+        <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
+            <h2 class="mb-4 text-sm font-bold text-white">Betalingen</h2>
             <div class="grid gap-4 sm:grid-cols-2">
                 <x-field label="Projectwaarde (€)" name="value">
-                    <input type="number" name="value" id="value" value="{{ old('value', $project->value) }}" min="0" step="0.01" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+                    <input type="number" name="value" id="value" value="{{ old('value', $project->value) }}" min="0" step="0.01" class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
                 </x-field>
                 <x-field label="Aanbetaling (€)" name="deposit_amount">
-                    <input type="number" name="deposit_amount" id="deposit_amount" value="{{ old('deposit_amount', $project->deposit_amount) }}" min="0" step="0.01" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+                    <input type="number" name="deposit_amount" id="deposit_amount" value="{{ old('deposit_amount', $project->deposit_amount) }}" min="0" step="0.01" class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
                 </x-field>
                 <x-field label="Reeds betaald (€)" name="paid_amount">
-                    <input type="number" name="paid_amount" id="paid_amount" value="{{ old('paid_amount', $project->paid_amount) }}" min="0" step="0.01" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+                    <input type="number" name="paid_amount" id="paid_amount" value="{{ old('paid_amount', $project->paid_amount) }}" min="0" step="0.01" class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
                 </x-field>
                 <x-field label="Volgende betaaltermijn" name="next_payment_due_at">
-                    <input type="date" name="next_payment_due_at" id="next_payment_due_at" value="{{ old('next_payment_due_at', $project->next_payment_due_at?->toDateString()) }}" class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+                    <input type="date" name="next_payment_due_at" id="next_payment_due_at" value="{{ old('next_payment_due_at', $project->next_payment_due_at?->toDateString()) }}" class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
                 </x-field>
-                <label class="flex items-center gap-2 text-sm font-medium text-navy-900 sm:col-span-2">
+                <label class="flex items-center gap-2 text-sm font-medium text-white sm:col-span-2">
                     <input type="hidden" name="deposit_received" value="0">
-                    <input type="checkbox" name="deposit_received" value="1" @checked(old('deposit_received', $project->deposit_received_at !== null)) class="rounded border-gray-300 text-brand-600 focus:ring-brand-500">
+                    <input type="checkbox" name="deposit_received" value="1" @checked(old('deposit_received', $project->deposit_received_at !== null)) class="rounded border-surface-600 text-brand-400 focus:ring-brand-500">
                     Aanbetaling ontvangen
                 </label>
             </div>
@@ -104,7 +104,7 @@
 
         <div class="flex gap-2">
             <button type="submit" class="rounded-xl bg-brand-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-brand-500">Opslaan</button>
-            <a href="{{ route('projects.show', $project) }}" class="rounded-xl border border-gray-300 bg-white px-6 py-3 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">Annuleren</a>
+            <a href="{{ route('projects.show', $project) }}" class="rounded-xl border border-surface-600 bg-surface-800 px-6 py-3 text-sm font-semibold text-slate-300 transition hover:bg-surface-850">Annuleren</a>
         </div>
     </form>
 

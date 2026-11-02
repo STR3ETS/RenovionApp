@@ -8,10 +8,10 @@
 
     <div class="mb-4 flex flex-wrap gap-1.5">
         <a href="{{ route('projects.index') }}"
-           class="rounded-full px-3 py-1.5 text-xs font-semibold {{ $status === null ? 'bg-navy-900 text-white' : 'bg-white text-gray-600 border border-gray-300' }}">Lopend</a>
+           class="rounded-full px-3 py-1.5 text-xs font-semibold {{ $status === null ? 'bg-navy-900 text-white' : 'bg-surface-800 text-slate-300 border border-surface-600' }}">Lopend</a>
         @foreach (\App\Enums\ProjectStatus::cases() as $statusOption)
             <a href="{{ route('projects.index', ['status' => $statusOption->value]) }}"
-               class="rounded-full px-3 py-1.5 text-xs font-semibold {{ $status === $statusOption ? 'bg-navy-900 text-white' : 'bg-white text-gray-600 border border-gray-300' }}">{{ $statusOption->label() }}</a>
+               class="rounded-full px-3 py-1.5 text-xs font-semibold {{ $status === $statusOption ? 'bg-navy-900 text-white' : 'bg-surface-800 text-slate-300 border border-surface-600' }}">{{ $statusOption->label() }}</a>
         @endforeach
     </div>
 

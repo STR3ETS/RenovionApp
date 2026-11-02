@@ -36,12 +36,12 @@ enum UserRole: string
     public function badgeClasses(): string
     {
         return match ($this) {
-            self::Admin => 'bg-navy-100 text-navy-800',
+            self::Admin => 'bg-white/10 text-slate-200',
             self::Sales => 'bg-steel-100 text-steel-800',
-            self::Projectleider => 'bg-brand-100 text-brand-800',
-            self::Werkvoorbereider => 'bg-amber-100 text-amber-800',
-            self::Uitvoerder => 'bg-gray-200 text-gray-700',
-            self::Klant => 'bg-green-100 text-green-800',
+            self::Projectleider => 'bg-brand-500/15 text-brand-300',
+            self::Werkvoorbereider => 'bg-amber-500/15 text-amber-300',
+            self::Uitvoerder => 'bg-white/10 text-slate-300',
+            self::Klant => 'bg-green-500/15 text-green-300',
         };
     }
 }

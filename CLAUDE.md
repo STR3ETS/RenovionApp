@@ -99,3 +99,13 @@ Voice/tekst → intent → gestructureerde JSON-action → validatie → permiss
 
 - **Automations** ([app/Automations](app/Automations)): `BaseAutomation` (modus-afhandeling) + `AutomationRegistry::CLASSES`; idempotent via `AutomationRun::claim()`. Nieuwe regel: class die `BaseAutomation` extendt, acties door `$this->act($signaal, $actie, $novaActie?, $url?)` leiden, registreren in de registry. Draait via `php artisan automations:run`, elke 15 min gescheduled ([routes/console.php](routes/console.php)) — scheduler moet draaien (`schedule:work` lokaal / cron live).
 - **Aandacht** ([AttentionService](app/Services/AttentionService.php)): alleen uitzonderingen; badge-teller 5 min gecachet (`attention-count`).
+
+## Donkere schil (Renovion OS, nov 2026)
+
+De interne omgeving draait op een **donker thema**, conform de prototype-screenshots: paginavlak `surface-900`, sidebar `surface-950`, kaarten `surface-800` met randen `surface-700`, tekst wit tot `slate-400`. Oranje blijft de enige actiekleur. Tokens in [app.css](resources/css/app.css) onder "Donkere schil".
+
+- **Sidebar** volgt de drie secties uit de briefing (Werkdag, Werk, Bedrijf) met kleine uppercase sectielabels; actief item is een oranje pil. Topbar is donker met een ronde zoekbalk, sterretje (Aan de slag), bel (inbox met stip) en een oranje "+ Nieuw".
+- **Vandaag** heeft een fotokop (omslagfoto van het meest recente project, met verloop eroverheen), begroeting met de voornaam in oranje, een Nova-balk die de inbox samenvat, KPI-kaarten met een gekleurde lijn bovenaan en een inklapbaar MT-signalen-blok. Zie [dashboard/partials/vandaag-kop.blade.php](resources/views/dashboard/partials/vandaag-kop.blade.php).
+- **Formuliervelden** worden donker gestyled via `.app-shell` in app.css (@tailwindcss/forms maakt ze standaard wit). Die klasse staat op de body van de app-layout en de loginpagina.
+- **Bewust licht gebleven** omdat ze naar de klant gaan of afgedrukt worden: offertedocument en klantlink ([quotes/blocks/](resources/views/quotes/blocks), `quotes/public`, `quotes/partials/document`), de offerte-builder, het klantportaal, opleverrapporten en mailtemplates. Houd dat zo: een offerte op zwart print niet.
+- Bij nieuwe interne schermen: `bg-surface-800` kaarten, `border-surface-700`, `text-white` voor koppen, `text-slate-300/400` voor tekst, en categorie- of statuskleuren als `bg-{kleur}-500/15 text-{kleur}-300`.

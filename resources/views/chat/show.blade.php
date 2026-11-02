@@ -3,7 +3,7 @@
     <div class="grid gap-4 lg:grid-cols-3">
 
         {{-- Kanalen (desktop) --}}
-        <div class="hidden rounded-2xl border border-gray-200 bg-white p-4 lg:block">
+        <div class="hidden rounded-2xl border border-surface-700 bg-surface-800 p-4 lg:block">
             @include('chat.partials.channels', ['channels' => $channels, 'user' => $user, 'active' => $channel->id])
         </div>
 
@@ -15,19 +15,19 @@
                  confirmUrl: @js(route('chat.nova.confirm', ['message' => '__ID__'])),
                  taskUrl: @js(route('chat.task', ['message' => '__ID__'])),
              })">
-            <div class="flex h-[calc(100dvh-14rem)] min-h-96 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white lg:h-[calc(100vh-12rem)]">
+            <div class="flex h-[calc(100dvh-14rem)] min-h-96 flex-col overflow-hidden rounded-2xl border border-surface-700 bg-surface-800 lg:h-[calc(100vh-12rem)]">
 
                 {{-- Kop --}}
-                <div class="flex items-center gap-3 border-b border-gray-100 px-4 py-3">
-                    <a href="{{ route('chat.index') }}" class="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 lg:hidden" title="Alle kanalen">
+                <div class="flex items-center gap-3 border-b border-surface-700 px-4 py-3">
+                    <a href="{{ route('chat.index') }}" class="rounded-lg p-1.5 text-slate-500 transition hover:bg-surface-750 lg:hidden" title="Alle kanalen">
                         <x-icon name="chevron-right" class="h-4 w-4 rotate-180" />
                     </a>
                     <span class="min-w-0 flex-1">
-                        <span class="block truncate text-sm font-bold text-navy-900">{{ $channel->displayName() }}</span>
-                        <span class="block text-xs text-gray-400">{{ $channel->isProjectChannel() ? 'Projectchat - intern, de klant leest niet mee' : 'Teamkanaal' }}</span>
+                        <span class="block truncate text-sm font-bold text-white">{{ $channel->displayName() }}</span>
+                        <span class="block text-xs text-slate-500">{{ $channel->isProjectChannel() ? 'Projectchat - intern, de klant leest niet mee' : 'Teamkanaal' }}</span>
                     </span>
                     @if ($channel->isProjectChannel() && $channel->project)
-                        <a href="{{ route('projects.show', $channel->project) }}" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-50">Project →</a>
+                        <a href="{{ route('projects.show', $channel->project) }}" class="rounded-lg border border-surface-600 bg-surface-800 px-3 py-1.5 text-xs font-semibold text-slate-300 transition hover:bg-surface-850">Project →</a>
                     @endif
                 </div>
 
@@ -66,11 +66,11 @@
                             <template x-if="message.nova === null && message.user !== null">
                                 <div class="flex gap-2" :class="message.mine ? 'flex-row-reverse' : ''">
                                     <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold"
-                                          :class="message.mine ? 'bg-brand-100 text-brand-700' : 'bg-navy-100 text-navy-700'"
+                                          :class="message.mine ? 'bg-brand-500/15 text-brand-300' : 'bg-white/10 text-slate-200'"
                                           x-text="message.user.initial"></span>
                                     <div class="group max-w-[85%]">
-                                        <div class="rounded-2xl px-4 py-2.5 text-sm" :class="message.mine ? 'bg-navy-950 text-white' : 'bg-gray-100 text-navy-900'">
-                                            <p class="mb-0.5 text-xs font-bold" :class="message.mine ? 'text-navy-300' : 'text-gray-500'" x-text="message.user.name"></p>
+                                        <div class="rounded-2xl px-4 py-2.5 text-sm" :class="message.mine ? 'bg-navy-950 text-white' : 'bg-surface-750 text-white'">
+                                            <p class="mb-0.5 text-xs font-bold" :class="message.mine ? 'text-navy-300' : 'text-slate-400'" x-text="message.user.name"></p>
                                             <p x-show="message.body" x-html="format(message.body)"></p>
                                             <template x-if="message.attachment_url">
                                                 <a :href="message.attachment_url" target="_blank">
@@ -79,9 +79,9 @@
                                             </template>
                                         </div>
                                         <div class="mt-0.5 flex items-center gap-2 px-1" :class="message.mine ? 'justify-end' : ''">
-                                            <span class="text-[10px] text-gray-400" x-text="message.time"></span>
+                                            <span class="text-[10px] text-slate-500" x-text="message.time"></span>
                                             <button type="button" x-show="message.body" @click="toTask(message)"
-                                                    class="text-[10px] font-semibold text-gray-400 opacity-0 transition group-hover:opacity-100 hover:text-brand-600">→ Taak</button>
+                                                    class="text-[10px] font-semibold text-slate-500 opacity-0 transition group-hover:opacity-100 hover:text-brand-400">→ Taak</button>
                                         </div>
                                     </div>
                                 </div>
@@ -89,28 +89,28 @@
                         </div>
                     </template>
 
-                    <p x-show="messages.length === 0" class="py-10 text-center text-sm text-gray-400">
+                    <p x-show="messages.length === 0" class="py-10 text-center text-sm text-slate-500">
                         Nog geen berichten - trap af!{{ auth()->user()->can('manage-crm') ? ' Tip: noem @Nova om iets te laten klaarzetten.' : '' }}
                     </p>
                 </div>
 
                 {{-- Toast --}}
-                <div x-show="toast" x-cloak class="border-t border-gray-100 bg-green-50 px-4 py-2 text-xs font-semibold text-green-800" x-text="toast"></div>
+                <div x-show="toast" x-cloak class="border-t border-surface-700 bg-green-500/10 px-4 py-2 text-xs font-semibold text-green-300" x-text="toast"></div>
 
                 {{-- Invoer --}}
-                <form @submit.prevent="send()" class="flex items-center gap-2 border-t border-gray-100 p-3">
-                    <label class="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full bg-gray-100 text-gray-500 transition hover:bg-gray-200" title="Foto meesturen">
+                <form @submit.prevent="send()" class="flex items-center gap-2 border-t border-surface-700 p-3">
+                    <label class="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full bg-surface-750 text-slate-400 transition hover:bg-surface-700" title="Foto meesturen">
                         <x-icon name="camera" class="h-5 w-5" />
                         <input type="file" accept="image/*" capture="environment" class="hidden" @change="attach($event)">
                     </label>
                     <button type="button" @click="toggleMic()" x-show="speechSupported"
-                            :class="listening ? 'bg-red-500 text-white animate-pulse' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'"
+                            :class="listening ? 'bg-red-500 text-white animate-pulse' : 'bg-surface-750 text-slate-400 hover:bg-surface-700'"
                             class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition" title="Inspreken">
                         <x-icon name="microphone" class="h-5 w-5" />
                     </button>
                     <input x-ref="chatInput" x-model="input" type="text" :disabled="busy" maxlength="5000"
                            placeholder="Typ een bericht{{ auth()->user()->can('manage-crm') ? ', of @Nova om iets te laten klaarzetten' : '' }}…"
-                           class="min-w-0 flex-1 rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+                           class="min-w-0 flex-1 rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
                     <button type="submit" :disabled="busy || !input.trim()"
                             class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-500 text-white transition hover:bg-brand-600 disabled:opacity-40" title="Versturen">
                         <x-icon name="paper-airplane" class="h-4 w-4" />

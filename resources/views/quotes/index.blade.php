@@ -6,20 +6,20 @@
 
     <div class="mb-4 flex flex-wrap gap-1.5">
         <a href="{{ route('quotes.index') }}"
-           class="rounded-full px-3 py-1.5 text-xs font-semibold {{ $status === null ? 'bg-navy-900 text-white' : 'bg-white text-gray-600 border border-gray-300' }}">Alle</a>
+           class="rounded-full px-3 py-1.5 text-xs font-semibold {{ $status === null ? 'bg-navy-900 text-white' : 'bg-surface-800 text-slate-300 border border-surface-600' }}">Alle</a>
         @foreach (\App\Enums\QuoteStatus::cases() as $statusOption)
             <a href="{{ route('quotes.index', ['status' => $statusOption->value]) }}"
-               class="rounded-full px-3 py-1.5 text-xs font-semibold {{ $status === $statusOption ? 'bg-navy-900 text-white' : 'bg-white text-gray-600 border border-gray-300' }}">{{ $statusOption->label() }}</a>
+               class="rounded-full px-3 py-1.5 text-xs font-semibold {{ $status === $statusOption ? 'bg-navy-900 text-white' : 'bg-surface-800 text-slate-300 border border-surface-600' }}">{{ $statusOption->label() }}</a>
         @endforeach
     </div>
 
     <div class="space-y-2">
         @forelse ($quotes as $quote)
-            <a href="{{ route('quotes.show', $quote) }}" class="flex items-center gap-3 rounded-xl border border-gray-200 border-l-4 border-l-offerte-500 bg-white p-3 transition hover:shadow-sm">
-                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-offerte-100 text-offerte-600"><x-icon name="document-text" class="h-4 w-4" /></span>
+            <a href="{{ route('quotes.show', $quote) }}" class="flex items-center gap-3 rounded-xl border border-surface-700 border-l-4 border-l-offerte-500 bg-surface-800 p-3 transition hover:shadow-sm">
+                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-offerte-500/15 text-offerte-400"><x-icon name="document-text" class="h-4 w-4" /></span>
                 <span class="min-w-0 flex-1">
-                    <span class="block text-sm font-semibold text-navy-900">{{ $quote->customer->name }}</span>
-                    <span class="block text-xs text-gray-500">
+                    <span class="block text-sm font-semibold text-white">{{ $quote->customer->name }}</span>
+                    <span class="block text-xs text-slate-400">
                         {{ $quote->number }}, € {{ number_format((float) $quote->total, 2, ',', '.') }}
                         @if ($quote->daysOpen() !== null), {{ $quote->daysOpen() }} dagen open @endif
                         @if ($quote->viewed_count > 0), {{ $quote->viewed_count }}× bekeken @endif

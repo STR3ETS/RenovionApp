@@ -7,7 +7,7 @@
 @endphp
 
 <a href="{{ route('projects.show', $project) }}"
-   class="motion-lift group flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:border-brand-400 hover:shadow-md">
+   class="motion-lift group flex flex-col overflow-hidden rounded-2xl border border-surface-700 bg-surface-800 transition hover:border-brand-400 hover:shadow-md">
     <div class="relative h-28 overflow-hidden bg-gradient-to-br from-navy-700 via-navy-900 to-navy-950">
         @if ($hasCover)
             <img src="{{ route('projects.cover', $project) }}" alt="{{ $project->name }}" loading="lazy"
@@ -19,7 +19,7 @@
         @endif
         <span class="absolute top-2.5 right-2.5"><x-status-badge :status="$project->status" /></span>
         @if ($health && $health->overall !== \App\Enums\HealthLight::Grijs)
-            <span class="absolute top-2.5 left-2.5 flex items-center gap-1.5 rounded-full bg-white/95 px-2 py-1 text-[10px] font-bold {{ $health->overall->textClasses() }}"
+            <span class="absolute top-2.5 left-2.5 flex items-center gap-1.5 rounded-full bg-surface-950/85 backdrop-blur px-2 py-1 text-[10px] font-bold {{ $health->overall->textClasses() }}"
                   title="{{ $health->biggestBlocker ?? 'Alle stoplichten groen' }}">
                 <x-signal-dot :color="$health->overall->dotColor()" />
                 {{ $health->overall->label() }}
@@ -28,37 +28,37 @@
     </div>
 
     <div class="flex flex-1 flex-col p-4">
-        <p class="truncate text-sm font-bold text-navy-900">{{ $project->name }}</p>
-        <p class="mt-0.5 truncate text-xs text-gray-500">{{ $project->customer->name }}{{ $project->city ? ', '.$project->city : '' }}</p>
+        <p class="truncate text-sm font-bold text-white">{{ $project->name }}</p>
+        <p class="mt-0.5 truncate text-xs text-slate-400">{{ $project->customer->name }}{{ $project->city ? ', '.$project->city : '' }}</p>
 
-        <div class="mt-3 h-1.5 overflow-hidden rounded-full bg-gray-100">
+        <div class="mt-3 h-1.5 overflow-hidden rounded-full bg-surface-750">
             <div class="h-full rounded-full bg-brand-500" style="width: {{ $project->progress }}%"></div>
         </div>
         <div class="mt-1.5 flex items-center justify-between gap-2">
-            <span class="flex min-w-0 items-center gap-1.5 text-xs font-medium text-gray-500">
+            <span class="flex min-w-0 items-center gap-1.5 text-xs font-medium text-slate-400">
                 <x-signal-dot :color="$project->isOverdue() ? 'red' : ($phase?->status->dotColor() ?? 'gray')" />
                 <span class="truncate">{{ $phase?->name ?? $project->status->label() }}</span>
             </span>
-            <span class="shrink-0 text-xs font-semibold text-gray-400">{{ $project->progress }}%</span>
+            <span class="shrink-0 text-xs font-semibold text-slate-500">{{ $project->progress }}%</span>
         </div>
 
         <div class="mt-3 flex items-center justify-between gap-2">
             @if ($project->relationLoaded('craftsmen') && $project->craftsmen->isNotEmpty())
                 <span class="flex -space-x-1.5">
                     @foreach ($project->craftsmen->take(3) as $member)
-                        <span class="flex h-6 w-6 items-center justify-center rounded-full bg-brand-100 text-[10px] font-bold text-brand-700 ring-2 ring-white" title="{{ $member->name }}">
+                        <span class="flex h-6 w-6 items-center justify-center rounded-full bg-brand-500/15 text-[10px] font-bold text-brand-300 ring-2 ring-white" title="{{ $member->name }}">
                             {{ str($member->name)->substr(0, 1)->upper() }}
                         </span>
                     @endforeach
                     @if ($project->craftsmen->count() > 3)
-                        <span class="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-[10px] font-bold text-gray-500 ring-2 ring-white">+{{ $project->craftsmen->count() - 3 }}</span>
+                        <span class="flex h-6 w-6 items-center justify-center rounded-full bg-surface-750 text-[10px] font-bold text-slate-400 ring-2 ring-white">+{{ $project->craftsmen->count() - 3 }}</span>
                     @endif
                 </span>
             @else
                 <span></span>
             @endif
             @can('manage-crm')
-                <span class="shrink-0 text-xs font-semibold text-navy-900">€ {{ number_format((float) $project->value, 0, ',', '.') }}</span>
+                <span class="shrink-0 text-xs font-semibold text-white">€ {{ number_format((float) $project->value, 0, ',', '.') }}</span>
             @endcan
         </div>
     </div>

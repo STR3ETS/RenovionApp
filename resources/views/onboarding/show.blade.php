@@ -5,14 +5,14 @@
 
     // Icon-chips in de categoriekleur van de module (stijlgids §03).
     $chip = fn (?string $category) => match ($category) {
-        'lead' => 'bg-lead-100 text-lead-600',
-        'klant' => 'bg-klant-100 text-klant-600',
-        'calc' => 'bg-calc-100 text-calc-600',
-        'offerte' => 'bg-offerte-100 text-offerte-600',
-        'project' => 'bg-project-100 text-project-600',
-        'planning' => 'bg-planning-100 text-planning-600',
-        'brand' => 'bg-brand-100 text-brand-600',
-        default => 'bg-navy-100 text-navy-700',
+        'lead' => 'bg-lead-500/15 text-lead-400',
+        'klant' => 'bg-klant-500/15 text-klant-400',
+        'calc' => 'bg-calc-500/15 text-calc-400',
+        'offerte' => 'bg-offerte-500/15 text-offerte-400',
+        'project' => 'bg-project-500/15 text-project-400',
+        'planning' => 'bg-planning-500/15 text-planning-400',
+        'brand' => 'bg-brand-500/15 text-brand-400',
+        default => 'bg-white/10 text-slate-200',
     };
 
     // De keten van aanvraag tot nazorg (briefing: één omgeving voor het hele proces).
@@ -78,15 +78,15 @@
         @if ($dismissed)
             <form method="POST" action="{{ route('onboarding.restore') }}">
                 @csrf
-                <button type="submit" class="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-navy-900 transition hover:bg-gray-50">
-                    <x-icon name="sparkles" class="h-4 w-4 text-gray-400" /> Weer in het menu tonen
+                <button type="submit" class="flex items-center gap-2 rounded-xl border border-surface-700 bg-surface-800 px-4 py-2 text-sm font-semibold text-white transition hover:bg-surface-850">
+                    <x-icon name="sparkles" class="h-4 w-4 text-slate-500" /> Weer in het menu tonen
                 </button>
             </form>
         @else
             <form method="POST" action="{{ route('onboarding.dismiss') }}">
                 @csrf
-                <button type="submit" class="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-navy-900 transition hover:bg-gray-50">
-                    <x-icon name="check" class="h-4 w-4 text-gray-400" /> Uit het menu halen
+                <button type="submit" class="flex items-center gap-2 rounded-xl border border-surface-700 bg-surface-800 px-4 py-2 text-sm font-semibold text-white transition hover:bg-surface-850">
+                    <x-icon name="check" class="h-4 w-4 text-slate-500" /> Uit het menu halen
                 </button>
             </form>
         @endif
@@ -145,22 +145,22 @@
 
     {{-- Zo werkt het --}}
     <section class="mb-8">
-        <p class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">Zo werkt het</p>
-        <h2 class="mt-0.5 text-lg font-bold text-navy-950">{{ $canCrm ? 'Van aanvraag tot nazorg in '.count($flow).' stappen' : 'Jouw dag in '.count($flow).' stappen' }}</h2>
-        <p class="mt-0.5 mb-4 text-sm text-gray-500">{{ $canCrm ? 'Elke stap bouwt voort op de vorige. Wat eenmaal is ingevoerd, hoef je nergens opnieuw te typen.' : 'Meer is het niet. Alles wat je invult ziet kantoor direct.' }}</p>
+        <p class="text-[11px] font-bold tracking-widest text-slate-500 uppercase">Zo werkt het</p>
+        <h2 class="mt-0.5 text-lg font-bold text-white">{{ $canCrm ? 'Van aanvraag tot nazorg in '.count($flow).' stappen' : 'Jouw dag in '.count($flow).' stappen' }}</h2>
+        <p class="mt-0.5 mb-4 text-sm text-slate-400">{{ $canCrm ? 'Elke stap bouwt voort op de vorige. Wat eenmaal is ingevoerd, hoef je nergens opnieuw te typen.' : 'Meer is het niet. Alles wat je invult ziet kantoor direct.' }}</p>
 
         <ol class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             @foreach ($flow as $index => [$category, $icon, $title, $text])
-                <li class="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-5">
+                <li class="flex flex-col gap-3 rounded-2xl border border-surface-700 bg-surface-800 p-5">
                     <div class="flex items-center justify-between">
                         <span class="flex h-10 w-10 items-center justify-center rounded-xl {{ $chip($category) }}">
                             <x-icon :name="$icon" class="h-5 w-5" />
                         </span>
-                        <span class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">Stap {{ $index + 1 }}</span>
+                        <span class="text-[11px] font-bold tracking-widest text-slate-500 uppercase">Stap {{ $index + 1 }}</span>
                     </div>
                     <div>
-                        <p class="font-semibold text-navy-900">{{ $title }}</p>
-                        <p class="mt-1 text-sm leading-relaxed text-gray-500">{{ $text }}</p>
+                        <p class="font-semibold text-white">{{ $title }}</p>
+                        <p class="mt-1 text-sm leading-relaxed text-slate-400">{{ $text }}</p>
                     </div>
                 </li>
             @endforeach
@@ -170,14 +170,14 @@
     {{-- Checklist: wat er moet staan om te beginnen --}}
     @if ($checklist)
         <section id="checklist" class="mb-8 scroll-mt-20">
-            <p class="text-[11px] font-bold tracking-widest text-brand-600 uppercase">Checklist</p>
-            <h2 class="mt-0.5 text-lg font-bold text-navy-950">Instellen om te beginnen</h2>
-            <p class="mt-0.5 mb-4 text-sm text-gray-500">De status wordt live berekend uit de instellingen en de gegevens. Stappen met "optioneel" mogen later.</p>
+            <p class="text-[11px] font-bold tracking-widest text-brand-400 uppercase">Checklist</p>
+            <h2 class="mt-0.5 text-lg font-bold text-white">Instellen om te beginnen</h2>
+            <p class="mt-0.5 mb-4 text-sm text-slate-400">De status wordt live berekend uit de instellingen en de gegevens. Stappen met "optioneel" mogen later.</p>
 
             <ol class="space-y-2">
                 @foreach ($items as $index => $item)
-                    <li class="flex flex-wrap items-center gap-3 rounded-xl border bg-white p-4 {{ $item['done'] ? 'border-gray-100' : 'border-gray-200' }}" data-onboarding-item="{{ $item['key'] }}">
-                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold {{ $item['done'] ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' }}" aria-hidden="true">
+                    <li class="flex flex-wrap items-center gap-3 rounded-xl border bg-surface-800 p-4 {{ $item['done'] ? 'border-surface-700' : 'border-surface-700' }}" data-onboarding-item="{{ $item['key'] }}">
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold {{ $item['done'] ? 'bg-green-500/15 text-green-300' : 'bg-surface-750 text-slate-400' }}" aria-hidden="true">
                             @if ($item['done'])
                                 <x-icon name="check" class="h-4.5 w-4.5" />
                             @else
@@ -186,22 +186,22 @@
                         </span>
                         <span class="min-w-0 flex-1">
                             <span class="flex flex-wrap items-center gap-2">
-                                <span class="text-sm font-semibold text-navy-900">{{ $item['title'] }}</span>
+                                <span class="text-sm font-semibold text-white">{{ $item['title'] }}</span>
                                 @if ($item['done'])
-                                    <span class="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-800">Klaar</span>
+                                    <span class="rounded-full bg-green-500/15 px-2 py-0.5 text-[11px] font-semibold text-green-300">Klaar</span>
                                 @elseif ($item['optional'])
-                                    <span class="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-semibold text-gray-600">Optioneel</span>
+                                    <span class="rounded-full bg-surface-750 px-2 py-0.5 text-[11px] font-semibold text-slate-300">Optioneel</span>
                                 @else
-                                    <span class="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">Nog te doen</span>
+                                    <span class="rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-semibold text-amber-300">Nog te doen</span>
                                 @endif
                             </span>
-                            <span class="mt-0.5 block text-xs leading-relaxed text-gray-500">{{ $item['description'] }}</span>
+                            <span class="mt-0.5 block text-xs leading-relaxed text-slate-400">{{ $item['description'] }}</span>
                             @if ($item['note'])
-                                <span class="mt-0.5 block text-[11px] text-gray-400">{{ $item['note'] }}</span>
+                                <span class="mt-0.5 block text-[11px] text-slate-500">{{ $item['note'] }}</span>
                             @endif
                         </span>
                         @if ($item['url'])
-                            <a href="{{ $item['url'] }}" class="flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold transition {{ $item['done'] ? 'border border-gray-200 bg-white text-navy-900 hover:bg-gray-50' : 'bg-brand-500 text-white hover:bg-brand-600' }}">
+                            <a href="{{ $item['url'] }}" class="flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold transition {{ $item['done'] ? 'border border-surface-700 bg-surface-800 text-white hover:bg-surface-850' : 'bg-brand-500 text-white hover:bg-brand-600' }}">
                                 {{ $item['action'] }}
                                 <x-icon name="arrow-right" class="h-4 w-4" />
                             </a>
@@ -214,22 +214,22 @@
 
     {{-- De onderdelen --}}
     <section class="mb-8">
-        <p class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">Onderdelen</p>
-        <h2 class="mt-0.5 text-lg font-bold text-navy-950">Waar je wat vindt</h2>
-        <p class="mt-0.5 mb-4 text-sm text-gray-500">{{ $canCrm ? 'In de volgorde van het menu links. Klik op een kaart om er direct heen te gaan.' : 'Dit zijn de knoppen in de balk onderin.' }}</p>
+        <p class="text-[11px] font-bold tracking-widest text-slate-500 uppercase">Onderdelen</p>
+        <h2 class="mt-0.5 text-lg font-bold text-white">Waar je wat vindt</h2>
+        <p class="mt-0.5 mb-4 text-sm text-slate-400">{{ $canCrm ? 'In de volgorde van het menu links. Klik op een kaart om er direct heen te gaan.' : 'Dit zijn de knoppen in de balk onderin.' }}</p>
 
         <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             @foreach ($modules as [$icon, $title, $text, $url, $category])
-                <a href="{{ $url }}" class="group flex gap-3 rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-gray-300 hover:shadow-sm">
+                <a href="{{ $url }}" class="group flex gap-3 rounded-2xl border border-surface-700 bg-surface-800 p-4 transition hover:border-surface-600 hover:shadow-sm">
                     <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl {{ $chip($category) }}">
                         <x-icon :name="$icon" class="h-4.5 w-4.5" />
                     </span>
                     <span class="min-w-0">
-                        <span class="flex items-center gap-1 text-sm font-semibold text-navy-900">
+                        <span class="flex items-center gap-1 text-sm font-semibold text-white">
                             {{ $title }}
-                            <x-icon name="chevron-right" class="h-3.5 w-3.5 text-gray-300 transition group-hover:translate-x-0.5 group-hover:text-brand-500" />
+                            <x-icon name="chevron-right" class="h-3.5 w-3.5 text-slate-600 transition group-hover:translate-x-0.5 group-hover:text-brand-500" />
                         </span>
-                        <span class="mt-0.5 block text-xs leading-relaxed text-gray-500">{{ $text }}</span>
+                        <span class="mt-0.5 block text-xs leading-relaxed text-slate-400">{{ $text }}</span>
                     </span>
                 </a>
             @endforeach
@@ -238,13 +238,13 @@
 
     {{-- Nova --}}
     @if ($canCrm)
-        <section class="mb-8 overflow-hidden rounded-2xl border border-gray-200 bg-white">
+        <section class="mb-8 overflow-hidden rounded-2xl border border-surface-700 bg-surface-800">
             <div class="grid gap-6 p-6 lg:grid-cols-[auto_1fr] lg:p-8">
                 <x-nova-avatar class="h-16 w-16 ring-2 ring-brand-500" />
                 <div class="min-w-0">
-                    <p class="text-[11px] font-bold tracking-widest text-brand-600 uppercase">Nova</p>
-                    <h2 class="mt-0.5 text-lg font-bold text-navy-950">Stelt voor, jij bevestigt</h2>
-                    <p class="mt-1 max-w-2xl text-sm leading-relaxed text-gray-500">
+                    <p class="text-[11px] font-bold tracking-widest text-brand-400 uppercase">Nova</p>
+                    <h2 class="mt-0.5 text-lg font-bold text-white">Stelt voor, jij bevestigt</h2>
+                    <p class="mt-1 max-w-2xl text-sm leading-relaxed text-slate-400">
                         Nova is de assistent in het oranje rondje rechtsonder. Alles wat Nova maakt is een concept dat jij eerst ziet en bevestigt.
                         Pas daarna gebeurt er iets, en dat wordt altijd vastgelegd.
                     </p>
@@ -252,40 +252,40 @@
                     <div class="mt-5 grid gap-3 sm:grid-cols-2">
                         <div class="flex gap-3">
                             <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg {{ $chip('brand') }}"><x-icon name="microphone" class="h-4 w-4" /></span>
-                            <span><span class="block text-sm font-semibold text-navy-900">Spreek of typ een opdracht</span><span class="block text-xs text-gray-500">"Maak een taak voor Peter: morgen stucwerk Bakker nakijken." Nova maakt taken, afspraken en notities.</span></span>
+                            <span><span class="block text-sm font-semibold text-white">Spreek of typ een opdracht</span><span class="block text-xs text-slate-400">"Maak een taak voor Peter: morgen stucwerk Bakker nakijken." Nova maakt taken, afspraken en notities.</span></span>
                         </div>
                         <div class="flex gap-3">
                             <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg {{ $chip('brand') }}"><x-icon name="home" class="h-4 w-4" /></span>
-                            <span><span class="block text-sm font-semibold text-navy-900">Dagbriefing</span><span class="block text-xs text-gray-500">Op Vandaag vat Nova samen wat er speelt en wat als eerste aandacht vraagt.</span></span>
+                            <span><span class="block text-sm font-semibold text-white">Dagbriefing</span><span class="block text-xs text-slate-400">Op Vandaag vat Nova samen wat er speelt en wat als eerste aandacht vraagt.</span></span>
                         </div>
                         <div class="flex gap-3">
                             <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg {{ $chip('calc') }}"><x-icon name="calculator" class="h-4 w-4" /></span>
-                            <span><span class="block text-sm font-semibold text-navy-900">Calculatieregels en offerteposten</span><span class="block text-xs text-gray-500">Beschrijf de klus, Nova zoekt de passende artikelen uit de prijslijst. Jij controleert voordat ze erin komen.</span></span>
+                            <span><span class="block text-sm font-semibold text-white">Calculatieregels en offerteposten</span><span class="block text-xs text-slate-400">Beschrijf de klus, Nova zoekt de passende artikelen uit de prijslijst. Jij controleert voordat ze erin komen.</span></span>
                         </div>
                         @if ($quotesEnabled)
                             <div class="flex gap-3">
                                 <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg {{ $chip('offerte') }}"><x-icon name="pencil-square" class="h-4 w-4" /></span>
-                                <span><span class="block text-sm font-semibold text-navy-900">Offerteteksten</span><span class="block text-xs text-gray-500">In de builder schrijft Nova een blok of de hele offerte. Vastgezette blokken blijven staan.</span></span>
+                                <span><span class="block text-sm font-semibold text-white">Offerteteksten</span><span class="block text-xs text-slate-400">In de builder schrijft Nova een blok of de hele offerte. Vastgezette blokken blijven staan.</span></span>
                             </div>
                         @endif
                         <div class="flex gap-3">
                             <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg {{ $chip(null) }}"><x-icon name="chat-bubble" class="h-4 w-4" /></span>
-                            <span><span class="block text-sm font-semibold text-navy-900">@Nova in de teamchat</span><span class="block text-xs text-gray-500">Noem @Nova in een bericht en je krijgt een voorstelkaart met "Ja, doe maar" of "Eerst aanpassen".</span></span>
+                            <span><span class="block text-sm font-semibold text-white">@Nova in de teamchat</span><span class="block text-xs text-slate-400">Noem @Nova in een bericht en je krijgt een voorstelkaart met "Ja, doe maar" of "Eerst aanpassen".</span></span>
                         </div>
                     </div>
 
                     @if ($automations->isNotEmpty())
-                        <div class="mt-6 rounded-xl bg-gray-50 p-4">
-                            <p class="text-xs font-semibold text-navy-900">Waar Nova op let (automations, elke 15 minuten)</p>
+                        <div class="mt-6 rounded-xl bg-surface-850 p-4">
+                            <p class="text-xs font-semibold text-white">Waar Nova op let (automations, elke 15 minuten)</p>
                             <ul class="mt-2 grid gap-x-6 gap-y-1.5 sm:grid-cols-2">
                                 @foreach ($automations as $automation)
-                                    <li class="flex gap-2 text-xs text-gray-500">
+                                    <li class="flex gap-2 text-xs text-slate-400">
                                         <x-icon name="bolt" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-500" />
-                                        <span><span class="font-semibold text-navy-900">{{ $automation['name'] }}.</span> {{ $automation['description'] }}</span>
+                                        <span><span class="font-semibold text-white">{{ $automation['name'] }}.</span> {{ $automation['description'] }}</span>
                                     </li>
                                 @endforeach
                             </ul>
-                            <a href="{{ route('automations.index') }}" class="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-brand-600 hover:text-brand-500">
+                            <a href="{{ route('automations.index') }}" class="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-brand-400 hover:text-brand-500">
                                 Modus per regel instellen <x-icon name="arrow-right" class="h-3.5 w-3.5" />
                             </a>
                         </div>
@@ -297,18 +297,18 @@
 
     {{-- Goed om te weten --}}
     <section class="mb-4">
-        <p class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">Goed om te weten</p>
-        <h2 class="mt-0.5 mb-4 text-lg font-bold text-navy-950">Voordat je begint</h2>
+        <p class="text-[11px] font-bold tracking-widest text-slate-500 uppercase">Goed om te weten</p>
+        <h2 class="mt-0.5 mb-4 text-lg font-bold text-white">Voordat je begint</h2>
 
         <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             @foreach ($tips as [$icon, $title, $text])
-                <div class="flex gap-3 rounded-2xl border border-gray-200 bg-white p-4">
-                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-navy-100 text-navy-700">
+                <div class="flex gap-3 rounded-2xl border border-surface-700 bg-surface-800 p-4">
+                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-slate-200">
                         <x-icon :name="$icon" class="h-4.5 w-4.5" />
                     </span>
                     <span class="min-w-0">
-                        <span class="block text-sm font-semibold text-navy-900">{{ $title }}</span>
-                        <span class="mt-0.5 block text-xs leading-relaxed text-gray-500">{{ $text }}</span>
+                        <span class="block text-sm font-semibold text-white">{{ $title }}</span>
+                        <span class="mt-0.5 block text-xs leading-relaxed text-slate-400">{{ $text }}</span>
                     </span>
                 </div>
             @endforeach

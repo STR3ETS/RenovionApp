@@ -6,17 +6,17 @@
 
     <div class="space-y-2">
         @forelse ($calculations as $calculation)
-            <a href="{{ route('calculations.show', $calculation) }}" class="flex items-center gap-3 rounded-xl border border-gray-200 border-l-4 border-l-calc-500 bg-white p-3 transition hover:shadow-sm">
-                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-calc-100 text-calc-600"><x-icon name="calculator" class="h-4.5 w-4.5" /></span>
+            <a href="{{ route('calculations.show', $calculation) }}" class="flex items-center gap-3 rounded-xl border border-surface-700 border-l-4 border-l-calc-500 bg-surface-800 p-3 transition hover:shadow-sm">
+                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-calc-500/15 text-calc-400"><x-icon name="calculator" class="h-4.5 w-4.5" /></span>
                 <span class="min-w-0 flex-1">
-                    <span class="block truncate text-sm font-semibold text-navy-900">{{ $calculation->title }}</span>
-                    <span class="block truncate text-xs text-gray-500">
+                    <span class="block truncate text-sm font-semibold text-white">{{ $calculation->title }}</span>
+                    <span class="block truncate text-xs text-slate-400">
                         {{ $calculation->customer?->name ?? 'Geen klant gekoppeld' }}
                        , {{ $calculation->lines->count() }} regels
                        , {{ $calculation->created_at->translatedFormat('j M Y') }}
                     </span>
                 </span>
-                <span class="hidden text-sm font-bold text-navy-900 sm:block">€ {{ number_format($calculation->totalExcl(), 0, ',', '.') }} <span class="text-xs font-medium text-gray-400">excl.</span></span>
+                <span class="hidden text-sm font-bold text-white sm:block">€ {{ number_format($calculation->totalExcl(), 0, ',', '.') }} <span class="text-xs font-medium text-slate-500">excl.</span></span>
                 <span class="rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap {{ $calculation->status->badgeClasses() }}">{{ $calculation->status->label() }}</span>
             </a>
         @empty

@@ -2,11 +2,11 @@
 
     @if ($onboarding)
         {{-- Aan de slag: korte uitleg voor op het werk, tot de uitvoerder hem uit het menu haalt --}}
-        <a href="{{ route('onboarding') }}" class="group mb-4 flex items-center gap-3 rounded-2xl border border-brand-200 bg-brand-50 p-4 transition hover:border-brand-300 hover:shadow-sm">
+        <a href="{{ route('onboarding') }}" class="group mb-4 flex items-center gap-3 rounded-2xl border border-brand-500/30 bg-brand-500/10 p-4 transition hover:border-brand-300 hover:shadow-sm">
             <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-500 text-white"><x-icon name="sparkles" class="h-5 w-5" /></span>
             <span class="min-w-0 flex-1">
-                <span class="block text-sm font-semibold text-navy-900">Aan de slag: zo werkt het op het werk</span>
-                <span class="block text-xs text-brand-700/70">Planning, werkpakketten, checklist afvinken en foto's maken. In vijf stappen uitgelegd.</span>
+                <span class="block text-sm font-semibold text-white">Aan de slag: zo werkt het op het werk</span>
+                <span class="block text-xs text-brand-300/70">Planning, werkpakketten, checklist afvinken en foto's maken. In vijf stappen uitgelegd.</span>
             </span>
             <x-icon name="chevron-right" class="h-5 w-5 shrink-0 text-brand-400 transition group-hover:translate-x-0.5" />
         </a>
@@ -28,8 +28,8 @@
     </section>
 
     <section class="mb-6">
-        <p class="text-[11px] font-bold tracking-widest text-planning-600 uppercase">Planning</p>
-        <h2 class="mt-0.5 mb-3 text-base font-bold text-navy-950">Jouw week</h2>
+        <p class="text-[11px] font-bold tracking-widest text-planning-400 uppercase">Planning</p>
+        <h2 class="mt-0.5 mb-3 text-base font-bold text-white">Jouw week</h2>
         @if ($planningWeek->isEmpty())
             <x-empty-state title="Geen planning deze week" icon="calendar" category="planning" />
         @else
@@ -56,22 +56,22 @@
     </section>
 
     <section>
-        <p class="text-[11px] font-bold tracking-widest text-planning-600 uppercase">Taken</p>
-        <h2 class="mt-0.5 mb-3 text-base font-bold text-navy-950">Jouw taken</h2>
+        <p class="text-[11px] font-bold tracking-widest text-planning-400 uppercase">Taken</p>
+        <h2 class="mt-0.5 mb-3 text-base font-bold text-white">Jouw taken</h2>
         @if ($taken->isEmpty())
             <x-empty-state title="Geen open taken" icon="clipboard-check" category="planning" />
         @else
             <div class="space-y-2">
                 @foreach ($taken as $task)
-                    <div class="flex items-center gap-3 rounded-xl border border-gray-200 border-l-4 bg-white p-3 {{ $task->isOverdue() ? 'border-l-red-500' : 'border-l-planning-500' }}">
+                    <div class="flex items-center gap-3 rounded-xl border border-surface-700 border-l-4 bg-surface-800 p-3 {{ $task->isOverdue() ? 'border-l-red-500' : 'border-l-planning-500' }}">
                         <button
                             x-data
                             @click="patchJson('{{ route('tasks.status', $task) }}', { status: 'afgerond' }).then(() => window.location.reload())"
-                            class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-gray-300 transition hover:border-green-500 hover:bg-green-50"
+                            class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-surface-600 transition hover:border-green-500 hover:bg-green-500/10"
                             title="Afronden"></button>
                         <span class="min-w-0 flex-1">
-                            <span class="block truncate text-sm font-semibold text-navy-900">{{ $task->title }}</span>
-                            <span class="block text-xs text-gray-500">
+                            <span class="block truncate text-sm font-semibold text-white">{{ $task->title }}</span>
+                            <span class="block text-xs text-slate-400">
                                 {{ $task->project?->name ?? $task->customer?->name ?? 'Algemeen' }}
                                 @if ($task->deadline), {{ $task->deadline->isToday() ? 'vandaag' : $task->deadline->translatedFormat('j M') }} @endif
                             </span>

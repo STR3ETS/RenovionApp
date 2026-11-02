@@ -43,6 +43,8 @@
     --color-lead-50: #f0f9ff;
     --color-lead-100: #e0f2fe;
     --color-lead-200: #bae6fd;
+    --color-lead-300: #7dd3fc;
+    --color-lead-400: #38bdf8;
     --color-lead-500: #0ea5e9;
     --color-lead-600: #0284c7;
     --color-lead-700: #0369a1;
@@ -51,6 +53,8 @@
     --color-klant-50: #f0fdfa;
     --color-klant-100: #ccfbf1;
     --color-klant-200: #99f6e4;
+    --color-klant-300: #5eead4;
+    --color-klant-400: #2dd4bf;
     --color-klant-500: #14b8a6;
     --color-klant-600: #0d9488;
     --color-klant-700: #0f766e;
@@ -59,6 +63,8 @@
     --color-calc-50: #f5f3ff;
     --color-calc-100: #ede9fe;
     --color-calc-200: #ddd6fe;
+    --color-calc-300: #c4b5fd;
+    --color-calc-400: #a78bfa;
     --color-calc-500: #8b5cf6;
     --color-calc-600: #7c3aed;
     --color-calc-700: #6d28d9;
@@ -67,6 +73,8 @@
     --color-offerte-50: #eef2ff;
     --color-offerte-100: #e0e7ff;
     --color-offerte-200: #c7d2fe;
+    --color-offerte-300: #a5b4fc;
+    --color-offerte-400: #818cf8;
     --color-offerte-500: #6366f1;
     --color-offerte-600: #4f46e5;
     --color-offerte-700: #4338ca;
@@ -75,6 +83,8 @@
     --color-project-50: #f0fdf4;
     --color-project-100: #dcfce7;
     --color-project-200: #bbf7d0;
+    --color-project-300: #86efac;
+    --color-project-400: #4ade80;
     --color-project-500: #22c55e;
     --color-project-600: #16a34a;
     --color-project-700: #15803d;
@@ -83,9 +93,25 @@
     --color-planning-50: #fdf2f8;
     --color-planning-100: #fce7f3;
     --color-planning-200: #fbcfe8;
+    --color-planning-300: #f9a8d4;
+    --color-planning-400: #f472b6;
     --color-planning-500: #ec4899;
     --color-planning-600: #db2777;
     --color-planning-700: #be185d;
+
+    /*
+     * Donkere schil (Renovion OS): de interne omgeving draait op een donker
+     * navy-slate vlak met oranje als enige actiekleur. Klantgerichte en
+     * afdrukbare schermen (offertedocument, klantportaal, opleverrapport)
+     * blijven bewust licht.
+     */
+    --color-surface-950: #080d16; /* sidebar */
+    --color-surface-900: #0e1524; /* paginavlak */
+    --color-surface-850: #141c2d; /* ingezonken vlakken */
+    --color-surface-800: #1a2333; /* kaarten */
+    --color-surface-750: #202a3d; /* hover op kaarten */
+    --color-surface-700: #27334a; /* randen */
+    --color-surface-600: #35425e; /* sterkere randen */
 
     /* Staalblauw — secundaire accenten (v1, wordt uitgefaseerd) */
     --color-steel-50: #f2f6fa;
@@ -289,4 +315,44 @@
     from {
         transform: scaleX(0);
     }
+}
+
+/*
+ * Formuliervelden in de donkere schil. @tailwindcss/forms geeft ze standaard
+ * een witte achtergrond; binnen de interne omgeving (body.app-shell) maken we
+ * ze donker. Klantgerichte en afdrukbare schermen hebben die klasse niet en
+ * blijven dus licht.
+ */
+.app-shell input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not([type='file']),
+.app-shell select,
+.app-shell textarea {
+    background-color: var(--color-surface-850);
+    border-color: var(--color-surface-700);
+    color: #fff;
+}
+
+.app-shell input::placeholder,
+.app-shell textarea::placeholder {
+    color: var(--color-slate-500);
+}
+
+.app-shell option {
+    background-color: var(--color-surface-850);
+    color: #fff;
+}
+
+.app-shell input[type='checkbox'],
+.app-shell input[type='radio'] {
+    background-color: var(--color-surface-750);
+    border-color: var(--color-surface-600);
+}
+
+.app-shell input[type='date']::-webkit-calendar-picker-indicator,
+.app-shell input[type='time']::-webkit-calendar-picker-indicator {
+    filter: invert(1) opacity(0.5);
+}
+
+/* Scrollbars in de donkere schil. */
+.app-shell * {
+    scrollbar-color: var(--color-surface-600) transparent;
 }

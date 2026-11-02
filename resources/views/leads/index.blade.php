@@ -1,11 +1,11 @@
 <x-layouts.app title="Aanvragen">
 
     <x-page-header eyebrow="Sales" category="lead" title="Aanvragen & Sales" subtitle="{{ $leads->filter(fn ($lead) => $lead->status->isOpen())->count() }} open aanvragen">
-        <div class="flex rounded-lg border border-gray-300 bg-white p-0.5 text-xs font-semibold">
+        <div class="flex rounded-lg border border-surface-600 bg-surface-800 p-0.5 text-xs font-semibold">
             <a href="{{ route('leads.index', ['view' => 'kanban']) }}"
-               class="rounded-md px-3 py-1.5 {{ $view === 'kanban' ? 'bg-navy-900 text-white' : 'text-gray-600' }}">Kanban</a>
+               class="rounded-md px-3 py-1.5 {{ $view === 'kanban' ? 'bg-navy-900 text-white' : 'text-slate-300' }}">Kanban</a>
             <a href="{{ route('leads.index', ['view' => 'lijst']) }}"
-               class="rounded-md px-3 py-1.5 {{ $view === 'lijst' ? 'bg-navy-900 text-white' : 'text-gray-600' }}">Lijst</a>
+               class="rounded-md px-3 py-1.5 {{ $view === 'lijst' ? 'bg-navy-900 text-white' : 'text-slate-300' }}">Lijst</a>
         </div>
         <a href="{{ route('leads.create') }}" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-500">+ Aanvraag</a>
     </x-page-header>
@@ -23,12 +23,12 @@
              }">
             <div class="flex min-w-max gap-3">
                 @foreach (\App\Enums\LeadStatus::pipeline() as $statusColumn)
-                    <div class="w-72 shrink-0 rounded-xl bg-gray-200/70 p-2"
+                    <div class="w-72 shrink-0 rounded-xl bg-surface-700/70 p-2"
                          @dragover.prevent
                          @drop="drop('{{ $statusColumn->value }}')">
                         <div class="mb-2 flex items-center justify-between px-1">
-                            <span class="text-xs font-bold tracking-wide text-gray-600 uppercase">{{ $statusColumn->label() }}</span>
-                            <span class="rounded-full bg-white px-2 py-0.5 text-xs font-bold text-gray-500">{{ $columns[$statusColumn->value]->count() }}</span>
+                            <span class="text-xs font-bold tracking-wide text-slate-300 uppercase">{{ $statusColumn->label() }}</span>
+                            <span class="rounded-full bg-surface-800 px-2 py-0.5 text-xs font-bold text-slate-400">{{ $columns[$statusColumn->value]->count() }}</span>
                         </div>
                         <div class="space-y-2">
                             @foreach ($columns[$statusColumn->value] as $lead)
@@ -40,7 +40,7 @@
                                 </div>
                             @endforeach
                             @if ($columns[$statusColumn->value]->isEmpty())
-                                <div class="rounded-lg border border-dashed border-gray-300 py-6 text-center text-xs text-gray-400">Leeg</div>
+                                <div class="rounded-lg border border-dashed border-surface-600 py-6 text-center text-xs text-slate-500">Leeg</div>
                             @endif
                         </div>
                     </div>
@@ -51,15 +51,15 @@
         {{-- Lijstweergave --}}
         <div class="space-y-2">
             @forelse ($leads->filter(fn ($lead) => $lead->status->isOpen()) as $lead)
-                <a href="{{ route('leads.show', $lead) }}" class="flex items-center gap-3 rounded-xl border border-gray-200 border-l-4 border-l-lead-500 bg-white p-3 transition hover:shadow-sm">
-                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-lead-100 text-lead-600"><x-icon name="inbox" class="h-4 w-4" /></span>
+                <a href="{{ route('leads.show', $lead) }}" class="flex items-center gap-3 rounded-xl border border-surface-700 border-l-4 border-l-lead-500 bg-surface-800 p-3 transition hover:shadow-sm">
+                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-lead-500/15 text-lead-400"><x-icon name="inbox" class="h-4 w-4" /></span>
                     <span class="min-w-0 flex-1">
-                        <span class="block truncate text-sm font-semibold text-navy-900">{{ $lead->customer->name }}</span>
-                        <span class="block truncate text-xs text-gray-500">
+                        <span class="block truncate text-sm font-semibold text-white">{{ $lead->customer->name }}</span>
+                        <span class="block truncate text-xs text-slate-400">
                             {{ $lead->customer->city ?? '-' }}, {{ $lead->service ?? 'Aanvraag' }}
                             @if ($lead->value), € {{ number_format((float) $lead->value, 0, ',', '.') }} @endif
                         </span>
-                        <span class="mt-0.5 block text-xs text-gray-400">
+                        <span class="mt-0.5 block text-xs text-slate-500">
                             {{ $lead->assignee?->name ?? 'Niet toegewezen' }}
                            , laatste contact: {{ $lead->last_contact_at?->translatedFormat('j M') ?? 'nog geen' }}
                         </span>
@@ -81,13 +81,13 @@
 
         @if ($inactief->isNotEmpty())
             <details class="mt-6">
-                <summary class="cursor-pointer text-sm font-semibold text-gray-500">Verloren / on hold ({{ $inactief->count() }})</summary>
+                <summary class="cursor-pointer text-sm font-semibold text-slate-400">Verloren / on hold ({{ $inactief->count() }})</summary>
                 <div class="mt-2 space-y-2">
                     @foreach ($inactief as $lead)
-                        <a href="{{ route('leads.show', $lead) }}" class="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 opacity-70 transition hover:opacity-100">
+                        <a href="{{ route('leads.show', $lead) }}" class="flex items-center gap-3 rounded-xl border border-surface-700 bg-surface-800 p-3 opacity-70 transition hover:opacity-100">
                             <span class="min-w-0 flex-1">
-                                <span class="block truncate text-sm font-semibold text-navy-900">{{ $lead->customer->name }}</span>
-                                <span class="block text-xs text-gray-500">{{ $lead->service ?? 'Aanvraag' }} @if ($lead->lost_reason), {{ $lead->lost_reason }} @endif</span>
+                                <span class="block truncate text-sm font-semibold text-white">{{ $lead->customer->name }}</span>
+                                <span class="block text-xs text-slate-400">{{ $lead->service ?? 'Aanvraag' }} @if ($lead->lost_reason), {{ $lead->lost_reason }} @endif</span>
                             </span>
                             <x-status-badge :status="$lead->status" />
                         </a>

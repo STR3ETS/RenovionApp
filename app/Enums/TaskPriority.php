@@ -20,7 +20,7 @@ enum TaskPriority: string
     public function dotClasses(): string
     {
         return match ($this) {
-            self::Laag => 'bg-gray-400',
+            self::Laag => 'bg-slate-500',
             self::Normaal => 'bg-steel-500',
             self::Hoog => 'bg-red-500',
         };

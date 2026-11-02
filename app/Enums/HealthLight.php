@@ -51,20 +51,20 @@ enum HealthLight: string
     public function badgeClasses(): string
     {
         return match ($this) {
-            self::Groen => 'bg-green-100 text-green-800',
-            self::Oranje => 'bg-amber-100 text-amber-800',
-            self::Rood => 'bg-red-100 text-red-800',
-            self::Grijs => 'bg-gray-100 text-gray-600',
+            self::Groen => 'bg-green-500/15 text-green-300',
+            self::Oranje => 'bg-amber-500/15 text-amber-300',
+            self::Rood => 'bg-red-500/15 text-red-300',
+            self::Grijs => 'bg-white/10 text-slate-400',
         };
     }
 
     public function cardClasses(): string
     {
         return match ($this) {
-            self::Groen => 'border-green-200 bg-green-50',
-            self::Oranje => 'border-amber-200 bg-amber-50',
-            self::Rood => 'border-red-200 bg-red-50',
-            self::Grijs => 'border-gray-200 bg-gray-50',
+            self::Groen => 'border-green-500/30 bg-green-500/10',
+            self::Oranje => 'border-amber-500/30 bg-amber-500/10',
+            self::Rood => 'border-red-500/30 bg-red-500/10',
+            self::Grijs => 'border-surface-700 bg-white/5',
         };
     }
 
@@ -74,17 +74,17 @@ enum HealthLight: string
             self::Groen => 'border-l-green-500',
             self::Oranje => 'border-l-amber-500',
             self::Rood => 'border-l-red-500',
-            self::Grijs => 'border-l-gray-300',
+            self::Grijs => 'border-l-slate-600',
         };
     }
 
     public function textClasses(): string
     {
         return match ($this) {
-            self::Groen => 'text-green-700',
-            self::Oranje => 'text-amber-700',
-            self::Rood => 'text-red-700',
-            self::Grijs => 'text-gray-500',
+            self::Groen => 'text-green-300',
+            self::Oranje => 'text-amber-300',
+            self::Rood => 'text-red-300',
+            self::Grijs => 'text-slate-400',
         };
     }
 

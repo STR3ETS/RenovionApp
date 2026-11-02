@@ -6,7 +6,7 @@
         @foreach ($health->signals as $signal)
             <span class="flex items-center gap-1" title="{{ $signal->label }}: {{ $signal->reason }}">
                 <x-signal-dot :color="$signal->light->dotColor()" />
-                <span class="text-[10px] font-semibold text-gray-400">{{ mb_substr($signal->label, 0, 1) }}</span>
+                <span class="text-[10px] font-semibold text-slate-500">{{ mb_substr($signal->label, 0, 1) }}</span>
             </span>
         @endforeach
     </div>
@@ -21,8 +21,8 @@
                     </span>
                     <x-signal-dot :color="$signal->light->dotColor()" class="h-2.5 w-2.5" />
                 </div>
-                <p class="mt-1.5 text-sm font-bold text-navy-950">{{ $signal->light->label() }}</p>
-                <p class="mt-0.5 text-xs leading-relaxed text-gray-600">{{ $signal->reason }}</p>
+                <p class="mt-1.5 text-sm font-bold text-white">{{ $signal->light->label() }}</p>
+                <p class="mt-0.5 text-xs leading-relaxed text-slate-300">{{ $signal->reason }}</p>
             </div>
         @endforeach
     </div>
