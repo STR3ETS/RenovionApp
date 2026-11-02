@@ -2,18 +2,28 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\BuildFinalSettlement;
 use App\Enums\PhaseStatus;
 use App\Enums\ProjectStatus;
 use App\Enums\TimelineEventType;
 use App\Enums\UserRole;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
+use App\Models\AgentApproval;
+use App\Models\AgentEvent;
+use App\Models\AgentRun;
 use App\Models\AuditLog;
 use App\Models\Customer;
+use App\Models\Intake;
 use App\Models\Project;
+use App\Models\ProjectDeduction;
 use App\Models\ProjectPhase;
+use App\Models\QualityReview;
+use App\Models\Rfq;
 use App\Models\User;
+use App\Services\CostReviewService;
 use App\Services\ProjectHealthService;
+use App\Support\ProjectTabs;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -110,37 +120,102 @@ class ProjectController extends Controller
         return redirect()->route('projects.show', $project)->with('success', 'Project "'.$project->name.'" aangemaakt.');
     }
 
-    public function show(Project $project, ProjectHealthService $healthService): View
+    public function show(Request $request, Project $project, ProjectHealthService $healthService): View
     {
         abort_unless($project->isAccessibleBy(auth()->user()), 403);
 
+        // Wat elk tabblad nodig heeft, laden we pas als dat tabblad open staat.
+        // Anders haalt één projectdossier het halve systeem op.
         $project->load([
-            'customer',
-            'lead',
-            'quote',
-            'projectLeader',
-            'craftsmen',
-            'phases.responsible',
-            'phases.approver',
-            'phases.workPackages.responsible',
-            'phases.workPackages.items',
-            'photos.uploader',
-            'photos.workPackage',
-            'chatChannel',
-            'deliveryReport',
-            'tasks' => fn ($query) => $query->open()->orderByRaw('deadline is null, deadline asc'),
-            'documents.uploader',
-            'scheduleEntries' => fn ($query) => $query
-                ->whereDate('date', '>=', today())
-                ->orderBy('date')
-                ->limit(10),
-            'scheduleEntries.user',
+            'customer', 'lead', 'quote', 'projectLeader', 'craftsmen', 'chatChannel',
+            'phases.responsible', 'phases.approver',
         ]);
+
+        $tab = ProjectTabs::resolve($request->user(), $project, $request->string('tab')->toString());
 
         return view('projects.show', [
             'project' => $project,
             'health' => $healthService->for($project),
+            'tab' => $tab,
+            'tabs' => ProjectTabs::forUser($request->user(), $project, $tab),
+            'nextStep' => ProjectTabs::nextStep($project),
+            ...$this->tabData($project, $tab),
         ]);
+    }
+
+    /**
+     * De data van één tabblad.
+     *
+     * @return array<string, mixed>
+     */
+    private function tabData(Project $project, string $tab): array
+    {
+        return match ($tab) {
+            'intake' => [
+                'intake' => Intake::where('project_id', $project->id)
+                    ->orWhere('lead_id', $project->lead_id)
+                    ->with('surveyor')
+                    ->first(),
+            ],
+            'begroting' => [
+                'budgets' => $project->budgets()->with(['chapters.paragraphs.lines', 'markups', 'options', 'terms'])->get(),
+            ],
+            'planning' => [
+                'entries' => $project->scheduleEntries()->with('user')->orderBy('date')->get(),
+            ],
+            'uitvoering' => [
+                'phases' => $project->phases()->with(['responsible', 'approver', 'workPackages.responsible', 'workPackages.items'])->get(),
+            ],
+            'taken' => [
+                'tasks' => $project->tasks()->with('owner')->orderByRaw('completed_at is null desc, deadline is null, deadline asc')->get(),
+            ],
+            'werkbonnen' => [
+                'workOrders' => $project->workOrders()->with(['user', 'approver'])->get(),
+            ],
+            'fotos' => [
+                'photos' => $project->photos()->with(['uploader', 'workPackage', 'phase'])->get(),
+                'phases' => $project->phases,
+            ],
+            'inkoop' => [
+                'orders' => $project->purchaseOrders()->with(['lines', 'invoices'])->get(),
+                'rfqs' => Rfq::where('project_id', $project->id)->with(['bids.subcontractor', 'winner'])->get(),
+            ],
+            'kwaliteit' => [
+                'review' => QualityReview::where('project_id', $project->id)->with('checks')->first(),
+                'snags' => $project->snags()->with(['assignee', 'subcontractor'])->latest()->get(),
+                'serviceTickets' => $project->serviceTickets()->get(),
+            ],
+            'financien' => [
+                'invoices' => $project->invoices()->get(),
+                'settlement' => app(BuildFinalSettlement::class)->preview($project),
+                'deductions' => ProjectDeduction::where('project_id', $project->id)->get(),
+            ],
+            'nacalculatie' => [
+                'review' => app(CostReviewService::class)->for($project),
+            ],
+            'documenten' => [
+                'documents' => $project->documents()->with('uploader')->latest()->get(),
+            ],
+            'activiteiten' => [
+                'events' => $project->customer
+                    ->timelineEvents()
+                    ->latest('happened_at')
+                    ->limit(60)
+                    ->get(),
+            ],
+            'agents' => [
+                'runs' => AgentRun::where('project_id', $project->id)->latest('id')->get(),
+                'approvals' => AgentApproval::where('project_id', $project->id)->latest('id')->get(),
+                'auditEvents' => AgentEvent::where('project_id', $project->id)->latest('occurred_at')->limit(40)->get(),
+            ],
+            default => [
+                'photos' => $project->photos()->where('client_visible', true)->limit(6)->get(),
+                'tasks' => $project->tasks()->open()->with('owner')->orderByRaw('deadline is null, deadline asc')->limit(6)->get(),
+                'entries' => $project->scheduleEntries()->with('user')->whereDate('date', '>=', today())->orderBy('date')->limit(6)->get(),
+                'deliveryReport' => $project->deliveryReport,
+                'events' => $project->customer->timelineEvents()->latest('happened_at')->limit(8)->get(),
+            ],
+        };
     }
 
     public function edit(Project $project): View

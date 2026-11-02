@@ -171,6 +171,11 @@ class Project extends Model
         return $this->hasMany(Invoice::class)->latest('date');
     }
 
+    public function purchaseOrders(): HasMany
+    {
+        return $this->hasMany(PurchaseOrder::class)->latest('id');
+    }
+
     public function qualityReview(): HasOne
     {
         return $this->hasOne(QualityReview::class);
