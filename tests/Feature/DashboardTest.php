@@ -27,7 +27,8 @@ class DashboardTest extends TestCase
         $response->assertSee('Imad');
         $response->assertSee('Nieuwe aanvragen');
         $response->assertSee('Aanbetaling Bakker controleren');
-        $response->assertSee('Nu doen');
+        // De kop staat opgesplitst in de opmaak: "Nu <span>doen</span>".
+        $response->assertSeeInOrder(['Nu ', 'doen'], escape: false);
     }
 
     public function test_main_pages_are_accessible_for_authenticated_users(): void

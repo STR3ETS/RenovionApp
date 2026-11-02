@@ -18,6 +18,7 @@ use App\Models\ScheduleEntry;
 use App\Models\Task;
 use App\Models\User;
 use App\Models\WorkPackage;
+use App\Support\Navigation;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
@@ -66,12 +67,15 @@ class AppServiceProvider extends ServiceProvider
         });
 
         // Briefing §15: uitvoerders zien alleen hun eigen projecten, taken en planning.
-        Gate::define('manage-crm', fn (User $user) => ! in_array($user->role, [UserRole::Uitvoerder, UserRole::Klant], true));
+        Gate::define('manage-crm', fn (User $user) => ! in_array($user->role, [UserRole::Uitvoerder, UserRole::Klant, UserRole::Onderaannemer], true));
 
-        // De interne omgeving is niet voor klanten - die krijgen het portaal (§10).
-        Gate::define('internal', fn (User $user) => $user->role !== UserRole::Klant);
+        // De interne omgeving is niet voor klanten en onderaannemers - die krijgen een eigen portaal.
+        Gate::define('internal', fn (User $user) => ! $user->role->isExternal());
 
-        // Teambeheer (gebruikers aanmaken/bewerken) is alleen voor admins.
-        Gate::define('manage-team', fn (User $user) => $user->role === UserRole::Admin);
+        // Inrichting van het systeem (team, rechten, instellingen) is voor directie en superadmin.
+        Gate::define('manage-team', fn (User $user) => $user->role->isManagement());
+
+        // Per module: de rechtenmatrix uit Navigation bepaalt wie welk scherm ziet.
+        Gate::define('module', fn (User $user, string $module) => Navigation::allows($user->role, $module));
     }
 }

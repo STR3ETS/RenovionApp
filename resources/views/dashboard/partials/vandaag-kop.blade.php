@@ -1,17 +1,12 @@
 @php
-    // Fotokop: de omslagfoto van het meest recente project, anders een vlak verloop.
-    $heroProject = $recenteProjecten->first(fn ($project) => $project->cover_photo_path || ($project->photos_count ?? 0) > 0);
     $groet = now()->hour < 12 ? 'Goedemorgen' : (now()->hour < 18 ? 'Goedemiddag' : 'Goedenavond');
 @endphp
 
 {{-- Fotokop met begroeting (briefing hoofdstuk 6) --}}
 <section class="relative mb-4 overflow-hidden rounded-2xl">
-    @if ($heroProject)
-        <img src="{{ route('projects.cover', $heroProject) }}" alt="" class="absolute inset-0 h-full w-full object-cover">
-        <div class="absolute inset-0 bg-gradient-to-r from-surface-950 via-surface-950/92 to-surface-950/20"></div>
-    @else
-        <div class="absolute inset-0 bg-gradient-to-br from-surface-950 via-surface-950 to-surface-800"></div>
-    @endif
+    {{-- Vaste bannerfoto. De linkerkant is al donker, dus een licht verloop houdt de tekst leesbaar. --}}
+    <img src="{{ asset('images/dashboard-banner.jpg') }}" alt="" class="absolute inset-0 h-full w-full object-cover object-right">
+    <div class="absolute inset-0 bg-gradient-to-r from-surface-950/85 via-surface-950/50 to-transparent"></div>
 
     <div class="relative px-6 py-10 lg:px-10 lg:py-14">
         <p class="text-[11px] font-bold tracking-widest text-slate-300 uppercase">{{ now()->translatedFormat('l j F Y') }}</p>

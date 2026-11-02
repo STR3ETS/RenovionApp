@@ -41,41 +41,10 @@
     @endphp
 
     @php
-        // Het menu volgt de drie secties uit de briefing: Werkdag, Werk, Bedrijf.
-        $sections = $canCrm ? [
-            'Werkdag' => collect([
-                $onboardingItem,
-                ['label' => 'Vandaag', 'icon' => 'home', 'route' => 'dashboard', 'active' => request()->routeIs('dashboard')],
-                ['label' => 'Inbox', 'icon' => 'exclamation-triangle', 'route' => 'attention.index', 'active' => request()->routeIs('attention.*'), 'badge' => $aandachtCount, 'badgeTone' => 'brand'],
-                ['label' => 'Teamchat', 'icon' => 'chat-bubble', 'route' => 'chat.index', 'active' => request()->routeIs('chat.*'), 'badge' => $chatUnread],
-            ])->filter(),
-            'Werk' => collect([
-                ['label' => 'Verkoop', 'icon' => 'inbox', 'route' => 'leads.index', 'active' => request()->routeIs('leads.*')],
-                ['label' => 'Calculaties', 'icon' => 'calculator', 'route' => 'calculations.index', 'active' => request()->routeIs('calculations.*')],
-                config('renovion.modules.quotes') ? ['label' => 'Offertes', 'icon' => 'document-text', 'route' => 'quotes.index', 'active' => request()->routeIs('quotes.*')] : null,
-                ['label' => 'Projecten', 'icon' => 'folder', 'route' => 'projects.index', 'active' => request()->routeIs('projects.*')],
-                ['label' => 'Portfolio', 'icon' => 'eye', 'route' => 'portfolio', 'active' => request()->routeIs('portfolio')],
-                ['label' => 'Planning', 'icon' => 'calendar', 'route' => 'planning.index', 'active' => request()->routeIs('planning.*')],
-                ['label' => 'Taken', 'icon' => 'clipboard-check', 'route' => 'tasks.index', 'active' => request()->routeIs('tasks.*')],
-            ])->filter(),
-            'Bedrijf' => collect([
-                ['label' => 'Klanten', 'icon' => 'users', 'route' => 'customers.index', 'active' => request()->routeIs('customers.*')],
-                ['label' => 'Prijslijst', 'icon' => 'currency-euro', 'route' => 'price-items.index', 'active' => request()->routeIs('price-items.index')],
-                config('renovion.modules.automations') ? ['label' => 'Automations', 'icon' => 'bolt', 'route' => 'automations.index', 'active' => request()->routeIs('automations.*')] : null,
-                auth()->user()->can('manage-team') ? ['label' => 'Organisatie', 'icon' => 'cog', 'route' => 'team.index', 'active' => request()->routeIs('team.*')] : null,
-            ])->filter(),
-        ] : [
-            'Werkdag' => collect([
-                $onboardingItem,
-                ['label' => 'Vandaag', 'icon' => 'home', 'route' => 'dashboard', 'active' => request()->routeIs('dashboard')],
-                ['label' => 'Teamchat', 'icon' => 'chat-bubble', 'route' => 'chat.index', 'active' => request()->routeIs('chat.*'), 'badge' => $chatUnread],
-            ])->filter(),
-            'Werk' => collect([
-                ['label' => 'Projecten', 'icon' => 'folder', 'route' => 'projects.index', 'active' => request()->routeIs('projects.*')],
-                ['label' => 'Planning', 'icon' => 'calendar', 'route' => 'planning.index', 'active' => request()->routeIs('planning.*')],
-                ['label' => 'Taken', 'icon' => 'clipboard-check', 'route' => 'tasks.index', 'active' => request()->routeIs('tasks.*')],
-            ])->filter(),
-        ];
+        // Het menu komt uit één bron: App\Support\Navigation (secties, tabbladen, rechten).
+        $sections = \App\Support\Navigation::forUser(auth()->user());
+        $sectionTabs = \App\Support\Navigation::tabsFor(auth()->user());
+        $counters = ['inbox' => $aandachtCount, 'chat' => $chatUnread];
     @endphp
 
     {{-- Desktop sidebar --}}
@@ -88,17 +57,30 @@
         </div>
 
         <nav class="flex-1 overflow-y-auto px-3 pb-6">
-            @foreach ($sections as $section => $items)
-                @continue($items->isEmpty())
-                <p class="px-3 pt-5 pb-2 text-[10px] font-bold tracking-widest text-slate-500 uppercase">{{ $section }}</p>
+            @if ($onboardingItem)
+                <p class="px-3 pt-5 pb-2 text-[10px] font-bold tracking-widest text-slate-500 uppercase">Start</p>
+                <a href="{{ route('onboarding') }}"
+                   class="flex items-center gap-3 rounded-full px-3 py-2.5 text-sm font-medium transition {{ $onboardingItem['active'] ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                    <x-icon name="sparkles" class="h-5 w-5 shrink-0 {{ $onboardingItem['active'] ? 'text-white' : 'text-slate-400' }}" />
+                    <span class="flex-1 truncate">Aan de slag</span>
+                    @if ($onboardingItem['badge'] > 0)
+                        <span class="rounded-full px-2 py-0.5 text-[10px] font-bold text-white {{ $onboardingItem['active'] ? 'bg-white/20' : 'bg-brand-500' }}">{{ $onboardingItem['badge'] }}</span>
+                    @endif
+                </a>
+            @endif
+
+            @foreach (\App\Support\Navigation::GROUPS as $group)
+                @continue(empty($sections[$group]))
+                <p class="px-3 pt-5 pb-2 text-[10px] font-bold tracking-widest text-slate-500 uppercase">{{ $group }}</p>
                 <div class="space-y-1">
-                    @foreach ($items as $item)
-                        <a href="{{ route($item['route']) }}"
+                    @foreach ($sections[$group] as $item)
+                        @php($badge = $item['counter'] ? ($counters[$item['counter']] ?? 0) : 0)
+                        <a href="{{ $item['url'] }}"
                            class="flex items-center gap-3 rounded-full px-3 py-2.5 text-sm font-medium transition {{ $item['active'] ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
                             <x-icon :name="$item['icon']" class="h-5 w-5 shrink-0 {{ $item['active'] ? 'text-white' : 'text-slate-400' }}" />
                             <span class="flex-1 truncate">{{ $item['label'] }}</span>
-                            @if (($item['badge'] ?? 0) > 0)
-                                <span class="rounded-full px-2 py-0.5 text-[10px] font-bold text-white {{ $item['active'] ? 'bg-white/20' : (($item['badgeTone'] ?? null) === 'brand' ? 'bg-brand-500' : 'bg-white/10') }}">{{ $item['badge'] }}</span>
+                            @if ($badge > 0)
+                                <span class="rounded-full px-2 py-0.5 text-[10px] font-bold text-white {{ $item['active'] ? 'bg-white/20' : ($item['counter'] === 'inbox' ? 'bg-brand-500' : 'bg-white/10') }}">{{ $badge }}</span>
                             @endif
                         </a>
                     @endforeach
@@ -205,6 +187,19 @@
                 </div>
             @endif
         </header>
+
+        {{-- Tabbladen binnen de sectie: de sidebar wijst de sectie aan, hier kies je het scherm --}}
+        @if (count($sectionTabs) > 1)
+            <nav class="scrollbar-none -mb-px flex gap-1 overflow-x-auto border-b border-surface-700 px-4 lg:px-8" aria-label="Tabbladen">
+                @foreach ($sectionTabs as $tab)
+                    <a href="{{ $tab['url'] }}" @class([
+                            'shrink-0 border-b-2 px-3 py-3 text-sm font-semibold whitespace-nowrap transition',
+                            'border-brand-500 text-white' => $tab['active'],
+                            'border-transparent text-slate-400 hover:text-slate-200' => ! $tab['active'],
+                        ]) @if ($tab['active']) aria-current="page" @endif>{{ $tab['label'] }}</a>
+                @endforeach
+            </nav>
+        @endif
 
         {{-- Content --}}
         <main class="px-4 pt-4 pb-28 lg:px-8 lg:pt-6 lg:pb-12">
@@ -318,31 +313,18 @@
     </div>
     @endcan
 
-    {{-- Mobiele bottom-nav --}}
-    @php
-        $tabs = $canCrm ? [
-            ['label' => 'Vandaag', 'route' => 'dashboard', 'active' => request()->routeIs('dashboard'), 'icon' => 'home'],
-            ['label' => 'Aanvragen', 'route' => 'leads.index', 'active' => request()->routeIs('leads.*'), 'icon' => 'inbox'],
-            ['label' => 'Projecten', 'route' => 'projects.index', 'active' => request()->routeIs('projects.*'), 'icon' => 'building-office'],
-            ['label' => 'Planning', 'route' => 'planning.index', 'active' => request()->routeIs('planning.*'), 'icon' => 'calendar'],
-            ['label' => 'Chat', 'route' => 'chat.index', 'active' => request()->routeIs('chat.*'), 'icon' => 'chat-bubble'],
-            ['label' => 'Acties', 'route' => 'tasks.index', 'active' => request()->routeIs('tasks.*'), 'icon' => 'clipboard-check'],
-        ] : [
-            ['label' => 'Vandaag', 'route' => 'dashboard', 'active' => request()->routeIs('dashboard'), 'icon' => 'home'],
-            ['label' => 'Projecten', 'route' => 'projects.index', 'active' => request()->routeIs('projects.*'), 'icon' => 'building-office'],
-            ['label' => 'Planning', 'route' => 'planning.index', 'active' => request()->routeIs('planning.*'), 'icon' => 'calendar'],
-            ['label' => 'Chat', 'route' => 'chat.index', 'active' => request()->routeIs('chat.*'), 'icon' => 'chat-bubble'],
-            ['label' => 'Acties', 'route' => 'tasks.index', 'active' => request()->routeIs('tasks.*'), 'icon' => 'clipboard-check'],
-        ];
-    @endphp
-    <nav class="fixed inset-x-0 bottom-0 z-40 grid border-t border-surface-700 bg-surface-800 pb-[env(safe-area-inset-bottom)] lg:hidden {{ ['4' => 'grid-cols-4', '5' => 'grid-cols-5', '6' => 'grid-cols-6'][count($tabs)] }}">
-        @foreach ($tabs as $tab)
-            <a href="{{ route($tab['route']) }}" class="flex flex-col items-center gap-0.5 py-2 {{ $tab['active'] ? 'text-brand-400' : 'text-slate-500' }}">
-                <x-icon :name="$tab['icon']" class="h-6 w-6" />
-                <span class="text-[10px] font-semibold">{{ $tab['label'] }}</span>
-            </a>
-        @endforeach
-    </nav>
+    {{-- Mobiele bottom-nav: per rol de vier of vijf schermen waar je echt heen gaat --}}
+    @php($tabs = \App\Support\Navigation::bottomNavFor(auth()->user()))
+    @if ($tabs !== [])
+        <nav class="fixed inset-x-0 bottom-0 z-40 grid border-t border-surface-700 bg-surface-800 pb-[env(safe-area-inset-bottom)] lg:hidden" style="grid-template-columns: repeat({{ count($tabs) }}, minmax(0, 1fr))">
+            @foreach ($tabs as $tab)
+                <a href="{{ $tab['url'] }}" class="flex flex-col items-center gap-0.5 py-2 {{ $tab['active'] ? 'text-brand-400' : 'text-slate-500' }}">
+                    <x-icon :name="$tab['icon']" class="h-6 w-6" />
+                    <span class="text-[10px] font-semibold">{{ $tab['label'] }}</span>
+                </a>
+            @endforeach
+        </nav>
+    @endif
 
 </body>
 </html>

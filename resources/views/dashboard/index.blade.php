@@ -22,156 +22,187 @@
 
         {{-- Werklijst centraal: actie gaat vóór informatie --}}
         <section class="lg:col-span-2">
-            <div class="mb-3 flex items-end justify-between">
-                <div>
-                    <p class="text-[11px] font-bold tracking-widest text-slate-500 uppercase">Vandaag</p>
-                    <h2 class="mt-0.5 text-base font-bold text-white">Nu doen</h2>
+            @php
+                // Eén rij-opmaak voor alle acties: getint icoon, titel, subregel en een knop rechts.
+                $iconClasses = fn (bool $urgent) => $urgent ? 'bg-red-500/15 text-red-400' : 'bg-brand-500/15 text-brand-400';
+                $pillClasses = 'shrink-0 rounded-full border border-surface-600 px-4 py-1.5 text-sm font-semibold text-white transition hover:border-surface-500 hover:bg-surface-750';
+            @endphp
+
+            <div class="overflow-hidden rounded-2xl border border-surface-700 bg-surface-850">
+                <div class="flex items-center justify-between gap-3 border-b border-surface-700 px-5 py-4 lg:px-6">
+                    <h2 class="text-base font-bold text-white">Nu <span class="text-brand-500">doen</span></h2>
+                    @if ($attentionCount > 0)
+                        <a href="{{ route('attention.index') }}" class="text-xs font-semibold text-white transition hover:text-brand-400">Alle {{ $attentionCount }} in inbox</a>
+                    @endif
                 </div>
-                @if ($aandachtTotaal > 0)
-                    <span class="rounded-full bg-surface-750 px-2.5 py-0.5 text-xs font-semibold text-slate-400">{{ $aandachtTotaal }} {{ $aandachtTotaal === 1 ? 'actie' : 'acties' }}</span>
+
+                @if ($aandachtTotaal === 0)
+                    <div class="p-8 text-center">
+                        <span class="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-project-500/15 text-project-400"><x-icon name="check" class="h-5 w-5" /></span>
+                        <p class="text-sm font-semibold text-white">Niets dat nu aandacht vraagt</p>
+                        <p class="mt-0.5 text-xs text-slate-500">Nieuwe signalen verschijnen hier vanzelf.</p>
+                    </div>
+                @else
+                    <div class="divide-y divide-surface-700 px-5 lg:px-6">
+                        @foreach ($betaalRisicos as $project)
+                            <div class="flex items-center gap-4 py-3.5">
+                                <a href="{{ route('projects.show', $project) }}" class="flex min-w-0 flex-1 items-center gap-4">
+                                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg {{ $iconClasses(true) }}"><x-icon name="currency-euro" class="h-4 w-4" /></span>
+                                    <span class="min-w-0 flex-1">
+                                        <span class="block truncate text-sm font-bold text-white">{{ $project->customer->name }}: aanbetaling nog niet ontvangen</span>
+                                        <span class="block truncate text-xs text-slate-400">€ {{ number_format((float) $project->deposit_amount, 0, ',', '.') }} · start {{ $project->start_date->translatedFormat('j M') }}</span>
+                                    </span>
+                                </a>
+                                <a href="{{ route('projects.show', $project) }}" class="{{ $pillClasses }}">Controleer</a>
+                            </div>
+                        @endforeach
+
+                        @foreach ($opvolgOffertes as $quote)
+                            <div class="flex items-center gap-4 py-3.5">
+                                <a href="{{ route('quotes.show', $quote) }}" class="flex min-w-0 flex-1 items-center gap-4">
+                                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg {{ $iconClasses($quote->daysOpen() >= 5) }}"><x-icon name="document-text" class="h-4 w-4" /></span>
+                                    <span class="min-w-0 flex-1">
+                                        <span class="block truncate text-sm font-bold text-white">Offerte {{ $quote->number }} wacht op opvolging</span>
+                                        <span class="block truncate text-xs text-slate-400">
+                                            {{ $quote->customer->name }} · al {{ $quote->daysOpen() }} {{ $quote->daysOpen() === 1 ? 'dag' : 'dagen' }} open · € {{ number_format((float) $quote->total, 0, ',', '.') }}@if ($quote->viewed_count > 0) · {{ $quote->viewed_count }}× bekeken @endif
+                                        </span>
+                                    </span>
+                                </a>
+                                <a href="{{ route('quotes.show', $quote) }}" class="{{ $pillClasses }}">Bekijk</a>
+                            </div>
+                        @endforeach
+
+                        @foreach ($opvolgLeads as $lead)
+                            @php $teLaat = $lead->next_action_at?->isPast() ?? false; @endphp
+                            <div class="flex items-center gap-4 py-3.5">
+                                <a href="{{ route('leads.show', $lead) }}" class="flex min-w-0 flex-1 items-center gap-4">
+                                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg {{ $iconClasses($teLaat) }}"><x-icon name="phone" class="h-4 w-4" /></span>
+                                    <span class="min-w-0 flex-1">
+                                        <span class="block truncate text-sm font-bold text-white">
+                                            {{ ucfirst($lead->next_action ?? ($lead->status === \App\Enums\LeadStatus::Nieuw ? 'nieuwe aanvraag opvolgen' : 'opvolgen')) }}: {{ $lead->customer->name }}@if ($teLaat) (te laat)@endif
+                                        </span>
+                                        <span class="block truncate text-xs text-slate-400">
+                                            @if ($lead->next_action_at){{ $lead->next_action_at->isToday() ? $lead->next_action_at->format('H:i') : $lead->next_action_at->translatedFormat('j M H:i') }} · @endif{{ $lead->service ?? 'Aanvraag' }} · {{ $lead->status->label() }}
+                                        </span>
+                                    </span>
+                                </a>
+                                @if ($lead->customer->phone)
+                                    <a href="tel:{{ preg_replace('/[^0-9+]/', '', $lead->customer->phone) }}" class="{{ $pillClasses }}">Bellen</a>
+                                @else
+                                    <a href="{{ route('leads.show', $lead) }}" class="{{ $pillClasses }}">Bekijk</a>
+                                @endif
+                            </div>
+                        @endforeach
+
+                        @foreach ($taken as $task)
+                            <div class="flex items-center gap-4 py-3.5">
+                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg {{ $iconClasses($task->isOverdue()) }}"><x-icon name="clipboard-check" class="h-4 w-4" /></span>
+                                <span class="min-w-0 flex-1">
+                                    <span class="block truncate text-sm font-bold text-white">{{ $task->title }}@if ($task->isOverdue()) (te laat)@endif</span>
+                                    <span class="block truncate text-xs text-slate-400">
+                                        {{ $task->customer?->name ?? $task->project?->name ?? 'Algemeen' }}@if ($task->deadline) · {{ $task->deadline->isToday() ? 'vandaag' : $task->deadline->translatedFormat('j M') }}@endif · prioriteit {{ strtolower($task->priority->label()) }}
+                                    </span>
+                                </span>
+                                <button type="button"
+                                        x-data
+                                        @click="patchJson('{{ route('tasks.status', $task) }}', { status: 'afgerond' }).then(() => window.location.reload())"
+                                        class="{{ $pillClasses }}">Afronden</button>
+                            </div>
+                        @endforeach
+                    </div>
                 @endif
             </div>
-
-            @if ($aandachtTotaal === 0)
-                <div class="rounded-2xl border border-dashed border-surface-600 bg-surface-800 p-8 text-center">
-                    <span class="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-project-500/15 text-project-400"><x-icon name="check" class="h-5 w-5" /></span>
-                    <p class="text-sm font-semibold text-white">Niets dat nu aandacht vraagt</p>
-                    <p class="mt-0.5 text-xs text-slate-500">Nieuwe signalen verschijnen hier vanzelf.</p>
-                </div>
-            @else
-                <div class="space-y-2">
-                    @foreach ($betaalRisicos as $project)
-                        <a href="{{ route('projects.show', $project) }}" class="flex items-center gap-3 rounded-xl border border-surface-700 border-l-4 border-l-red-500 bg-surface-800 p-3 transition hover:shadow-sm">
-                            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-500/15 text-red-400"><x-icon name="currency-euro" class="h-4 w-4" /></span>
-                            <span class="min-w-0 flex-1">
-                                <span class="block truncate text-sm font-semibold text-white">{{ $project->customer->name }}: aanbetaling nog niet ontvangen</span>
-                                <span class="block truncate text-xs text-slate-400">
-                                    € {{ number_format((float) $project->deposit_amount, 0, ',', '.') }}
-                                   , start {{ $project->start_date->translatedFormat('j M') }}
-                                </span>
-                            </span>
-                            <x-signal-dot color="red" />
-                        </a>
-                    @endforeach
-
-                    @foreach ($opvolgOffertes as $quote)
-                        <a href="{{ route('quotes.show', $quote) }}" class="flex items-center gap-3 rounded-xl border border-surface-700 border-l-4 border-l-offerte-500 bg-surface-800 p-3 transition hover:shadow-sm">
-                            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-offerte-500/15 text-offerte-400"><x-icon name="document-text" class="h-4 w-4" /></span>
-                            <span class="min-w-0 flex-1">
-                                <span class="block truncate text-sm font-semibold text-white">{{ $quote->customer->name }}: offerte {{ $quote->daysOpen() }} dagen open</span>
-                                <span class="block truncate text-xs text-slate-400">
-                                    € {{ number_format((float) $quote->total, 0, ',', '.') }}
-                                    @if ($quote->viewed_count > 0), {{ $quote->viewed_count }}× bekeken @endif
-                                </span>
-                            </span>
-                            <x-signal-dot :color="$quote->daysOpen() >= 5 ? 'red' : 'amber'" />
-                        </a>
-                    @endforeach
-
-                    @foreach ($opvolgLeads as $lead)
-                        <a href="{{ route('leads.show', $lead) }}" class="flex items-center gap-3 rounded-xl border border-surface-700 border-l-4 border-l-lead-500 bg-surface-800 p-3 transition hover:shadow-sm">
-                            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-lead-500/15 text-lead-400"><x-icon name="phone" class="h-4 w-4" /></span>
-                            <span class="min-w-0 flex-1">
-                                <span class="block truncate text-sm font-semibold text-white">
-                                    {{ $lead->customer->name }}:
-                                    {{ $lead->next_action ?? ($lead->status === \App\Enums\LeadStatus::Nieuw ? 'nieuwe aanvraag opvolgen' : 'opvolgen') }}
-                                </span>
-                                <span class="block truncate text-xs text-slate-400">
-                                    {{ $lead->service ?? 'Aanvraag' }}
-                                    @if ($lead->next_action_at), {{ $lead->next_action_at->translatedFormat('j M H:i') }} @endif
-                                </span>
-                            </span>
-                            <x-status-badge :status="$lead->status" />
-                        </a>
-                    @endforeach
-
-                    @foreach ($taken as $task)
-                        <div class="flex items-center gap-3 rounded-xl border border-surface-700 border-l-4 border-l-planning-500 bg-surface-800 p-3">
-                            <button
-                                x-data
-                                @click="patchJson('{{ route('tasks.status', $task) }}', { status: 'afgerond' }).then(() => window.location.reload())"
-                                class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-surface-600 transition hover:border-project-500 hover:bg-project-500/10"
-                                title="Afronden">
-                            </button>
-                            <span class="min-w-0 flex-1">
-                                <span class="block truncate text-sm font-semibold {{ $task->isOverdue() ? 'text-red-300' : 'text-white' }}">{{ $task->title }}</span>
-                                <span class="block truncate text-xs text-slate-400">
-                                    {{ $task->customer?->name ?? $task->project?->name ?? 'Algemeen' }}
-                                    @if ($task->deadline), {{ $task->deadline->isToday() ? 'vandaag' : $task->deadline->translatedFormat('j M') }} @endif
-                                </span>
-                            </span>
-                            <span class="h-2.5 w-2.5 shrink-0 rounded-full {{ $task->priority->dotClasses() }}" title="Prioriteit: {{ $task->priority->label() }}"></span>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
         </section>
 
         {{-- Rechterkolom: planning als tijdlijn + snel starten --}}
         <div class="space-y-6">
-            <section>
-                <p class="text-[11px] font-bold tracking-widest text-planning-400 uppercase">Planning</p>
-                <h2 class="mt-0.5 mb-3 text-base font-bold text-white">Vandaag gepland</h2>
+            <section class="overflow-hidden rounded-2xl border border-surface-700 bg-surface-850">
+                <div class="flex items-center justify-between gap-3 border-b border-surface-700 px-5 py-4">
+                    <h2 class="text-base font-bold text-white">Vandaag <span class="text-brand-500">gepland</span></h2>
+                    <a href="{{ route('planning.index') }}" class="text-xs font-semibold text-white transition hover:text-brand-400">Naar planning</a>
+                </div>
+
                 @if ($planningVandaag->isEmpty())
-                    <div class="rounded-2xl border border-dashed border-surface-600 bg-surface-800 p-6 text-center">
+                    <div class="p-6 text-center">
                         <span class="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-planning-500/15 text-planning-400"><x-icon name="calendar" class="h-5 w-5" /></span>
                         <p class="text-sm font-semibold text-white">Niets gepland voor vandaag</p>
                     </div>
                 @else
-                    <div class="rounded-2xl border border-surface-700 bg-surface-800 p-4">
-                        <div class="relative space-y-4 border-l-2 border-planning-500/30 pl-4">
-                            @foreach ($planningVandaag as $entry)
-                                <div class="relative">
-                                    <span class="absolute top-1.5 -left-[1.4rem] h-2.5 w-2.5 rounded-full border-2 border-white bg-planning-500"></span>
-                                    <p class="text-xs font-bold text-planning-300">{{ $entry->start_time ? substr($entry->start_time, 0, 5) : 'Hele dag' }}</p>
-                                    <p class="truncate text-sm font-semibold text-white">{{ $entry->displayTitle() }}</p>
-                                    <p class="truncate text-xs text-slate-400">{{ $entry->user->name }}, {{ $entry->type->label() }}</p>
-                                </div>
-                            @endforeach
-                        </div>
-                        <a href="{{ route('planning.index') }}" class="mt-4 block text-xs font-semibold text-brand-400 transition hover:text-brand-500">Naar de planning →</a>
+                    <div class="divide-y divide-surface-700 px-5">
+                        @foreach ($planningVandaag as $entry)
+                            @php
+                                // Subregel: waar het over gaat, wat voor afspraak, en wie het doet.
+                                $context = $entry->title ? ($entry->project?->name ?? $entry->customer?->name) : null;
+                                $subregel = collect([$context, $entry->type->label(), $entry->user?->name])->filter()->implode(' · ');
+                                $dossier = $entry->project ? route('projects.show', $entry->project) : ($entry->lead ? route('leads.show', $entry->lead) : null);
+                            @endphp
+                            <div class="flex items-center gap-4 py-3.5">
+                                <span class="w-12 shrink-0 text-sm font-bold text-white">{{ $entry->start_time ? substr($entry->start_time, 0, 5) : 'Dag' }}</span>
+                                <span class="min-w-0 flex-1">
+                                    <span class="block truncate text-sm font-bold text-white">{{ $entry->displayTitle() }}</span>
+                                    <span class="block truncate text-xs text-slate-400">{{ $subregel }}</span>
+                                </span>
+                                @if ($dossier)
+                                    <a href="{{ $dossier }}" class="shrink-0 rounded-full border border-surface-600 px-3 py-1 text-xs font-semibold text-white transition hover:border-surface-500 hover:bg-surface-750">Dossier</a>
+                                @endif
+                            </div>
+                        @endforeach
                     </div>
                 @endif
             </section>
 
-            <section>
-                <p class="text-[11px] font-bold tracking-widest text-slate-500 uppercase">Snel</p>
-                <h2 class="mt-0.5 mb-3 text-base font-bold text-white">Direct starten</h2>
-                <div class="grid grid-cols-2 gap-2">
-                    <a href="{{ route('leads.create') }}" class="col-span-2 flex items-center justify-center gap-2 rounded-xl bg-brand-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-brand-600">
-                        <x-icon name="plus" class="h-4 w-4" /> Nieuwe aanvraag
-                    </a>
-                    @if ($quotesEnabled)
-                        <a href="{{ route('quotes.create') }}" class="flex items-center gap-2 rounded-xl border border-surface-700 bg-surface-800 px-3 py-2.5 text-sm font-semibold text-white transition hover:border-offerte-500 hover:shadow-sm">
-                            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-offerte-500/15 text-offerte-400"><x-icon name="document-text" class="h-3.5 w-3.5" /></span> Offerte
-                        </a>
-                    @endif
-                    <a href="{{ route('projects.create') }}" class="flex items-center gap-2 rounded-xl border border-surface-700 bg-surface-800 px-3 py-2.5 text-sm font-semibold text-white transition hover:border-project-500 hover:shadow-sm">
-                        <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-project-500/15 text-project-400"><x-icon name="building-office" class="h-3.5 w-3.5" /></span> Project
-                    </a>
-                    <a href="{{ route('planning.index') }}" class="flex items-center gap-2 rounded-xl border border-surface-700 bg-surface-800 px-3 py-2.5 text-sm font-semibold text-white transition hover:border-planning-500 hover:shadow-sm">
-                        <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-planning-500/15 text-planning-400"><x-icon name="calendar" class="h-3.5 w-3.5" /></span> Planning
-                    </a>
-                    <a href="{{ route('tasks.index') }}" class="flex items-center gap-2 rounded-xl border border-surface-700 bg-surface-800 px-3 py-2.5 text-sm font-semibold text-white transition hover:border-planning-500 hover:shadow-sm">
-                        <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-planning-500/15 text-planning-400"><x-icon name="clipboard-check" class="h-3.5 w-3.5" /></span> Taken
-                    </a>
+            <section class="overflow-hidden rounded-2xl border border-surface-700 bg-surface-850">
+                <div class="flex items-center justify-between gap-3 border-b border-surface-700 px-5 py-4">
+                    <h2 class="text-base font-bold text-white">Mijn <span class="text-brand-500">taken</span></h2>
+                    <a href="{{ route('tasks.index') }}" class="text-xs font-semibold text-white transition hover:text-brand-400">Alle taken</a>
                 </div>
+
+                @if ($mijnTaken->isEmpty())
+                    <div class="p-6 text-center">
+                        <span class="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-project-500/15 text-project-400"><x-icon name="check" class="h-5 w-5" /></span>
+                        <p class="text-sm font-semibold text-white">Geen open taken</p>
+                    </div>
+                @else
+                    <div class="divide-y divide-surface-700 px-5">
+                        @foreach ($mijnTaken as $task)
+                            @php
+                                $wanneer = $task->deadline
+                                    ? ($task->deadline->isToday() ? 'Vandaag' : ($task->isOverdue() ? 'Te laat, '.$task->deadline->translatedFormat('j M') : $task->deadline->translatedFormat('j M')))
+                                    : null;
+                                $iconTint = $task->isOverdue()
+                                    ? 'bg-red-500/15 text-red-400'
+                                    : ($task->deadline?->isToday() ? 'bg-brand-500/15 text-brand-400' : 'bg-surface-750 text-slate-400');
+                            @endphp
+                            <div class="flex items-center gap-4 py-3.5">
+                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg {{ $iconTint }}"><x-icon name="clipboard-check" class="h-4 w-4" /></span>
+                                <span class="min-w-0 flex-1">
+                                    <span class="block truncate text-sm font-bold text-white">{{ $task->title }}</span>
+                                    <span class="block truncate text-xs text-slate-400">{{ collect([$wanneer, $task->project?->name ?? $task->customer?->name])->filter()->implode(' · ') ?: 'Geen deadline' }}</span>
+                                </span>
+                                <button type="button"
+                                        x-data
+                                        @click="patchJson('{{ route('tasks.status', $task) }}', { status: 'afgerond' }).then(() => window.location.reload())"
+                                        class="flex h-8 w-10 shrink-0 items-center justify-center rounded-full border border-surface-600 text-white transition hover:border-project-500 hover:bg-project-500/10"
+                                        title="Afronden" aria-label="Taak {{ $task->title }} afronden">
+                                    <x-icon name="check" class="h-4 w-4" />
+                                </button>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
             </section>
         </div>
 
         {{-- Projecten onderaan, vier op een rij --}}
         @if ($recenteProjecten->isNotEmpty())
-            <section class="lg:col-span-3">
-                <div class="mb-3 flex items-end justify-between">
-                    <div>
-                        <p class="text-[11px] font-bold tracking-widest text-project-400 uppercase">Projecten</p>
-                        <h2 class="mt-0.5 text-base font-bold text-white">Recent in uitvoering</h2>
-                    </div>
-                    <a href="{{ route('projects.index') }}" class="text-xs font-semibold text-brand-400 transition hover:text-brand-500">Alle projecten →</a>
+            <section class="overflow-hidden rounded-2xl border border-surface-700 bg-surface-850 lg:col-span-3">
+                <div class="flex items-center justify-between gap-3 border-b border-surface-700 px-5 py-4 lg:px-6">
+                    <h2 class="text-base font-bold text-white">In <span class="text-brand-500">uitvoering</span></h2>
+                    <a href="{{ route('projects.index') }}" class="text-xs font-semibold text-white transition hover:text-brand-400">Alle projecten</a>
                 </div>
-                <div data-motion-fan class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div data-motion-fan class="grid grid-cols-1 gap-3 p-5 sm:grid-cols-2 lg:p-6 xl:grid-cols-4">
                     @foreach ($recenteProjecten as $project)
-                        <x-project-card :project="$project" :health="$projectHealth[$project->id] ?? null" />
+                        <x-project-tile :project="$project" :health="$projectHealth[$project->id] ?? null" />
                     @endforeach
                 </div>
             </section>

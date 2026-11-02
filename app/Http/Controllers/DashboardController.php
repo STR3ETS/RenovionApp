@@ -110,12 +110,12 @@ class DashboardController extends Controller
             ->get();
 
         $planningVandaag = ScheduleEntry::whereDate('date', today())
-            ->with(['user', 'project', 'customer'])
+            ->with(['user', 'project', 'lead', 'customer'])
             ->orderByRaw('start_time is null, start_time asc')
             ->get();
 
         $recenteProjecten = Project::active()
-            ->with(['customer', 'craftsmen', 'phases'])
+            ->with(['customer', 'craftsmen', 'phases', 'projectLeader'])
             ->withCount(['photos' => fn ($query) => $query->where('client_visible', true)])
             ->latest('updated_at')
             ->limit(4)
@@ -126,6 +126,12 @@ class DashboardController extends Controller
         return [
             'stats' => $stats,
             'recenteProjecten' => $recenteProjecten,
+            'mijnTaken' => Task::open()
+                ->where('owner_id', auth()->id())
+                ->with(['customer', 'project'])
+                ->orderByRaw('deadline is null, deadline asc')
+                ->limit(5)
+                ->get(),
             'projectHealth' => app(ProjectHealthService::class)->forMany($recenteProjecten),
             'aandachtItems' => $attentionItems->take(4),
             'attentionCount' => $attentionItems->count(),
