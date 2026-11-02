@@ -4,6 +4,9 @@ namespace App\Providers;
 
 use App\Enums\UserRole;
 use App\Models\AutomationSetting;
+use App\Models\Budget;
+use App\Models\BudgetLine;
+use App\Models\BudgetOption;
 use App\Models\Calculation;
 use App\Models\ChecklistItem;
 use App\Models\Customer;
@@ -48,6 +51,9 @@ class AppServiceProvider extends ServiceProvider
     {
         Relation::enforceMorphMap([
             'automation_setting' => AutomationSetting::class,
+            'budget' => Budget::class,
+            'budget_line' => BudgetLine::class,
+            'budget_option' => BudgetOption::class,
             'calculation' => Calculation::class,
             'checklist_item' => ChecklistItem::class,
             'customer' => Customer::class,

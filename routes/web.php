@@ -3,6 +3,10 @@
 use App\Http\Controllers\AttentionController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\AutomationController;
+use App\Http\Controllers\BudgetController;
+use App\Http\Controllers\BudgetExtrasController;
+use App\Http\Controllers\BudgetLineController;
+use App\Http\Controllers\BudgetStructureController;
 use App\Http\Controllers\CalculationAssistController;
 use App\Http\Controllers\CalculationController;
 use App\Http\Controllers\CalculationLineController;
@@ -185,6 +189,40 @@ Route::middleware('auth')->group(function () {
             Route::post('calculaties/{calculation}/regels', [CalculationLineController::class, 'store'])->name('calculations.lines.store');
             Route::patch('calculaties/{calculation}/regels/{line}', [CalculationLineController::class, 'update'])->scopeBindings()->name('calculations.lines.update');
             Route::delete('calculaties/{calculation}/regels/{line}', [CalculationLineController::class, 'destroy'])->scopeBindings()->name('calculations.lines.destroy');
+            // Begrotingen met hoofdstukken: de calculatietafel van Renovion.
+            Route::get('begrotingen', [BudgetController::class, 'index'])->name('budgets.index');
+            Route::get('begrotingen/nieuw', [BudgetController::class, 'create'])->name('budgets.create');
+            Route::post('begrotingen', [BudgetController::class, 'store'])->name('budgets.store');
+            Route::get('begrotingen/{budget}', [BudgetController::class, 'show'])->name('budgets.show');
+            Route::match(['put', 'patch'], 'begrotingen/{budget}', [BudgetController::class, 'update'])->name('budgets.update');
+            Route::delete('begrotingen/{budget}', [BudgetController::class, 'destroy'])->name('budgets.destroy');
+            Route::post('begrotingen/{budget}/definitief', [BudgetController::class, 'finalise'])->name('budgets.finalise');
+            Route::post('begrotingen/{budget}/heropenen', [BudgetController::class, 'reopen'])->name('budgets.reopen');
+
+            // Indeling: hoofdstukken en paragrafen.
+            Route::post('begrotingen/{budget}/hoofdstukken', [BudgetStructureController::class, 'storeChapter'])->name('budget-chapters.store');
+            Route::match(['put', 'patch'], 'begrotingshoofdstukken/{chapter}', [BudgetStructureController::class, 'updateChapter'])->name('budget-chapters.update');
+            Route::delete('begrotingshoofdstukken/{chapter}', [BudgetStructureController::class, 'destroyChapter'])->name('budget-chapters.destroy');
+            Route::post('begrotingshoofdstukken/{chapter}/paragrafen', [BudgetStructureController::class, 'storeParagraph'])->name('budget-paragraphs.store');
+            Route::match(['put', 'patch'], 'begrotingsparagrafen/{paragraph}', [BudgetStructureController::class, 'updateParagraph'])->name('budget-paragraphs.update');
+            Route::delete('begrotingsparagrafen/{paragraph}', [BudgetStructureController::class, 'destroyParagraph'])->name('budget-paragraphs.destroy');
+
+            // Regels.
+            Route::post('begrotingsparagrafen/{paragraph}/regels', [BudgetLineController::class, 'store'])->name('budget-lines.store');
+            Route::match(['put', 'patch'], 'begrotingsregels/{line}', [BudgetLineController::class, 'update'])->name('budget-lines.update');
+            Route::delete('begrotingsregels/{line}', [BudgetLineController::class, 'destroy'])->name('budget-lines.destroy');
+
+            // Staart, opties en termijnen.
+            Route::post('begrotingen/{budget}/staart', [BudgetExtrasController::class, 'storeMarkup'])->name('budget-markups.store');
+            Route::match(['put', 'patch'], 'begrotingsstaart/{markup}', [BudgetExtrasController::class, 'updateMarkup'])->name('budget-markups.update');
+            Route::delete('begrotingsstaart/{markup}', [BudgetExtrasController::class, 'destroyMarkup'])->name('budget-markups.destroy');
+            Route::post('begrotingen/{budget}/opties', [BudgetExtrasController::class, 'storeOption'])->name('budget-options.store');
+            Route::match(['put', 'patch'], 'begrotingsopties/{option}', [BudgetExtrasController::class, 'updateOption'])->name('budget-options.update');
+            Route::delete('begrotingsopties/{option}', [BudgetExtrasController::class, 'destroyOption'])->name('budget-options.destroy');
+            Route::post('begrotingen/{budget}/termijnen', [BudgetExtrasController::class, 'storeTerm'])->name('budget-terms.store');
+            Route::match(['put', 'patch'], 'begrotingstermijnen/{term}', [BudgetExtrasController::class, 'updateTerm'])->name('budget-terms.update');
+            Route::delete('begrotingstermijnen/{term}', [BudgetExtrasController::class, 'destroyTerm'])->name('budget-terms.destroy');
+
             Route::get('prijsitems', PriceItemSearchController::class)->name('price-items.search');
             Route::get('prijslijst', [PriceListController::class, 'index'])->name('price-items.index');
             Route::post('prijslijst', [PriceListController::class, 'store'])->name('price-items.store');
