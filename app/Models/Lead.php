@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'customer_id', 'service', 'description', 'source', 'status', 'value',
     'qualification', 'desired_start',
     'assigned_to', 'last_contact_at', 'next_action', 'next_action_at',
-    'phone_requested_at', 'lost_reason', 'position',
+    'phone_requested_at', 'lost_reason', 'position', 'campaign',
 ])]
 class Lead extends Model
 {
@@ -52,6 +52,11 @@ class Lead extends Model
     public function assignee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+    public function intake(): HasOne
+    {
+        return $this->hasOne(Intake::class);
     }
 
     public function quotes(): HasMany

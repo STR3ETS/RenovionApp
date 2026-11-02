@@ -14,6 +14,7 @@ use App\Models\ChecklistItem;
 use App\Models\Customer;
 use App\Models\DeliveryReport;
 use App\Models\Document;
+use App\Models\Intake;
 use App\Models\Invoice;
 use App\Models\InvoiceLine;
 use App\Models\JobExecution;
@@ -28,6 +29,8 @@ use App\Models\PurchaseInvoice;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderLine;
 use App\Models\Quote;
+use App\Models\QuoteQuestion;
+use App\Models\QuoteView;
 use App\Models\Rfq;
 use App\Models\RfqBid;
 use App\Models\ScheduleEntry;
@@ -73,6 +76,7 @@ class AppServiceProvider extends ServiceProvider
             'customer' => Customer::class,
             'delivery_report' => DeliveryReport::class,
             'document' => Document::class,
+            'intake' => Intake::class,
             'invoice' => Invoice::class,
             'invoice_line' => InvoiceLine::class,
             'job_execution' => JobExecution::class,
@@ -87,6 +91,8 @@ class AppServiceProvider extends ServiceProvider
             'purchase_order' => PurchaseOrder::class,
             'purchase_order_line' => PurchaseOrderLine::class,
             'quote' => Quote::class,
+            'quote_question' => QuoteQuestion::class,
+            'quote_view' => QuoteView::class,
             'rfq' => Rfq::class,
             'rfq_bid' => RfqBid::class,
             'schedule_entry' => ScheduleEntry::class,

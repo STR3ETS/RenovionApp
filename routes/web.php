@@ -19,6 +19,8 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeliveryReportController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\FinanceController;
+use App\Http\Controllers\FollowUpController;
+use App\Http\Controllers\IntakeController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\JobCompletionController;
 use App\Http\Controllers\JobController;
@@ -44,6 +46,7 @@ use App\Http\Controllers\PurchaseInvoiceController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\QuoteBuilderController;
 use App\Http\Controllers\QuoteController;
+use App\Http\Controllers\QuoteDashboardController;
 use App\Http\Controllers\QuoteLineProposalController;
 use App\Http\Controllers\QuotePublicController;
 use App\Http\Controllers\QuoteStatusController;
@@ -196,6 +199,17 @@ Route::middleware('auth')->group(function () {
             Route::post('calculaties/{calculation}/regels', [CalculationLineController::class, 'store'])->name('calculations.lines.store');
             Route::patch('calculaties/{calculation}/regels/{line}', [CalculationLineController::class, 'update'])->scopeBindings()->name('calculations.lines.update');
             Route::delete('calculaties/{calculation}/regels/{line}', [CalculationLineController::class, 'destroy'])->scopeBindings()->name('calculations.lines.destroy');
+            // Verkoop: intake in vijf stappen, opvolging en het offertedashboard.
+            Route::get('intakes', [IntakeController::class, 'index'])->name('intakes.index');
+            Route::post('intakes', [IntakeController::class, 'store'])->name('intakes.store');
+            Route::get('intakes/{intake}', [IntakeController::class, 'show'])->name('intakes.show');
+            Route::match(['put', 'patch'], 'intakes/{intake}', [IntakeController::class, 'update'])->name('intakes.update');
+            Route::post('intakes/{intake}/opname', [IntakeController::class, 'planSurvey'])->name('intakes.survey');
+            Route::post('intakes/{intake}/afronden', [IntakeController::class, 'complete'])->name('intakes.complete');
+
+            Route::get('opvolging', [FollowUpController::class, 'index'])->name('follow-ups.index');
+            Route::get('offertedashboard', QuoteDashboardController::class)->name('quote-dashboard');
+
             // Mensen en partners: eigen mensen, onderaannemers en prijsaanvragen.
             Route::get('mensen', [WorkforceController::class, 'index'])->name('workforce.index');
             Route::match(['put', 'patch'], 'mensen/{user}', [WorkforceController::class, 'update'])->name('workforce.update');
