@@ -84,6 +84,8 @@ class NativeSpeechRecognition {
     }
 }
 
+const SPLASH_FADE = 200;
+
 // Via een canvas, want Tailwind levert kleuren als oklch() en niet als rgb().
 const colorProbe = Object.assign(document.createElement('canvas'), { width: 1, height: 1 }).getContext('2d', { willReadFrequently: true });
 
@@ -179,9 +181,14 @@ if (isNativeApp) {
         }
     });
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
         syncStatusBar();
-        plugin('SplashScreen')?.hide({ fadeOutDuration: 200 });
+        try {
+            await plugin('SplashScreen')?.hide({ fadeOutDuration: SPLASH_FADE });
+        } finally {
+            // Pas nu de pagina-opbouw starten (partials/motion-head), anders speelt hij onder de splash.
+            setTimeout(() => document.documentElement.classList.remove('enter-paused'), SPLASH_FADE);
+        }
     });
     window.addEventListener('load', syncStatusBar);
     window.addEventListener('resize', syncStatusBar);

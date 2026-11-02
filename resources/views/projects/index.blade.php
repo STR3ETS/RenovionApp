@@ -18,7 +18,7 @@
     </div>
     @endif
 
-    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+    <div data-fan class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
         @forelse ($projects as $project)
             <x-project-card :project="$project" />
         @empty

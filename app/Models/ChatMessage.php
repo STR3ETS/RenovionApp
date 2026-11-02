@@ -79,11 +79,53 @@ class ChatMessage extends Model
                 'name' => $this->user?->name ?? 'Verwijderde gebruiker',
                 'initial' => str($this->user?->name ?? '?')->substr(0, 1)->upper()->toString(),
             ],
+            'author' => $this->user_id ?? 'nova',
             'mine' => $viewer !== null && $this->user_id === $viewer->id,
             'body' => $this->body,
             'attachment_url' => $this->attachment_path ? route('chat.attachment', $this) : null,
             'attachment_name' => $this->attachment_name,
-            'time' => $this->created_at->translatedFormat('j M H:i'),
+            'at' => $this->created_at->timestamp,
+            'day' => $this->dayLabel(),
+            'time' => $this->created_at->format('H:i'),
         ];
+    }
+
+    /**
+     * Dagscheiding in het gesprek.
+     */
+    public function dayLabel(): string
+    {
+        return match (true) {
+            $this->created_at->isToday() => 'Vandaag',
+            $this->created_at->isYesterday() => 'Gisteren',
+            $this->created_at->isCurrentYear() => $this->created_at->translatedFormat('j F'),
+            default => $this->created_at->translatedFormat('j F Y'),
+        };
+    }
+
+    /**
+     * Tijd in de kanalenlijst: vandaag de klok, daarna de dag.
+     */
+    public function listTime(): string
+    {
+        return match (true) {
+            $this->created_at->isToday() => $this->created_at->format('H:i'),
+            $this->created_at->isYesterday() => 'Gisteren',
+            default => $this->created_at->translatedFormat('j M'),
+        };
+    }
+
+    /**
+     * Regel in de kanalenlijst: wie wat zei.
+     */
+    public function preview(User $viewer): string
+    {
+        $sender = match (true) {
+            $this->isFromNova() => 'Nova',
+            $this->user_id === $viewer->id => 'Jij',
+            default => str($this->user?->name ?? 'Onbekend')->before(' ')->toString(),
+        };
+
+        return $sender.': '.($this->body ?: 'Foto');
     }
 }

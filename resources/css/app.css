@@ -148,9 +148,22 @@
     padding-bottom: 1rem;
 }
 
-.keyboard-open .chat-panel {
-    height: calc(100dvh - 5.5rem - env(safe-area-inset-top, 0px));
-    min-height: 0;
+/*
+ * Sheet of pop-up open op een touchscreen: de pagina erachter veegt niet mee, ook niet als een lijst
+ * in de sheet zijn einde bereikt. Niet op desktop, daar verspringt de pagina als de scrollbalk wegvalt.
+ */
+@media (pointer: coarse) {
+    html:has([data-popup]:not([x-cloak], [style*='display: none'])) {
+        overflow: hidden;
+    }
+
+    [data-popup] {
+        touch-action: none;
+    }
+
+    [data-popup] * {
+        overscroll-behavior: contain;
+    }
 }
 
 /* Telefoon in landschap: de balken mogen niet de helft van de hoogte opeten. */
@@ -211,7 +224,6 @@
 @keyframes vt-fade-in {
     from {
         opacity: 0;
-        transform: translateY(6px);
     }
 }
 
@@ -219,6 +231,117 @@
     ::view-transition-old(root),
     ::view-transition-new(root) {
         animation: none;
+    }
+}
+
+html:not([data-motion])::view-transition-old(root),
+html:not([data-motion])::view-transition-new(root) {
+    animation: none;
+}
+
+/*
+ * Beweging (briefing, hoofdstuk 6): alleen bij een paginawissel of bij openen, nooit bij gewone updates.
+ * Alleen transform, opacity en filter, en alles uit met data-motion weg (Instellingen) of bij
+ * prefers-reduced-motion. De regie staat in partials/motion-stage en resources/js/motion.js.
+ */
+[data-pill] {
+    position: relative;
+    isolation: isolate;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    /* Pagina-opbouw en waaier: 620 ms per blok, 55 ms ertussen */
+    .enter-block {
+        animation: enter-block 620ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+        animation-delay: calc(var(--enter-index, 0) * 55ms);
+        will-change: transform, opacity, filter;
+    }
+
+    .enter-bar {
+        transform-origin: left;
+        animation: enter-bar 1s cubic-bezier(0.2, 0.7, 0.2, 1) 0.25s both;
+    }
+
+    .enter-paused .enter-block,
+    .enter-paused .enter-bar {
+        animation-play-state: paused;
+    }
+
+    /* Kaart zoomt open */
+    ::view-transition-group(project-zoom) {
+        animation-duration: 500ms;
+        animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+    }
+
+    /* Pop-up: wazige, donkere achtergrond en een venster dat scherp inzoomt. Start vanzelf als x-show
+       hem toont; bij verversen van een open pop-up speelt hij dus niet opnieuw. */
+    html[data-motion] [data-popup] {
+        animation: popup-backdrop 300ms ease-out;
+    }
+
+    html[data-motion] [data-popup] > :not(template) {
+        animation: popup-window 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    @media (width < 64rem) {
+        html[data-motion] [data-popup] > :not(template) {
+            transform-origin: bottom;
+        }
+    }
+
+    /* Micro-interacties. In de base-laag, zodat de transition-klassen van Tailwind voor blijven gaan. */
+    @layer base {
+        html[data-motion] button,
+        html[data-motion] a[class*='bg-brand-500'],
+        html[data-motion] a[class*='rounded-lg'][class*='border'],
+        html[data-motion] a[class*='rounded-xl'][class*='border'] {
+            transition: scale 150ms ease-out;
+        }
+
+        html[data-motion] button:active:not(:disabled),
+        html[data-motion] a[class*='bg-brand-500']:active,
+        html[data-motion] a[class*='rounded-lg'][class*='border']:active,
+        html[data-motion] a[class*='rounded-xl'][class*='border']:active {
+            scale: 0.96;
+        }
+
+        html[data-motion] main a[class*='rounded-2xl'] {
+            transition: translate 200ms ease-out;
+        }
+
+        @media (hover: hover) {
+            html[data-motion] main a[class*='rounded-2xl']:hover {
+                translate: 0 -3px;
+            }
+        }
+    }
+}
+
+@keyframes enter-block {
+    from {
+        opacity: 0;
+        filter: blur(6px);
+        transform: translateY(14px) rotate(var(--enter-rotate, 0deg));
+    }
+}
+
+@keyframes enter-bar {
+    from {
+        transform: scaleX(0);
+    }
+}
+
+@keyframes popup-backdrop {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes popup-window {
+    from {
+        opacity: 0;
+        filter: blur(6px);
+        transform: scale(0.94);
     }
 }
 

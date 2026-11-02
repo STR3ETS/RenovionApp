@@ -9,7 +9,7 @@
         <section class="rounded-2xl border border-gray-200 bg-white p-5">
             <h2 class="mb-4 text-sm font-bold text-navy-900">Klant</h2>
 
-            <div class="mb-4 flex rounded-lg border border-gray-300 p-0.5 text-xs font-semibold">
+            <div data-pill class="mb-4 flex rounded-lg border border-gray-300 p-0.5 text-xs font-semibold">
                 <button type="button" @click="bestaand = false" :class="!bestaand ? 'bg-navy-900 text-white' : 'text-gray-600'" class="flex-1 rounded-md px-3 py-2">Nieuwe klant</button>
                 <button type="button" @click="bestaand = true" :class="bestaand ? 'bg-navy-900 text-white' : 'text-gray-600'" class="flex-1 rounded-md px-3 py-2">Bestaande klant</button>
             </div>

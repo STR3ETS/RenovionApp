@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Cache;
 
 #[Fillable(['type', 'name', 'project_id', 'created_by'])]
@@ -22,6 +23,11 @@ class ChatChannel extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(ChatMessage::class);
+    }
+
+    public function latestMessage(): HasOne
+    {
+        return $this->hasOne(ChatMessage::class)->latestOfMany();
     }
 
     public function readers(): BelongsToMany
@@ -71,6 +77,19 @@ class ChatChannel extends Model
             ->orderBy('type')
             ->orderByDesc('last_message_at')
             ->get();
+    }
+
+    /**
+     * De kanalenlijst: nieuwste gesprek bovenaan, met het laatste bericht als voorbeeld.
+     *
+     * @return Collection<int, self>
+     */
+    public static function overviewFor(User $user)
+    {
+        return self::forUser($user)
+            ->load('latestMessage.user')
+            ->sortByDesc('last_message_at')
+            ->values();
     }
 
     public function unreadCountFor(User $user): int

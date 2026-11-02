@@ -19,7 +19,7 @@
                 </div>
 
                 <div class="mt-4 flex items-end justify-between">
-                    <p class="text-3xl font-bold text-navy-950">{{ $project->progress }}%<span class="ml-1 text-sm font-medium text-gray-500">gereed</span></p>
+                    <p class="text-3xl font-bold text-navy-950"><span data-count class="tabular-nums">{{ $project->progress }}%</span><span class="ml-1 text-sm font-medium text-gray-500">gereed</span></p>
                     @php $volgende = $timeline->firstWhere('state', '!=', 'gereed'); @endphp
                     @if ($volgende)
                         <p class="text-xs text-gray-500">Nu bezig: <span class="font-semibold text-navy-900">{{ $volgende['label'] }}</span></p>
@@ -74,7 +74,7 @@
         </section>
 
         {{-- Tabs --}}
-        <div class="flex gap-1 rounded-xl border border-gray-200 bg-white p-1 text-sm font-semibold">
+        <div data-pill class="flex gap-1 rounded-xl border border-gray-200 bg-white p-1 text-sm font-semibold">
             <button type="button" @click="tab = 'overzicht'" :class="tab === 'overzicht' ? 'bg-navy-950 text-white' : 'text-gray-600'" class="min-w-0 flex-1 rounded-lg px-2 py-2.5 transition">Overzicht</button>
             <button type="button" @click="tab = 'planning'" :class="tab === 'planning' ? 'bg-navy-950 text-white' : 'text-gray-600'" class="min-w-0 flex-1 rounded-lg px-2 py-2.5 transition">Planning</button>
             <button type="button" @click="tab = 'fotos'" :class="tab === 'fotos' ? 'bg-navy-950 text-white' : 'text-gray-600'" class="min-w-0 flex-1 rounded-lg px-2 py-2.5 transition">Foto's</button>

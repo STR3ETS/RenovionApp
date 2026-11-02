@@ -44,6 +44,18 @@ class NotificationSettingsController extends Controller
         return response()->json(['type' => $validated['type'], 'enabled' => (bool) $validated['enabled']]);
     }
 
+    /**
+     * Animaties aan of uit voor deze gebruiker; slaat direct op.
+     */
+    public function updateMotion(Request $request): JsonResponse
+    {
+        $validated = $request->validate(['enabled' => ['required', 'boolean']]);
+
+        $request->user()->forceFill(['motion' => $validated['enabled']])->save();
+
+        return response()->json(['enabled' => (bool) $validated['enabled']]);
+    }
+
     public function test(Request $request): RedirectResponse
     {
         if ($request->user()->deviceTokens()->doesntExist()) {

@@ -13,7 +13,7 @@
     };
 @endphp
 
-<div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+<div data-enter {{ $attributes }} class="mb-5 flex flex-wrap items-center justify-between gap-3">
     <div class="flex min-w-0 items-center gap-3">
         @if ($image)
             <img src="{{ $image }}" alt="" class="h-11 w-11 shrink-0 rounded-xl object-cover ring-1 ring-gray-200">

@@ -1,6 +1,6 @@
 <x-layouts.app :title="$project->name">
 
-    <x-page-header eyebrow="Project" category="project" :title="$project->name" :subtitle="$project->customer->name.', '.($project->city ?? 'plaats onbekend')"
+    <x-page-header data-zoom-target eyebrow="Project" category="project" :title="$project->name" :subtitle="$project->customer->name.', '.($project->city ?? 'plaats onbekend')"
                    :image="($project->cover_photo_path || $project->photos->where('client_visible', true)->isNotEmpty()) ? route('projects.cover', $project) : null">
         <x-status-badge :status="$project->status" class="text-sm" />
         @if ($project->chatChannel)
@@ -27,7 +27,7 @@
     <div x-data="{ tab: @js(in_array(request('tab'), ['uitvoering', 'fotos'], true) ? request('tab') : 'overzicht'), fotoFilter: 'alle' }">
 
     {{-- Tabs (mockup §18) --}}
-    <div class="mb-5 flex gap-1 rounded-xl border border-gray-200 bg-white p-1 text-sm font-semibold">
+    <div data-pill class="mb-5 flex gap-1 rounded-xl border border-gray-200 bg-white p-1 text-sm font-semibold">
         <button type="button" @click="tab = 'overzicht'" :class="tab === 'overzicht' ? 'bg-navy-950 text-white' : 'text-gray-600 hover:bg-gray-50'" class="min-w-0 flex-1 rounded-lg px-2 py-2.5 transition">Overzicht</button>
         <button type="button" @click="tab = 'uitvoering'" :class="tab === 'uitvoering' ? 'bg-navy-950 text-white' : 'text-gray-600 hover:bg-gray-50'" class="flex min-w-0 flex-1 items-center justify-center gap-1 rounded-lg px-2 py-2.5 whitespace-nowrap transition">
             Uitvoering
@@ -49,7 +49,7 @@
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-4">
             <div class="space-y-4">
                 {{-- Filter per fase --}}
-                <nav class="space-y-1 rounded-2xl border border-gray-200 bg-white p-2">
+                <nav data-pill class="space-y-1 rounded-2xl border border-gray-200 bg-white p-2">
                     <button type="button" @click="fotoFilter = 'alle'"
                             :class="fotoFilter === 'alle' ? 'bg-navy-950 text-white' : 'text-gray-600 hover:bg-gray-50'"
                             class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold transition">

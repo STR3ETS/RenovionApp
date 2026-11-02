@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="nl" @if (auth()->user()?->motion ?? true) data-motion @endif>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -9,6 +9,8 @@
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter-tight:400,500,600,700,800" rel="stylesheet">
+
+    @include('partials.load-guard')
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -101,8 +103,9 @@
     <div class="flex min-h-0 flex-1">
 
         {{-- Links: blokbibliotheek --}}
-        <aside :class="mobilePanel === 'blokken' ? 'fixed inset-x-0 bottom-0 z-40 flex max-h-[75dvh] rounded-t-2xl shadow-2xl' : 'hidden'"
+        <aside x-swipe-dismiss="mobilePanel = null" :class="mobilePanel === 'blokken' ? 'fixed inset-x-0 bottom-0 z-40 flex max-h-[75dvh] rounded-t-2xl shadow-2xl' : 'hidden'"
                class="w-full shrink-0 flex-col border-gray-200 bg-white pb-safe lg:static lg:flex lg:max-h-none lg:w-60 lg:rounded-none lg:border-r lg:pb-0 lg:shadow-none">
+            <x-sheet-handle class="mt-2 lg:hidden" />
             <div class="border-b border-gray-200 p-4">
                 <p class="text-[10px] font-bold tracking-widest text-gray-600 uppercase">Blokken</p>
                 <p class="mt-1 text-xs text-gray-500">Kies een blok om toe te voegen</p>
@@ -197,8 +200,9 @@
         </main>
 
         {{-- Rechts: templates + Nova --}}
-        <aside :class="['templates', 'nova'].includes(mobilePanel) ? 'fixed inset-x-0 bottom-0 z-40 flex max-h-[80dvh] rounded-t-2xl shadow-2xl' : 'hidden'"
+        <aside x-swipe-dismiss="mobilePanel = null" :class="['templates', 'nova'].includes(mobilePanel) ? 'fixed inset-x-0 bottom-0 z-40 flex max-h-[80dvh] rounded-t-2xl shadow-2xl' : 'hidden'"
                class="w-full shrink-0 flex-col border-gray-200 bg-white pb-safe xl:static xl:flex xl:max-h-none xl:w-[300px] xl:rounded-none xl:border-l xl:pb-0 xl:shadow-none">
+            <x-sheet-handle class="mt-2 xl:hidden" />
             <div class="flex border-b border-gray-200">
                 <button type="button" @click="rightTab = 'templates'"
                         :class="rightTab === 'templates' ? 'border-brand-500 text-navy-950' : 'border-transparent text-gray-500 hover:text-gray-600'"
@@ -292,7 +296,7 @@
     </nav>
 
     {{-- Modal: bewaren als template --}}
-    <div x-show="tplModal.open" x-cloak @keydown.escape.window="tplModal.open = false"
+    <div data-popup x-show="tplModal.open" x-cloak @keydown.escape.window="tplModal.open = false"
          class="fixed inset-0 z-50 flex items-center justify-center bg-navy-950/60 p-4 backdrop-blur-sm" @click.self="tplModal.open = false">
         <div class="w-full max-w-md rounded-2xl bg-white p-6">
             <h3 class="text-base font-bold text-navy-950">Bewaren als template</h3>
@@ -336,7 +340,7 @@
     </div>
 
     {{-- Modal: Nova per blok --}}
-    <div x-show="ai.open" x-cloak @keydown.escape.window="ai.open = false"
+    <div data-popup x-show="ai.open" x-cloak @keydown.escape.window="ai.open = false"
          class="fixed inset-0 z-50 flex items-center justify-center bg-navy-950/60 p-4 backdrop-blur-sm" @click.self="ai.open = false">
         <div class="w-full max-w-md rounded-2xl bg-white p-5">
             <div class="mb-3 flex items-center gap-3">

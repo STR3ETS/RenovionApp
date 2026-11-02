@@ -36,6 +36,7 @@
         const button = document.getElementById('retry');
 
         cap?.Plugins?.SplashScreen?.hide();
+        cap?.Plugins?.SystemBars?.setStyle({ style: 'DARK' }); // lichte klok op navy
 
         // Android geeft de mislukte URL mee (?retry=, RenovionWebViewClient); iOS kent de server-URL.
         // Op Android wijst getServerUrl() naar de lokale schil, die is dan geen doel.
@@ -43,15 +44,47 @@
         const serverUrl = cap?.getServerUrl?.();
         const target = failedUrl || (serverUrl && !serverUrl.startsWith(window.location.origin) ? serverUrl : null);
 
-        function retry() {
-            button.disabled = true;
-            button.textContent = 'Verbinden...';
-            if (target) window.location.href = target;
-            else window.history.back();
+        // Eerst kijken of de server er weer is, dan pas navigeren: zo blijft dit scherm rustig staan
+        // zolang er geen verbinding is. navigator.onLine is hier niet betrouwbaar, dus ook elke 5 seconden.
+        async function serverIsBack() {
+            if (!target) return false;
+            try {
+                await fetch(new URL('/up', target), { mode: 'no-cors', cache: 'no-store' });
+                return true;
+            } catch {
+                return false;
+            }
         }
 
-        button.addEventListener('click', retry);
-        window.addEventListener('online', retry);
+        let busy = false;
+
+        async function retry(byHand) {
+            if (busy) return;
+            busy = true;
+            if (byHand) {
+                button.disabled = true;
+                button.textContent = 'Verbinden...';
+            }
+
+            if (await serverIsBack()) {
+                window.location.replace(target);
+                return;
+            }
+
+            busy = false;
+            if (!target && byHand) window.history.back();
+            if (byHand) {
+                button.textContent = 'Nog geen verbinding';
+                setTimeout(() => {
+                    button.disabled = false;
+                    button.textContent = 'Opnieuw proberen';
+                }, 1500);
+            }
+        }
+
+        button.addEventListener('click', () => retry(true));
+        window.addEventListener('online', () => retry(false));
+        setInterval(() => retry(false), 5000);
     </script>
 </body>
 </html>

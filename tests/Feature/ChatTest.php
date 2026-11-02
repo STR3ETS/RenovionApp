@@ -16,6 +16,45 @@ class ChatTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_the_channel_list_shows_the_latest_message_with_the_newest_conversation_first(): void
+    {
+        $imad = User::factory()->create(['name' => 'Imad']);
+        $peter = User::factory()->create(['name' => 'Peter Jansen']);
+        $oud = ChatChannel::create(['type' => 'team', 'name' => 'Oud']);
+        $nieuw = ChatChannel::create(['type' => 'team', 'name' => 'Nieuw']);
+        $leeg = ChatChannel::create(['type' => 'team', 'name' => 'Leeg']);
+
+        $oud->messages()->create(['user_id' => $imad->id, 'body' => 'Eerder bericht'])->forceFill(['created_at' => now()->subDay()])->save();
+        $nieuw->messages()->create(['user_id' => $peter->id, 'body' => 'Keuken staat erin']);
+
+        $response = $this->actingAs($imad)->get(route('chat.index'));
+
+        $response->assertSeeInOrder(['Nieuw', 'Peter: Keuken staat erin', 'Oud', 'Jij: Eerder bericht', 'Leeg', 'Nog geen berichten']);
+        $response->assertSee('Gisteren');
+    }
+
+    public function test_a_message_carries_what_the_conversation_needs_to_group_it(): void
+    {
+        $imad = User::factory()->create(['name' => 'Imad']);
+        $kanaal = ChatChannel::create(['type' => 'team', 'name' => 'Algemeen']);
+        $bericht = $kanaal->messages()->create(['user_id' => $imad->id, 'body' => 'Hallo']);
+
+        $data = $bericht->toChatArray($imad);
+
+        $this->assertSame($imad->id, $data['author']);
+        $this->assertSame('Vandaag', $data['day']);
+        $this->assertSame($bericht->created_at->format('H:i'), $data['time']);
+        $this->assertSame('Nova', ($kanaal->messages()->create(['body' => 'Klaar'])->preview($imad) === 'Nova: Klaar') ? 'Nova' : 'fout');
+    }
+
+    public function test_a_photo_without_text_is_named_in_the_channel_list(): void
+    {
+        $imad = User::factory()->create();
+        $kanaal = ChatChannel::create(['type' => 'team', 'name' => 'Algemeen']);
+
+        $this->assertSame('Jij: Foto', $kanaal->messages()->create(['user_id' => $imad->id, 'attachment_path' => 'chat/foto.jpg'])->preview($imad));
+    }
+
     public function test_every_project_gets_its_own_chat_channel(): void
     {
         $project = Project::factory()->create(['name' => 'Verbouwing Huissen']);

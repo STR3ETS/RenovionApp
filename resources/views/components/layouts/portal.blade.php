@@ -1,7 +1,7 @@
 @props(['title' => null])
 
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="nl" @if (auth()->user()?->motion ?? true) data-motion @endif>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -12,6 +12,9 @@
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter-tight:400,500,600,700,800" rel="stylesheet">
+
+    @include('partials.load-guard')
+    @include('partials.motion-head')
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -43,6 +46,8 @@
         @endif
 
         {{ $slot }}
+
+        @include('partials.motion-stage')
     </main>
 
     <footer class="border-t border-gray-200 bg-white pt-5 pb-[calc(1.25rem_+_env(safe-area-inset-bottom))] text-center text-xs text-gray-500">

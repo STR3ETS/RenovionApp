@@ -16,7 +16,7 @@ class ChatController extends Controller
     public function index(Request $request): View
     {
         return view('chat.index', [
-            'channels' => ChatChannel::forUser($request->user()),
+            'channels' => ChatChannel::overviewFor($request->user()),
             'user' => $request->user(),
         ]);
     }
@@ -46,7 +46,7 @@ class ChatController extends Controller
 
         return view('chat.show', [
             'channel' => $channel,
-            'channels' => ChatChannel::forUser($request->user()),
+            'channels' => ChatChannel::overviewFor($request->user()),
             'messages' => $messages,
             'user' => $request->user(),
         ]);

@@ -1,7 +1,7 @@
 @props(['title' => null])
 
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="nl" @if (auth()->user()?->motion ?? true) data-motion @endif>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -13,6 +13,9 @@
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter-tight:400,500,600,700,800" rel="stylesheet">
+
+    @include('partials.load-guard')
+    @include('partials.motion-head')
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -61,14 +64,14 @@
                     ['label' => 'Taken', 'icon' => 'clipboard-check', 'route' => 'tasks.index', 'active' => request()->routeIs('tasks.*')],
                     ['label' => 'Klanten', 'icon' => 'users', 'route' => 'customers.index', 'active' => request()->routeIs('customers.*')],
                     config('renovion.modules.automations') ? ['label' => 'Automations', 'icon' => 'bolt', 'route' => 'automations.index', 'active' => request()->routeIs('automations.*')] : null,
-                    ['label' => 'Team', 'icon' => 'chat-bubble', 'route' => 'chat.index', 'active' => request()->routeIs('chat.*'), 'badge' => $chatUnread],
+                    ['label' => 'Chat', 'icon' => 'chat-bubble', 'route' => 'chat.index', 'active' => request()->routeIs('chat.*'), 'badge' => $chatUnread],
                     auth()->user()->can('manage-team') ? ['label' => 'Teambeheer', 'icon' => 'user', 'route' => 'team.index', 'active' => request()->routeIs('team.*')] : null,
                 ])->filter() : collect([
                     ['label' => 'Vandaag', 'icon' => 'home', 'route' => 'dashboard', 'active' => request()->routeIs('dashboard')],
                     ['label' => 'Projecten', 'icon' => 'building-office', 'route' => 'projects.index', 'active' => request()->routeIs('projects.*')],
                     ['label' => 'Planning', 'icon' => 'calendar', 'route' => 'planning.index', 'active' => request()->routeIs('planning.*')],
                     ['label' => 'Taken', 'icon' => 'clipboard-check', 'route' => 'tasks.index', 'active' => request()->routeIs('tasks.*')],
-                    ['label' => 'Team', 'icon' => 'chat-bubble', 'route' => 'chat.index', 'active' => request()->routeIs('chat.*'), 'badge' => $chatUnread],
+                    ['label' => 'Chat', 'icon' => 'chat-bubble', 'route' => 'chat.index', 'active' => request()->routeIs('chat.*'), 'badge' => $chatUnread],
                 ]);
             @endphp
 
@@ -164,6 +167,8 @@
             @endif
 
             {{ $slot }}
+
+            @include('partials.motion-stage')
         </main>
     </div>
 
@@ -181,9 +186,10 @@
             </span>
         </button>
 
-        <div x-show="open" x-cloak @click.self="open = false" @keydown.escape.window="open = false"
+        <div data-popup x-show="open" x-cloak @click.self="open = false" @keydown.escape.window="open = false"
              class="fixed inset-0 z-50 flex items-end justify-center bg-navy-950/60 backdrop-blur-sm lg:items-center">
-            <div class="flex h-[85dvh] w-full max-w-lg flex-col rounded-t-2xl bg-white lg:h-[70vh] lg:rounded-2xl" @click.stop>
+            <div x-swipe-dismiss="open = false" class="flex h-[85dvh] w-full max-w-lg flex-col rounded-t-2xl bg-white lg:h-[70vh] lg:rounded-2xl" @click.stop>
+                <x-sheet-handle class="mt-2 lg:hidden" />
 
                 {{-- Header --}}
                 <div class="flex items-center gap-3 border-b border-gray-100 p-4">
@@ -341,10 +347,10 @@
         </div>
 
         {{-- Sheets voor "+" en "Meer" --}}
-        <div x-show="sheet" x-cloak x-transition.opacity @click.self="sheet = null"
+        <div data-popup x-show="sheet" x-cloak @click.self="sheet = null"
              class="fixed inset-0 z-50 flex items-end bg-navy-950/60 backdrop-blur-sm">
-            <div class="max-h-[85dvh] w-full overflow-y-auto rounded-t-2xl bg-white px-4 pt-3 pb-[calc(1rem_+_env(safe-area-inset-bottom))]">
-                <div class="mx-auto mb-3 h-1 w-10 rounded-full bg-gray-200"></div>
+            <div x-swipe-dismiss="sheet = null" class="max-h-[85dvh] w-full overflow-y-auto rounded-t-2xl bg-white px-4 pt-3 pb-[calc(1rem_+_env(safe-area-inset-bottom))]">
+                <x-sheet-handle class="mb-3" />
 
                 <div x-show="sheet === 'nieuw'">
                     <p class="mb-3 text-[11px] font-bold tracking-widest text-gray-600 uppercase">Nieuw</p>

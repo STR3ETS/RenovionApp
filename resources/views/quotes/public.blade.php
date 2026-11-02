@@ -10,6 +10,8 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter-tight:400,500,600,700,800" rel="stylesheet">
 
+    @include('partials.load-guard')
+
     @vite(['resources/css/app.css'])
 </head>
 <body class="min-h-screen bg-gray-100 font-sans text-gray-900 antialiased">

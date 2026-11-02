@@ -21,7 +21,7 @@
         <div class="lg:hidden" x-data="{ status: @js($startStatus->value) }">
             {{-- scroll-px-4: snap houdt de 16px marge aan, anders springt de eerste knop tegen de schermrand.
                  De spacer aan het eind doet hetzelfde voor de laatste knop (padding-right telt niet mee bij scrollen). --}}
-            <div class="-mx-4 mb-4 flex snap-x scroll-px-4 gap-1.5 overflow-x-auto px-4 pb-1">
+            <div data-pill class="-mx-4 mb-4 flex snap-x scroll-px-4 gap-1.5 overflow-x-auto px-4 pb-1">
                 @foreach ($pipeline as $statusColumn)
                     <button type="button" @click="status = @js($statusColumn->value)"
                             :class="status === @js($statusColumn->value) ? 'border-navy-950 bg-navy-950 text-white' : 'border-gray-200 bg-white text-navy-900'"

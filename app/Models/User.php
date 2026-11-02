@@ -44,6 +44,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'role' => UserRole::class,
             'notification_preferences' => 'array',
+            'motion' => 'boolean',
         ];
     }
 

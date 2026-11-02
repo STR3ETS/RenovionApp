@@ -22,7 +22,7 @@
         <div class="lg:hidden">
             @can('manage-crm')
                 {{-- Planner: dagbalk + per persoon wat er die dag staat, en wie vrij is --}}
-                <div class="mb-4 grid grid-cols-5 gap-1.5">
+                <div data-pill class="mb-4 grid grid-cols-5 gap-1.5">
                     @foreach ($days as $i => $day)
                         @php $heeftPlanning = $rows->contains(fn ($rowUser) => $entries->has($rowUser->id.'|'.$day->toDateString())); @endphp
                         <button type="button" @click="day = {{ $i }}"
@@ -106,11 +106,11 @@
         </div>
 
         {{-- Detailpaneel (mobiel): tikken op een planningsblok --}}
-        <div x-show="detail" x-cloak x-transition.opacity @click.self="detail = null" @keydown.escape.window="detail = null"
+        <div data-popup x-show="detail" x-cloak @click.self="detail = null" @keydown.escape.window="detail = null"
              class="fixed inset-0 z-50 flex items-end bg-navy-950/60 backdrop-blur-sm lg:hidden">
             <template x-if="detail">
-                <div class="w-full rounded-t-2xl bg-white px-4 pt-3 pb-[calc(1rem_+_env(safe-area-inset-bottom))]">
-                    <div class="mx-auto mb-3 h-1 w-10 rounded-full bg-gray-200"></div>
+                <div x-swipe-dismiss="detail = null" class="w-full rounded-t-2xl bg-white px-4 pt-3 pb-[calc(1rem_+_env(safe-area-inset-bottom))]">
+                    <x-sheet-handle class="mb-3" />
                     <span class="inline-block rounded-full border px-2 py-0.5 text-[11px] font-semibold" :class="detail.classes" x-text="detail.type"></span>
                     <h2 class="mt-2 text-lg font-bold text-navy-950" x-text="detail.title"></h2>
 
@@ -212,9 +212,10 @@
 
         {{-- Inplannen-modal --}}
         @can('manage-crm')
-        <div x-show="modal" x-cloak @click.self="modal = false" class="fixed inset-0 z-50 flex items-end justify-center bg-navy-900/60 backdrop-blur-sm lg:items-center">
-            <form method="POST" action="{{ route('planning.store') }}" class="w-full max-w-md space-y-3 rounded-t-2xl bg-white p-6 lg:rounded-2xl">
+        <div data-popup x-show="modal" x-cloak @click.self="modal = false" class="fixed inset-0 z-50 flex items-end justify-center bg-navy-900/60 backdrop-blur-sm lg:items-center">
+            <form method="POST" action="{{ route('planning.store') }}" x-swipe-dismiss="modal = false" class="max-h-[90dvh] w-full max-w-md space-y-3 overflow-y-auto rounded-t-2xl bg-white p-6 lg:rounded-2xl">
                 @csrf
+                <x-sheet-handle class="-mt-3 lg:hidden" />
                 <h2 class="text-base font-bold text-navy-900">Inplannen</h2>
 
                 <x-field label="Wie" name="user_id">

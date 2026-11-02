@@ -23,7 +23,7 @@
             </span>
         @endif
     </div>
-    <p class="mt-1 text-2xl font-bold text-navy-950 lg:text-3xl">{{ $value }}</p>
+    <p data-count class="mt-1 text-2xl font-bold text-navy-950 tabular-nums lg:text-3xl">{{ $value }}</p>
     @if ($sub)
         <p class="mt-0.5 text-xs font-medium {{ $alert ? 'text-red-600' : $styles['sub'] }}">{{ $sub }}</p>
     @endif

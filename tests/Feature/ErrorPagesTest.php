@@ -32,6 +32,16 @@ class ErrorPagesTest extends TestCase
         $response->assertSee('Terug naar Vandaag');
     }
 
+    public function test_a_half_loaded_page_falls_back_to_a_retry_screen(): void
+    {
+        $this->actingAs(User::factory()->create())->get('/')
+            ->assertSee('renovion-load-guard', false);
+
+        $this->get(route('login'))->assertRedirect();
+        auth()->logout();
+        $this->get(route('login'))->assertSee('renovion-load-guard', false);
+    }
+
     public function test_an_expired_session_sends_people_to_the_login(): void
     {
         $html = view('errors.419')->render();

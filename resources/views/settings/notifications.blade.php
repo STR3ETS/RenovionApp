@@ -85,6 +85,36 @@
                 </form>
             @endif
         </section>
+
+        {{-- Beweging: per gebruiker uit te zetten, slaat direct op --}}
+        <section class="rounded-2xl border border-gray-200 bg-white p-5"
+                 x-data="{
+                     saved: false,
+                     failed: false,
+                     async toggle(input) {
+                         this.saved = this.failed = false;
+                         try {
+                             await patchJson(@js(route('motion-settings.update')), { enabled: input.checked });
+                             window.setMotion(input.checked);
+                             this.saved = true;
+                         } catch {
+                             input.checked = !input.checked;
+                             this.failed = true;
+                         }
+                         setTimeout(() => { this.saved = this.failed = false; }, 2500);
+                     },
+                 }">
+            <label class="flex cursor-pointer items-start gap-3">
+                <span class="min-w-0 flex-1">
+                    <span class="block text-sm font-bold text-navy-900">Animaties</span>
+                    <span class="mt-0.5 block text-xs text-gray-500">Beweging bij het wisselen van pagina. Staat je telefoon op minder beweging, dan staan ze altijd uit.</span>
+                    <span x-show="saved" x-cloak class="mt-1 flex items-center gap-1 text-xs font-semibold text-green-700"><x-icon name="check" class="h-3.5 w-3.5" /> Opgeslagen</span>
+                    <span x-show="failed" x-cloak class="mt-1 block text-xs font-semibold text-red-600">Niet opgeslagen, probeer het opnieuw.</span>
+                </span>
+                <input type="checkbox" class="peer sr-only" aria-label="Animaties" @checked(auth()->user()->motion) @change="toggle($event.target)">
+                <span class="relative mt-1 h-6 w-11 shrink-0 rounded-full bg-gray-200 transition peer-checked:bg-brand-500 peer-focus-visible:ring-2 peer-focus-visible:ring-brand-500 peer-focus-visible:ring-offset-2 after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-5"></span>
+            </label>
+        </section>
     </div>
 
 </x-layouts.app>

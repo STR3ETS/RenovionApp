@@ -116,6 +116,7 @@ Route::middleware('auth')->group(function () {
         // Instellingen > Meldingen: welke pushmeldingen je wilt krijgen, plus een testmelding.
         Route::get('instellingen/meldingen', [NotificationSettingsController::class, 'edit'])->name('notification-settings.edit');
         Route::patch('instellingen/meldingen', [NotificationSettingsController::class, 'update'])->middleware('throttle:60,1')->name('notification-settings.update');
+        Route::patch('instellingen/beweging', [NotificationSettingsController::class, 'updateMotion'])->middleware('throttle:60,1')->name('motion-settings.update');
         Route::post('instellingen/meldingen/test', [NotificationSettingsController::class, 'test'])->middleware('throttle:5,1')->name('notification-settings.test');
 
         Route::post('documenten', [DocumentController::class, 'store'])->name('documents.store');

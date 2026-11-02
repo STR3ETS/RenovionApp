@@ -6,7 +6,7 @@
     $hasCover = $project->cover_photo_path !== null || ($project->photos_count ?? 0) > 0;
 @endphp
 
-<a href="{{ route('projects.show', $project) }}"
+<a href="{{ route('projects.show', $project) }}" data-zoom-card
    class="group flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:border-brand-400 hover:shadow-md">
     <div class="relative h-28 overflow-hidden bg-gradient-to-br from-navy-700 via-navy-900 to-navy-950">
         @if ($hasCover)
