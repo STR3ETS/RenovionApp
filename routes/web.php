@@ -47,10 +47,13 @@ use App\Http\Controllers\QuoteController;
 use App\Http\Controllers\QuoteLineProposalController;
 use App\Http\Controllers\QuotePublicController;
 use App\Http\Controllers\QuoteStatusController;
+use App\Http\Controllers\RfqController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\SubcontractorController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TaskStatusController;
 use App\Http\Controllers\TeamController;
+use App\Http\Controllers\WorkforceController;
 use App\Http\Controllers\WorkOrderApprovalController;
 use App\Http\Controllers\WorkOrderController;
 use App\Http\Controllers\WorkPackageController;
@@ -193,6 +196,30 @@ Route::middleware('auth')->group(function () {
             Route::post('calculaties/{calculation}/regels', [CalculationLineController::class, 'store'])->name('calculations.lines.store');
             Route::patch('calculaties/{calculation}/regels/{line}', [CalculationLineController::class, 'update'])->scopeBindings()->name('calculations.lines.update');
             Route::delete('calculaties/{calculation}/regels/{line}', [CalculationLineController::class, 'destroy'])->scopeBindings()->name('calculations.lines.destroy');
+            // Mensen en partners: eigen mensen, onderaannemers en prijsaanvragen.
+            Route::get('mensen', [WorkforceController::class, 'index'])->name('workforce.index');
+            Route::match(['put', 'patch'], 'mensen/{user}', [WorkforceController::class, 'update'])->name('workforce.update');
+            Route::post('mensen/{user}/certificaten', [WorkforceController::class, 'storeCertificate'])->name('certificates.store');
+            Route::delete('certificaten/{certificate}', [WorkforceController::class, 'destroyCertificate'])->name('certificates.destroy');
+            Route::post('mensen/{user}/afwezigheid', [WorkforceController::class, 'storeAbsence'])->name('absences.store');
+            Route::delete('afwezigheid/{absence}', [WorkforceController::class, 'destroyAbsence'])->name('absences.destroy');
+
+            Route::get('onderaannemers', [SubcontractorController::class, 'index'])->name('subcontractors.index');
+            Route::post('onderaannemers', [SubcontractorController::class, 'store'])->name('subcontractors.store');
+            Route::get('onderaannemers/{subcontractor}', [SubcontractorController::class, 'show'])->name('subcontractors.show');
+            Route::match(['put', 'patch'], 'onderaannemers/{subcontractor}', [SubcontractorController::class, 'update'])->name('subcontractors.update');
+            Route::post('onderaannemers/{subcontractor}/dossier', [SubcontractorController::class, 'storeDocument'])->name('subcontractor-documents.store');
+            Route::delete('partnerdossier/{document}', [SubcontractorController::class, 'destroyDocument'])->name('subcontractor-documents.destroy');
+
+            Route::get('prijsaanvragen', [RfqController::class, 'index'])->name('rfqs.index');
+            Route::get('prijsaanvragen/nieuw', [RfqController::class, 'create'])->name('rfqs.create');
+            Route::post('prijsaanvragen', [RfqController::class, 'store'])->name('rfqs.store');
+            Route::get('prijsaanvragen/{rfq}', [RfqController::class, 'show'])->name('rfqs.show');
+            Route::match(['put', 'patch'], 'prijsaanvragen/{rfq}', [RfqController::class, 'update'])->name('rfqs.update');
+            Route::post('prijsaanvragen/{rfq}/uitnodigen', [RfqController::class, 'invite'])->name('rfqs.invite');
+            Route::post('prijsaanvragen/{rfq}/biedingen', [RfqController::class, 'storeBid'])->name('rfq-bids.store');
+            Route::post('prijsaanvragen/{rfq}/gunnen/{bid}', [RfqController::class, 'award'])->name('rfqs.award');
+
             // Geld: facturatie, inkoop, nacalculatie en het financiële beeld.
             Route::get('financieel', [FinanceController::class, 'index'])->name('finance.index');
             Route::get('nacalculatie', [FinanceController::class, 'costReviews'])->name('cost-reviews.index');

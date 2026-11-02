@@ -56,6 +56,16 @@ class User extends Authenticatable
         ];
     }
 
+    public function certificates(): HasMany
+    {
+        return $this->hasMany(Certificate::class)->orderBy('valid_until');
+    }
+
+    public function absences(): HasMany
+    {
+        return $this->hasMany(Absence::class)->orderBy('from');
+    }
+
     /** Het tarief waarmee uren naar kosten gaan; zonder tarief rekenen we met 50 euro. */
     public function rate(): float
     {

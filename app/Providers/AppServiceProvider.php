@@ -3,11 +3,13 @@
 namespace App\Providers;
 
 use App\Enums\UserRole;
+use App\Models\Absence;
 use App\Models\AutomationSetting;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\BudgetOption;
 use App\Models\Calculation;
+use App\Models\Certificate;
 use App\Models\ChecklistItem;
 use App\Models\Customer;
 use App\Models\DeliveryReport;
@@ -26,7 +28,11 @@ use App\Models\PurchaseInvoice;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderLine;
 use App\Models\Quote;
+use App\Models\Rfq;
+use App\Models\RfqBid;
 use App\Models\ScheduleEntry;
+use App\Models\Subcontractor;
+use App\Models\SubcontractorDocument;
 use App\Models\Task;
 use App\Models\User;
 use App\Models\WorkOrder;
@@ -56,11 +62,13 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Relation::enforceMorphMap([
+            'absence' => Absence::class,
             'automation_setting' => AutomationSetting::class,
             'budget' => Budget::class,
             'budget_line' => BudgetLine::class,
             'budget_option' => BudgetOption::class,
             'calculation' => Calculation::class,
+            'certificate' => Certificate::class,
             'checklist_item' => ChecklistItem::class,
             'customer' => Customer::class,
             'delivery_report' => DeliveryReport::class,
@@ -79,7 +87,11 @@ class AppServiceProvider extends ServiceProvider
             'purchase_order' => PurchaseOrder::class,
             'purchase_order_line' => PurchaseOrderLine::class,
             'quote' => Quote::class,
+            'rfq' => Rfq::class,
+            'rfq_bid' => RfqBid::class,
             'schedule_entry' => ScheduleEntry::class,
+            'subcontractor' => Subcontractor::class,
+            'subcontractor_document' => SubcontractorDocument::class,
             'task' => Task::class,
             'user' => User::class,
             'work_order' => WorkOrder::class,
