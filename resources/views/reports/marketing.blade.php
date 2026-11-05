@@ -17,23 +17,12 @@
         </form>
     </x-page-header>
 
-    <section data-motion-fan class="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        @foreach ([
-            ['Aanvragen', (string) $d['total'], 'in deze periode', 'bg-planning-500', 'text-planning-400'],
-            ['Gewonnen waarde', $eur($d['won_value']), 'aan opdrachten', 'bg-green-500', 'text-green-400'],
-            ['In de pipeline', $eur($d['pipeline_value']), 'nog open', 'bg-lead-500', 'text-lead-400'],
-            ['Terugkerende klanten', (string) $d['repeat_customers'], 'meer dan één project', 'bg-klant-500', 'text-klant-400'],
-        ] as [$label, $value, $sub, $accent, $labelClass])
-            <div class="motion-lift overflow-hidden rounded-2xl border border-surface-700 bg-surface-800">
-                <span class="block h-[3px] w-full {{ $accent }}"></span>
-                <div class="p-4">
-                    <p class="text-[11px] font-bold tracking-widest uppercase {{ $labelClass }}">{{ $label }}</p>
-                    <p data-count class="mt-1 text-lg font-bold text-white">{{ $value }}</p>
-                    <p class="mt-0.5 text-xs text-slate-400">{{ $sub }}</p>
-                </div>
-            </div>
-        @endforeach
-    </section>
+    <x-kpi-row>
+        <x-kpi dark label="Gewonnen waarde" :value="$eur($d['won_value'])" sub="aan opdrachten" />
+        <x-kpi label="Aanvragen" :value="(string) $d['total']" sub="in deze periode" />
+        <x-kpi label="In de pipeline" :value="$eur($d['pipeline_value'])" sub="nog open" />
+        <x-kpi label="Terugkerende klanten" :value="(string) $d['repeat_customers']" sub="meer dan een project" />
+    </x-kpi-row>
 
     @if ($d['best_source'])
         <div class="mb-5 flex items-start gap-3 rounded-2xl border border-green-500/25 bg-green-500/5 p-4">

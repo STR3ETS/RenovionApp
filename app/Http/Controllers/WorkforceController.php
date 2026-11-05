@@ -29,7 +29,17 @@ class WorkforceController extends Controller
         $people = User::query()
             ->where('active', true)
             ->whereNotIn('role', collect(UserRole::external())->pluck('value'))
-            ->with(['certificates', 'absences' => fn ($q) => $q->where('until', '>=', today())])
+            // Lopende en komende afwezigheid voor het beheerpaneel, plus alles
+            // wat in de bekeken week valt: anders klopt de capaciteit niet
+            // zodra je een week terugkijkt.
+            ->with([
+                'certificates',
+                'absences' => fn ($q) => $q
+                    ->where(fn ($s) => $s
+                        ->where('until', '>=', today())
+                        ->orWhere(fn ($o) => $o->where('from', '<=', $weekEnd)->where('until', '>=', $week)))
+                    ->orderBy('from'),
+            ])
             ->orderBy('name')
             ->get();
 

@@ -6,39 +6,24 @@
     <x-page-header title="Nazorg en service" eyebrow="Projecten" category="project"
                    subtitle="Meldingen na de oplevering. De eerste vraag is altijd of het onder garantie valt." />
 
-    <section class="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        @foreach ([
-            ['Open meldingen', (string) $openCount, 'wachten op afhandeling', 'bg-brand-500', 'text-brand-400'],
-            ['Spoed', (string) $urgent, $urgent > 0 ? 'lekkage of onveilig' : 'niets dringend', $urgent > 0 ? 'bg-red-500' : 'bg-surface-600', $urgent > 0 ? 'text-red-400' : 'text-slate-400'],
-            ['Langst open', $oldest.' '.($oldest === 1 ? 'dag' : 'dagen'), 'oudste melding', 'bg-amber-500', 'text-amber-400'],
-            ['Afgehandeld', (string) ($counts[ServiceTicket::STATUS_RESOLVED] ?? 0), 'in totaal', 'bg-green-500', 'text-green-400'],
-        ] as [$label, $value, $sub, $accent, $labelClass])
-            <div class="overflow-hidden rounded-2xl border border-surface-700 bg-surface-800">
-                <span class="block h-[3px] w-full {{ $accent }}"></span>
-                <div class="p-4">
-                    <p class="text-[11px] font-bold tracking-widest uppercase {{ $labelClass }}">{{ $label }}</p>
-                    <p class="mt-1 text-lg font-bold text-white">{{ $value }}</p>
-                    <p class="mt-0.5 text-xs text-slate-400">{{ $sub }}</p>
-                </div>
-            </div>
-        @endforeach
-    </section>
+    <x-kpi-row>
+        <x-kpi dark label="Open meldingen" :value="(string) $openCount" sub="wachten op afhandeling" />
+        <x-kpi label="Spoed" :value="(string) $urgent" :alert="$urgent > 0"
+               :sub="$urgent > 0 ? 'lekkage of onveilig' : 'niets dringend'" />
+        <x-kpi label="Langst open" :value="$oldest.' '.($oldest === 1 ? 'dag' : 'dagen')" sub="oudste melding" />
+        <x-kpi label="Afgehandeld" :value="(string) ($counts[ServiceTicket::STATUS_RESOLVED] ?? 0)" sub="in totaal" />
+    </x-kpi-row>
 
     <div class="grid gap-4 xl:grid-cols-3">
         <div class="xl:col-span-2">
-            <div class="scrollbar-none mb-4 flex gap-2 overflow-x-auto">
-                <a href="{{ route('service.index') }}"
-                   class="flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-semibold transition {{ $filter === '' ? 'border-brand-500 bg-brand-500/10 text-white' : 'border-surface-700 text-slate-400 hover:text-slate-200' }}">
-                    Alles <span class="text-xs text-slate-500">{{ $counts->sum() }}</span>
-                </a>
+            <x-tabs>
+                <x-tab :href="route('service.index')" :active="$filter === ''" :count="$counts->sum()">Alles</x-tab>
                 @foreach (ServiceTicket::STATUSES as $key => $label)
                     @continue(($counts[$key] ?? 0) === 0 && $filter !== $key)
-                    <a href="{{ route('service.index', ['status' => $key]) }}"
-                       class="flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-semibold transition {{ $filter === $key ? 'border-brand-500 bg-brand-500/10 text-white' : 'border-surface-700 text-slate-400 hover:text-slate-200' }}">
-                        {{ $label }} <span class="text-xs text-slate-500">{{ $counts[$key] ?? 0 }}</span>
-                    </a>
+                    <x-tab :href="route('service.index', ['status' => $key])"
+                           :active="$filter === $key" :count="$counts[$key] ?? 0">{{ $label }}</x-tab>
                 @endforeach
-            </div>
+            </x-tabs>
 
             @if ($tickets->isEmpty())
                 <x-empty-state icon="wrench" category="project" title="Geen servicemeldingen"

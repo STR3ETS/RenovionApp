@@ -45,22 +45,12 @@
         </div>
     </x-page-header>
 
-    <section class="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-3">
-        @foreach ([
-            ['Openstaande bestellingen', $eur($open), 'nog niet gefactureerd', 'bg-brand-500', 'text-brand-400'],
-            ['Facturen ter goedkeuring', (string) $toApprove, $toApprove > 0 ? 'wachten op controle' : 'alles beoordeeld', 'bg-amber-500', 'text-amber-400'],
-            ['Bestellingen totaal', (string) $orders->total(), 'in de lijst', 'bg-lead-500', 'text-lead-400'],
-        ] as [$label, $value, $sub, $accent, $labelClass])
-            <div class="overflow-hidden rounded-2xl border border-surface-700 bg-surface-800">
-                <span class="block h-[3px] w-full {{ $accent }}"></span>
-                <div class="p-4">
-                    <p class="text-[11px] font-bold tracking-widest uppercase {{ $labelClass }}">{{ $label }}</p>
-                    <p class="mt-1 text-lg font-bold text-white">{{ $value }}</p>
-                    <p class="mt-0.5 text-xs text-slate-400">{{ $sub }}</p>
-                </div>
-            </div>
-        @endforeach
-    </section>
+    <x-kpi-row class="lg:grid-cols-[1.5fr_repeat(2,minmax(0,1fr))]">
+        <x-kpi dark label="Openstaande bestellingen" :value="$eur($open)" sub="nog niet gefactureerd" />
+        <x-kpi label="Facturen ter goedkeuring" :value="(string) $toApprove" :alert="$toApprove > 0"
+               :sub="$toApprove > 0 ? 'wachten op controle' : 'alles beoordeeld'" />
+        <x-kpi label="Bestellingen totaal" :value="(string) $orders->total()" sub="in de lijst" />
+    </x-kpi-row>
 
     <div class="grid gap-4 xl:grid-cols-2">
         <div>

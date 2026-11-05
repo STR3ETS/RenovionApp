@@ -11,25 +11,14 @@
                    subtitle="Dit project heeft een begroting nodig om de werkelijke kosten tegen af te kunnen zetten." />
 @else
     <div class="space-y-4">
-        <section class="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            @foreach ([
-                ['Begroot', $eur($review['budgeted']), 'directe kosten', 'bg-surface-600', 'text-slate-400'],
-                ['Werkelijk', $eur($review['actual']), 'geboekt tot nu toe', 'bg-brand-500', 'text-brand-400'],
-                ['Verwacht', $eur($review['expected']), 'eindbeeld', 'bg-lead-500', 'text-lead-400'],
-                ['Marge verwacht', $num($review['margin_expected']).'%', 'begroot '.$num($review['margin_budgeted']).'%',
-                    $review['margin_expected'] < $review['margin_budgeted'] - 2 ? 'bg-red-500' : 'bg-green-500',
-                    $review['margin_expected'] < $review['margin_budgeted'] - 2 ? 'text-red-400' : 'text-green-400'],
-            ] as [$label, $value, $sub, $accent, $labelClass])
-                <div class="overflow-hidden rounded-2xl border border-surface-700 bg-surface-800">
-                    <span class="block h-[3px] w-full {{ $accent }}"></span>
-                    <div class="p-4">
-                        <p class="text-[11px] font-bold tracking-widest uppercase {{ $labelClass }}">{{ $label }}</p>
-                        <p class="mt-1 text-lg font-bold text-white">{{ $value }}</p>
-                        <p class="text-xs text-slate-400">{{ $sub }}</p>
-                    </div>
-                </div>
-            @endforeach
-        </section>
+        <x-kpi-row class="mb-0">
+            <x-kpi dark label="Marge verwacht" :value="$num($review['margin_expected']).'%'"
+                   :alert="$review['margin_expected'] < $review['margin_budgeted'] - 2"
+                   :sub="'begroot '.$num($review['margin_budgeted']).'%'" />
+            <x-kpi label="Begroot" :value="$eur($review['budgeted'])" sub="directe kosten" />
+            <x-kpi label="Werkelijk" :value="$eur($review['actual'])" sub="geboekt tot nu toe" />
+            <x-kpi label="Verwacht" :value="$eur($review['expected'])" sub="eindbeeld" />
+        </x-kpi-row>
 
         <section class="overflow-hidden rounded-2xl border border-surface-700 bg-surface-800">
             <div class="border-b border-surface-700 p-5">

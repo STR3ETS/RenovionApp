@@ -12,36 +12,21 @@
         </a>
     </x-page-header>
 
-    <section class="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-3">
-        @foreach ([
-            ['Verplichtingen', $eur($commitment), 'gegund aan partners', 'bg-brand-500', 'text-brand-400'],
-            [$savings >= 0 ? 'Onder begroting' : 'Boven begroting', $eur(abs($savings)), 'over alle gunningen', $savings >= 0 ? 'bg-green-500' : 'bg-red-500', $savings >= 0 ? 'text-green-400' : 'text-red-400'],
-            ['Uitgezet', (string) ($counts[Rfq::STATUS_SENT] ?? 0), 'wachten op biedingen', 'bg-lead-500', 'text-lead-400'],
-        ] as [$label, $value, $sub, $accent, $labelClass])
-            <div class="overflow-hidden rounded-2xl border border-surface-700 bg-surface-800">
-                <span class="block h-[3px] w-full {{ $accent }}"></span>
-                <div class="p-4">
-                    <p class="text-[11px] font-bold tracking-widest uppercase {{ $labelClass }}">{{ $label }}</p>
-                    <p class="mt-1 text-lg font-bold text-white">{{ $value }}</p>
-                    <p class="mt-0.5 text-xs text-slate-400">{{ $sub }}</p>
-                </div>
-            </div>
-        @endforeach
-    </section>
+    <x-kpi-row class="lg:grid-cols-[1.5fr_repeat(2,minmax(0,1fr))]">
+        <x-kpi dark label="Verplichtingen" :value="$eur($commitment)" sub="gegund aan partners" />
+        <x-kpi :label="$savings >= 0 ? 'Onder begroting' : 'Boven begroting'" :value="$eur(abs($savings))"
+               :alert="$savings < 0" sub="over alle gunningen" />
+        <x-kpi label="Uitgezet" :value="(string) ($counts[Rfq::STATUS_SENT] ?? 0)" sub="wachten op biedingen" />
+    </x-kpi-row>
 
-    <div class="scrollbar-none mb-4 flex gap-2 overflow-x-auto">
-        <a href="{{ route('rfqs.index') }}"
-           class="flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-semibold transition {{ $status === '' ? 'border-brand-500 bg-brand-500/10 text-white' : 'border-surface-700 text-slate-400 hover:text-slate-200' }}">
-            Alles <span class="text-xs text-slate-500">{{ $counts->sum() }}</span>
-        </a>
+    <x-tabs>
+        <x-tab :href="route('rfqs.index')" :active="$status === ''" :count="$counts->sum()">Alles</x-tab>
         @foreach (Rfq::STATUSES as $key => $label)
             @continue(($counts[$key] ?? 0) === 0 && $status !== $key)
-            <a href="{{ route('rfqs.index', ['status' => $key]) }}"
-               class="flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-semibold transition {{ $status === $key ? 'border-brand-500 bg-brand-500/10 text-white' : 'border-surface-700 text-slate-400 hover:text-slate-200' }}">
-                {{ $label }} <span class="text-xs text-slate-500">{{ $counts[$key] ?? 0 }}</span>
-            </a>
+            <x-tab :href="route('rfqs.index', ['status' => $key])"
+                   :active="$status === $key" :count="$counts[$key] ?? 0">{{ $label }}</x-tab>
         @endforeach
-    </div>
+    </x-tabs>
 
     @if ($rfqs->isEmpty())
         <x-empty-state icon="scale" category="klant" title="Nog geen prijsaanvragen"

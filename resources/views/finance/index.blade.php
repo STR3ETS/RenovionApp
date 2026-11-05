@@ -9,25 +9,16 @@
     <x-page-header title="Financieel" eyebrow="Geld" category="offerte"
                    subtitle="Omzet, werkvoorraad, debiteuren en crediteuren, met een prognose voor zes maanden." />
 
-    <section data-motion-fan class="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-6">
-        @foreach ([
-            ['Omzet dit jaar', $eur($f['revenue_year']), 'gefactureerd', 'bg-brand-500', 'text-brand-400'],
-            ['Werkvoorraad', $eur($f['order_book']), 'nog te maken', 'bg-project-500', 'text-project-400'],
-            ['Nog te factureren', $eur($f['uninvoiced']), 'uit termijnen', 'bg-lead-500', 'text-lead-400'],
-            ['Debiteuren', $eur($f['debtors']), $f['debtors_overdue'] > 0 ? $eur($f['debtors_overdue']).' te laat' : 'niets te laat', 'bg-calc-500', 'text-calc-400'],
-            ['Crediteuren', $eur($f['creditors']), $f['creditors_overdue'] > 0 ? $eur($f['creditors_overdue']).' te laat' : 'niets te laat', 'bg-planning-500', 'text-planning-400'],
-            ['Pipeline gewogen', $eur($f['pipeline']), $eur($f['open_quotes']).' aan offertes', 'bg-offerte-500', 'text-offerte-400'],
-        ] as [$label, $value, $sub, $accent, $labelClass])
-            <div class="motion-lift overflow-hidden rounded-2xl border border-surface-700 bg-surface-800">
-                <span class="block h-[3px] w-full {{ $accent }}"></span>
-                <div class="p-4">
-                    <p class="text-[11px] font-bold tracking-widest uppercase {{ $labelClass }}">{{ $label }}</p>
-                    <p data-count class="mt-1 text-lg font-bold text-white">{{ $value }}</p>
-                    <p class="mt-0.5 text-xs {{ str_contains($sub, 'te laat') && ! str_contains($sub, 'niets') ? 'text-red-400' : 'text-slate-400' }}">{{ $sub }}</p>
-                </div>
-            </div>
-        @endforeach
-    </section>
+    <x-kpi-row class="xl:grid-cols-[1.5fr_repeat(5,minmax(0,1fr))]">
+        <x-kpi dark label="Werkvoorraad" :value="$eur($f['order_book'])" :sub="$eur($f['revenue_year']).' omzet dit jaar'" />
+        <x-kpi label="Nog te factureren" :value="$eur($f['uninvoiced'])" sub="uit termijnen" />
+        <x-kpi label="Debiteuren" :value="$eur($f['debtors'])" :alert="$f['debtors_overdue'] > 0"
+               :sub="$f['debtors_overdue'] > 0 ? $eur($f['debtors_overdue']).' te laat' : 'niets te laat'" />
+        <x-kpi label="Crediteuren" :value="$eur($f['creditors'])" :alert="$f['creditors_overdue'] > 0"
+               :sub="$f['creditors_overdue'] > 0 ? $eur($f['creditors_overdue']).' te laat' : 'niets te laat'" />
+        <x-kpi label="Verplichtingen" :value="$eur($f['commitments'])" sub="besteld, nog geen factuur" />
+        <x-kpi label="Pipeline gewogen" :value="$eur($f['pipeline'])" :sub="$eur($f['open_quotes']).' aan offertes'" />
+    </x-kpi-row>
 
     <div class="grid gap-4 lg:grid-cols-2">
         {{-- Omzet per maand, zes maanden terug --}}

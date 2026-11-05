@@ -56,14 +56,14 @@
 </section>
 
 @php
-    // KPI-kaarten: elk met een eigen kleurlijn bovenaan, zodat je ze op afstand herkent.
+    // KPI-strip: de eerste kaart is navy en breder, dat is het getal waar het
+    // die week om draait. De rest staat ernaast, allemaal aanklikbaar.
     $kpis = collect([
         [
             'label' => 'Werkvoorraad excl. btw',
             'value' => 'EUR '.number_format($stats['omzet_lopend'], 0, ',', '.'),
             'sub' => $stats['actieve_projecten'].' '.($stats['actieve_projecten'] === 1 ? 'project' : 'projecten').' in opdracht',
-            'accent' => 'bg-brand-500',
-            'label_class' => 'text-brand-400',
+            'dark' => true,
             'url' => route('projects.index'),
         ],
         [
@@ -73,24 +73,18 @@
                 ? $stats['projecten_aandacht'].' '.($stats['projecten_aandacht'] === 1 ? 'vraagt aandacht' : 'vragen aandacht')
                 : 'alles op schema',
             'alert' => $stats['projecten_aandacht'] > 0,
-            'accent' => 'bg-lead-500',
-            'label_class' => 'text-lead-400',
             'url' => route('portfolio'),
         ],
         $quotesEnabled ? [
             'label' => 'Open offertes',
             'value' => $stats['open_offertes'],
             'sub' => 'wachten op de klant',
-            'accent' => 'bg-project-500',
-            'label_class' => 'text-project-400',
             'url' => route('quotes.index'),
         ] : null,
         [
             'label' => 'Nieuwe aanvragen',
             'value' => $stats['nieuwe_aanvragen'],
             'sub' => $stats['open_aanvragen'].' open in de pipeline',
-            'accent' => 'bg-calc-500',
-            'label_class' => 'text-calc-400',
             'url' => route('leads.index'),
         ],
         [
@@ -98,25 +92,17 @@
             'value' => $stats['taken_deze_week'],
             'sub' => $stats['taken_te_laat'] > 0 ? $stats['taken_te_laat'].' te laat' : 'niets te laat',
             'alert' => $stats['taken_te_laat'] > 0,
-            'accent' => 'bg-planning-500',
-            'label_class' => 'text-planning-400',
             'url' => route('tasks.index'),
         ],
     ])->filter()->values();
 @endphp
 
-<section data-motion-fan class="mb-4 grid grid-cols-2 gap-3 {{ $kpis->count() === 5 ? 'xl:grid-cols-5' : 'xl:grid-cols-4' }}">
+<x-kpi-row class="mb-4 {{ $kpis->count() === 5 ? 'xl:grid-cols-[1.5fr_repeat(4,minmax(0,1fr))]' : '' }}">
     @foreach ($kpis as $kpi)
-        <a href="{{ $kpi['url'] }}" class="motion-lift overflow-hidden rounded-2xl border border-surface-700 bg-surface-800 transition hover:border-surface-600">
-            <span class="block h-[3px] w-full {{ $kpi['accent'] }}"></span>
-            <span class="block p-5">
-                <span class="block text-[11px] font-bold tracking-widest uppercase {{ $kpi['label_class'] }}">{{ $kpi['label'] }}</span>
-                <span data-count class="mt-1.5 block text-2xl font-bold text-white lg:text-3xl">{{ $kpi['value'] }}</span>
-                <span class="mt-1 block text-xs font-medium {{ ($kpi['alert'] ?? false) ? 'text-red-400' : 'text-slate-400' }}">{{ $kpi['sub'] }}</span>
-            </span>
-        </a>
+        <x-kpi :label="$kpi['label']" :value="(string) $kpi['value']" :sub="$kpi['sub']"
+               :dark="$kpi['dark'] ?? false" :alert="$kpi['alert'] ?? false" :href="$kpi['url']" />
     @endforeach
-</section>
+</x-kpi-row>
 
 {{-- MT-signalen: de uitzonderingen die het MT wil zien, ingeklapt --}}
 @if ($aandachtItems->isNotEmpty())

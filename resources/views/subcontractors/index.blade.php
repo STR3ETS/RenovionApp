@@ -51,19 +51,15 @@
         </select>
     </form>
 
-    <div class="scrollbar-none mb-4 flex gap-2 overflow-x-auto">
-        <a href="{{ route('subcontractors.index', ['q' => $zoek ?: null, 'vak' => $trade ?: null]) }}"
-           class="flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-semibold transition {{ $status === '' ? 'border-brand-500 bg-brand-500/10 text-white' : 'border-surface-700 text-slate-400 hover:text-slate-200' }}">
-            Alles <span class="text-xs text-slate-500">{{ $total }}</span>
-        </a>
+    <x-tabs>
+        <x-tab :href="route('subcontractors.index', ['q' => $zoek ?: null, 'vak' => $trade ?: null])"
+               :active="$status === ''" :count="$total">Alles</x-tab>
         @foreach ([Subcontractor::STATUS_APPROVED => 'Goedgekeurd', Subcontractor::STATUS_INCOMPLETE => 'Dossier incompleet', Subcontractor::STATUS_EXPIRED => 'Document verlopen', Subcontractor::STATUS_BLOCKED => 'Geblokkeerd'] as $key => $label)
             @continue(($counts[$key] ?? 0) === 0 && $status !== $key)
-            <a href="{{ route('subcontractors.index', ['status' => $key, 'q' => $zoek ?: null, 'vak' => $trade ?: null]) }}"
-               class="flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-semibold transition {{ $status === $key ? 'border-brand-500 bg-brand-500/10 text-white' : 'border-surface-700 text-slate-400 hover:text-slate-200' }}">
-                {{ $label }} <span class="text-xs text-slate-500">{{ $counts[$key] ?? 0 }}</span>
-            </a>
+            <x-tab :href="route('subcontractors.index', ['status' => $key, 'q' => $zoek ?: null, 'vak' => $trade ?: null])"
+                   :active="$status === $key" :count="$counts[$key] ?? 0">{{ $label }}</x-tab>
         @endforeach
-    </div>
+    </x-tabs>
 
     @if ($subcontractors->isEmpty())
         <x-empty-state icon="briefcase" category="klant" title="Nog geen onderaannemers"

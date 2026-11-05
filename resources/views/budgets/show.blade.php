@@ -43,24 +43,15 @@
     </x-page-header>
 
     {{-- De getallen die het gesprek bepalen --}}
-    <section data-motion-fan class="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-5">
-        @foreach ([
-            ['Directe kosten', $eur($totals->direct), $num($totals->hours, 0).' uur', 'bg-brand-500', 'text-brand-400'],
-            ['Staart', $eur($totals->markupTotal), 'opslag '.$num($totals->surcharge, 1).'%', 'bg-lead-500', 'text-lead-400'],
-            ['Aanneemsom excl. btw', $eur($totals->totalExcludingVat), 'marge '.$num($totals->margin, 1).'%', 'bg-project-500', 'text-project-400'],
-            ['Inclusief btw', $eur($totals->totalIncludingVat), $num($totals->vatPercentage, 0).'% btw', 'bg-calc-500', 'text-calc-400'],
-            ['Per m2', $totals->pricePerSquareMetre === null ? 'n.v.t.' : $eur($totals->pricePerSquareMetre), $budget->floor_area ? $num((float) $budget->floor_area, 0).' m2' : 'geen oppervlak', 'bg-planning-500', 'text-planning-400'],
-        ] as [$label, $value, $sub, $accent, $labelClass])
-            <div class="motion-lift overflow-hidden rounded-2xl border border-surface-700 bg-surface-800">
-                <span class="block h-[3px] w-full {{ $accent }}"></span>
-                <div class="p-4">
-                    <p class="text-[11px] font-bold tracking-widest uppercase {{ $labelClass }}">{{ $label }}</p>
-                    <p data-count class="mt-1 text-lg font-bold text-white lg:text-xl">{{ $value }}</p>
-                    <p class="mt-0.5 text-xs text-slate-400">{{ $sub }}</p>
-                </div>
-            </div>
-        @endforeach
-    </section>
+    <x-kpi-row class="lg:grid-cols-[1.5fr_repeat(4,minmax(0,1fr))]">
+        <x-kpi dark label="Aanneemsom excl. btw" :value="$eur($totals->totalExcludingVat)"
+               :sub="'marge '.$num($totals->margin, 1).'%'" />
+        <x-kpi label="Directe kosten" :value="$eur($totals->direct)" :sub="$num($totals->hours, 0).' uur'" />
+        <x-kpi label="Staart" :value="$eur($totals->markupTotal)" :sub="'opslag '.$num($totals->surcharge, 1).'%'" />
+        <x-kpi label="Inclusief btw" :value="$eur($totals->totalIncludingVat)" :sub="$num($totals->vatPercentage, 0).'% btw'" />
+        <x-kpi label="Per m2" :value="$totals->pricePerSquareMetre === null ? 'n.v.t.' : $eur($totals->pricePerSquareMetre)"
+               :sub="$budget->floor_area ? $num((float) $budget->floor_area, 0).' m2' : 'geen oppervlak'" />
+    </x-kpi-row>
 
     @if ($totals->incompleteLines > 0)
         <div class="mb-4 flex items-start gap-3 rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4">

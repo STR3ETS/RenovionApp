@@ -45,18 +45,18 @@
             <x-empty-state title="Niets meer te doen"
                            subtitle="Alle projecten, offertes, werkbonnen en taken lopen op schema." icon="check" category="project" />
         @else
-            <div class="scrollbar-none mb-6 flex gap-2 overflow-x-auto">
+            <nav class="scrollbar-none mb-6 flex gap-1 overflow-x-auto rounded-full border border-surface-700 bg-surface-850 p-1 lg:w-fit lg:max-w-full">
                 @foreach (AttentionService::KINDS as $key => $label)
                     @continue($key !== 'todo' && $tellen($key) === 0)
                     <button type="button" @click="tab = '{{ $key }}'"
-                            :class="tab === '{{ $key }}' ? 'border-brand-500 bg-brand-500 text-white' : 'border-surface-600 bg-surface-850 text-slate-200 hover:border-surface-500'"
-                            class="flex shrink-0 items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-semibold transition">
+                            :class="tab === '{{ $key }}' ? 'bg-brand-500 text-white' : 'text-slate-400 hover:text-white'"
+                            class="flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-semibold whitespace-nowrap transition">
                         {{ $label }}
-                        <span :class="tab === '{{ $key }}' ? 'bg-white/20 text-white' : 'bg-surface-750 text-slate-400'"
-                              class="rounded-full px-2 py-0.5 text-[11px] font-bold">{{ $tellen($key) }}</span>
+                        <span :class="tab === '{{ $key }}' ? 'bg-white/25 text-white' : 'bg-surface-700 text-slate-400'"
+                              class="rounded-full px-1.5 text-[10px] font-bold">{{ $tellen($key) }}</span>
                     </button>
                 @endforeach
-            </div>
+            </nav>
 
             <div class="rounded-2xl border border-surface-700 bg-surface-850 p-3">
                 @foreach ($items as $item)

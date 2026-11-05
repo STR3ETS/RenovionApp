@@ -24,11 +24,9 @@
         </select>
     </form>
 
-    <div class="scrollbar-none mb-4 flex gap-2 overflow-x-auto">
-        <a href="{{ route('documents.index', ['q' => $zoek ?: null]) }}"
-           class="flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-semibold transition {{ $groep === '' && $categorie === '' ? 'border-brand-500 bg-brand-500/10 text-white' : 'border-surface-700 text-slate-400 hover:text-slate-200' }}">
-            Alles <span class="text-xs text-slate-500">{{ $counts->sum() }}</span>
-        </a>
+    <x-tabs>
+        <x-tab :href="route('documents.index', ['q' => $zoek ?: null])"
+               :active="$groep === '' && $categorie === ''" :count="$counts->sum()">Alles</x-tab>
         @foreach ($groups as $group)
             @php
                 $inGroup = collect(DocumentCategory::cases())
@@ -36,12 +34,10 @@
                     ->sum(fn ($c) => $counts[$c->value] ?? 0);
             @endphp
             @continue($inGroup === 0 && $groep !== $group)
-            <a href="{{ route('documents.index', ['groep' => $group, 'q' => $zoek ?: null]) }}"
-               class="flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-semibold transition {{ $groep === $group ? 'border-brand-500 bg-brand-500/10 text-white' : 'border-surface-700 text-slate-400 hover:text-slate-200' }}">
-                {{ $group }} <span class="text-xs text-slate-500">{{ $inGroup }}</span>
-            </a>
+            <x-tab :href="route('documents.index', ['groep' => $group, 'q' => $zoek ?: null])"
+                   :active="$groep === $group" :count="$inGroup">{{ $group }}</x-tab>
         @endforeach
-    </div>
+    </x-tabs>
 
     @if ($documents->isEmpty())
         <x-empty-state icon="folder" category="klant" title="Geen documenten gevonden"

@@ -30,27 +30,17 @@
         </form>
     </x-page-header>
 
-    <section data-motion-fan class="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
-        @foreach ([
-            ['Verstuurd', (string) $d['count'], $eur($d['value']), 'bg-brand-500', 'text-brand-400'],
-            ['Getekend', (string) $d['won']->count(), $eur($d['won_value']), 'bg-green-500', 'text-green-400'],
-            ['Open', (string) $d['open']->count(), $eur($d['open_value']), 'bg-lead-500', 'text-lead-400'],
-            ['Gewogen open', $eur($d['weighted']), 'naar scoringskans', 'bg-calc-500', 'text-calc-400'],
-            ['Hitrate op aantal', $pct($d['hit_rate']), 'op geld '.$pct($d['hit_rate_value']), 'bg-project-500', 'text-project-400'],
-            ['Wordt geopend', $pct($d['open_rate']), $d['days_to_open'] === null
-                ? 'nog geen meting'
-                : 'gemiddeld na '.rtrim(rtrim(number_format($d['days_to_open'], 1, ',', '.'), '0'), ',').' dagen', 'bg-planning-500', 'text-planning-400'],
-        ] as [$label, $value, $sub, $accent, $labelClass])
-            <div class="motion-lift overflow-hidden rounded-2xl border border-surface-700 bg-surface-800">
-                <span class="block h-[3px] w-full {{ $accent }}"></span>
-                <div class="p-4">
-                    <p class="text-[11px] font-bold tracking-widest uppercase {{ $labelClass }}">{{ $label }}</p>
-                    <p data-count class="mt-1 text-lg font-bold text-white">{{ $value }}</p>
-                    <p class="mt-0.5 text-xs text-slate-400">{{ $sub }}</p>
-                </div>
-            </div>
-        @endforeach
-    </section>
+    <x-kpi-row class="xl:grid-cols-[1.5fr_repeat(4,minmax(0,1fr))]">
+        <x-kpi dark label="Gewogen open" :value="$eur($d['weighted'])"
+               :sub="'kans maal waarde over '.$d['open']->count().' open offertes'" />
+        <x-kpi label="Verstuurd" :value="(string) $d['count']" :sub="$eur($d['value'])" />
+        <x-kpi label="Getekend" :value="(string) $d['won']->count()" :sub="$eur($d['won_value'])" />
+        <x-kpi label="Hitrate op aantal" :value="$pct($d['hit_rate'])" :sub="'op geld '.$pct($d['hit_rate_value'])" />
+        <x-kpi label="Wordt geopend" :value="$pct($d['open_rate'])"
+               :sub="$d['days_to_open'] === null
+                   ? 'nog geen meting'
+                   : 'gemiddeld na '.rtrim(rtrim(number_format($d['days_to_open'], 1, ',', '.'), '0'), ',').' dagen'" />
+    </x-kpi-row>
 
     <div class="grid gap-4 xl:grid-cols-3">
         <div class="xl:col-span-2">

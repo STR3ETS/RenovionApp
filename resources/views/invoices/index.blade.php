@@ -7,23 +7,15 @@
     <x-page-header title="Facturatie" eyebrow="Geld" category="offerte"
                    subtitle="Termijnen uit de begroting, meerwerk en de eindafrekening." />
 
-    <section data-motion-fan class="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        @foreach ([
-            ['Openstaand', $eur($outstanding), 'bij klanten', 'bg-brand-500', 'text-brand-400'],
-            ['Waarvan te laat', $eur($overdue), $overdue > 0 ? 'direct opvolgen' : 'niets te laat', 'bg-red-500', 'text-red-400'],
-            ['Klaar om te factureren', $eur($ready->sum('amount')), $ready->count().' '.($ready->count() === 1 ? 'termijn' : 'termijnen'), 'bg-project-500', 'text-project-400'],
-            ['Facturen dit jaar', (string) $counts->sum(), 'in totaal', 'bg-lead-500', 'text-lead-400'],
-        ] as [$label, $value, $sub, $accent, $labelClass])
-            <div class="motion-lift overflow-hidden rounded-2xl border border-surface-700 bg-surface-800">
-                <span class="block h-[3px] w-full {{ $accent }}"></span>
-                <div class="p-4">
-                    <p class="text-[11px] font-bold tracking-widest uppercase {{ $labelClass }}">{{ $label }}</p>
-                    <p data-count class="mt-1 text-xl font-bold text-white">{{ $value }}</p>
-                    <p class="mt-0.5 text-xs text-slate-400">{{ $sub }}</p>
-                </div>
-            </div>
-        @endforeach
-    </section>
+    <x-kpi-row>
+        <x-kpi dark label="Openstaand bij klanten" :value="$eur($outstanding)"
+               :sub="$counts->sum().' facturen in totaal'" />
+        <x-kpi label="Waarvan te laat" :value="$eur($overdue)" :alert="$overdue > 0"
+               :sub="$overdue > 0 ? 'direct opvolgen' : 'niets te laat'" />
+        <x-kpi label="Klaar om te factureren" :value="$eur($ready->sum('amount'))"
+               :sub="$ready->count().' '.($ready->count() === 1 ? 'termijn' : 'termijnen')" />
+        <x-kpi label="Betaald" :value="(string) ($counts[\App\Enums\InvoiceStatus::Betaald->value] ?? 0)" sub="facturen voldaan" />
+    </x-kpi-row>
 
     @if ($ready->isNotEmpty())
         <div class="mb-5 rounded-2xl border border-project-500/25 bg-project-500/5 p-5">
@@ -53,19 +45,16 @@
         </div>
     @endif
 
-    <div class="scrollbar-none mb-4 flex gap-2 overflow-x-auto">
-        <a href="{{ route('invoices.index') }}"
-           class="flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-semibold transition {{ $filter === '' ? 'border-brand-500 bg-brand-500/10 text-white' : 'border-surface-700 text-slate-400 hover:text-slate-200' }}">
-            Alles <span class="text-xs text-slate-500">{{ $counts->sum() }}</span>
-        </a>
+    <x-tabs>
+        <x-tab :href="route('invoices.index')" :active="$filter === ''" :count="$counts->sum()">Alles</x-tab>
         @foreach (InvoiceStatus::cases() as $status)
             @continue(($counts[$status->value] ?? 0) === 0 && $filter !== $status->value)
-            <a href="{{ route('invoices.index', ['status' => $status->value]) }}"
-               class="flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-semibold transition {{ $filter === $status->value ? 'border-brand-500 bg-brand-500/10 text-white' : 'border-surface-700 text-slate-400 hover:text-slate-200' }}">
-                {{ $status->label() }} <span class="text-xs text-slate-500">{{ $counts[$status->value] ?? 0 }}</span>
-            </a>
+            <x-tab :href="route('invoices.index', ['status' => $status->value])"
+                   :active="$filter === $status->value" :count="$counts[$status->value] ?? 0">
+                {{ $status->label() }}
+            </x-tab>
         @endforeach
-    </div>
+    </x-tabs>
 
     @if ($invoices->isEmpty())
         <x-empty-state icon="currency-euro" category="offerte" title="Nog geen facturen"

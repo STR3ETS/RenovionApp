@@ -356,3 +356,79 @@
 .app-shell * {
     scrollbar-color: var(--color-surface-600) transparent;
 }
+
+/*
+ * Dichte tabellen (.t uit het prototype). Lijsten met veel kolommen lezen
+ * beter als tabel dan als rijkaart: kleine uppercase kolomkoppen, getallen
+ * rechts uitgelijnd met vaste cijferbreedte, een hele rij is klikbaar.
+ * Zelfde klassenamen als het prototype, zodat vergelijken makkelijk blijft.
+ */
+.tw {
+    overflow-x: auto;
+}
+
+.t {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8125rem;
+}
+
+.t th {
+    text-align: left;
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-slate-500);
+    font-weight: 600;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--color-surface-700);
+    white-space: nowrap;
+    background: var(--color-surface-850);
+}
+
+.t td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--color-surface-700);
+    vertical-align: middle;
+    color: var(--color-slate-300);
+}
+
+.t tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.t tfoot td {
+    background: var(--color-surface-850);
+    border-top: 1px solid var(--color-surface-700);
+    border-bottom: 0;
+    color: #fff;
+}
+
+.t tr.click {
+    cursor: pointer;
+}
+
+.t tr.click:hover td {
+    background: var(--color-surface-750);
+}
+
+.t .r {
+    text-align: right;
+}
+
+.t td.r {
+    font-variant-numeric: tabular-nums;
+}
+
+.t td b,
+.t td strong {
+    color: #fff;
+    font-weight: 600;
+}
+
+.t td .sub {
+    display: block;
+    font-size: 11.5px;
+    color: var(--color-slate-500);
+    font-weight: 400;
+}

@@ -33,16 +33,16 @@
         @endforeach
     </section>
 
-    <div class="scrollbar-none mb-4 flex gap-2 overflow-x-auto">
-        @foreach (['actief' => 'Actief', 'alles' => 'Alles', AgentRun::STATUS_WAITING_APPROVAL => 'Wacht op goedkeuring', AgentRun::STATUS_DONE => 'Afgerond', AgentRun::STATUS_FAILED => 'Mislukt'] as $key => $label)
-            @continue(($counts[$key] ?? 0) === 0 && $filter !== $key && ! in_array($key, ['actief', 'alles'], true))
-            <a href="{{ route('agents.index', ['status' => $key, 'agent' => $agentFilter ?: null]) }}"
-               class="flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-semibold transition {{ $filter === $key ? 'border-brand-500 bg-brand-500/10 text-white' : 'border-surface-700 text-slate-400 hover:text-slate-200' }}">
-                {{ $label }} <span class="text-xs text-slate-500">{{ $counts[$key] ?? 0 }}</span>
-            </a>
-        @endforeach
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <x-tabs class="mb-0">
+            @foreach (['actief' => 'Actief', 'alles' => 'Alles', AgentRun::STATUS_WAITING_APPROVAL => 'Wacht op goedkeuring', AgentRun::STATUS_DONE => 'Afgerond', AgentRun::STATUS_FAILED => 'Mislukt'] as $key => $label)
+                @continue(($counts[$key] ?? 0) === 0 && $filter !== $key && ! in_array($key, ['actief', 'alles'], true))
+                <x-tab :href="route('agents.index', ['status' => $key, 'agent' => $agentFilter ?: null])"
+                       :active="$filter === $key" :count="$counts[$key] ?? 0">{{ $label }}</x-tab>
+            @endforeach
+        </x-tabs>
 
-        <span class="ml-auto flex shrink-0 items-center gap-1.5 rounded-full border border-surface-700 px-3.5 py-2 text-sm text-slate-400">
+        <span class="flex shrink-0 items-center gap-1.5 rounded-full border border-surface-700 px-3.5 py-2 text-sm text-slate-400">
             Modelkosten <b class="text-white">EUR {{ number_format($cost, 2, ',', '.') }}</b>
         </span>
     </div>

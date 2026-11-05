@@ -2,19 +2,14 @@
     <x-page-header title="Opvolging" eyebrow="Verkoop" category="lead"
                    subtitle="Te laat bovenaan, dan wat niets gepland heeft. Een aanvraag zonder vervolgstap valt het snelst stil." />
 
-    <div class="scrollbar-none mb-4 flex gap-2 overflow-x-auto">
-        <a href="{{ route('follow-ups.index') }}"
-           class="flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-semibold transition {{ $filter === '' ? 'border-brand-500 bg-brand-500/10 text-white' : 'border-surface-700 text-slate-400 hover:text-slate-200' }}">
-            Alles <span class="text-xs text-slate-500">{{ $total }}</span>
-        </a>
+    <x-tabs>
+        <x-tab :href="route('follow-ups.index')" :active="$filter === ''" :count="$total">Alles</x-tab>
         @foreach ($labels as $key => $label)
             @continue(($counts[$key] ?? 0) === 0 && $filter !== $key)
-            <a href="{{ route('follow-ups.index', ['filter' => $key]) }}"
-               class="flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-semibold transition {{ $filter === $key ? 'border-brand-500 bg-brand-500/10 text-white' : 'border-surface-700 text-slate-400 hover:text-slate-200' }}">
-                {{ $label }} <span class="text-xs text-slate-500">{{ $counts[$key] ?? 0 }}</span>
-            </a>
+            <x-tab :href="route('follow-ups.index', ['filter' => $key])"
+                   :active="$filter === $key" :count="$counts[$key] ?? 0">{{ $label }}</x-tab>
         @endforeach
-    </div>
+    </x-tabs>
 
     @if ($rows->isEmpty())
         <x-empty-state icon="phone" category="lead" title="Niets om op te volgen"
