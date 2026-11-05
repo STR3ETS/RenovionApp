@@ -10,9 +10,9 @@
     <div x-data="{ modal: false, formUser: '', formDate: '', day: {{ $todayIndex }}, dates: @js($days->map->toDateString()), detail: null, details: @js($details) }">
 
         <x-page-header :eyebrow="auth()->user()->can('manage-crm') ? 'Capaciteit' : 'Mijn week'" category="planning" title="Planning" subtitle="Week {{ $start->isoWeek }}, {{ $start->translatedFormat('j M') }} t/m {{ $start->copy()->addDays(4)->translatedFormat('j M Y') }}">
-            <a href="{{ route('planning.index', ['week' => $start->copy()->subWeek()->toDateString()]) }}" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">←</a>
-            <a href="{{ route('planning.index') }}" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">Vandaag</a>
-            <a href="{{ route('planning.index', ['week' => $start->copy()->addWeek()->toDateString()]) }}" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">→</a>
+            <a href="{{ route('planning.index', ['week' => $start->copy()->subWeek()->toDateString()]) }}" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 app:hidden">←</a>
+            <a href="{{ route('planning.index') }}" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 app:hidden">Vandaag</a>
+            <a href="{{ route('planning.index', ['week' => $start->copy()->addWeek()->toDateString()]) }}" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 app:hidden">→</a>
             @can('manage-crm')
                 <button @click="modal = true; formUser = ''; formDate = dates[day]" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600">+ Inplannen</button>
             @endcan
@@ -20,16 +20,24 @@
 
         {{-- ===== Mobiel ===== --}}
         <div class="lg:hidden">
+            @nativeapp
+                <div class="mb-3 flex items-center justify-between">
+                    <a href="{{ route('planning.index', ['week' => $start->copy()->subWeek()->toDateString()]) }}" class="app-iconbtn tap" title="Vorige week"><x-icon name="chevron-right" class="h-4 w-4 rotate-180" /></a>
+                    <a href="{{ route('planning.index') }}" class="font-[family-name:var(--font-display)] text-[15px] font-semibold text-navy-900">Week van {{ $start->translatedFormat('j M') }}</a>
+                    <a href="{{ route('planning.index', ['week' => $start->copy()->addWeek()->toDateString()]) }}" class="app-iconbtn tap" title="Volgende week"><x-icon name="chevron-right" class="h-4 w-4" /></a>
+                </div>
+            @endnativeapp
+
             @can('manage-crm')
                 {{-- Planner: dagbalk + per persoon wat er die dag staat, en wie vrij is --}}
-                <div data-pill class="mb-4 grid grid-cols-5 gap-1.5">
+                <div data-pill="over" class="mb-4 grid grid-cols-5 gap-1.5">
                     @foreach ($days as $i => $day)
                         @php $heeftPlanning = $rows->contains(fn ($rowUser) => $entries->has($rowUser->id.'|'.$day->toDateString())); @endphp
                         <button type="button" @click="day = {{ $i }}"
                                 :class="day === {{ $i }} ? 'border-navy-950 bg-navy-950 text-white' : 'border-gray-200 bg-white {{ $day->isToday() ? 'text-brand-700' : 'text-navy-900' }}'"
-                                class="flex flex-col items-center rounded-xl border py-2 transition">
+                                class="flex flex-col items-center rounded-xl border py-2 transition app:rounded-[14px] app:font-[family-name:var(--font-display)]">
                             <span class="text-[10px] font-bold uppercase opacity-70">{{ $day->translatedFormat('D') }}</span>
-                            <span class="text-base leading-tight font-bold">{{ $day->day }}</span>
+                            <span class="text-base leading-tight font-bold app:text-lg">{{ $day->day }}</span>
                             <span class="mt-1 h-1.5 w-1.5 rounded-full {{ $heeftPlanning ? 'bg-planning-500' : 'bg-transparent' }}"></span>
                         </button>
                     @endforeach
@@ -43,15 +51,18 @@
                         <div class="divide-y divide-gray-100 rounded-2xl border border-gray-200 bg-white">
                             @forelse ($rows as $rowUser)
                                 @php $cellEntries = $entries->get($rowUser->id.'|'.$day->toDateString(), collect()); @endphp
-                                <div class="flex gap-3 p-3">
-                                    <div class="w-20 shrink-0 pt-1">
-                                        <p class="truncate text-sm font-semibold text-navy-900">{{ str($rowUser->name)->before(' ') }}</p>
+                                <div class="flex gap-3 p-3 app:block app:px-4">
+                                    <div class="w-20 shrink-0 pt-1 app:mb-2 app:flex app:w-auto app:items-center app:gap-3 app:pt-0">
+                                        @nativeapp
+                                            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white" style="background: {{ ['#0D1A2E', '#F26A1B', '#3E6BA8', '#C2506D', '#1E8A5A', '#7C5CD6'][crc32($rowUser->name) % 6] }}">{{ str($rowUser->name)->explode(' ')->take(2)->map(fn ($deel) => str($deel)->substr(0, 1)->upper())->implode('') }}</span>
+                                        @endnativeapp
+                                        <p class="truncate text-sm font-semibold text-navy-900 app:min-w-0 app:flex-1">{{ str($rowUser->name)->before(' ') }}</p>
                                         <p class="truncate text-[11px] text-gray-500">{{ $rowUser->role->label() }}</p>
                                     </div>
                                     <div class="min-w-0 flex-1 space-y-1.5">
                                         @forelse ($cellEntries as $entry)
                                             <button type="button" @click="detail = details[{{ $entry->id }}]"
-                                                    class="block w-full rounded-lg border px-2.5 py-1.5 text-left {{ $entry->type->blockClasses() }}">
+                                                    class="block w-full rounded-lg border px-2.5 py-1.5 text-left app:rounded-[9px] app:border-0 app:border-l-[3px] {{ $entry->type->blockClasses() }}">
                                                 <span class="block truncate text-sm font-semibold">{{ $entry->displayTitle() }}</span>
                                                 <span class="block text-xs opacity-70">{{ $details[$entry->id]['time'] }}, {{ $entry->type->label() }}</span>
                                             </button>

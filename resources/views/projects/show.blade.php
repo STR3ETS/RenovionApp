@@ -1,5 +1,47 @@
 <x-layouts.app :title="$project->name">
 
+    @nativeapp
+        {{-- Dossierkop van de iOS/Android-app (prototype Renovion OS) --}}
+        @php $hasCover = $project->cover_photo_path || $project->photos->where('client_visible', true)->isNotEmpty(); @endphp
+        <section data-zoom-target data-enter class="app-band mb-3">
+            <img src="{{ $hasCover ? route('projects.cover', $project) : asset('images/os-hero.jpg') }}" alt="" class="bimg">
+            <nav class="app-crumbs">
+                <a href="{{ route('projects.index') }}">Projectdossiers</a>
+                <x-icon name="chevron-right" class="h-3 w-3" />
+                <span>{{ $project->name }}</span>
+            </nav>
+            <div class="flex flex-wrap gap-2">
+                @if ($project->chatChannel)
+                    <a href="{{ route('chat.show', $project->chatChannel) }}" class="app-btn onnavy"><x-icon name="chat-bubble" class="h-4 w-4" /> Chat</a>
+                @endif
+                @can('manage-crm')
+                    <button type="button" x-data @click="$dispatch('nova-open')" class="app-btn onnavy"><x-icon name="sparkles" class="h-4 w-4" /> Vraag Nova</button>
+                    <a href="{{ route('projects.edit', $project) }}" class="app-btn onnavy">Bewerken</a>
+                @endcan
+                <button type="button" x-data @click="$dispatch('app-tab', 'uitvoering')" class="app-btn pri">Naar uitvoering <x-icon name="chevron-right" class="h-3.5 w-3.5" /></button>
+            </div>
+            <div>
+                <p class="eyebrow">Projectdossier</p>
+                <h1 class="mt-1.5">{{ $project->name }}</h1>
+                <p class="sub mt-1.5">{{ collect([$project->address, $project->city])->filter()->implode(', ') ?: $project->customer->name }}</p>
+                <span class="rule"></span>
+            </div>
+            <div class="bmeta">
+                <div><span>Opdrachtgever</span><b>{{ $project->customer->name }}</b></div>
+                <div><span>Fase</span><b>{{ $project->currentPhase()?->name ?? $project->status->label() }}</b></div>
+                <div><span>Status</span><b>{{ $project->status->label() }}</b></div>
+                @if ($project->projectLeader)
+                    <div><span>Projectleider</span><b>{{ $project->projectLeader->name }}</b></div>
+                @endif
+                @can('manage-crm')
+                    <div><span>Projectwaarde</span><b>€ {{ number_format((float) $project->value, 0, ',', '.') }}</b></div>
+                    @if ($project->quote)
+                        <div><span>Offerte</span><b>{{ $project->quote->number }}</b></div>
+                    @endif
+                @endcan
+            </div>
+        </section>
+    @else
     <x-page-header data-zoom-target eyebrow="Project" category="project" :title="$project->name" :subtitle="$project->customer->name.', '.($project->city ?? 'plaats onbekend')"
                    :image="($project->cover_photo_path || $project->photos->where('client_visible', true)->isNotEmpty()) ? route('projects.cover', $project) : null">
         <x-status-badge :status="$project->status" class="text-sm" />
@@ -10,9 +52,10 @@
             <a href="{{ route('projects.edit', $project) }}" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">Bewerken</a>
         @endcan
     </x-page-header>
+    @endnativeapp
 
-    {{-- Fasering (briefing §7): voortgang + fase-stepper --}}
-    <section class="mb-4 rounded-2xl border border-gray-200 bg-white p-5">
+    {{-- Fasering (briefing §7): voortgang + fase-stepper. In de app klapt een tik op de kaart de fasen uit. --}}
+    <section class="mb-4 rounded-2xl border border-gray-200 bg-white p-5 app:cursor-pointer app:select-none" @nativeapp x-data x-on:click="if (! $event.target.closest('a, button, select, input, textarea, label, form')) $dispatch('fasen-wisselen')" @endnativeapp>
         <div class="mb-2 flex items-center justify-between">
             <h2 class="text-sm font-bold text-navy-900">Projectvoortgang</h2>
             <span class="text-xs font-semibold text-gray-500">{{ $project->progress }}%</span>
@@ -24,19 +67,19 @@
     </section>
 
     {{-- ?tab=uitvoering|fotos opent direct die tab (snelkoppelingen op het uitvoerder-dashboard) --}}
-    <div x-data="{ tab: @js(in_array(request('tab'), ['uitvoering', 'fotos'], true) ? request('tab') : 'overzicht'), fotoFilter: 'alle' }">
+    <div x-data="{ tab: @js(in_array(request('tab'), ['uitvoering', 'fotos'], true) ? request('tab') : 'overzicht'), fotoFilter: 'alle' }" @nativeapp x-on:app-tab.window="tab = $event.detail; $nextTick(() => $el.scrollIntoView({ behavior: 'smooth', block: 'start' }))" @endnativeapp>
 
     {{-- Tabs (mockup §18) --}}
-    <div data-pill class="mb-5 flex gap-1 rounded-xl border border-gray-200 bg-white p-1 text-sm font-semibold">
-        <button type="button" @click="tab = 'overzicht'" :class="tab === 'overzicht' ? 'bg-navy-950 text-white' : 'text-gray-600 hover:bg-gray-50'" class="min-w-0 flex-1 rounded-lg px-2 py-2.5 transition">Overzicht</button>
-        <button type="button" @click="tab = 'uitvoering'" :class="tab === 'uitvoering' ? 'bg-navy-950 text-white' : 'text-gray-600 hover:bg-gray-50'" class="flex min-w-0 flex-1 items-center justify-center gap-1 rounded-lg px-2 py-2.5 whitespace-nowrap transition">
+    <div data-pill class="mb-5 flex gap-1 rounded-xl border border-gray-200 bg-white p-1 text-sm font-semibold app:gap-2 app:rounded-none app:border-0 app:bg-transparent app:p-0">
+        <button type="button" @click="tab = 'overzicht'" :class="tab === 'overzicht' ? 'bg-navy-950 text-white' : 'text-gray-600 hover:bg-gray-50'" class="min-w-0 flex-1 rounded-lg px-2 py-2.5 transition app:flex-none app:rounded-full app:px-4 app:py-2">Overzicht</button>
+        <button type="button" @click="tab = 'uitvoering'" :class="tab === 'uitvoering' ? 'bg-navy-950 text-white' : 'text-gray-600 hover:bg-gray-50'" class="flex min-w-0 flex-1 items-center justify-center gap-1 rounded-lg px-2 py-2.5 whitespace-nowrap transition app:flex-none app:rounded-full app:px-4 app:py-2">
             Uitvoering
             @php $openPakketten = $project->phases->flatMap->workPackages->reject->isDone()->count(); @endphp
             @if ($openPakketten > 0)
                 <span class="rounded-full bg-brand-500 px-1.5 py-0.5 text-[10px] leading-none font-bold text-white">{{ $openPakketten }}</span>
             @endif
         </button>
-        <button type="button" @click="tab = 'fotos'" :class="tab === 'fotos' ? 'bg-navy-950 text-white' : 'text-gray-600 hover:bg-gray-50'" class="flex min-w-0 flex-1 items-center justify-center gap-1 rounded-lg px-2 py-2.5 whitespace-nowrap transition">
+        <button type="button" @click="tab = 'fotos'" :class="tab === 'fotos' ? 'bg-navy-950 text-white' : 'text-gray-600 hover:bg-gray-50'" class="flex min-w-0 flex-1 items-center justify-center gap-1 rounded-lg px-2 py-2.5 whitespace-nowrap transition app:flex-none app:rounded-full app:px-4 app:py-2">
             Foto's
             @if ($project->photos->isNotEmpty())
                 <span class="text-xs opacity-70">{{ $project->photos->count() }}</span>
@@ -136,7 +179,7 @@
             @endphp
             <section class="rounded-2xl border bg-white {{ $isActief ? 'border-brand-300 ring-1 ring-brand-100' : 'border-gray-200' }}"
                      x-data="{ open: {{ $isInklapbaar ? "window.matchMedia('(min-width: 1024px)').matches" : 'true' }} }">
-                <header class="flex flex-wrap items-center gap-3 px-5 py-4">
+                <header class="flex flex-wrap items-center gap-3 px-5 py-4 {{ $isInklapbaar ? 'app:cursor-pointer app:select-none' : '' }}" @if ($isInklapbaar) @nativeapp x-on:click="if (! $event.target.closest('a, button, select, input, textarea, label, form')) open = !open" @endnativeapp @endif>
                     <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold {{ $phase->status === \App\Enums\PhaseStatus::Gereed ? 'bg-green-500 text-white' : ($isActief ? 'bg-brand-500 text-white' : 'bg-gray-200 text-gray-500') }}">
                         @if ($phase->status === \App\Enums\PhaseStatus::Gereed)<x-icon name="check" class="h-3.5 w-3.5" />@else{{ $phase->position }}@endif
                     </span>
@@ -192,7 +235,8 @@
                     <div class="border-t border-gray-100 px-5 py-3" x-show="open" @if ($isInklapbaar) x-cloak @endif>
                         <div class="space-y-1.5">
                             @foreach ($phase->workPackages as $package)
-                                <a href="{{ route('work-packages.show', $package) }}" class="flex items-center gap-3 rounded-xl border border-gray-200 p-2.5 transition hover:border-brand-400">
+                                {{-- Geopend vanuit de app: het werkpakket heeft daar een eigen scherm --}}
+                                <a href="{{ session('app_bundle') ? session('app_bundle').'/#/werkpakket/'.$package->id : route('work-packages.show', $package) }}" class="flex items-center gap-3 rounded-xl border border-gray-200 p-2.5 transition hover:border-brand-400">
                                     <x-signal-dot :color="$package->isOverdue() ? 'red' : $package->status->dotColor()" />
                                     <span class="min-w-0 flex-1">
                                         <span class="block truncate text-sm font-semibold text-navy-900 {{ $package->isDone() ? 'text-gray-500 line-through' : '' }}">{{ $package->name }}</span>

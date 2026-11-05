@@ -44,11 +44,13 @@ class LoginController extends Controller
             $request->user()?->deviceTokens()->where('token', $request->input('push_token'))->delete();
         }
 
+        $appBundle = $request->session()->get('app_bundle');
+
         Auth::logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login');
+        return $appBundle ? redirect()->away($appBundle.'/#/uitloggen') : redirect()->route('login');
     }
 }

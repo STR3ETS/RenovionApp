@@ -7,7 +7,7 @@
             @if ($project->cover_photo_path || $photos->isNotEmpty())
                 <img src="{{ route('projects.cover', $project) }}" alt="{{ $project->name }}" class="h-40 w-full object-cover">
             @endif
-            <div class="p-5">
+            <div class="p-5 app:cursor-pointer app:select-none" @nativeapp x-data x-on:click="if (! $event.target.closest('a, button, select, input, textarea, label, form')) $dispatch('stappen-wisselen')" @endnativeapp>
                 <div class="flex flex-wrap items-center justify-between gap-2">
                     <div>
                         <h1 class="text-lg font-bold text-navy-950">{{ $project->name }}</h1>
@@ -30,7 +30,7 @@
                 </div>
 
                 {{-- Vereenvoudigde klant-tijdlijn. Smal: balk plus uitklapbare stappen, net als de interne fasebalk. --}}
-                <div class="mt-5 md:hidden" x-data="{ open: false }">
+                <div class="mt-5 md:hidden" x-data="{ open: false }" @nativeapp x-on:stappen-wisselen.window="open = !open" @endnativeapp>
                     <div class="flex gap-1" aria-hidden="true">
                         @foreach ($timeline as $stap)
                             <span class="h-2 flex-1 rounded-full {{ $stap['state'] === 'gereed' ? 'bg-green-500' : ($stap['state'] === 'bezig' ? 'bg-brand-500' : 'bg-gray-200') }}"></span>
@@ -114,7 +114,7 @@
                                 </form>
                             </div>
                         @elseif ($akkoorden->isNotEmpty())
-                            <div class="rounded-xl border border-brand-100 bg-white p-4" x-data="{ open: false }">
+                            <div class="rounded-xl border border-brand-100 bg-white p-4 app:cursor-pointer app:select-none" x-data="{ open: false }" @nativeapp x-on:click="if (! $event.target.closest('a, button, select, input, textarea, label, form')) open = !open" @endnativeapp>
                                 <p class="text-sm font-semibold text-navy-900">{{ $akkoorden->count() }} afgeronde fasen om te bevestigen</p>
                                 <p class="mt-0.5 text-xs text-gray-500">Bevestig dat u deze fasen heeft gezien. Dat kan in één keer of per fase.</p>
                                 <form method="POST" action="{{ route('portal.phases.approve-all', $project) }}" class="mt-3">

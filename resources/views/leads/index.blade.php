@@ -7,7 +7,7 @@
             <a href="{{ route('leads.index', ['view' => 'lijst']) }}"
                class="tap rounded-md px-3 py-1.5 {{ $view === 'lijst' ? 'bg-navy-900 text-white' : 'text-gray-600' }}">Lijst</a>
         </div>
-        <a href="{{ route('leads.create') }}" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600">+ Aanvraag</a>
+        <a href="{{ route('leads.create') }}" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600"><x-app-label web="+ Aanvraag" app="Nieuwe aanvraag" /></a>
     </x-page-header>
 
     @if ($view === 'kanban')
@@ -17,6 +17,38 @@
             $startStatus = collect($pipeline)->first(fn ($status) => $columns[$status->value]->isNotEmpty()) ?? $pipeline[0];
         @endphp
 
+        @nativeapp
+            {{-- iOS/Android-app (prototype Renovion OS): kerncijfers en de kolommen onder elkaar --}}
+            @php $open = $leads->filter(fn ($lead) => $lead->status->isOpen()); @endphp
+            <div class="app-kpis mb-4 lg:hidden">
+                <div class="app-kpi" style="--kc: #c2506d">
+                    <span class="lbl">Open leads</span>
+                    <span class="v" data-count>{{ $open->count() }}</span>
+                </div>
+                <div class="app-kpi" style="--kc: #3e6ba8">
+                    <span class="lbl">Potentiële omzet</span>
+                    <span class="v">€ {{ number_format((float) $open->sum('value'), 0, ',', '.') }}</span>
+                </div>
+            </div>
+
+            <div class="space-y-3 lg:hidden">
+                @foreach ($pipeline as $statusColumn)
+                    <section class="app-kcol">
+                        <div class="mb-2.5 flex items-center justify-between px-1">
+                            <h2 class="text-[15px] font-semibold text-navy-900">{{ $statusColumn->label() }}</h2>
+                            <span class="rounded-full border border-gray-200 bg-white px-2 py-0.5 text-xs font-bold text-gray-600">{{ $columns[$statusColumn->value]->count() }}</span>
+                        </div>
+                        <div class="space-y-2">
+                            @forelse ($columns[$statusColumn->value] as $lead)
+                                <x-lead-card :lead="$lead" />
+                            @empty
+                                <p class="px-1 text-sm text-gray-500">Geen aanvragen</p>
+                            @endforelse
+                        </div>
+                    </section>
+                @endforeach
+            </div>
+        @else
         {{-- Mobiel: statusbalk (zoals de dagbalk in Planning) + alleen de kaarten van de gekozen status --}}
         <div class="lg:hidden" x-data="{ status: @js($startStatus->value) }">
             {{-- scroll-px-4: snap houdt de 16px marge aan, anders springt de eerste knop tegen de schermrand.
@@ -44,6 +76,7 @@
                 </section>
             @endforeach
         </div>
+        @endnativeapp
 
         {{-- Desktop: Kanban, horizontaal scrollbaar, drag & drop --}}
         <div class="-mx-4 hidden overflow-x-auto px-4 pb-4 lg:mx-0 lg:block lg:px-0"

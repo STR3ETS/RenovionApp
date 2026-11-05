@@ -67,6 +67,38 @@ function slidePill(group, from) {
     // De knoppen hebben zelf een kleurovergang: die moet uit, anders knippert de nieuwe keuze aan het eind.
     to.style.transition = 'none';
     from.element.style.transition = 'none';
+
+    // data-pill="over" (dagbalk Planning): de knoppen zijn zelf witte kaarten, daaronder zou de pil
+    // verdwijnen. Dan schuift een kopie van de gekozen knop, met tekst, over de andere heen.
+    if (group.dataset.pill === 'over') {
+        const button = document.createElement('span');
+        button.setAttribute('aria-hidden', 'true');
+        button.className = to.className;
+        button.innerHTML = to.innerHTML;
+        Object.assign(button.style, {
+            position: 'absolute',
+            zIndex: 1,
+            left: `${to.offsetLeft}px`,
+            top: `${to.offsetTop}px`,
+            width: `${box.width}px`,
+            height: `${box.height}px`,
+            margin: '0',
+            pointerEvents: 'none',
+            transition: 'none',
+        });
+        group.append(button);
+        to.style.visibility = 'hidden';
+
+        button.animate([{ transform: `translate(${from.left - box.left}px, ${from.top - box.top}px)` }, { transform: 'none' }], { duration: PILL_DURATION, easing: 'cubic-bezier(0.3, 0.7, 0.2, 1)' })
+            .finished.finally(() => {
+                to.style.visibility = '';
+                button.remove();
+                to.style.transition = '';
+                from.element.style.transition = '';
+            });
+        return;
+    }
+
     const color = getComputedStyle(to).backgroundColor;
 
     const pill = document.createElement('span');

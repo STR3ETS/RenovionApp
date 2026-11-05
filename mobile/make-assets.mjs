@@ -1,5 +1,5 @@
-// App-iconen en splash voor iOS en Android, plus de website-favicons, uit het Renovion-logo:
-// het huismerk (oranje gevel + witte R) op navy. Na een logowijziging opnieuw draaien: npm run mobile:assets
+// App-iconen en splash voor iOS en Android (Renovion OS: open gevel + witte R) en de website-favicons
+// (het huismerk op navy). Na een logowijziging opnieuw draaien: npm run mobile:assets
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
@@ -34,12 +34,39 @@ function render(width, height, scale, { background = true, round = false } = {})
     return (background && !round ? image.flatten({ background: NAVY }) : image).png();
 }
 
+// Renovion OS: de iOS/Android-app, naar het app-icoon van het prototype. Getekend op een vlak van 512 eenheden;
+// de R komt uit het Renovion-logo. De website blijft het huismerk hierboven gebruiken.
+const OS_NAVY = '#0D1A2E';
+const OS_MARK = { x: 89, y: 78, width: 335, height: 344 };
+
+function renderOs(width, height, scale, { background = true, round = false, glow = false } = {}) {
+    const s = (Math.min(width, height) * scale) / Math.max(OS_MARK.width, OS_MARK.height);
+    const tx = (width - OS_MARK.width * s) / 2 - OS_MARK.x * s;
+    const ty = (height - OS_MARK.height * s) / 2 - OS_MARK.y * s;
+    const paint = glow ? 'url(#glow)' : OS_NAVY;
+    const fill = round
+        ? `<circle cx="${width / 2}" cy="${height / 2}" r="${width / 2}" fill="${paint}"/>`
+        : `<rect width="${width}" height="${height}" fill="${paint}"/>`;
+
+    const image = sharp(Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
+        <defs><radialGradient id="glow" cx="100%" cy="0%" r="75%"><stop offset="0" stop-color="#3A2B2C"/><stop offset="1" stop-color="${OS_NAVY}"/></radialGradient></defs>
+        ${background ? fill : ''}
+        <g transform="translate(${tx} ${ty}) scale(${s})">
+            <path d="M185 408H103V205L257 92L410 205" fill="none" stroke="#F26A1B" stroke-width="28" stroke-linejoin="round"/>
+            <path fill="#fff" transform="translate(${232 - 74 * 3.16} ${243 - 97.75 * 3.16}) scale(3.16)" d="${letterR}"/>
+        </g>
+    </svg>`));
+
+    return (background && !round ? image.flatten({ background: OS_NAVY }) : image).png();
+}
+
+// Het merk vult ruim de helft van het icoon (0.54): met lucht eromheen oogt het rustiger op het beginscherm.
 // iOS: één 1024px-icoon zonder transparantie (eis App Store) en een 2732px-splash (aspect fill).
 const ios = '../ios/App/App/Assets.xcassets';
 if (existsSync(path(ios))) {
-    await render(1024, 1024, 0.58).toFile(path(`${ios}/AppIcon.appiconset/AppIcon-512@2x.png`));
+    await renderOs(1024, 1024, 0.54, { glow: true }).toFile(path(`${ios}/AppIcon.appiconset/AppIcon-512@2x.png`));
     for (const file of ['splash-2732x2732.png', 'splash-2732x2732-1.png', 'splash-2732x2732-2.png']) {
-        await render(2732, 2732, 0.14).toFile(path(`${ios}/Splash.imageset/${file}`));
+        await renderOs(2732, 2732, 0.14).toFile(path(`${ios}/Splash.imageset/${file}`));
     }
     console.log('iOS-icoon en splash bijgewerkt');
 }
@@ -51,18 +78,18 @@ if (existsSync(path(res))) {
     const densities = { mdpi: 1, hdpi: 1.5, xhdpi: 2, xxhdpi: 3, xxxhdpi: 4 };
     for (const [density, factor] of Object.entries(densities)) {
         const dir = `${res}/mipmap-${density}`;
-        await render(108 * factor, 108 * factor, 0.4, { background: false }).toFile(path(`${dir}/ic_launcher_foreground.png`));
-        await render(48 * factor, 48 * factor, 0.58).toFile(path(`${dir}/ic_launcher.png`));
-        await render(48 * factor, 48 * factor, 0.52, { round: true }).toFile(path(`${dir}/ic_launcher_round.png`));
+        await renderOs(108 * factor, 108 * factor, 0.37, { background: false }).toFile(path(`${dir}/ic_launcher_foreground.png`));
+        await renderOs(48 * factor, 48 * factor, 0.54, { glow: true }).toFile(path(`${dir}/ic_launcher.png`));
+        await renderOs(48 * factor, 48 * factor, 0.48, { round: true, glow: true }).toFile(path(`${dir}/ic_launcher_round.png`));
 
         for (const orientation of ['port', 'land']) {
             const file = path(`${res}/drawable-${orientation}-${density}/splash.png`);
             const { width, height } = await sharp(readFileSync(file)).metadata();
-            await render(width, height, 0.28).toFile(file);
+            await renderOs(width, height, 0.28).toFile(file);
         }
     }
     const { width, height } = await sharp(readFileSync(path(`${res}/drawable/splash.png`))).metadata();
-    await render(width, height, 0.28).toFile(path(`${res}/drawable/splash.png`));
+    await renderOs(width, height, 0.28).toFile(path(`${res}/drawable/splash.png`));
 
     // Meldingsicoon (24dp): Android toont alleen de vorm, dus wit op transparant.
     for (const [density, factor] of Object.entries(densities)) {

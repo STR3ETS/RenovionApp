@@ -15,7 +15,7 @@
                         <span class="mt-0.5 block text-[11px] text-gray-500">{{ $automation['mode']->description() }}</span>
                     </span>
                 </div>
-                <div class="flex items-center justify-between gap-3 sm:pl-12 lg:shrink-0 lg:pl-0">
+                <div class="flex items-center justify-between gap-3 sm:pl-12 lg:shrink-0 lg:pl-0 app:flex-col app:items-stretch app:gap-2">
                     <span class="text-xs whitespace-nowrap text-gray-500 lg:text-right">
                         {{ $automation['runs'] }}× uitgevoerd
                         @if ($automation['last_run_at'])
@@ -23,9 +23,9 @@
                         @endif
                     </span>
                     @can('manage-team')
-                        <form method="POST" action="{{ route('automations.update', $automation['key']) }}" class="min-w-0">
+                        <form method="POST" action="{{ route('automations.update', $automation['key']) }}" class="min-w-0 app:w-full">
                             @csrf @method('PATCH')
-                            <select name="mode" onchange="this.form.submit()" aria-label="Modus voor {{ $automation['name'] }}" class="max-w-full rounded-lg border-gray-200 py-1.5 text-xs font-semibold focus:border-brand-500 focus:ring-brand-500 pointer-coarse:py-2.5">
+                            <select name="mode" onchange="this.form.submit()" aria-label="Modus voor {{ $automation['name'] }}" class="max-w-full rounded-lg border-gray-200 py-1.5 text-xs font-semibold focus:border-brand-500 focus:ring-brand-500 pointer-coarse:py-2.5 app:w-full">
                                 @foreach (\App\Enums\AutomationMode::cases() as $mode)
                                     <option value="{{ $mode->value }}" @selected($automation['mode'] === $mode)>{{ $mode->label() }}</option>
                                 @endforeach

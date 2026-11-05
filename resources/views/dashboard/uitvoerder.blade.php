@@ -1,10 +1,23 @@
 <x-layouts.app title="Vandaag">
 
     {{-- Uitvoerder-start (mockup §18, telefoon): project van vandaag voorop, dan wat er vandaag af moet. --}}
+    @nativeapp
+        <section data-enter class="app-band mb-4">
+            <img src="{{ asset('images/os-hero.jpg') }}" alt="" class="bimg">
+            <div>
+                <p class="eyebrow">{{ now()->translatedFormat('l j F Y') }}</p>
+                <h1 class="mt-1.5">
+                    {{ now()->hour < 12 ? 'Goedemorgen' : (now()->hour < 18 ? 'Goedemiddag' : 'Goedenavond') }}, <span>{{ str(auth()->user()->name)->before(' ') }}</span>
+                </h1>
+                <span class="rule"></span>
+            </div>
+        </section>
+    @else
     <p class="text-[11px] font-bold tracking-widest text-gray-600 uppercase">{{ now()->translatedFormat('l j F') }}</p>
     <h1 class="mt-0.5 mb-4 text-xl font-bold text-navy-950">
         {{ now()->hour < 12 ? 'Goedemorgen' : (now()->hour < 18 ? 'Goedemiddag' : 'Goedenavond') }} {{ str(auth()->user()->name)->before(' ') }}.
     </h1>
+    @endnativeapp
 
     @if ($project)
         @php

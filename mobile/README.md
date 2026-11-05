@@ -1,13 +1,19 @@
 # Renovion-app voor iOS en Android (Capacitor)
 
-De app is een native schil om de live Laravel-omgeving: alle schermen komen van de server, dus
-een gewone `git pull` op productie verandert ook de app. Alleen wijzigingen in de native laag
-(Capacitor-config, plugins, `ios/`, `android/`, icoon) vragen om een nieuwe build in de stores.
+De belangrijkste schermen zitten in de app zelf ([`mobile/app/`](app)); de server levert alleen de
+gegevens (`api/app/*`) en de schermen die nog niet in de app zitten, die openen als serverpagina in
+dezelfde app. Een wijziging aan een ingebouwd scherm vraagt dus een nieuwe build in de stores; een
+wijziging aan de gegevens of aan een serverpagina gaat live met een gewone deploy.
+
+```bash
+RENOVION_API_URL=https://dash.renovion.nl npm run app:build   # schermen naar mobile/www
+RENOVION_API_URL=https://dash.renovion.nl npx cap sync         # zelfde adres in de native config
+```
 
 | Wat | Waar |
 | --- | --- |
 | Config (server-URL, bundle-ID, splash) | [`capacitor.config.ts`](../capacitor.config.ts) |
-| Offline-scherm | [`mobile/www/offline.html`](www/offline.html) |
+| Offline-scherm | [`mobile/app/public/offline.html`](app/public/offline.html) (gaat mee in `npm run app:build`) |
 | JS-brug (spraak, printen, statusbalk, links) | [`resources/js/native.js`](../resources/js/native.js) |
 | Native code iOS (swipe-terug, printplugin, offline-filter) | [`ios/App/App/MainViewController.swift`](../ios/App/App/MainViewController.swift) |
 | Native code Android (printplugin, offline-filter) | [`android/app/src/main/java/nl/renovion/dash/`](../android/app/src/main/java/nl/renovion/dash/) |
@@ -39,20 +45,27 @@ Testen tegen een lokale Laravel in de emulator (`10.0.2.2` is de pc vanuit de em
 
 ```bash
 php artisan serve --host=0.0.0.0 --port=8000         # met npm run build gedaan en zonder public/hot
-CAP_SERVER_URL=http://10.0.2.2:8000 npx cap sync android
+RENOVION_API_URL=http://10.0.2.2:8000 npm run app:build
+RENOVION_API_URL=http://10.0.2.2:8000 npx cap sync android
 ```
 
-Dan in Android Studio een emulator kiezen en Run. Op een echte telefoon in hetzelfde wifi-netwerk:
-het IP van je pc gebruiken in plaats van `10.0.2.2`. Laragon (`https://renovionapp.test`) werkt niet
-vanuit de emulator: die hostnaam bestaat daar niet en het certificaat is niet vertrouwd.
+Dan in Android Studio een emulator kiezen en Run. Op een echte telefoon zonder kabel: het wifi-adres
+van je pc gebruiken (bijv. `RENOVION_API_URL=http://192.168.1.96:8000`, zie `ipconfig`); telefoon en pc
+moeten op hetzelfde wifi-netwerk zitten, en verandert het adres van de pc, dan opnieuw bouwen. Vast
+adres: een DHCP-reservering voor de pc in de router. Op een echte telefoon aan de USB-kabel:
+`adb reverse tcp:8000 tcp:8000` en `http://127.0.0.1:8000` als adres (werkt op elk wifi-netwerk, maar
+alleen zolang de kabel erin zit en de reverse actief is). Laragon (`https://renovionapp.test`) werkt
+niet vanuit de emulator: die hostnaam bestaat daar niet en het certificaat is niet vertrouwd.
 
-**Let op:** daarna weer `npm run mobile:sync` zonder variabele, anders gaat de lokale URL mee in een
+**Let op:** daarna beide stappen opnieuw zonder variabele, anders gaat de lokale URL mee in een
 release-build.
 
 ## Hoe Laravel de app herkent
 
-De user agent eindigt op `RenovionApp`. Nu gebruikt: "Ingelogd blijven" staat in de app standaard aan.
-In de browser zet [`native.js`](../resources/js/native.js) de class `native-app` op `<html>`.
+De user agent eindigt op `RenovionApp`. Daarmee krijgt de app de Renovion OS-stijl en een eigen schil, en staat
+"Ingelogd blijven" standaard aan; de website blijft zoals hij is, ook in een telefoonbrowser. De server zet de
+class `native-app` op `<html>` (`App\Support\NativeApp`, `@nativeapp` in Blade, `app:` in Tailwind), en
+[`native.js`](../resources/js/native.js) doet dat nog een keer in de app zelf.
 
 ## Verschillen tussen de platforms
 

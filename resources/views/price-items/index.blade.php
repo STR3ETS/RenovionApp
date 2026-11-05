@@ -38,7 +38,7 @@
         </form>
 
         {{-- Typefilter --}}
-        <div class="mb-4 flex flex-wrap gap-1.5">
+        <div class="mb-4 flex flex-wrap gap-1.5 app:-mx-4 app:flex-nowrap app:gap-1 app:overflow-x-auto app:px-4 app:pb-1">
             <a href="{{ route('price-items.index', array_filter(['q' => $q])) }}"
                class="tap rounded-full px-3 py-1.5 text-xs font-semibold {{ $type === null ? 'bg-navy-900 text-white' : 'border border-gray-300 bg-white text-gray-600' }}">Alle</a>
             @foreach (\App\Enums\CalculationLineType::cases() as $lineType)

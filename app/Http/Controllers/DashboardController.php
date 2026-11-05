@@ -12,6 +12,7 @@ use App\Models\ScheduleEntry;
 use App\Models\Task;
 use App\Models\User;
 use App\Services\AttentionService;
+use App\Support\NativeApp;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -31,7 +32,7 @@ class DashboardController extends Controller
             return view('dashboard.uitvoerder', $this->uitvoerderData($request->user()));
         }
 
-        return view('dashboard.index', $this->managementData());
+        return view(NativeApp::active() ? 'dashboard.app' : 'dashboard.index', $this->managementData());
     }
 
     /**
@@ -40,7 +41,7 @@ class DashboardController extends Controller
      *
      * @return array<string, mixed>
      */
-    private function uitvoerderData(User $user): array
+    public function uitvoerderData(User $user): array
     {
         $planningWeek = ScheduleEntry::where('user_id', $user->id)
             ->whereBetween('date', [today(), today()->addDays(7)])
@@ -88,7 +89,7 @@ class DashboardController extends Controller
     /**
      * @return array<string, mixed>
      */
-    private function managementData(): array
+    public function managementData(): array
     {
         $stats = [
             'actieve_projecten' => Project::active()->count(),

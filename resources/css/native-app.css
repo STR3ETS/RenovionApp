@@ -1,0 +1,1330 @@
+/*
+ * Renovion OS-stijl: alleen in de iOS/Android-app.
+ * De server zet .native-app op <html> als de user agent "RenovionApp" bevat, de website krijgt hier niets
+ * van mee, ook niet op een telefoon. De Tailwind-kleuren en -radii zijn CSS-variabelen, dus door ze hier
+ * te overschrijven verandert elk scherm mee; wat daar niet mee kan, staat onder de tokens.
+ * Bron: het prototype renovion-os-bron (waarden uit core.html en r*.css).
+ */
+@custom-variant app (&:where(.native-app, .native-app *));
+
+.native-app {
+    --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+
+    --radius-lg: 10px;
+    --radius-xl: 12px;
+    --radius-2xl: 14px;
+    --app-shadow: 0 1px 2px rgb(13 26 46 / 0.04), 0 8px 24px -20px rgb(13 26 46 / 0.35);
+
+    /* Oranje */
+    --color-brand-50: #fdede2;
+    --color-brand-100: #fbdcc7;
+    --color-brand-200: #f6cdb1;
+    --color-brand-300: #f7b083;
+    --color-brand-400: #f7934d;
+    --color-brand-500: #f26a1b;
+    --color-brand-600: #c2500c;
+    --color-brand-700: #c2500c;
+    --color-brand-800: #9a3f09;
+    --color-brand-900: #7a3207;
+
+    /* Navy */
+    --color-navy-50: #eef1f6;
+    --color-navy-100: #d5dce7;
+    --color-navy-200: #c3ccda;
+    --color-navy-300: #a9b5c8;
+    --color-navy-400: #7d8ba1;
+    --color-navy-500: #5e6a80;
+    --color-navy-600: #3c485d;
+    --color-navy-700: #24324a;
+    --color-navy-800: #1c2d47;
+    --color-navy-900: #0f1b2e;
+    --color-navy-950: #0d1a2e;
+
+    /* Neutraal: koeler dan Tailwind-grijs */
+    --color-gray-50: #f7f8fb;
+    --color-gray-100: #f1f3f7;
+    --color-gray-200: #dce2ec;
+    --color-gray-300: #c9d1dd;
+    --color-gray-400: #94a1b6;
+    --color-gray-500: #5e6a80;
+    --color-gray-600: #3c485d;
+    --color-gray-700: #3c485d;
+    --color-gray-800: #24324a;
+    --color-gray-900: #0f1b2e;
+
+    /* Status */
+    --color-green-50: #eef8f2;
+    --color-green-100: #e3f3ea;
+    --color-green-200: #bfe3cf;
+    --color-green-300: #8fd0ad;
+    --color-green-400: #4cc28a;
+    --color-green-500: #1e8a5a;
+    --color-green-600: #1e8a5a;
+    --color-green-700: #1a7d51;
+    --color-green-800: #15663f;
+    --color-amber-50: #fdf7ea;
+    --color-amber-100: #fcf1dc;
+    --color-amber-200: #f5ddaa;
+    --color-amber-400: #e49b16;
+    --color-amber-500: #e49b16;
+    --color-amber-600: #a86a06;
+    --color-amber-700: #a86a06;
+    --color-amber-800: #8a5605;
+    --color-red-50: #fdf1ef;
+    --color-red-100: #fbe7e4;
+    --color-red-200: #f3c8c2;
+    --color-red-500: #c23a2b;
+    --color-red-600: #c23a2b;
+    --color-red-700: #a82f22;
+    --color-red-800: #8f2619;
+    --color-blue-100: #e7eef8;
+    --color-blue-500: #3e6ba8;
+    --color-blue-600: #3e6ba8;
+    --color-blue-700: #3e6ba8;
+
+    /* Domeinkleuren volgen de secties van het prototype */
+    --color-lead-50: #fbeff2;
+    --color-lead-100: #f7e0e6;
+    --color-lead-200: #efc6d1;
+    --color-lead-500: #c2506d;
+    --color-lead-600: #a8405c;
+    --color-lead-700: #8f3450;
+    --color-klant-50: #fbeff2;
+    --color-klant-100: #f7e0e6;
+    --color-klant-200: #efc6d1;
+    --color-klant-500: #c2506d;
+    --color-klant-600: #a8405c;
+    --color-klant-700: #8f3450;
+    --color-calc-50: #f0f4fa;
+    --color-calc-100: #e7eef8;
+    --color-calc-200: #cddcef;
+    --color-calc-500: #3e6ba8;
+    --color-calc-600: #345b90;
+    --color-calc-700: #2c4d7a;
+    --color-offerte-50: #f0f4fa;
+    --color-offerte-100: #e7eef8;
+    --color-offerte-200: #cddcef;
+    --color-offerte-500: #3e6ba8;
+    --color-offerte-600: #345b90;
+    --color-offerte-700: #2c4d7a;
+    --color-project-50: #fdf5e6;
+    --color-project-100: #fcf1dc;
+    --color-project-200: #f5ddaa;
+    --color-project-500: #d98a0b;
+    --color-project-600: #b87408;
+    --color-project-700: #8f5a06;
+    --color-planning-50: #eef8f2;
+    --color-planning-100: #e3f3ea;
+    --color-planning-200: #bfe3cf;
+    --color-planning-500: #1e8a5a;
+    --color-planning-600: #1a7d51;
+    --color-planning-700: #15663f;
+
+    --h: #f26a1b;
+}
+
+.native-app[data-sec='inbox'] {
+    --h: #e5484d;
+}
+
+.native-app[data-sec='teamchat'] {
+    --h: #2b8c8c;
+}
+
+.native-app[data-sec='verkoop'] {
+    --h: #c2506d;
+}
+
+.native-app[data-sec='offertes'] {
+    --h: #3e6ba8;
+}
+
+.native-app[data-sec='projecten'] {
+    --h: #d98a0b;
+}
+
+.native-app[data-sec='uitvoering'] {
+    --h: #1e8a5a;
+}
+
+.native-app[data-sec='mensen'] {
+    --h: #7c5cd6;
+}
+
+.native-app[data-sec='organisatie'] {
+    --h: #64748b;
+}
+
+/* Basis */
+.native-app body {
+    line-height: 1.5;
+}
+
+.native-app h1,
+.native-app h2,
+.native-app h3,
+.native-app h4,
+.native-app [data-count] {
+    font-family: var(--font-display);
+}
+
+/* Onderaan ruimte voor de onderbalk én de Nova-knop, zodat het laatste item er nooit onder ligt. */
+.native-app main {
+    padding: 16px 16px calc(150px + env(safe-area-inset-bottom));
+}
+
+.keyboard-open.native-app main {
+    padding-bottom: 1rem;
+}
+
+/* Bestaande kaarten krijgen de zachte schaduw van het prototype */
+.native-app main [class*='rounded-2xl'][class*='border-gray-200'][class*='bg-white'] {
+    box-shadow: var(--app-shadow);
+}
+
+/* Knoppen: pil, 13px, halfvet */
+.native-app a[class*='bg-brand-500'],
+.native-app button[class*='bg-brand-500'] {
+    border-radius: 999px;
+    font-weight: 600;
+}
+
+.native-app main a[class*='bg-brand-500'][class*='px-'],
+.native-app main button[class*='bg-brand-500'][class*='px-'] {
+    display: inline-flex;
+    min-height: 38px;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+}
+
+.native-app main a[class*='rounded-lg'][class*='border-gray-300'],
+.native-app main a[class*='rounded-xl'][class*='border-gray-300'],
+.native-app main button[class*='rounded-lg'][class*='border-gray-300'],
+.native-app main button[class*='rounded-xl'][class*='border-gray-300'] {
+    border-color: var(--color-gray-200);
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Invoervelden: 42px hoog, 16px tekst (anders zoomt iOS in) */
+.native-app input:not([type='checkbox'], [type='radio'], [type='file'], [type='hidden'], [class*='border-0']),
+.native-app select,
+.native-app textarea:not([class*='border-0']) {
+    border-color: var(--color-gray-200);
+    border-radius: 10px;
+    font-size: 16px;
+}
+
+.native-app input:not([type='checkbox'], [type='radio'], [type='file'], [type='hidden'], [class*='border-0']),
+.native-app select {
+    min-height: 42px;
+}
+
+/* Voortgangsbalk */
+.native-app main [class*='bg-brand-500'][style*='width:'] {
+    background: linear-gradient(90deg, #f26a1b, #f7934d);
+}
+
+/* Topbalk */
+.app-top {
+    box-shadow: 0 1px 0 var(--color-gray-200);
+}
+
+.app-iconbtn {
+    display: grid;
+    flex: none;
+    width: 36px;
+    height: 36px;
+    place-items: center;
+    border: 1px solid var(--color-gray-200);
+    border-radius: 50%;
+    background: #fff;
+    color: var(--color-gray-900);
+}
+
+.app-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 50;
+    width: 240px;
+    padding: 6px;
+    border: 1px solid var(--color-gray-200);
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 18px 40px -18px rgb(13 26 46 / 0.45);
+}
+
+.app-menu a,
+.app-menu button {
+    display: flex;
+    width: 100%;
+    min-height: 40px;
+    align-items: center;
+    gap: 10px;
+    padding: 0 10px;
+    border-radius: 9px;
+    color: var(--color-gray-900);
+    font-size: 13.5px;
+    font-weight: 500;
+    text-align: left;
+}
+
+.app-menu a:active,
+.app-menu button:active {
+    background: var(--color-gray-50);
+}
+
+.app-menu svg {
+    color: var(--color-gray-500);
+}
+
+.app-menu hr {
+    margin: 4px 6px;
+    border-color: #edf0f5;
+}
+
+/* Onderbalk */
+.app-bnav {
+    border-top: 1px solid var(--color-gray-200);
+    box-shadow: 0 -6px 20px -14px #0d1a2e;
+}
+
+.app-bnav > a,
+.app-bnav > button {
+    position: relative;
+    display: flex;
+    height: 66px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    color: var(--color-gray-500);
+}
+
+.app-bnav .tab-label {
+    font-size: 10.5px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.app-bnav .on {
+    color: var(--h);
+}
+
+.app-bnav .on::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 30px;
+    height: 3px;
+    transform: translateX(-50%);
+    border-radius: 0 0 3px 3px;
+    background: var(--h);
+}
+
+.app-bnav .cnt {
+    position: absolute;
+    top: -6px;
+    right: -10px;
+    display: flex;
+    min-width: 16px;
+    height: 16px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    border-radius: 99px;
+    background: var(--color-brand-500);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* Nova: zwevend, boven de onderbalk; gaat opzij bij omlaag scrollen (native.js) */
+.app-nova {
+    transition:
+        transform 220ms ease,
+        opacity 220ms ease;
+
+    position: fixed;
+    right: max(14px, env(safe-area-inset-right, 0px));
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    z-index: 40;
+    width: 54px;
+    height: 54px;
+    padding: 0;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow:
+        0 10px 26px -8px rgb(242 106 27 / 0.7),
+        0 0 0 3px var(--color-brand-500),
+        0 0 0 6px #fff;
+}
+
+.app-nova .cnt {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    display: grid;
+    min-width: 21px;
+    height: 21px;
+    place-items: center;
+    padding: 0 5px;
+    border-radius: 99px;
+    background: var(--color-red-500);
+    box-shadow: 0 0 0 2px #fff;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.app-nova .spark {
+    position: absolute;
+    bottom: -3px;
+    left: -3px;
+    display: grid;
+    width: 20px;
+    height: 20px;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--color-brand-500);
+    box-shadow: 0 0 0 2px #fff;
+    color: #fff;
+}
+
+.nova-away .app-nova {
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(24px) scale(0.85);
+}
+
+/* Filterrijen: vervaging rechts zolang er meer is om naartoe te vegen (native.js zet has-more-x) */
+.native-app .has-more-x {
+    mask-image: linear-gradient(90deg, #000 calc(100% - 48px), transparent);
+}
+
+/* Inbox: uitleg op twee regels (de display van .app-li small zou line-clamp anders opheffen) */
+.app-li small.line-clamp-2 {
+    display: -webkit-box;
+}
+
+/* Dossierkop: fase en andere gegevens mogen over twee regels, niet afkappen. Extra .native-app zodat dit
+   wint van de regel voor .app-band .bmeta b verderop. */
+.native-app .app-band .bmeta b {
+    display: -webkit-box;
+    overflow: hidden;
+    white-space: normal;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+/* Zijmenu */
+.app-scrim {
+    background: rgb(9 17 30 / 0.45);
+}
+
+html.native-app:has(.app-drawer:not([x-cloak], [style*='display: none'])) {
+    overflow: hidden;
+}
+
+.app-ngroup {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px 6px;
+    color: #7d8ba1;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.app-nitem {
+    display: flex;
+    width: 100%;
+    min-height: 40px;
+    align-items: center;
+    gap: 12px;
+    padding: 0 12px;
+    border-radius: 999px;
+    color: #d5dce7;
+    font-size: 14.5px;
+    font-weight: 500;
+    text-align: left;
+}
+
+.app-nitem.active {
+    background: #e8691c;
+    box-shadow: 0 6px 16px -8px rgb(232 105 28 / 0.6);
+    color: #fff;
+}
+
+.app-nitem .cnt {
+    display: flex;
+    min-width: 22px;
+    height: 20px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+    border-radius: 99px;
+    background: #24324a;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.app-nitem .cnt.accent {
+    background: #e8691c;
+}
+
+.app-nitem.active .cnt {
+    background: #fff;
+    color: #0d1a2e;
+}
+
+/* Tabs per sectie */
+.app-sectabs {
+    display: flex;
+    gap: 22px;
+    margin: -4px -16px 14px;
+    padding: 0 16px;
+    overflow-x: auto;
+    border-bottom: 1px solid #edf0f5;
+    scrollbar-width: none;
+}
+
+.app-sectabs::-webkit-scrollbar {
+    display: none;
+}
+
+.app-sectabs a {
+    flex: none;
+    margin-bottom: -1px;
+    padding: 12px 0 10px;
+    border-bottom: 2px solid transparent;
+    color: var(--color-gray-600);
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.app-sectabs a.on {
+    border-bottom-color: var(--h);
+    color: var(--h);
+}
+
+/* Paginakop */
+.app-ph {
+    margin-bottom: 14px;
+}
+
+.app-ph .sec-eye {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 6px;
+    color: var(--h);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.app-ph .sec-eye svg {
+    width: 22px;
+    height: 22px;
+    padding: 4px;
+    border-radius: 7px;
+    background: color-mix(in srgb, var(--h) 14%, transparent);
+}
+
+.app-ph h1 {
+    color: var(--color-gray-900);
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.3px;
+    overflow-wrap: anywhere;
+}
+
+.app-ph h1 em {
+    color: var(--h);
+    font-style: normal;
+}
+
+.app-ph .sub {
+    margin-top: 6px;
+    color: var(--color-gray-600);
+    font-size: 14px;
+}
+
+.app-ph-acts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+/* De hoofdactie staat op de telefoon over de hele breedte */
+.app-ph-acts > a[class*='bg-brand-500'],
+.app-ph-acts > button[class*='bg-brand-500'] {
+    flex: 1 1 100%;
+}
+
+/* Kaart met kop */
+.app-card {
+    overflow: hidden;
+    border: 1px solid var(--color-gray-200);
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: var(--app-shadow);
+}
+
+.app-card-h {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 16px 20px;
+    border-bottom: 1px solid #edf0f5;
+}
+
+.app-card-h h3 {
+    color: var(--color-gray-900);
+    font-size: 16.5px;
+    font-weight: 600;
+}
+
+.app-card-h h3 em {
+    color: var(--h);
+    font-style: normal;
+}
+
+.app-card-b {
+    padding: 4px 20px;
+}
+
+.app-btn {
+    display: inline-flex;
+    min-height: 34px;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 14px;
+    border: 1px solid var(--color-gray-200);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--color-gray-900);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.app-btn.ghost {
+    border-color: transparent;
+    background: transparent;
+    font-size: 12.5px;
+}
+
+.app-btn.soft {
+    border-color: var(--color-brand-200);
+    background: #fff;
+    color: var(--color-brand-600);
+}
+
+.app-btn.pri {
+    border-color: transparent;
+    background: var(--color-brand-500);
+    color: #fff;
+}
+
+.app-btn.onnavy {
+    border-color: rgb(255 255 255 / 0.16);
+    background: rgb(255 255 255 / 0.08);
+    color: #fff;
+}
+
+/* Lijstregel */
+.app-li {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 12px 0;
+}
+
+.app-li + .app-li,
+.app-li + form,
+form + .app-li {
+    border-top: 1px solid #edf0f5;
+}
+
+.app-li b {
+    display: block;
+    color: var(--color-gray-900);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.app-li small {
+    display: block;
+    margin-top: 2px;
+    color: var(--color-gray-500);
+    font-size: 12.5px;
+    line-height: 1.45;
+}
+
+.app-li .app-btn {
+    margin-top: 8px;
+}
+
+.app-ic {
+    display: grid;
+    flex: none;
+    width: 36px;
+    height: 36px;
+    place-items: center;
+    border-radius: 11px;
+}
+
+.app-ic.or {
+    background: color-mix(in srgb, #f26a1b 15%, transparent);
+    color: #e05a0c;
+}
+
+.app-ic.bad {
+    background: color-mix(in srgb, #e5484d 14%, transparent);
+    color: #d23a3f;
+}
+
+.app-ic.blue {
+    background: color-mix(in srgb, #3e6ba8 15%, transparent);
+    color: #3863a0;
+}
+
+.app-ic.vio {
+    background: color-mix(in srgb, #7c5cd6 15%, transparent);
+    color: #6a4bc8;
+}
+
+.app-ic.ok {
+    background: color-mix(in srgb, #1e8a5a 15%, transparent);
+    color: #1a7d51;
+}
+
+.app-ic.warn {
+    background: color-mix(in srgb, #e49b16 18%, transparent);
+    color: #a86a06;
+}
+
+/* Inbox: kleurstrook per soort */
+.app-li.ibx {
+    position: relative;
+    padding-left: 14px;
+}
+
+.app-li.ibx::before {
+    content: '';
+    position: absolute;
+    top: 12px;
+    bottom: 12px;
+    left: 0;
+    width: 3px;
+    border-radius: 3px;
+    background: var(--st, #c9d1dd);
+}
+
+.app-li.ibx .src {
+    color: var(--st);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+/* Keuzechips */
+.app-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.app-chip {
+    display: inline-flex;
+    height: 34px;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    border: 1px solid var(--color-gray-200);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--color-gray-900);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.app-chip span {
+    color: var(--color-gray-500);
+    font-size: 11.5px;
+}
+
+.app-chip.on {
+    border-color: var(--h);
+    background: var(--h);
+    color: #fff;
+}
+
+.app-chip.on span {
+    padding: 0 6px;
+    border-radius: 99px;
+    background: rgb(255 255 255 / 0.22);
+    color: #fff;
+}
+
+/* Donkere band met foto */
+.app-band {
+    position: relative;
+    display: grid;
+    gap: 14px;
+    padding: 18px 16px;
+    overflow: hidden;
+    isolation: isolate;
+    border-radius: 12px;
+    background: var(--color-navy-950);
+    color: #fff;
+}
+
+.app-band .bimg {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    object-position: right center;
+}
+
+.app-band::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: color-mix(in srgb, var(--color-navy-950) 88%, transparent);
+    pointer-events: none;
+}
+
+.app-band .eyebrow {
+    color: #a9b5c8;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.app-band h1 {
+    color: #fff;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.6px;
+    overflow-wrap: anywhere;
+}
+
+.app-band h1 span {
+    color: var(--color-brand-500);
+}
+
+.app-band .rule {
+    display: block;
+    width: 56px;
+    height: 3px;
+    margin-top: 10px;
+    border-radius: 2px;
+    background: var(--color-brand-500);
+}
+
+.app-band .lede {
+    color: #d5dce7;
+    font-size: 14px;
+}
+
+.app-band .sub {
+    color: var(--color-brand-500);
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.app-band .bmeta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 14px;
+    padding-top: 14px;
+    border-top: 1px solid rgb(255 255 255 / 0.12);
+}
+
+.app-band .bmeta div {
+    display: grid;
+    min-width: 0;
+    gap: 2px;
+}
+
+.app-band .bmeta span {
+    color: #a9b5c8;
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.app-band .bmeta b {
+    overflow: hidden;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.app-crumbs {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 6px;
+    color: #a9b5c8;
+    font-size: 12.5px;
+}
+
+.app-crumbs span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Nova-regel */
+.app-novaline {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    align-items: start;
+    gap: 12px;
+    padding: 12px 16px;
+    border: 1px solid var(--color-brand-200);
+    border-radius: 14px;
+    background: linear-gradient(100deg, var(--color-brand-50), #fff 70%);
+}
+
+.app-novaline p {
+    color: var(--color-gray-900);
+    font-size: 13.5px;
+}
+
+.app-novaline .app-btn {
+    grid-column: 2;
+    justify-self: start;
+}
+
+/* KPI's */
+.app-kpis {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.app-kpi {
+    position: relative;
+    display: block;
+    padding: 12px 14px;
+    overflow: hidden;
+    border: 1px solid var(--color-gray-200);
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: var(--app-shadow);
+}
+
+.app-kpi::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    background: var(--kc, var(--h));
+}
+
+.app-kpi .lbl {
+    display: block;
+    color: var(--kc, var(--h));
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.app-kpi .v {
+    display: block;
+    margin-top: 6px;
+    color: var(--color-gray-900);
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.app-kpi .s {
+    display: block;
+    margin-top: 6px;
+    color: var(--color-gray-500);
+    font-size: 12.5px;
+}
+
+.app-kpi.wide {
+    grid-column: 1 / -1;
+}
+
+.app-kpi.dark {
+    grid-column: 1 / -1;
+    border-color: transparent;
+    background: linear-gradient(135deg, #0d1a2e, #1a2d4b);
+}
+
+.app-kpi.dark::before {
+    display: none;
+}
+
+.app-kpi.dark .lbl {
+    color: #a9b5c8;
+}
+
+.app-kpi.dark .v {
+    color: #fff;
+}
+
+.app-kpi.dark .v i {
+    color: var(--color-brand-500);
+    font-style: normal;
+}
+
+.app-kpi.dark .s {
+    color: #d5dce7;
+}
+
+/* Projectkaart */
+.app-pcard {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+    border: 1px solid var(--color-gray-200);
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: var(--app-shadow);
+}
+
+.app-pcard .id {
+    color: var(--color-gray-500);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+
+.app-pcard h4 {
+    color: var(--color-gray-900);
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.app-pcard .sub {
+    margin-top: -6px;
+    color: var(--color-gray-600);
+    font-size: 13px;
+}
+
+.app-bar {
+    display: block;
+    height: 9px;
+    overflow: hidden;
+    border-radius: 99px;
+    background: var(--color-gray-100);
+}
+
+.app-bar i {
+    display: block;
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, #f26a1b, #f7934d);
+}
+
+/* Pills */
+.native-app main span[class*='rounded-full'][class*='font-semibold'][class*='whitespace-nowrap'] {
+    min-height: 23px;
+    padding-inline: 10px;
+    font-size: 11.5px;
+}
+
+/* Kanban op de telefoon: de kolommen staan onder elkaar */
+.app-kcol {
+    padding: 10px;
+    border: 1px solid var(--color-gray-200);
+    border-radius: 14px;
+    background: var(--color-gray-50);
+}
+
+/* Teamchat */
+.app-chat-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.app-chat-head h1 {
+    color: var(--color-gray-900);
+    font-size: 21px;
+    font-weight: 700;
+}
+
+.app-chat-list {
+    margin: -16px -16px 0;
+    padding: 14px 12px 12px;
+    min-height: calc(100dvh - 125px - env(safe-area-inset-top));
+    background: #e9edf3;
+}
+
+.app-chat-item {
+    display: flex;
+    min-height: 62px;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 12px;
+    border-radius: 12px;
+}
+
+.app-chat-item:active {
+    background: #fff;
+}
+
+.app-chat-item > span:first-child {
+    width: 42px;
+    height: 42px;
+}
+
+.native-app .chat-panel .chat-scroll {
+    background-color: #f7f6f3;
+    background-image: radial-gradient(rgb(13 26 46 / 0.05) 1px, transparent 1px);
+    background-size: 18px 18px;
+}
+
+.native-app .chat-panel header {
+    border-bottom-color: var(--color-gray-200);
+    background: #fff;
+}
+
+.native-app .chat-panel form {
+    border-top-color: var(--color-gray-200);
+    background: #fff;
+}
+
+.native-app .chat-panel .chat-day {
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 1px 1px rgb(13 26 46 / 0.08);
+}
+
+.native-app .chat-panel .chat-bubble {
+    position: relative;
+    padding: 6px 9px 5px;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 1px 1px rgb(13 26 46 / 0.08);
+    color: var(--color-gray-900);
+}
+
+.native-app .chat-panel .chat-bubble.mine {
+    background: #ffe7d6;
+}
+
+.native-app .chat-panel .chat-name {
+    color: var(--who, var(--color-gray-500));
+}
+
+.native-app .chat-panel .chat-who {
+    background: color-mix(in srgb, var(--who, #3e6ba8) 16%, #fff);
+    color: var(--who, #3e6ba8);
+}
+
+.native-app .sidebar-scroll {
+    scrollbar-gutter: auto;
+}
+
+/*
+ * Pagina-opbouw en waaier zoals in het prototype (r27.css): kaarten kantelen om hun onderrand en komen van
+ * dieper, en de waas is weg vóór ze stilstaan, anders schuift er een onleesbaar vlak scheef het beeld in.
+ */
+@media (prefers-reduced-motion: no-preference) {
+    .native-app .enter-block {
+        transform-origin: 50% 100%;
+        animation-name: enter-block-app;
+        animation-timing-function: cubic-bezier(0.2, 0.85, 0.25, 1);
+    }
+}
+
+@keyframes enter-block-app {
+    from {
+        opacity: 0;
+        filter: blur(6px);
+        transform: translateY(var(--enter-y, 14px)) rotate(var(--enter-rotate, 0deg)) scale(0.97);
+    }
+
+    60% {
+        filter: blur(0);
+    }
+}
+
+/* Filters: één rij, alleen de gekozen gevuld (prototype .seg) */
+.native-app main div:has(> a.tap[class*='rounded-full'][class*='px-3']) {
+    scrollbar-width: none;
+}
+
+.native-app main a.tap[class*='rounded-full'][class*='px-3'] {
+    flex: none;
+    padding: 7px 14px;
+    font-size: 13.5px;
+}
+
+.native-app main a.tap[class*='rounded-full'][class*='border-gray-300'] {
+    border-color: transparent;
+    background: transparent;
+    color: var(--color-gray-600);
+}
+
+/* Inbox: de actie rechts onder de regel */
+.app-li.ibx .app-btn {
+    display: flex;
+    width: fit-content;
+    margin-left: auto;
+}
+
+/* Records in één kaart met velden in twee kolommen (offertes, calculaties, klanten, taken) */
+.app-rec {
+    display: block;
+    padding: 14px 16px;
+}
+
+.app-rec + .app-rec {
+    border-top: 1px solid #edf0f5;
+}
+
+.app-rec:nth-child(even) {
+    background: #fafbfd;
+}
+
+.app-rec h4 {
+    color: var(--color-gray-900);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.app-rec small {
+    display: block;
+    color: var(--color-gray-500);
+    font-size: 12px;
+}
+
+.app-fields {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px 14px;
+    margin-top: 10px;
+}
+
+.app-fields > * {
+    display: block;
+    min-width: 0;
+}
+
+.app-fields b {
+    display: block;
+    color: var(--color-gray-900);
+    font-size: 13.5px;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+}
+
+.app-lbl {
+    display: block;
+    margin-bottom: 1px;
+    color: var(--color-gray-500);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+/* Chatavatar: licht rondje met # of map */
+.native-app .app-chat-av {
+    background: #fff;
+    color: #3e6ba8;
+}
+
+/*
+ * Tikvlak van minimaal 44px op touch, zonder dat knoppen en chips groter ogen (zelfde trucje als de
+ * tap-utility in app.css). Ook voor de oranje hoofdknoppen, die zijn 38px hoog.
+ */
+@media (pointer: coarse) {
+    .app-btn,
+    .app-chip,
+    .native-app main a[class*='bg-brand-500'][class*='px-'],
+    .native-app main button[class*='bg-brand-500'][class*='px-'] {
+        position: relative;
+    }
+
+    .app-btn::after,
+    .app-chip::after,
+    .native-app main a[class*='bg-brand-500'][class*='px-']::after,
+    .native-app main button[class*='bg-brand-500'][class*='px-']::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: max(100%, 2.75rem);
+        height: max(100%, 2.75rem);
+        transform: translate(-50%, -50%);
+    }
+}
+
+/* Halve KPI-kaarten (twee naast elkaar): label op één regel, zodat de cijfers op gelijke hoogte staan */
+.app-kpis .app-kpi:not(.wide, .dark) .lbl {
+    overflow: hidden;
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Keuzeschakelaar in de paginakop (Kanban/Lijst) */
+.native-app .app-ph-acts > div[class*='rounded-lg'][class*='border'] {
+    border-color: var(--color-gray-200);
+    border-radius: 999px;
+}
+
+.native-app .app-ph-acts > div[class*='rounded-lg'][class*='border'] > a {
+    border-radius: 999px;
+}
+
+/* Sheets: ronding van het prototype */
+.native-app [data-popup] > [class*='rounded-t-2xl'] {
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+}
+
+/* Laadbalk van Turbo (snel wisselen in de app, native.js): verschijnt pas als een pagina langer dan 0,5 s duurt */
+.native-app .turbo-progress-bar {
+    height: 3px;
+    background-color: var(--color-brand-500);
+}

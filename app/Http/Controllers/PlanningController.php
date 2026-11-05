@@ -9,11 +9,32 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class PlanningController extends Controller
 {
     public function index(Request $request): View
+    {
+        ['start' => $start, 'days' => $days, 'entries' => $entries, 'rows' => $rows] = $this->week($request);
+
+        return view('planning.index', [
+            'start' => $start,
+            'days' => $days,
+            'details' => $entries->mapWithKeys(fn (ScheduleEntry $entry) => [$entry->id => $this->detail($entry, $request->user())]),
+            'entries' => $entries->groupBy(fn (ScheduleEntry $entry) => $entry->user_id.'|'.$entry->date->toDateString()),
+            'rows' => $rows,
+            'users' => User::orderBy('name')->get(['id', 'name']),
+            'projects' => Project::active()->orderBy('name')->get(['id', 'name']),
+        ]);
+    }
+
+    /**
+     * De werkweek (ma t/m vr) met de planning en de rijen per persoon; ook gebruikt door de app.
+     *
+     * @return array{start: Carbon, days: Collection<int, Carbon>, entries: Collection<int, ScheduleEntry>, rows: Collection<int, User>}
+     */
+    public function week(Request $request): array
     {
         $start = $request->filled('week')
             ? Carbon::parse($request->query('week'))->startOfWeek()
@@ -41,15 +62,7 @@ class PlanningController extends Controller
             );
         }
 
-        return view('planning.index', [
-            'start' => $start,
-            'days' => $days,
-            'details' => $entries->mapWithKeys(fn (ScheduleEntry $entry) => [$entry->id => $this->detail($entry, $request->user())]),
-            'entries' => $entries->groupBy(fn (ScheduleEntry $entry) => $entry->user_id.'|'.$entry->date->toDateString()),
-            'rows' => $rows,
-            'users' => User::orderBy('name')->get(['id', 'name']),
-            'projects' => Project::active()->orderBy('name')->get(['id', 'name']),
-        ]);
+        return ['start' => $start, 'days' => $days, 'entries' => $entries, 'rows' => $rows];
     }
 
     /**
@@ -57,7 +70,7 @@ class PlanningController extends Controller
      *
      * @return array<string, string|null>
      */
-    private function detail(ScheduleEntry $entry, User $viewer): array
+    public function detail(ScheduleEntry $entry, User $viewer): array
     {
         $address = $entry->project?->address
             ? collect([$entry->project->address, $entry->project->city])->filter()->implode(', ')

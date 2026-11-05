@@ -119,9 +119,17 @@ function syncStatusBar() {
 }
 
 function openNotificationUrl(url) {
-    if (typeof url === 'string' && url.startsWith('/') && !url.startsWith('//')) {
-        window.location.href = url;
+    if (typeof url !== 'string' || !url.startsWith('/') || url.startsWith('//')) return;
+
+    // Schermen in de app zelf (mobile/app): die kiezen tussen een scherm in de app en een serverpagina.
+    // Na een koude start kan de melding er eerder zijn dan de app, dus even wachten tot die klaar is.
+    if (document.documentElement.hasAttribute('data-bundle')) {
+        const open = (tries = 0) => (window.renovionOpenPath ? window.renovionOpenPath(url) : tries < 50 && setTimeout(() => open(tries + 1), 100));
+        open();
+        return;
     }
+
+    window.location.href = url;
 }
 
 // Pushmeldingen (Firebase): na inloggen het token van deze telefoon bij Laravel aanmelden.
@@ -137,8 +145,11 @@ function readPushRegistration() {
 }
 
 async function registerPush(messaging) {
+    // Serverpagina: de meta in de app-layout. Schermen in de app: window.renovionPush (mobile/app, na inloggen).
     const meta = document.querySelector('meta[name="push-register"]');
-    if (!meta) return; // niet ingelogd of klantportaal
+    const bundle = window.renovionPush;
+    if (!meta && !bundle) return; // niet ingelogd of klantportaal
+    const user = meta ? meta.dataset.user : String(bundle.user);
 
     let { receive } = await messaging.checkPermissions();
     if (receive !== 'granted') {
@@ -152,11 +163,12 @@ async function registerPush(messaging) {
 
     const { token } = await messaging.getToken();
     const vorige = readPushRegistration();
-    if (vorige?.token === token && vorige?.user === meta.dataset.user && Date.now() - vorige.at < 86_400_000) return;
+    if (vorige?.token === token && vorige?.user === user && Date.now() - vorige.at < 86_400_000) return;
 
-    await window.postJson(meta.content, { token, platform: cap.getPlatform() });
+    if (meta) await window.postJson(meta.content, { token, platform: cap.getPlatform() });
+    else await bundle.register({ token, platform: cap.getPlatform() });
     try {
-        localStorage.setItem(PUSH_KEY, JSON.stringify({ token, user: meta.dataset.user, at: Date.now() }));
+        localStorage.setItem(PUSH_KEY, JSON.stringify({ token, user, at: Date.now() }));
     } catch { /* geen opslag: volgende pagina probeert het opnieuw */ }
 }
 
@@ -196,6 +208,44 @@ if (isNativeApp) {
     window.addEventListener('renovion-top-changed', syncStatusBar); // bijv. de zwarte fotoviewer
     window.addEventListener('pagereveal', (event) => event.viewTransition?.finished.then(syncStatusBar));
 
+    // Snel wisselen (Turbo Drive, alleen in de app): een tik haalt de nieuwe pagina op en ruilt alleen de
+    // inhoud, zonder alles opnieuw te laden. De tabs van de onderbalk staan vooraf in de cache
+    // (data-turbo-preload in partials/app/shell): die verschijnen direct en worden daarna ververst.
+    // Formulieren blijven gewone paginaverzoeken. Chat (polling) en de offerte-builder (eigen opstart)
+    // laden altijd volledig, net als schermen zonder de app-schil (inloggen, portaal, foutpagina's).
+    const FULL_LOAD = /^\/(chat|offertes\/\d+\/builder)(\/|$)/;
+    const usesTurbo = (url) => !FULL_LOAD.test(new URL(url, window.location.href).pathname);
+
+    if (!document.documentElement.hasAttribute('data-bundle')) import('@hotwired/turbo').then((Turbo) => {
+        Turbo.config.forms.mode = 'off';
+        Turbo.session.drive = Boolean(document.querySelector('.app-bnav')) && usesTurbo(window.location.href);
+
+        document.addEventListener('turbo:before-visit', (event) => {
+            if (usesTurbo(event.detail.url)) return;
+            event.preventDefault();
+            window.location.href = event.detail.url;
+        });
+
+        // De pagina gaat de cache in voor de terugknop: Alpine opruimen, anders verdubbelen x-for en x-if.
+        document.addEventListener('turbo:before-cache', () => window.Alpine?.destroyTree(document.body));
+
+        document.addEventListener('turbo:before-render', () => {
+            const shell = window.Alpine?.store('shell');
+            if (shell) shell.drawer = shell.help = false;
+            document.documentElement.classList.remove('overflow-hidden'); // fotoviewer
+            try {
+                sessionStorage.removeItem('renovion-zoom'); // kaart-zoom speelt alleen bij een volledige paginawissel
+            } catch { /* geen opslag */ }
+        });
+
+        // <html> wordt niet vervangen: de sectiekleur komt uit de meta van de nieuwe pagina.
+        document.addEventListener('turbo:render', () => {
+            const section = document.querySelector('meta[name="app-section"]')?.content;
+            if (section) document.documentElement.dataset.sec = section;
+            syncStatusBar();
+        });
+    });
+
     // Tikken op een melding (push of lokaal) opent waar die over gaat.
     plugin('LocalNotifications')?.addListener('localNotificationActionPerformed', ({ notification }) => openNotificationUrl(notification?.extra?.url));
 
@@ -223,8 +273,12 @@ if (isNativeApp) {
         });
 
         // Direct na installatie is Firebase soms nog niet klaar: dan na 5 seconden nog een keer.
-        document.addEventListener('DOMContentLoaded', () => registerPush(messaging)
-            .catch(() => setTimeout(() => registerPush(messaging).catch(() => {}), 5000)));
+        const register = () => registerPush(messaging).catch(() => setTimeout(() => registerPush(messaging).catch(() => {}), 5000));
+        document.addEventListener('DOMContentLoaded', register);
+        // De schermen in de app melden zich pas na het inloggen aan, en geven bij uitloggen het token mee.
+        window.renovionRegisterPush = register;
+        window.renovionPushToken = () => readPushRegistration()?.token ?? null;
+        window.renovionForgetPush = () => { try { localStorage.removeItem(PUSH_KEY); } catch { /* geen opslag */ } };
 
         // Uitloggen: token meesturen zodat deze telefoon geen meldingen meer krijgt voor deze gebruiker.
         document.addEventListener('submit', (event) => {
@@ -245,6 +299,33 @@ if (isNativeApp) {
         if (closedSomething) return;
         if (canGoBack) window.history.back();
         else plugin('App').exitApp();
+    });
+
+    // De zwevende Nova-knop gaat opzij bij omlaag scrollen en komt terug bij omhoog scrollen of stilstaan,
+    // zodat hij niet over knoppen en bedragen ligt (native-app.css, .nova-away).
+    let lastScroll = window.scrollY;
+    let idle = null;
+    window.addEventListener('scroll', () => {
+        const y = window.scrollY;
+        const root = document.documentElement;
+        if (y > lastScroll + 6 && y > 80) root.classList.add('nova-away');
+        else if (y < lastScroll - 6) root.classList.remove('nova-away');
+        lastScroll = y;
+        clearTimeout(idle);
+        idle = setTimeout(() => root.classList.remove('nova-away'), 900);
+    }, { passive: true });
+
+    // Filterrijen die opzij scrollen: zachte vervaging aan de rechterkant zolang er nog meer is.
+    const updateFades = () => document.querySelectorAll('main .overflow-x-auto, main [class~="app:overflow-x-auto"]').forEach((row) => {
+        row.classList.toggle('has-more-x', row.scrollLeft + row.clientWidth < row.scrollWidth - 2);
+    });
+    let fadeTimer = null;
+    const scheduleFades = () => { clearTimeout(fadeTimer); fadeTimer = setTimeout(updateFades, 60); };
+    document.addEventListener('scroll', (event) => event.target?.classList?.contains('has-more-x') || event.target?.scrollWidth > event.target?.clientWidth ? scheduleFades() : null, { capture: true, passive: true });
+    window.addEventListener('resize', scheduleFades);
+    document.addEventListener('DOMContentLoaded', () => {
+        scheduleFades();
+        new MutationObserver(scheduleFades).observe(document.body, { childList: true, subtree: true });
     });
 
     document.documentElement.classList.add('native-app');

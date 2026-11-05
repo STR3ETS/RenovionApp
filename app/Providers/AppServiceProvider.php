@@ -18,13 +18,19 @@ use App\Models\ScheduleEntry;
 use App\Models\Task;
 use App\Models\User;
 use App\Models\WorkPackage;
+use App\Support\NativeApp;
+use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
+use Laravel\Sanctum\PersonalAccessToken;
+use Laravel\Sanctum\Sanctum;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -41,6 +47,22 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Blade::if('nativeapp', fn () => NativeApp::active());
+
+        // Nederlandse afkortingen zonder punt: "31 okt, Peter" in plaats van "31 okt., Peter", waar punt en
+        // komma botsen. Zelfde schrijfwijze als de datums in de app (Intl) en het prototype.
+        foreach ([Carbon::getTranslator(), CarbonImmutable::getTranslator()] as $translator) {
+            $translator->setMessages('nl', [
+                'months_short' => ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'],
+                'weekdays_short' => ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'],
+            ]);
+        }
+
+        // App-tokens (api/app): na 60 dagen niet gebruiken opnieuw inloggen. Sanctum's eigen 'expiration'
+        // telt vanaf het aanmaken; dit telt vanaf het laatste gebruik, zodat dagelijks gebruik ingelogd blijft.
+        Sanctum::authenticateAccessTokensUsing(fn (PersonalAccessToken $token, bool $isValid) => $isValid
+            && ($token->last_used_at ?? $token->created_at)->gt(now()->subDays(60)));
+
         Relation::enforceMorphMap([
             'automation_setting' => AutomationSetting::class,
             'calculation' => Calculation::class,

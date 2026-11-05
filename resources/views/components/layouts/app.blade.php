@@ -1,18 +1,26 @@
 @props(['title' => null])
 
+@php
+    // De iOS/Android-app heeft een eigen schil (partials/app); de website blijft zoals hij is.
+    $isApp = \App\Support\NativeApp::active();
+@endphp
+
 <!DOCTYPE html>
-<html lang="nl" @if (auth()->user()?->motion ?? true) data-motion @endif>
+<html lang="nl" @if ($isApp) class="native-app" data-sec="{{ \App\Support\AppSection::current()['key'] ?? 'vandaag' }}" @endif @if (auth()->user()?->motion ?? true) data-motion @endif>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     {{-- De iOS/Android-app meldt hier het Firebase-token aan voor pushmeldingen (native.js). --}}
     <meta name="push-register" content="{{ route('devices.store') }}" data-user="{{ auth()->id() }}">
-    <title>{{ $title ? $title.' - ' : '' }}{{ config('app.name') }}</title>
+    @if ($isApp)
+        {{-- Snel wisselen in de app (Turbo, native.js) vervangt <html> niet: de sectiekleur komt hiervandaan. --}}
+        <meta name="app-section" content="{{ \App\Support\AppSection::current()['key'] ?? 'vandaag' }}">
+    @endif
+    <title>{{ $title ? $title.' - ' : '' }}{{ $isApp ? 'Renovion OS' : config('app.name') }}</title>
     @include('partials.favicon')
 
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=inter-tight:400,500,600,700,800" rel="stylesheet">
+    @include('partials.fonts')
 
     @include('partials.load-guard')
     @include('partials.motion-head')
@@ -27,6 +35,7 @@
             "where": { "and": [
                 { "href_matches": "/*" },
                 { "not": { "href_matches": "/chat*" } },
+                { "not": { "href_matches": "/meldingen*" } },
                 { "not": { "href_matches": "/offertes/*/builder*" } }
             ]},
             "eagerness": "moderate"
@@ -40,8 +49,30 @@
         $canCrm = auth()->user()->can('manage-crm');
         $aandachtCount = $canCrm ? \App\Services\AttentionService::cachedCount() : 0;
         $chatUnread = \App\Models\ChatChannel::unreadTotalFor(auth()->user());
+        $items = $canCrm ? collect([
+            ['label' => 'Vandaag', 'icon' => 'home', 'route' => 'dashboard', 'active' => request()->routeIs('dashboard')],
+            ['label' => 'Aandacht', 'icon' => 'exclamation-triangle', 'route' => 'attention.index', 'active' => request()->routeIs('attention.*'), 'badge' => $aandachtCount],
+            ['label' => 'Aanvragen & Sales', 'icon' => 'inbox', 'route' => 'leads.index', 'active' => request()->routeIs('leads.*')],
+            ['label' => 'Calculaties', 'icon' => 'calculator', 'route' => 'calculations.index', 'active' => request()->routeIs('calculations.*')],
+            ['label' => 'Prijslijst', 'icon' => 'currency-euro', 'route' => 'price-items.index', 'active' => request()->routeIs('price-items.index')],
+            config('renovion.modules.quotes') ? ['label' => 'Offertes', 'icon' => 'document-text', 'route' => 'quotes.index', 'active' => request()->routeIs('quotes.*')] : null,
+            ['label' => 'Projecten', 'icon' => 'building-office', 'route' => 'projects.index', 'active' => request()->routeIs('projects.*')],
+            ['label' => 'Planning', 'icon' => 'calendar', 'route' => 'planning.index', 'active' => request()->routeIs('planning.*')],
+            ['label' => 'Taken', 'icon' => 'clipboard-check', 'route' => 'tasks.index', 'active' => request()->routeIs('tasks.*')],
+            ['label' => 'Klanten', 'icon' => 'users', 'route' => 'customers.index', 'active' => request()->routeIs('customers.*')],
+            config('renovion.modules.automations') ? ['label' => 'Automations', 'icon' => 'bolt', 'route' => 'automations.index', 'active' => request()->routeIs('automations.*')] : null,
+            ['label' => 'Chat', 'icon' => 'chat-bubble', 'route' => 'chat.index', 'active' => request()->routeIs('chat.*'), 'badge' => $chatUnread],
+            auth()->user()->can('manage-team') ? ['label' => 'Teambeheer', 'icon' => 'user', 'route' => 'team.index', 'active' => request()->routeIs('team.*')] : null,
+        ])->filter() : collect([
+            ['label' => 'Vandaag', 'icon' => 'home', 'route' => 'dashboard', 'active' => request()->routeIs('dashboard')],
+            ['label' => 'Projecten', 'icon' => 'building-office', 'route' => 'projects.index', 'active' => request()->routeIs('projects.*')],
+            ['label' => 'Planning', 'icon' => 'calendar', 'route' => 'planning.index', 'active' => request()->routeIs('planning.*')],
+            ['label' => 'Taken', 'icon' => 'clipboard-check', 'route' => 'tasks.index', 'active' => request()->routeIs('tasks.*')],
+            ['label' => 'Chat', 'icon' => 'chat-bubble', 'route' => 'chat.index', 'active' => request()->routeIs('chat.*'), 'badge' => $chatUnread],
+        ]);
     @endphp
 
+    @unless ($isApp)
     {{-- Desktop sidebar --}}
     <aside class="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col bg-navy-950 pt-safe text-white lg:flex">
         <div class="flex h-20 items-center px-6">
@@ -51,30 +82,6 @@
         </div>
 
         <nav class="sidebar-scroll flex-1 space-y-1 overflow-y-auto pb-6 pl-3 pr-0.5">
-            @php
-                $items = $canCrm ? collect([
-                    ['label' => 'Vandaag', 'icon' => 'home', 'route' => 'dashboard', 'active' => request()->routeIs('dashboard')],
-                    ['label' => 'Aandacht', 'icon' => 'exclamation-triangle', 'route' => 'attention.index', 'active' => request()->routeIs('attention.*'), 'badge' => $aandachtCount],
-                    ['label' => 'Aanvragen & Sales', 'icon' => 'inbox', 'route' => 'leads.index', 'active' => request()->routeIs('leads.*')],
-                    ['label' => 'Calculaties', 'icon' => 'calculator', 'route' => 'calculations.index', 'active' => request()->routeIs('calculations.*')],
-                    ['label' => 'Prijslijst', 'icon' => 'currency-euro', 'route' => 'price-items.index', 'active' => request()->routeIs('price-items.index')],
-                    config('renovion.modules.quotes') ? ['label' => 'Offertes', 'icon' => 'document-text', 'route' => 'quotes.index', 'active' => request()->routeIs('quotes.*')] : null,
-                    ['label' => 'Projecten', 'icon' => 'building-office', 'route' => 'projects.index', 'active' => request()->routeIs('projects.*')],
-                    ['label' => 'Planning', 'icon' => 'calendar', 'route' => 'planning.index', 'active' => request()->routeIs('planning.*')],
-                    ['label' => 'Taken', 'icon' => 'clipboard-check', 'route' => 'tasks.index', 'active' => request()->routeIs('tasks.*')],
-                    ['label' => 'Klanten', 'icon' => 'users', 'route' => 'customers.index', 'active' => request()->routeIs('customers.*')],
-                    config('renovion.modules.automations') ? ['label' => 'Automations', 'icon' => 'bolt', 'route' => 'automations.index', 'active' => request()->routeIs('automations.*')] : null,
-                    ['label' => 'Chat', 'icon' => 'chat-bubble', 'route' => 'chat.index', 'active' => request()->routeIs('chat.*'), 'badge' => $chatUnread],
-                    auth()->user()->can('manage-team') ? ['label' => 'Teambeheer', 'icon' => 'user', 'route' => 'team.index', 'active' => request()->routeIs('team.*')] : null,
-                ])->filter() : collect([
-                    ['label' => 'Vandaag', 'icon' => 'home', 'route' => 'dashboard', 'active' => request()->routeIs('dashboard')],
-                    ['label' => 'Projecten', 'icon' => 'building-office', 'route' => 'projects.index', 'active' => request()->routeIs('projects.*')],
-                    ['label' => 'Planning', 'icon' => 'calendar', 'route' => 'planning.index', 'active' => request()->routeIs('planning.*')],
-                    ['label' => 'Taken', 'icon' => 'clipboard-check', 'route' => 'tasks.index', 'active' => request()->routeIs('tasks.*')],
-                    ['label' => 'Chat', 'icon' => 'chat-bubble', 'route' => 'chat.index', 'active' => request()->routeIs('chat.*'), 'badge' => $chatUnread],
-                ]);
-            @endphp
-
             @foreach ($items as $item)
                 <a href="{{ route($item['route']) }}"
                    class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition {{ $item['active'] ? 'bg-brand-500 text-white shadow-sm' : 'text-navy-100 hover:bg-navy-900 hover:text-white' }}">
@@ -124,8 +131,12 @@
             </a>
         @endif
     </header>
+    @else
+        @include('partials.app.topbar')
+    @endunless
 
-    <div class="lg:pl-64">
+    <div @class(['lg:pl-64' => ! $isApp])>
+        @unless ($isApp)
         {{-- Desktop topbar: zoeken + snel aanmaken --}}
         <header class="sticky top-0 z-30 box-content hidden h-16 items-center gap-4 border-b border-gray-200 bg-white px-8 pt-safe lg:flex">
             @if ($canCrm)
@@ -154,9 +165,14 @@
                 </div>
             @endif
         </header>
+        @endunless
 
         {{-- Content --}}
         <main class="px-4 pt-4 pb-[calc(7rem_+_env(safe-area-inset-bottom))] lg:px-8 lg:pt-6 lg:pb-12">
+            @if ($isApp)
+                @include('partials.app.section-tabs')
+            @endif
+
             {{-- Flash messages --}}
             @if (session('success') || session('error'))
                 <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)" x-cloak
@@ -176,6 +192,15 @@
     @can('manage-crm')
     <div x-data="nova('{{ route('nova.propose') }}', '{{ route('nova.execute') }}')" @nova-open.window="openPanel()"
          @renovion-back.window="if (open) { open = false; $event.preventDefault(); }">
+        @if ($isApp)
+            <button type="button" @click="openPanel()" class="app-nova hide-on-keyboard" title="Nova" aria-label="Nova openen">
+                <x-nova-avatar class="h-full w-full" />
+                @if ($aandachtCount > 0)
+                    <span class="cnt">{{ $aandachtCount }}</span>
+                @endif
+                <span class="spark"><x-icon name="sparkles" class="h-3 w-3" /></span>
+            </button>
+        @else
         {{-- Op mobiel opent Nova via de "+"-knop in de bottom-nav --}}
         <button @click="openPanel()"
                 class="fixed right-8 bottom-8 z-40 hidden rounded-full shadow-lg shadow-navy-950/30 transition hover:scale-105 active:scale-95 lg:block"
@@ -185,6 +210,7 @@
                 <x-icon name="microphone" class="h-3.5 w-3.5" />
             </span>
         </button>
+        @endif
 
         <div data-popup x-show="open" x-cloak @click.self="open = false" @keydown.escape.window="open = false"
              class="fixed inset-0 z-50 flex items-end justify-center bg-navy-950/60 backdrop-blur-sm lg:items-center">
@@ -272,6 +298,9 @@
     </div>
     @endcan
 
+    @if ($isApp)
+        @include('partials.app.shell')
+    @else
     {{-- Mobiele bottom-nav (mockup §18): Vandaag, Projecten, "+", Chat, Meer --}}
     @php
         $tabs = [
@@ -408,6 +437,7 @@
             </div>
         </div>
     </nav>
+    @endif
 
     <x-photo-viewer />
 

@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AuditLog;
+use App\Actions\ToggleChecklistItem;
 use App\Models\ChecklistItem;
 use App\Models\WorkPackage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class ChecklistItemController extends Controller
 {
@@ -29,23 +30,15 @@ class ChecklistItemController extends Controller
     /**
      * Afvinken / weer openzetten - ook voor uitvoerders op het project (mobile-first).
      */
-    public function toggle(Request $request, WorkPackage $workPackage, ChecklistItem $item): RedirectResponse
+    public function toggle(Request $request, WorkPackage $workPackage, ChecklistItem $item, ToggleChecklistItem $toggle): RedirectResponse
     {
         abort_unless($workPackage->project->isAccessibleBy($request->user()), 403);
 
-        // Briefing §9: zonder het verplichte foto-bewijs kan het item niet af.
-        if (! $item->isDone() && ! $item->hasRequiredPhotos()) {
-            $ontbrekend = $item->requires_photos - $item->photos()->count();
-
-            return redirect()->route('work-packages.show', $workPackage)
-                ->with('error', '"'.$item->label.'" vereist nog '.$ontbrekend.' '.($ontbrekend === 1 ? 'bewijsfoto' : 'bewijsfoto\'s').' - upload die eerst.');
+        try {
+            $toggle->handle($item, $request->user());
+        } catch (ValidationException $exception) {
+            return redirect()->route('work-packages.show', $workPackage)->with('error', $exception->getMessage());
         }
-
-        $item->update($item->isDone()
-            ? ['done_at' => null, 'done_by' => null]
-            : ['done_at' => now(), 'done_by' => $request->user()->id]);
-
-        AuditLog::record($item, $item->isDone() ? 'afgevinkt' : 'heropend', [], ['label' => $item->label]);
 
         return redirect()->route('work-packages.show', $workPackage);
     }

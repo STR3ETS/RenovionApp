@@ -15,7 +15,7 @@
                  confirmUrl: @js(route('chat.nova.confirm', ['message' => '__ID__'])),
                  taskUrl: @js(route('chat.task', ['message' => '__ID__'])),
              })">
-            <div data-no-enter x-ref="panel" class="fixed inset-0 z-50 flex flex-col overflow-hidden bg-white pt-safe lg:static lg:z-auto lg:h-[calc(100vh-12rem)] lg:rounded-2xl lg:border lg:border-gray-200 lg:pt-0">
+            <div data-no-enter x-ref="panel" class="chat-panel fixed inset-0 z-50 flex flex-col overflow-hidden bg-white pt-safe lg:static lg:z-auto lg:h-[calc(100vh-12rem)] lg:rounded-2xl lg:border lg:border-gray-200 lg:pt-0">
 
                 {{-- Kop --}}
                 <header class="flex shrink-0 items-center gap-2 border-b border-gray-100 px-2 py-2 lg:px-4">
@@ -35,11 +35,11 @@
                 </header>
 
                 {{-- Berichten --}}
-                <div x-ref="chatScroll" class="flex-1 overflow-y-auto px-3 pt-1 pb-3 lg:px-4">
+                <div x-ref="chatScroll" class="chat-scroll flex-1 overflow-y-auto px-3 pt-1 pb-3 lg:px-4">
                     <template x-for="item in thread" :key="item.message.id">
                         <div :class="item.startsGroup ? 'mt-4' : 'mt-0.5'">
                             <p x-show="item.newDay" class="mb-4 text-center">
-                                <span class="rounded-full bg-gray-100 px-3 py-1 text-[11px] font-semibold text-gray-600" x-text="item.message.day"></span>
+                                <span class="chat-day rounded-full bg-gray-100 px-3 py-1 text-[11px] font-semibold text-gray-600" x-text="item.message.day"></span>
                             </p>
 
                             {{-- Nova --}}
@@ -73,13 +73,14 @@
                             <template x-if="item.message.nova === null && item.message.user !== null">
                                 <div class="flex items-end gap-2" :class="item.message.mine && 'justify-end'">
                                     <span x-show="!item.message.mine" :class="!item.endsGroup && 'invisible'"
-                                          class="mb-4 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-navy-100 text-[11px] font-bold text-navy-700"
+                                          class="chat-who mb-4 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-navy-100 text-[11px] font-bold text-navy-700 app:mb-0"
+                                          :style="'--who:' + nameColor(item.message.user.name)"
                                           x-text="item.message.user.initial"></span>
                                     <div class="min-w-0 max-w-[80%]">
-                                        <p x-show="!item.message.mine && item.startsGroup" class="mb-0.5 ml-1 text-xs font-semibold text-gray-500" x-text="item.message.user.name"></p>
+                                        <p x-show="!item.message.mine && item.startsGroup" class="chat-name mb-0.5 ml-1 text-xs font-semibold text-gray-500" :style="'--who:' + nameColor(item.message.user.name)" x-text="item.message.user.name"></p>
                                         <div @click="toggleActions(item.message)" title="Tik voor acties"
-                                             class="w-fit cursor-pointer rounded-2xl px-3.5 py-2 text-sm break-words"
-                                             :class="item.message.mine ? 'ml-auto bg-navy-950 text-white' : 'bg-gray-100 text-navy-950'">
+                                             class="chat-bubble w-fit cursor-pointer rounded-2xl px-3.5 py-2 text-sm break-words"
+                                             :class="item.message.mine ? 'mine ml-auto bg-navy-950 text-white' : 'bg-gray-100 text-navy-950'">
                                             <template x-if="item.message.attachment_url">
                                                 <button type="button" class="-mx-1 mb-1 block cursor-zoom-in first:-mt-0.5" title="Foto bekijken"
                                                         :data-photo="item.message.attachment_url" :data-caption="item.message.body || item.message.attachment_name || ''"
@@ -88,15 +89,16 @@
                                                 </button>
                                             </template>
                                             <p x-show="item.message.body" x-html="format(item.message.body)"></p>
+                                            <span class="mt-0.5 hidden text-right text-[10.5px] leading-none text-gray-500 app:block" x-text="item.message.time"></span>
                                         </div>
 
                                         {{-- Tijd onder de laatste van een reeks; taak maken pas na tikken op een bericht --}}
-                                        <div x-show="item.endsGroup || actionsFor === item.message.id" class="mt-0.5 flex h-4 items-center gap-3 px-1" :class="item.message.mine && 'justify-end'">
+                                        <div x-show="{{ \App\Support\NativeApp::active() ? '' : 'item.endsGroup || ' }}actionsFor === item.message.id" class="mt-0.5 flex h-4 items-center gap-3 px-1" :class="item.message.mine && 'justify-end'">
                                             <button type="button" x-show="actionsFor === item.message.id && item.message.body" @click="toTask(item.message)"
                                                     class="tap flex items-center gap-1 text-[11px] font-semibold text-brand-700">
                                                 <x-icon name="clipboard-check" class="h-3.5 w-3.5" /> Taak maken
                                             </button>
-                                            <span class="text-[10px] text-gray-500" x-text="item.message.time"></span>
+                                            <span class="text-[10px] text-gray-500 app:hidden" x-text="item.message.time"></span>
                                         </div>
                                     </div>
                                 </div>

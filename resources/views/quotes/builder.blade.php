@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="nl" @if (auth()->user()?->motion ?? true) data-motion @endif>
+<html lang="nl" @nativeapp class="native-app" @endnativeapp @if (auth()->user()?->motion ?? true) data-motion @endif>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -7,8 +7,7 @@
     <title>Offerte bouwen - {{ $quote->number }}</title>
     @include('partials.favicon')
 
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=inter-tight:400,500,600,700,800" rel="stylesheet">
+    @include('partials.fonts')
 
     @include('partials.load-guard')
 

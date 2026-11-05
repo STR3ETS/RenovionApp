@@ -8,10 +8,13 @@
         "mobile:sync": "cap sync",
         "mobile:open": "cap open ios",
         "mobile:assets": "node mobile/make-assets.mjs",
-        "mobile:android": "cap open android"
+        "mobile:android": "cap open android",
+        "app:build": "vite build --config vite.app.config.js"
     },
     "devDependencies": {
         "@capacitor/cli": "^8.5.3",
+        "@fontsource/outfit": "^5.3.0",
+        "@fontsource/plus-jakarta-sans": "^5.3.0",
         "@tailwindcss/forms": "^0.5.11",
         "@tailwindcss/vite": "^4.0.0",
         "concurrently": "^10.0.3",
@@ -31,8 +34,10 @@
         "@capacitor/core": "^8.5.3",
         "@capacitor/ios": "^8.5.3",
         "@capacitor/local-notifications": "^8.3.1",
+        "@capacitor/preferences": "^8.0.1",
         "@capacitor/splash-screen": "^8.0.2",
         "@capgo/capacitor-speech-recognition": "^8.4.5",
+        "@hotwired/turbo": "^8.0.23",
         "alpinejs": "^3.17.2"
     }
 }

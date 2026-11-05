@@ -48,8 +48,19 @@
             const fan = element.parentElement.closest('[data-fan]');
             if (fan === element.parentElement) {
                 const columns = getComputedStyle(fan).gridTemplateColumns.split(' ').length;
-                const position = [...fan.children].indexOf(element) % columns;
-                element.style.setProperty('--enter-rotate', `${(position - (columns - 1) / 2) * 2.4}deg`);
+
+                @nativeapp
+                    // App: gemeten op het scherm. Een kaart over de volle breedte blijft zo recht en links en
+                    // rechts draaien de goede kant op, ook als een eerdere kaart de hele rij vult.
+                    const row = fan.getBoundingClientRect();
+                    const card = element.getBoundingClientRect();
+                    const offset = (card.left + card.width / 2 - row.left - row.width / 2) / (row.width / columns);
+                    element.style.setProperty('--enter-rotate', `${offset * 2.4}deg`);
+                    element.style.setProperty('--enter-y', `${28 + Math.abs(offset) * 10}px`);
+                @else
+                    const position = [...fan.children].indexOf(element) % columns;
+                    element.style.setProperty('--enter-rotate', `${(position - (columns - 1) / 2) * 2.4}deg`);
+                @endnativeapp
             }
 
             element.classList.add('enter-block');

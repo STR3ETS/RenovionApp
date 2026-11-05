@@ -34,9 +34,9 @@
                 @if ($lead->customer->email)
                     <a href="mailto:{{ $lead->customer->email }}" class="flex items-center justify-center gap-1.5 rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm font-semibold text-navy-900 transition hover:border-brand-400"><x-icon name="envelope" /> Mailen</a>
                 @endif
-                <a href="{{ route('calculations.create', ['aanvraag' => $lead->id]) }}" class="flex items-center justify-center gap-1.5 rounded-xl bg-navy-900 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-navy-800"><x-icon name="calculator" /> Calculatie</a>
+                <a href="{{ route('calculations.create', ['aanvraag' => $lead->id]) }}" class="flex items-center justify-center gap-1.5 rounded-xl bg-navy-900 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-navy-800 app:border app:border-gray-200 app:bg-white app:text-navy-900"><x-icon name="calculator" /> Calculatie</a>
                 @if ($quotesEnabled)
-                    <a href="{{ route('quotes.create', ['aanvraag' => $lead->id]) }}" class="flex items-center justify-center gap-1.5 rounded-xl bg-navy-900 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-navy-800"><x-icon name="document-text" /> Offerte maken</a>
+                    <a href="{{ route('quotes.create', ['aanvraag' => $lead->id]) }}" class="flex items-center justify-center gap-1.5 rounded-xl bg-navy-900 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-navy-800 app:border app:border-gray-200 app:bg-white app:text-navy-900"><x-icon name="document-text" /> Offerte maken</a>
                 @endif
                 <a href="{{ route('customers.show', $lead->customer) }}" class="flex items-center justify-center gap-1.5 rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm font-semibold text-navy-900 transition hover:border-brand-400"><x-icon name="folder" /> Klantdossier</a>
             </div>

@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="nl" class="native-app" data-sec="vandaag" data-motion data-bundle>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Renovion OS</title>
+    <script type="module" src="./main.js"></script>
+</head>
+<body class="min-h-screen bg-gray-100 font-sans text-gray-900 antialiased" x-data>
+
+    <!-- ===== Inloggen ===== -->
+    <template x-if="!$store.os.signedIn">
+        <div x-data="login" class="flex min-h-screen items-center justify-center bg-navy-900 px-4 pt-safe pb-safe">
+            <div class="w-full max-w-sm">
+                <div class="mb-8 text-center">
+                    <svg viewBox="70 88 470 156" role="img" aria-label="Renovion OS" class="mx-auto h-24 w-auto">
+                        <path d="M117 205H80V136L140 99L200 136V152" fill="none" stroke="#F26A1B" stroke-width="7" />
+                        <text x="124" y="205" textLength="288" lengthAdjust="spacingAndGlyphs" font-family="Outfit, sans-serif" font-size="70" font-weight="500" fill="#FFFFFF">Renovion</text>
+                        <text x="428" y="205" textLength="96" lengthAdjust="spacingAndGlyphs" font-family="Outfit, sans-serif" font-size="70" font-weight="700" fill="#F26A1B">OS</text>
+                        <text x="128" y="236" font-family="'Plus Jakarta Sans', sans-serif" font-size="15" font-weight="500" textLength="396" lengthAdjust="spacing" fill="#A9B5C8">ÉÉN PLATFORM. HELE BOUWPROJECTEN.</text>
+                    </svg>
+                </div>
+                <form @submit.prevent="submit()" class="space-y-4 rounded-2xl bg-white p-6 shadow-xl">
+                    <label class="block">
+                        <span class="mb-1 block text-sm font-semibold text-gray-700">E-mailadres</span>
+                        <input type="email" x-model="email" required autocomplete="username" class="w-full focus:border-brand-500 focus:ring-brand-500">
+                    </label>
+                    <label class="block">
+                        <span class="mb-1 block text-sm font-semibold text-gray-700">Wachtwoord</span>
+                        <input type="password" x-model="password" required autocomplete="current-password" class="w-full focus:border-brand-500 focus:ring-brand-500">
+                    </label>
+                    <p x-show="error" x-text="error" class="rounded-xl bg-red-100 px-3 py-2 text-sm font-medium text-red-800"></p>
+                    <button type="submit" :disabled="busy" class="w-full rounded-xl bg-brand-500 py-3 text-sm font-bold text-white active:bg-brand-600 disabled:opacity-60">
+                        <span x-text="busy ? 'Bezig met inloggen' : 'Inloggen'"></span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </template>
+
+    <!-- ===== App ===== -->
+    <template x-if="$store.os.signedIn">
+        <div>
+            <!-- Topbalk -->
+            <header x-data="{ plus: false }" @renovion-back.window="if (plus) { plus = false; $event.preventDefault(); }"
+                    class="app-top phone-header sticky top-0 z-30 box-content flex h-[59px] items-center gap-2 bg-white px-3 pt-safe">
+                <button type="button" @click="$store.os.drawer = true" class="app-iconbtn tap" aria-label="Menu openen"><span x-icon="'bars-3'" class="h-[18px] w-[18px]"></span></button>
+                <template x-if="$store.os.crm">
+                    <button type="button" @click="$store.os.openWeb('/zoeken')" class="tap flex h-9 min-w-0 flex-1 items-center gap-2 rounded-full border border-gray-200 bg-white px-3 text-left text-sm text-gray-500">
+                        <span x-icon="'magnifying-glass'" class="h-4 w-4"></span><span class="truncate">Zoeken</span>
+                    </button>
+                </template>
+                <template x-if="!$store.os.crm">
+                    <a href="#/vandaag" class="min-w-0 flex-1">
+                        <svg viewBox="70 88 470 156" role="img" aria-label="Renovion OS" class="h-10 w-auto">
+                            <path d="M117 205H80V136L140 99L200 136V152" fill="none" stroke="#F26A1B" stroke-width="7" />
+                            <text x="124" y="205" textLength="288" lengthAdjust="spacingAndGlyphs" font-family="Outfit, sans-serif" font-size="70" font-weight="500" fill="#0D1A2E">Renovion</text>
+                            <text x="428" y="205" textLength="96" lengthAdjust="spacingAndGlyphs" font-family="Outfit, sans-serif" font-size="70" font-weight="700" fill="#F26A1B">OS</text>
+                        </svg>
+                    </a>
+                </template>
+                <button type="button" @click="$store.os.help = true" class="app-iconbtn tap" aria-label="Hulp openen"><span x-icon="'question-mark-circle'" class="h-[18px] w-[18px]"></span></button>
+                <button type="button" @click="$store.os.openWeb('/meldingen')" class="app-iconbtn tap relative" aria-label="Meldingen">
+                    <span x-icon="'bell'" class="h-[18px] w-[18px]"></span>
+                    <span x-show="$store.os.counts.notifications > 0" x-cloak class="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-brand-500 ring-2 ring-white"></span>
+                </button>
+                <div class="relative">
+                    <button type="button" @click="plus = !plus" @click.outside="plus = false" aria-label="Nieuw"
+                            class="tap flex h-[34px] w-[42px] items-center justify-center rounded-full bg-brand-500 text-white active:bg-brand-600">
+                        <span x-icon="'plus'" class="h-[18px] w-[18px]"></span>
+                    </button>
+                    <div x-show="plus" x-cloak x-transition.origin.top.right class="app-menu">
+                        <template x-for="item in $store.os.menu.plus" :key="item.label">
+                            <button type="button" @click="plus = false; $store.os.open(item)">
+                                <span x-icon="item.icon" class="h-4 w-4"></span> <span x-text="item.label"></span>
+                            </button>
+                        </template>
+                        <template x-if="$store.os.crm">
+                            <div>
+                                <hr>
+                                <button type="button" @click="plus = false; $store.os.nova = true"><span x-icon="'sparkles'" class="h-4 w-4"></span> Vraag Nova</button>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </header>
+
+            <main>
+                <div x-show="$store.os.offline" x-cloak class="-mx-4 -mt-4 mb-3 flex items-center gap-2 bg-amber-100 px-4 py-2 text-[13px] font-medium text-amber-800">
+                    <span x-icon="'exclamation-triangle'" class="h-4 w-4"></span>
+                    <span>Geen verbinding. Je ziet de gegevens van <span x-text="$store.os.shownAt ? osFormat.since($store.os.shownAt) : 'eerder'"></span>.</span>
+                </div>
+
+                <!-- ===== Vandaag ===== -->
+                <template x-if="$store.os.route === 'vandaag'">
+                    <div x-data="today">
+                        <!-- Kop: staat er meteen, zonder gegevens -->
+                        <section data-enter class="app-band mb-4">
+                            <img :src="$store.os.heroUrl" alt="" class="bimg">
+                            <div>
+                                <p class="eyebrow" x-text="osFormat.today()"></p>
+                                <h1 class="mt-1.5"><span class="!text-white" x-text="osFormat.greeting() + ','"></span> <span x-text="$store.os.profile.user.first_name"></span></h1>
+                                <span class="rule"></span>
+                                <p class="lede mt-3" x-show="$store.os.crm">Van aanvraag tot nazorg, alles in één systeem.</p>
+                            </div>
+                        </section>
+
+                        <template x-if="failed">
+                            <div class="app-card p-5 text-center">
+                                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                                <button type="button" @click="load()" class="app-btn mt-3">Opnieuw proberen</button>
+                            </div>
+                        </template>
+
+                        <!-- Kantoor -->
+                        <template x-if="$store.os.crm">
+                            <div>
+                                <div data-enter class="app-novaline mb-3">
+                                    <img :src="$store.os.novaUrl" alt="Nova" class="h-9 w-9 rounded-full object-cover ring-2 ring-brand-500">
+                                    <p>
+                                        <template x-if="!data"><span class="block"><span class="skeleton mb-1.5 block h-3.5 w-4/5"></span><span class="skeleton block h-3.5 w-1/2"></span></span></template>
+                                        <template x-if="data && data.attention_count > 0"><span>Je inbox heeft <b x-text="osFormat.tally(data.attention_count, 'punt', 'punten')"></b> die aandacht vragen.</span></template>
+                                        <template x-if="data && data.attention_count === 0"><span>Alles loopt op schema. Geen openstaande acties voor vandaag.</span></template>
+                                    </p>
+                                    <a href="#/inbox" x-show="data && data.attention_count > 0" class="app-btn soft">Naar inbox <span x-icon="'chevron-right'" class="h-3.5 w-3.5"></span></a>
+                                </div>
+
+                                <section class="app-kpis mb-3">
+                                    <a href="#/projecten" data-enter class="app-kpi dark">
+                                        <span class="lbl">Werkvoorraad excl. btw</span>
+                                        <span class="v"><i>€</i> <span x-text="data ? osFormat.euro(data.stats.omzet_lopend).slice(2) : ''"></span><span x-show="!data" class="skeleton skeleton-dark inline-block h-6 w-32 align-middle"></span></span>
+                                        <span class="s" x-text="data ? osFormat.tally(data.stats.actieve_projecten, 'project', 'projecten') + ' in opdracht' : ' '"></span>
+                                    </a>
+                                    <a href="#/projecten" data-enter class="app-kpi" style="--kc: #3e6ba8">
+                                        <span class="lbl">Lopende projecten</span>
+                                        <span class="v"><span x-text="data?.stats.actieve_projecten"></span><span x-show="!data" class="skeleton inline-block h-6 w-10 align-middle"></span></span>
+                                        <span class="s" x-text="data ? (data.stats.projecten_aandacht > 0 ? data.stats.projecten_aandacht + ' aandacht' : 'Op schema') : ' '"></span>
+                                    </a>
+                                    <button type="button" x-show="$store.os.profile.can.quotes" @click="$store.os.openWeb('/offertes')" data-enter class="app-kpi text-left" style="--kc: #1e8a5a">
+                                        <span class="lbl">Open offertes</span>
+                                        <span class="v"><span x-text="data?.stats.open_offertes"></span><span x-show="!data" class="skeleton inline-block h-6 w-10 align-middle"></span></span>
+                                        <span class="s">Bij de klant</span>
+                                    </button>
+                                    <button type="button" @click="$store.os.openWeb('/aanvragen')" data-enter class="app-kpi wide text-left" style="--kc: #7c5cd6">
+                                        <span class="lbl">Nieuwe aanvragen</span>
+                                        <span class="v"><span x-text="data?.stats.nieuwe_aanvragen"></span><span x-show="!data" class="skeleton inline-block h-6 w-10 align-middle"></span></span>
+                                        <span class="s" x-text="data ? data.stats.open_aanvragen + ' open in de pijplijn' : ' '"></span>
+                                    </button>
+                                </section>
+
+                                <section data-enter class="app-card mb-3">
+                                    <div class="app-card-h">
+                                        <h3>Eerst <em>doen</em></h3>
+                                        <a href="#/inbox" class="app-btn ghost">Naar de inbox</a>
+                                    </div>
+                                    <div class="app-card-b">
+                                        <template x-if="!data">
+                                            <div class="py-3"><template x-for="i in 3" :key="i"><div class="flex gap-3.5 py-3"><span class="skeleton h-9 w-9 shrink-0 !rounded-[11px]"></span><span class="flex-1"><span class="skeleton mb-2 block h-3.5 w-3/4"></span><span class="skeleton block h-3 w-1/2"></span></span></div></template></div>
+                                        </template>
+                                        <template x-for="item in data?.first ?? []" :key="item.title">
+                                            <div class="app-li">
+                                                <span class="app-ic" :class="item.tone"><span x-icon="item.icon" class="h-[18px] w-[18px]"></span></span>
+                                                <span class="min-w-0 flex-1">
+                                                    <b x-text="item.title"></b>
+                                                    <small x-text="item.sub"></small>
+                                                    <template x-if="item.action.tel"><a :href="'tel:' + item.action.tel" class="app-btn" x-text="item.action.label"></a></template>
+                                                    <template x-if="item.action.path"><button type="button" @click="$store.os.go(item.action.path)" class="app-btn" x-text="item.action.label"></button></template>
+                                                </span>
+                                            </div>
+                                        </template>
+                                        <p x-show="data && data.first.length === 0" class="py-3 text-sm text-gray-500">Geen aanvragen of offertes die nu wachten.</p>
+                                    </div>
+                                </section>
+
+                                <section data-enter class="app-card mb-3">
+                                    <div class="app-card-h">
+                                        <h3>Jouw <em>dag</em></h3>
+                                        <a href="#/planning" class="app-btn ghost">Planning</a>
+                                    </div>
+                                    <div class="app-card-b">
+                                        <template x-if="!data"><div class="py-3"><span class="skeleton mb-2 block h-3.5 w-1/4"></span><span class="skeleton block h-3.5 w-2/3"></span></div></template>
+                                        <template x-for="entry in data?.planning ?? []" :key="entry.id">
+                                            <div class="app-li">
+                                                <span class="min-w-0 flex-1">
+                                                    <span class="mb-1 block font-[family-name:var(--font-display)] font-semibold text-navy-900" x-text="entry.start ?? 'Hele dag'"></span>
+                                                    <b x-text="entry.title"></b>
+                                                    <small x-text="[entry.who, entry.type].filter(Boolean).join(', ')"></small>
+                                                    <button type="button" @click="$store.os.go(entry.path)" class="app-btn">Dossier</button>
+                                                </span>
+                                            </div>
+                                        </template>
+                                        <p x-show="data && data.planning.length === 0" class="py-3 text-sm text-gray-500">Niets gepland voor vandaag.</p>
+                                    </div>
+                                </section>
+
+                                <section data-enter class="app-card mb-3">
+                                    <div class="app-card-h">
+                                        <h3>Mijn <em>taken</em></h3>
+                                        <a href="#/taken" class="app-btn ghost">Alle taken</a>
+                                    </div>
+                                    <div class="app-card-b">
+                                        <template x-if="!data"><div class="py-3"><span class="skeleton mb-2 block h-3.5 w-2/3"></span><span class="skeleton block h-3 w-1/3"></span></div></template>
+                                        <template x-for="task in data?.tasks ?? []" :key="task.id">
+                                            <div class="app-li" :class="task.done && 'opacity-50'">
+                                                <span class="app-ic" :class="task.overdue ? 'bad' : 'blue'"><span x-icon="'clipboard-check'" class="h-[18px] w-[18px]"></span></span>
+                                                <span class="min-w-0 flex-1">
+                                                    <b x-text="task.title"></b>
+                                                    <small x-text="[task.deadline ? osFormat.day(task.deadline) : null, task.context].filter(Boolean).join(', ')"></small>
+                                                    <button type="button" @click="finish(task)" :disabled="task.done" class="app-btn" aria-label="Taak afronden"><span x-icon="'check'" class="h-4 w-4"></span></button>
+                                                </span>
+                                            </div>
+                                        </template>
+                                        <p x-show="data && data.tasks.length === 0" class="py-3 text-sm text-gray-500">Geen open taken.</p>
+                                    </div>
+                                </section>
+
+                                <section x-show="data?.projects.length">
+                                    <div class="app-chat-head mt-5 mb-2">
+                                        <h2 class="text-[17px] font-semibold text-navy-900">Recent in uitvoering</h2>
+                                        <a href="#/projecten" class="app-btn ghost">Alle projecten</a>
+                                    </div>
+                                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                        <template x-for="project in data?.projects ?? []" :key="project.id">
+                                            <div data-enter class="app-pcard cursor-pointer" @click="$store.os.go(project.path)">
+                                                <span class="flex items-center justify-between gap-2">
+                                                    <span class="id truncate" x-text="project.phase ?? project.status.label"></span>
+                                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap" :class="project.status.classes" x-text="project.status.label"></span>
+                                                </span>
+                                                <h4 x-text="project.name"></h4>
+                                                <span class="sub truncate" x-text="[project.customer, project.city].filter(Boolean).join(', ')"></span>
+                                                <template x-if="project.value !== null">
+                                                    <span class="flex items-center justify-between gap-2 text-sm">
+                                                        <span class="text-gray-500">Projectwaarde</span>
+                                                        <b class="font-[family-name:var(--font-display)] font-semibold text-navy-900" x-text="osFormat.euro(project.value)"></b>
+                                                    </span>
+                                                </template>
+                                                <span class="block">
+                                                    <span class="mb-1 flex items-center justify-between text-xs text-gray-500"><span>Voortgang</span><span class="font-semibold" x-text="project.progress + '%'"></span></span>
+                                                    <span class="app-bar"><i :style="`width: ${project.progress}%`"></i></span>
+                                                </span>
+                                                <template x-if="project.leader">
+                                                    <span class="flex items-center gap-2 text-[13px] text-gray-600">
+                                                        <span class="flex h-6 w-6 items-center justify-center rounded-full bg-brand-500 text-[10px] font-bold text-white" x-text="osFormat.initials(project.leader)"></span>
+                                                        <span x-text="project.leader"></span>
+                                                    </span>
+                                                </template>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </section>
+                            </div>
+                        </template>
+
+                        <!-- Uitvoerder -->
+                        <template x-if="!$store.os.crm">
+                            <div>
+                                <section data-enter class="mb-6 rounded-2xl border border-gray-200 bg-white p-4">
+                                    <template x-if="!data"><div><span class="skeleton mb-2 block h-6 w-2/3"></span><span class="skeleton mb-4 block h-4 w-1/2"></span><span class="skeleton block h-2.5 w-full"></span></div></template>
+                                    <template x-if="data && !data.project"><p class="text-sm text-gray-500">Zodra je op een project wordt ingedeeld, staat het hier.</p></template>
+                                    <template x-if="data?.project">
+                                        <div>
+                                            <button type="button" @click="$store.os.go(data.project.path)" class="block w-full text-left">
+                                                <span class="block truncate text-xl font-bold text-navy-950" x-text="data.project.name"></span>
+                                                <span class="block truncate text-sm text-gray-500" x-text="[data.project.customer, data.project.city].filter(Boolean).join(', ')"></span>
+                                            </button>
+                                            <div class="mt-4 flex items-center gap-3">
+                                                <span class="app-bar flex-1"><i :style="`width: ${data.project.progress}%`"></i></span>
+                                                <span class="text-sm font-bold text-navy-950" x-text="data.project.progress + '%'"></span>
+                                            </div>
+                                            <p class="mt-1.5 text-sm font-semibold text-navy-900" x-text="data.project.phase ?? data.project.status.label"></p>
+                                            <div class="mt-4 grid grid-cols-3 gap-2 border-t border-gray-100 pt-4">
+                                                <template x-for="tile in [['Chat', 'chat-bubble', '/chat', data.project.chat_unread ? data.project.chat_unread + ' nieuw' : 'Geen nieuwe'], ['Werk', 'clipboard-check', data.project.path, data.project.open_work ? data.project.open_work + ' open' : 'Alles af'], ['Foto\'s', 'photo', data.project.path + '?tab=fotos', data.project.photos + ' totaal']]" :key="tile[0]">
+                                                    <button type="button" @click="$store.os.go(tile[2])" class="flex min-w-0 flex-col items-center gap-1 rounded-xl py-1 text-center active:bg-gray-50">
+                                                        <span class="flex h-12 w-12 items-center justify-center rounded-2xl border border-gray-200 bg-white text-navy-900 shadow-sm"><span x-icon="tile[1]" class="h-6 w-6"></span></span>
+                                                        <span class="w-full truncate text-xs font-semibold text-navy-900" x-text="tile[0]"></span>
+                                                        <span class="w-full truncate text-[10px] font-medium text-gray-500" x-text="tile[3]"></span>
+                                                    </button>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </section>
+
+                                <section data-enter class="mb-6">
+                                    <h2 class="mb-2 text-base font-bold text-navy-950">Vandaag</h2>
+                                    <div class="divide-y divide-gray-100 rounded-2xl border border-gray-200 bg-white">
+                                        <template x-if="!data"><div class="p-4"><span class="skeleton block h-4 w-2/3"></span></div></template>
+                                        <template x-for="task in data?.today ?? []" :key="task.id">
+                                            <button type="button" @click="finish(task)" :disabled="task.done" class="flex w-full items-center gap-3 p-3 text-left" :class="task.done && 'opacity-50'">
+                                                <span class="h-6 w-6 shrink-0 rounded-full border-2" :class="task.done ? 'border-green-500 bg-green-500' : 'border-gray-300'"></span>
+                                                <span class="min-w-0 flex-1">
+                                                    <span class="block truncate text-sm font-semibold" :class="task.overdue ? 'text-red-700' : 'text-navy-900'" x-text="task.title"></span>
+                                                    <span class="block truncate text-xs text-gray-500" x-text="task.context ?? 'Algemeen'"></span>
+                                                </span>
+                                            </button>
+                                        </template>
+                                        <p x-show="data && data.today.length === 0" class="p-4 text-sm text-gray-500">Niets meer voor vandaag. Lekker bezig.</p>
+                                    </div>
+                                </section>
+
+                                <section data-enter class="mb-6">
+                                    <h2 class="mb-2 text-base font-bold text-navy-950">Jouw week</h2>
+                                    <div class="divide-y divide-gray-100 rounded-2xl border border-gray-200 bg-white">
+                                        <template x-if="!data"><div class="p-4"><span class="skeleton block h-4 w-1/2"></span></div></template>
+                                        <template x-for="entry in data?.week ?? []" :key="entry.id">
+                                            <button type="button" @click="$store.os.go(entry.path)" class="flex w-full items-center gap-3 p-3 text-left">
+                                                <span class="w-16 shrink-0 text-xs font-bold text-gray-500" x-text="osFormat.day(entry.date)"></span>
+                                                <span class="min-w-0 flex-1">
+                                                    <span class="block truncate text-sm font-semibold text-navy-900" x-text="entry.title"></span>
+                                                    <span class="block truncate text-xs text-gray-500" x-text="[entry.type, entry.start ? entry.start + (entry.end ? '-' + entry.end : '') : null].filter(Boolean).join(', ')"></span>
+                                                </span>
+                                                <span x-icon="'chevron-right'" class="h-4 w-4 text-gray-300"></span>
+                                            </button>
+                                        </template>
+                                        <p x-show="data && data.week.length === 0" class="p-4 text-sm text-gray-500">Geen planning deze week.</p>
+                                    </div>
+                                </section>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+                <!-- ===== Inbox ===== -->
+                <template x-if="$store.os.route === 'inbox'">
+                    <div x-data="inbox">
+                        <div data-enter class="app-ph">
+                            <p class="sec-eye"><span x-icon="'exclamation-triangle'"></span> Inbox</p>
+                            <h1><em>Inbox</em></h1>
+                            <p class="sub">
+                                <span x-show="data" x-text="data ? osFormat.tally(data.items.length, 'punt vraagt', 'punten vragen') + ' jouw actie. Wat goed loopt zie je hier niet.' : ''"></span>
+                                <span x-show="!data" class="skeleton block h-3.5 w-3/4"></span>
+                            </p>
+                        </div>
+
+                        <div class="app-chips" x-show="!data || data.items.length > 0">
+                            <button type="button" @click="filter = 'alles'" :class="filter === 'alles' && 'on'" class="app-chip">Te doen <span x-text="data?.items.length ?? ''"></span></button>
+                            <button type="button" @click="filter = 'rood'" :class="filter === 'rood' && 'on'" class="app-chip">Actie nodig <span x-text="data ? urgent : ''"></span></button>
+                            <button type="button" @click="filter = 'oranje'" :class="filter === 'oranje' && 'on'" class="app-chip">Signaal <span x-text="data ? data.items.length - urgent : ''"></span></button>
+                        </div>
+
+                        <template x-if="failed">
+                            <div class="app-card p-5 text-center">
+                                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                                <button type="button" @click="load()" class="app-btn mt-3">Opnieuw proberen</button>
+                            </div>
+                        </template>
+
+                        <template x-if="data && data.items.length === 0">
+                            <div class="app-card p-6 text-center">
+                                <span class="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-project-100 text-project-700"><span x-icon="'check'" class="h-5 w-5"></span></span>
+                                <p class="text-sm font-semibold text-navy-900">Niets vraagt op dit moment aandacht</p>
+                                <p class="mt-0.5 text-xs text-gray-500">Alle projecten, offertes en taken lopen op schema.</p>
+                            </div>
+                        </template>
+
+                        <div data-enter class="app-card" x-show="!failed && (!data || data.items.length > 0)">
+                            <div class="app-card-b">
+                                <template x-for="i in (data ? 0 : 5)" :key="i">
+                                    <div class="flex gap-3.5 py-3.5"><span class="skeleton h-9 w-9 shrink-0 !rounded-[11px]"></span><span class="flex-1"><span class="skeleton mb-2 block h-3.5 w-3/4"></span><span class="skeleton block h-3 w-1/2"></span></span></div>
+                                </template>
+                                <template x-for="(item, index) in data?.items ?? []" :key="index">
+                                    <button type="button" @click="$store.os.go(item.path)" class="app-li ibx w-full text-left" :style="`--st: ${item.severity === 'rood' ? '#f26a1b' : '#3e6ba8'}`" x-show="shows(item)">
+                                        <span class="app-ic" :class="item.severity === 'rood' ? 'bad' : 'warn'"><span x-icon="item.icon" class="h-[18px] w-[18px]"></span></span>
+                                        <span class="min-w-0 flex-1">
+                                            <b x-text="item.title"></b>
+                                            <small class="line-clamp-2"><span class="src" x-text="item.label"></span> <span x-text="item.subtitle ?? ''"></span></small>
+                                        </span>
+                                        <span x-icon="'chevron-right'" class="mt-2.5 h-4 w-4 text-gray-300"></span>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- ===== Planning ===== -->
+                <template x-if="$store.os.route === 'planning'">
+                    <div x-data="planning">
+                        <nav class="app-sectabs" aria-label="Onderdelen van deze sectie">
+                            <a href="#/planning" class="on" aria-current="page">Planning</a>
+                            <a href="#/taken">Taken</a>
+                        </nav>
+
+                        <div data-enter class="app-ph">
+                            <p class="sec-eye"><span x-icon="'calendar'"></span> Planning &amp; uitvoering</p>
+                            <h1><em>Planning</em></h1>
+                            <p class="sub" x-text="$store.os.crm ? 'Dagoverzicht per persoon. Tik op een blok voor de details.' : 'Jouw planning vanaf vandaag, met adressen.'"></p>
+                            <div class="app-ph-acts" x-show="$store.os.crm">
+                                <button type="button" @click="plan()" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white active:bg-brand-600">
+                                    <span x-icon="'plus'" class="mr-1.5 h-4 w-4"></span>Inplannen
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Week -->
+                        <div class="mb-3 flex items-center justify-between">
+                            <button type="button" @click="goWeek(data?.previous)" :disabled="!data" class="app-iconbtn tap" aria-label="Vorige week"><span x-icon="'chevron-right'" class="h-4 w-4 rotate-180"></span></button>
+                            <button type="button" @click="goWeek(null)" class="tap font-[family-name:var(--font-display)] text-[15px] font-semibold text-navy-900">
+                                <span x-text="data?.label ?? ''"></span><span x-show="!data" class="skeleton inline-block h-4 w-28 align-middle"></span>
+                            </button>
+                            <button type="button" @click="goWeek(data?.next)" :disabled="!data" class="app-iconbtn tap" aria-label="Volgende week"><span x-icon="'chevron-right'" class="h-4 w-4"></span></button>
+                        </div>
+
+                        <template x-if="failed">
+                            <div class="app-card p-5 text-center">
+                                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                                <button type="button" @click="load()" class="app-btn mt-3">Opnieuw proberen</button>
+                            </div>
+                        </template>
+
+                        <!-- Planner: dagbalk en per persoon wat er die dag staat -->
+                        <template x-if="$store.os.crm">
+                            <div>
+                                <div class="mb-4 grid grid-cols-5 gap-1.5">
+                                    <template x-for="(option, index) in data?.days ?? [0, 1, 2, 3, 4]" :key="index">
+                                        <button type="button" @click="dayIndex = index" :disabled="!data"
+                                                :class="data && dayNumber === index ? 'border-navy-950 bg-navy-950 text-white' : ('border-gray-200 bg-white ' + (option?.today ? 'text-brand-700' : 'text-navy-900'))"
+                                                class="flex h-[66px] flex-col items-center justify-center rounded-[14px] border font-[family-name:var(--font-display)] transition">
+                                            <span class="text-[10px] font-bold uppercase opacity-70" x-text="option?.short ?? ''"></span>
+                                            <span class="text-lg leading-tight font-bold" x-text="option?.day ?? ''"></span>
+                                            <span class="mt-1 h-1.5 w-1.5 rounded-full" :class="option?.date && (data?.entries ?? []).some((entry) => entry.day === option.date) ? 'bg-planning-500' : 'bg-transparent'"></span>
+                                        </button>
+                                    </template>
+                                </div>
+
+                                <h2 class="mb-2 text-sm font-bold text-navy-950" x-text="day?.heading ?? ''"></h2>
+                                <div data-enter class="divide-y divide-gray-100 rounded-2xl border border-gray-200 bg-white shadow-[var(--app-shadow)]">
+                                    <template x-for="i in (data ? 0 : 3)" :key="i">
+                                        <div class="px-4 py-3.5"><div class="mb-2 flex items-center gap-3"><span class="skeleton h-9 w-9 !rounded-full"></span><span class="skeleton h-3.5 w-24"></span></div><span class="skeleton block h-10 w-full"></span></div>
+                                    </template>
+                                    <template x-for="row in data?.rows ?? []" :key="row.id">
+                                        <div class="px-4 py-3">
+                                            <div class="mb-2 flex items-center gap-3">
+                                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white" :style="`background: ${row.color}`" x-text="row.initials"></span>
+                                                <p class="min-w-0 flex-1 truncate text-sm font-semibold text-navy-900" x-text="row.name"></p>
+                                                <p class="truncate text-[11px] text-gray-500" x-text="row.role"></p>
+                                            </div>
+                                            <div class="space-y-1.5">
+                                                <template x-for="entry in entriesFor(row.id, day?.date)" :key="entry.id">
+                                                    <button type="button" @click="detail = entry" class="block w-full rounded-[9px] border-0 border-l-[3px] px-2.5 py-1.5 text-left" :class="entry.classes">
+                                                        <span class="block truncate text-sm font-semibold" x-text="entry.title"></span>
+                                                        <span class="block text-xs opacity-70" x-text="entry.time + ', ' + entry.type"></span>
+                                                    </button>
+                                                </template>
+                                                <template x-if="entriesFor(row.id, day?.date).length === 0">
+                                                    <div class="flex items-center justify-between gap-2 py-1">
+                                                        <span class="flex items-center gap-1.5 text-sm font-medium text-green-700"><span class="h-2 w-2 rounded-full bg-green-500"></span> Vrij</span>
+                                                        <button type="button" @click="plan(row.id, day.date)" class="tap rounded-lg border border-dashed border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-500 active:border-brand-400 active:text-brand-600">+ Inplannen</button>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <template x-if="data && data.rows.length === 0">
+                                        <p class="p-4 text-sm text-gray-500">Nog geen uitvoerders. Maak gebruikers aan met rol Uitvoerder om de planning te vullen.</p>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+
+                        <!-- Uitvoerder: agenda vanaf vandaag -->
+                        <template x-if="!$store.os.crm">
+                            <div data-enter>
+                                <template x-for="i in (data ? 0 : 3)" :key="i">
+                                    <div class="mb-2 rounded-xl bg-white px-3 py-3"><span class="skeleton block h-4 w-1/2"></span></div>
+                                </template>
+                                <template x-for="day in agendaDays" :key="day.date">
+                                    <section :class="entriesFor($store.os.profile.user.id, day.date).length ? 'mt-3 mb-5' : 'mb-1 flex items-baseline gap-2 rounded-xl bg-white px-3 py-2.5'">
+                                        <h2 :class="entriesFor($store.os.profile.user.id, day.date).length ? 'mb-2 flex items-baseline gap-2' : 'contents'">
+                                            <span :class="[entriesFor($store.os.profile.user.id, day.date).length ? 'text-base font-bold' : 'text-sm font-semibold', day.today ? 'text-brand-700' : 'text-navy-950']" x-text="day.name"></span>
+                                            <span class="text-xs text-gray-500" x-text="day.date_label"></span>
+                                        </h2>
+                                        <template x-for="entry in entriesFor($store.os.profile.user.id, day.date)" :key="entry.id">
+                                            <button type="button" @click="detail = entry" class="mb-2 flex w-full items-center gap-3 rounded-2xl border border-gray-200 border-l-4 border-l-planning-500 bg-white p-3 text-left">
+                                                <span class="min-w-0 flex-1">
+                                                    <span class="block truncate text-sm font-semibold text-navy-900" x-text="entry.title"></span>
+                                                    <span class="block text-xs text-gray-500" x-text="entry.time + ', ' + entry.type"></span>
+                                                    <span x-show="entry.address" class="mt-0.5 block truncate text-xs text-gray-500" x-text="entry.address"></span>
+                                                </span>
+                                                <span x-icon="'chevron-right'" class="h-4 w-4 text-gray-300"></span>
+                                            </button>
+                                        </template>
+                                        <span x-show="entriesFor($store.os.profile.user.id, day.date).length === 0" class="ml-auto text-xs text-gray-500">Niets gepland</span>
+                                    </section>
+                                </template>
+                            </div>
+                        </template>
+
+                        <!-- Detail van een blok -->
+                        <div data-popup x-show="detail" x-cloak @click.self="detail = null" @renovion-back.window="if (detail) { detail = null; $event.preventDefault(); }"
+                             class="fixed inset-0 z-[60] flex items-end bg-navy-950/60 backdrop-blur-sm">
+                            <template x-if="detail">
+                                <div x-swipe-dismiss="detail = null" class="w-full rounded-t-[20px] bg-white px-4 pt-3 pb-[calc(1rem_+_env(safe-area-inset-bottom))]">
+                                    <div class="mx-auto mb-3 h-1.5 w-10 rounded-full bg-gray-300"></div>
+                                    <span class="inline-block rounded-full border px-2 py-0.5 text-[11px] font-semibold" :class="detail.classes" x-text="detail.type"></span>
+                                    <h2 class="mt-2 text-lg font-bold text-navy-950" x-text="detail.title"></h2>
+                                    <dl class="mt-3 space-y-2 text-sm">
+                                        <div class="flex gap-3" x-show="detail.user"><dt class="w-16 shrink-0 text-gray-500">Wie</dt><dd class="font-medium text-navy-900" x-text="detail.user"></dd></div>
+                                        <div class="flex gap-3"><dt class="w-16 shrink-0 text-gray-500">Wanneer</dt><dd class="font-medium text-navy-900" x-text="detail.date + ', ' + detail.time.toLowerCase()"></dd></div>
+                                        <div class="flex gap-3" x-show="detail.address"><dt class="w-16 shrink-0 text-gray-500">Adres</dt><dd class="font-medium text-navy-900" x-text="detail.address"></dd></div>
+                                        <div class="flex gap-3" x-show="detail.notes"><dt class="w-16 shrink-0 text-gray-500">Notitie</dt><dd class="whitespace-pre-line text-navy-900" x-text="detail.notes"></dd></div>
+                                    </dl>
+                                    <div class="mt-4 grid grid-cols-2 gap-2">
+                                        <button type="button" x-show="detail.project" @click="$store.os.go(detail.project)" class="flex items-center justify-center gap-1.5 rounded-xl bg-brand-500 py-2.5 text-sm font-bold text-white">
+                                            <span x-icon="'folder'" class="h-4 w-4"></span> Project openen
+                                        </button>
+                                        <a :href="detail.maps" x-show="detail.maps" target="_blank" rel="noopener" class="flex items-center justify-center gap-1.5 rounded-xl border border-gray-300 py-2.5 text-sm font-semibold text-navy-900">
+                                            <span x-icon="'paper-airplane'" class="h-4 w-4"></span> Route
+                                        </a>
+                                    </div>
+                                    <button type="button" x-show="detail.delete" @click="remove(detail)" class="mt-2 w-full rounded-xl py-2.5 text-sm font-semibold text-red-600 active:bg-red-50">Verwijderen</button>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- Inplannen -->
+                        <div data-popup x-show="form" x-cloak @click.self="form = null" @renovion-back.window="if (form) { form = null; $event.preventDefault(); }"
+                             class="fixed inset-0 z-[60] flex items-end bg-navy-950/60 backdrop-blur-sm">
+                            <template x-if="form">
+                                <form @submit.prevent="save()" x-swipe-dismiss="form = null" class="max-h-[90dvh] w-full space-y-3 overflow-y-auto rounded-t-[20px] bg-white p-5 pb-[calc(1.25rem_+_env(safe-area-inset-bottom))]">
+                                    <div class="mx-auto -mt-2 mb-1 h-1.5 w-10 rounded-full bg-gray-300"></div>
+                                    <h2 class="text-base font-bold text-navy-900">Inplannen</h2>
+                                    <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Wie</span>
+                                        <select x-model="form.user_id" required class="w-full"><option value="">- Kies -</option>
+                                            <template x-for="user in data.form.users" :key="user.id"><option :value="user.id" x-text="user.name" :selected="String(user.id) === String(form.user_id)"></option></template>
+                                        </select>
+                                    </label>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Datum</span><input type="date" x-model="form.date" required class="w-full"></label>
+                                        <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Type</span>
+                                            <select x-model="form.type" class="w-full"><template x-for="type in data.form.types" :key="type.value"><option :value="type.value" x-text="type.label"></option></template></select>
+                                        </label>
+                                    </div>
+                                    <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Project (optioneel)</span>
+                                        <select x-model="form.project_id" class="w-full"><option value="">- Geen project -</option>
+                                            <template x-for="project in data.form.projects" :key="project.id"><option :value="project.id" x-text="project.name"></option></template>
+                                        </select>
+                                    </label>
+                                    <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Titel (optioneel)</span><input type="text" x-model="form.title" placeholder="Bijv. terugbelafspraak De Vries" class="w-full"></label>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Van</span><input type="time" x-model="form.start_time" class="w-full"></label>
+                                        <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Tot</span><input type="time" x-model="form.end_time" class="w-full"></label>
+                                    </div>
+                                    <p x-show="formError" x-text="formError" class="rounded-xl bg-red-100 px-3 py-2 text-sm font-medium text-red-800"></p>
+                                    <div class="flex gap-2 pt-1">
+                                        <button type="submit" :disabled="saving" class="flex-1 rounded-xl bg-brand-500 py-2.5 text-sm font-bold text-white active:bg-brand-600 disabled:opacity-60" x-text="saving ? 'Bezig' : 'Inplannen'"></button>
+                                        <button type="button" @click="form = null" class="rounded-xl border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-600">Annuleren</button>
+                                    </div>
+                                </form>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- ===== Projecten ===== -->
+                <template x-if="$store.os.route === 'projecten'">
+                    <div x-data="projects">
+                        <div data-enter class="app-ph">
+                            <p class="sec-eye"><span x-icon="'folder'"></span> Projecten</p>
+                            <h1>Project<em>dossiers</em></h1>
+                            <p class="sub">Elk project is één dossier, van aanvraag tot nazorg.</p>
+                            <div class="app-ph-acts" x-show="$store.os.crm">
+                                <button type="button" @click="$store.os.openWeb('/projecten/aanmaken')" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white active:bg-brand-600">
+                                    <span x-icon="'plus'" class="mr-1.5 h-4 w-4"></span>Nieuw projectdossier
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="-mx-4 mb-4 flex gap-1 overflow-x-auto px-4 pb-1 [scrollbar-width:none]" x-show="$store.os.crm || (data?.projects.length ?? 0) > 4">
+                            <template x-for="option in data?.filters ?? [{ value: null, label: 'Lopend' }]" :key="option.label">
+                                <button type="button" @click="filter(option.value)"
+                                        class="tap shrink-0 rounded-full px-3.5 py-[7px] text-[13.5px] font-semibold"
+                                        :class="status === option.value ? 'bg-navy-900 text-white' : 'text-gray-600'" x-text="option.label"></button>
+                            </template>
+                        </div>
+
+                        <template x-if="failed">
+                            <div class="app-card p-5 text-center">
+                                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                                <button type="button" @click="load()" class="app-btn mt-3">Opnieuw proberen</button>
+                            </div>
+                        </template>
+
+                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            <template x-for="i in (!data && !failed ? 4 : 0)" :key="i">
+                                <div class="app-pcard"><span class="skeleton block h-3 w-1/3"></span><span class="skeleton block h-5 w-2/3"></span><span class="skeleton block h-3.5 w-1/2"></span><span class="skeleton block h-2 w-full"></span></div>
+                            </template>
+                            <template x-for="project in data?.projects ?? []" :key="project.id">
+                                <div data-enter class="app-pcard cursor-pointer" @click="$store.os.go(project.path)">
+                                    <span class="flex items-center justify-between gap-2">
+                                        <span class="id truncate" x-text="project.phase ?? project.status.label"></span>
+                                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap" :class="project.status.classes" x-text="project.status.label"></span>
+                                    </span>
+                                    <h4 x-text="project.name"></h4>
+                                    <span class="sub truncate" x-text="[project.customer, project.city].filter(Boolean).join(', ')"></span>
+                                    <template x-if="project.value !== null">
+                                        <span class="flex items-center justify-between gap-2 text-sm">
+                                            <span class="text-gray-500">Projectwaarde</span>
+                                            <b class="font-[family-name:var(--font-display)] font-semibold text-navy-900" x-text="osFormat.euro(project.value)"></b>
+                                        </span>
+                                    </template>
+                                    <span class="block">
+                                        <span class="mb-1 flex items-center justify-between text-xs text-gray-500"><span>Voortgang</span><span class="font-semibold" x-text="project.progress + '%'"></span></span>
+                                        <span class="app-bar"><i :style="`width: ${project.progress}%`"></i></span>
+                                    </span>
+                                    <template x-if="project.leader">
+                                        <span class="flex items-center gap-2 text-[13px] text-gray-600">
+                                            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-brand-500 text-[10px] font-bold text-white" x-text="osFormat.initials(project.leader)"></span>
+                                            <span x-text="project.leader"></span>
+                                        </span>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                        <template x-if="data && data.projects.length === 0">
+                            <div class="app-card p-6 text-center text-sm text-gray-500">Geen projecten in deze weergave.</div>
+                        </template>
+                    </div>
+                </template>
+                <!-- ===== Taken ===== -->
+                <template x-if="$store.os.route === 'taken'">
+                    <div x-data="tasks">
+                        <nav class="app-sectabs" aria-label="Onderdelen van deze sectie">
+                            <a href="#/planning">Planning</a>
+                            <a href="#/taken" class="on" aria-current="page">Taken</a>
+                        </nav>
+
+                        <div data-enter class="app-ph">
+                            <p class="sec-eye"><span x-icon="'calendar'"></span> Planning &amp; uitvoering</p>
+                            <h1>Taken &amp; <em>werkstroom</em></h1>
+                            <p class="sub">Van actie tot oplevering. Tik het vakje om een taak af te ronden.</p>
+                            <div class="app-ph-acts">
+                                <button type="button" @click="add()" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white active:bg-brand-600">
+                                    <span x-icon="'plus'" class="mr-1.5 h-4 w-4"></span>Taak
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="-mx-4 mb-4 flex gap-1 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+                            <template x-for="option in data?.statuses ?? [{ value: null, label: 'Open' }]" :key="option.label">
+                                <button type="button" @click="filter(option.value)" class="tap shrink-0 rounded-full px-3.5 py-[7px] text-[13.5px] font-semibold"
+                                        :class="status === option.value ? 'bg-navy-900 text-white' : 'text-gray-600'" x-text="option.label"></button>
+                            </template>
+                        </div>
+
+                        <template x-if="failed">
+                            <div class="app-card p-5 text-center">
+                                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                                <button type="button" @click="load()" class="app-btn mt-3">Opnieuw proberen</button>
+                            </div>
+                        </template>
+
+                        <template x-if="data && data.tasks.length === 0">
+                            <div class="app-card p-6 text-center text-sm text-gray-500">Geen taken in deze weergave.</div>
+                        </template>
+
+                        <div data-enter class="app-card" x-show="!failed && (!data || data.tasks.length > 0)">
+                            <template x-for="i in (data ? 0 : 4)" :key="i">
+                                <div class="app-rec"><span class="skeleton mb-2 block h-4 w-2/3"></span><span class="skeleton mb-1.5 block h-3 w-1/2"></span><span class="skeleton block h-3 w-1/3"></span></div>
+                            </template>
+                            <template x-for="task in data?.tasks ?? []" :key="task.id">
+                                <div class="app-rec" :class="task.done && 'opacity-50'">
+                                    <div class="flex items-start gap-3">
+                                        <template x-if="task.status.open">
+                                            <button type="button" @click="finish(task)" :disabled="task.done" class="group -m-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full" aria-label="Taak afronden">
+                                                <span class="h-[22px] w-[22px] rounded-[7px] border-2" :class="task.done ? 'border-green-500 bg-green-500' : 'border-gray-300'"></span>
+                                            </button>
+                                        </template>
+                                        <template x-if="!task.status.open">
+                                            <span class="-m-2.5 flex h-11 w-11 shrink-0 items-center justify-center"><span class="flex h-[22px] w-[22px] items-center justify-center rounded-[7px] bg-green-100 text-green-700"><span x-icon="'check'" class="h-3.5 w-3.5"></span></span></span>
+                                        </template>
+                                        <span class="min-w-0 flex-1">
+                                            <span class="app-lbl">Taak</span>
+                                            <h4 :class="!task.status.open && 'text-gray-500 line-through'" x-text="task.title"></h4>
+                                        </span>
+                                        <span class="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full" :class="task.priority.dot" :title="'Prioriteit: ' + task.priority.label"></span>
+                                    </div>
+                                    <div class="app-fields">
+                                        <div>
+                                            <span class="app-lbl">Project / klant</span>
+                                            <template x-if="task.project"><button type="button" @click="$store.os.go(task.project.path)" class="tap block text-left font-medium text-navy-900" x-text="task.project.name"></button></template>
+                                            <small x-show="task.customer" x-text="task.customer"></small>
+                                            <b x-show="!task.project && !task.customer">Algemeen</b>
+                                        </div>
+                                        <div><span class="app-lbl">Eigenaar</span><b x-text="task.owner ?? 'Geen eigenaar'"></b></div>
+                                        <div><span class="app-lbl">Deadline</span><b :class="task.overdue && 'text-red-700'" x-text="task.deadline ? (task.overdue ? 'Verlopen, ' : '') + osFormat.day(task.deadline) : 'Geen'"></b></div>
+                                        <div>
+                                            <span class="app-lbl">Status</span>
+                                            <template x-if="task.status.open">
+                                                <select aria-label="Status" @change="setStatus(task, $event.target.value)" class="!min-h-11 w-full py-1 pr-7 pl-3 !text-sm">
+                                                    <template x-for="option in data.statuses.filter((option) => option.value)" :key="option.value">
+                                                        <option :value="option.value" :selected="option.value === task.status.value" x-text="option.label"></option>
+                                                    </template>
+                                                </select>
+                                            </template>
+                                            <b x-show="!task.status.open" x-text="task.status.label"></b>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- Nieuwe taak -->
+                        <div data-popup x-show="form" x-cloak @click.self="form = null" @renovion-back.window="if (form) { form = null; $event.preventDefault(); }"
+                             class="fixed inset-0 z-[60] flex items-end bg-navy-950/60 backdrop-blur-sm">
+                            <template x-if="form">
+                                <form @submit.prevent="save()" x-swipe-dismiss="form = null" class="max-h-[90dvh] w-full space-y-3 overflow-y-auto rounded-t-[20px] bg-white p-5 pb-[calc(1.25rem_+_env(safe-area-inset-bottom))]">
+                                    <div class="mx-auto -mt-2 mb-1 h-1.5 w-10 rounded-full bg-gray-300"></div>
+                                    <h2 class="text-base font-bold text-navy-900">Nieuwe taak</h2>
+                                    <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Wat moet er gebeuren?</span><input type="text" x-model="form.title" required maxlength="255" class="w-full"></label>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Deadline</span><input type="date" x-model="form.deadline" class="w-full"></label>
+                                        <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Prioriteit</span>
+                                            <select x-model="form.priority" class="w-full"><option value="laag">Laag</option><option value="normaal">Normaal</option><option value="hoog">Hoog</option></select>
+                                        </label>
+                                    </div>
+                                    <template x-if="$store.os.crm">
+                                        <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Eigenaar</span>
+                                            <select x-model="form.owner_id" class="w-full"><option value="">Ikzelf</option>
+                                                <template x-for="user in data.form.users" :key="user.id"><option :value="user.id" x-text="user.name"></option></template>
+                                            </select>
+                                        </label>
+                                    </template>
+                                    <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Project (optioneel)</span>
+                                        <select x-model="form.project_id" class="w-full"><option value="">- Geen project -</option>
+                                            <template x-for="project in data.form.projects" :key="project.id"><option :value="project.id" x-text="project.name"></option></template>
+                                        </select>
+                                    </label>
+                                    <p x-show="formError" x-text="formError" class="rounded-xl bg-red-100 px-3 py-2 text-sm font-medium text-red-800"></p>
+                                    <div class="flex gap-2 pt-1">
+                                        <button type="submit" :disabled="saving" class="flex-1 rounded-xl bg-brand-500 py-2.5 text-sm font-bold text-white active:bg-brand-600 disabled:opacity-60" x-text="saving ? 'Bezig' : 'Taak aanmaken'"></button>
+                                        <button type="button" @click="form = null" class="rounded-xl border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-600">Annuleren</button>
+                                    </div>
+                                </form>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- ===== Projectdossier ===== -->
+                <template x-if="$store.os.route === 'project'">
+                    <div>
+                        <template x-for="id in [$store.os.param]" :key="id">
+                            <div x-data="project(id)">
+                                <section data-enter class="app-band mb-3">
+                                    <img :src="$store.os.heroUrl" alt="" class="bimg">
+                                    <nav class="app-crumbs">
+                                        <a href="#/projecten" class="tap">Projectdossiers</a>
+                                        <span x-icon="'chevron-right'" class="h-3 w-3"></span>
+                                        <span x-text="data?.name ?? ''"></span>
+                                    </nav>
+                                    <div class="flex flex-wrap gap-2" x-show="data">
+                                        <button type="button" x-show="data?.links.chat" @click="$store.os.openWeb(data.links.chat)" class="app-btn onnavy"><span x-icon="'chat-bubble'" class="h-4 w-4"></span> Chat</button>
+                                        <button type="button" x-show="$store.os.crm" @click="$store.os.nova = true" class="app-btn onnavy"><span x-icon="'sparkles'" class="h-4 w-4"></span> Vraag Nova</button>
+                                        <button type="button" x-show="data?.links.edit" @click="$store.os.openWeb(data.links.edit)" class="app-btn onnavy">Bewerken</button>
+                                        <button type="button" @click="$store.os.openWeb(data.links.execution)" class="app-btn pri">Naar uitvoering <span x-icon="'chevron-right'" class="h-3.5 w-3.5"></span></button>
+                                    </div>
+                                    <div>
+                                        <p class="eyebrow">Projectdossier</p>
+                                        <h1 class="mt-1.5"><span class="!text-white" x-text="data?.name ?? ''"></span><span x-show="!data" class="skeleton skeleton-dark inline-block h-6 w-2/3 align-middle"></span></h1>
+                                        <p class="sub mt-1.5" x-text="data?.address ?? data?.customer ?? ''"></p>
+                                        <span class="rule"></span>
+                                    </div>
+                                    <div class="bmeta" x-show="data">
+                                        <div><span>Opdrachtgever</span><b x-text="data?.customer"></b></div>
+                                        <div><span>Fase</span><b x-text="data?.current?.name ?? data?.status.label"></b></div>
+                                        <div><span>Status</span><b x-text="data?.status.label"></b></div>
+                                        <div x-show="data?.leader"><span>Projectleider</span><b x-text="data?.leader"></b></div>
+                                        <div x-show="data && data.value !== null"><span>Projectwaarde</span><b x-text="osFormat.euro(data?.value)"></b></div>
+                                        <div x-show="data?.quote"><span>Offerte</span><b x-text="data?.quote"></b></div>
+                                    </div>
+                                </section>
+
+                                <template x-if="failed">
+                                    <div class="app-card p-5 text-center">
+                                        <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                                        <button type="button" @click="load()" class="app-btn mt-3">Opnieuw proberen</button>
+                                    </div>
+                                </template>
+
+                                <section data-enter class="app-card mb-3 cursor-pointer p-4 select-none" x-data="{ open: false }" @click="if (data && !$event.target.closest('a, button, select, input, textarea, label, form')) open = !open" :aria-expanded="open">
+                                    <div class="mb-2 flex items-center justify-between">
+                                        <h2 class="text-sm font-bold text-navy-900">Projectvoortgang</h2>
+                                        <span class="text-xs font-semibold text-gray-500" x-text="data ? data.progress + '%' : ''"></span>
+                                    </div>
+                                    <span class="app-bar mb-4"><i :style="`width: ${data?.progress ?? 0}%`"></i></span>
+                                    <div class="flex gap-1" aria-hidden="true">
+                                        <template x-for="(phase, index) in data?.phases ?? [0, 1, 2, 3, 4, 5, 6, 7, 8]" :key="index">
+                                            <span class="h-2 flex-1 rounded-full" :class="phase?.done ? 'bg-green-500' : (phase?.active ? ({ geblokkeerd: 'bg-red-500', wacht_op_klant: 'bg-amber-500', wacht_op_leverancier: 'bg-amber-500' }[phase.state] ?? 'bg-brand-500') : 'bg-gray-200')"></span>
+                                        </template>
+                                    </div>
+                                    <template x-if="data?.current">
+                                        <div class="mt-3 flex items-start justify-between gap-3">
+                                            <div class="min-w-0">
+                                                <p class="text-[11px] font-bold tracking-widest text-gray-600 uppercase" x-text="'Stap ' + data.current.step + ' van ' + data.phases.length"></p>
+                                                <p class="text-base font-bold text-navy-950" x-text="data.current.name"></p>
+                                                <p x-show="data.current.next" class="mt-0.5 text-xs text-gray-500" x-text="'Volgende: ' + data.current.next"></p>
+                                            </div>
+                                            <span class="mt-4 shrink-0 rounded-full px-2 py-0.5 text-xs font-bold" :class="data.current.status.classes" x-text="data.current.status.label"></span>
+                                        </div>
+                                    </template>
+                                    <p x-show="data" class="mt-3 flex items-center gap-1 text-sm font-semibold text-brand-700">
+                                        <span x-text="open ? 'Fasen verbergen' : 'Alle fasen bekijken'"></span>
+                                        <span x-icon="'chevron-down'" class="h-4 w-4 transition" :class="open && 'rotate-180'"></span>
+                                    </p>
+                                    <ol x-show="open" x-cloak class="mt-3">
+                                        <template x-for="(phase, index) in data?.phases ?? []" :key="index">
+                                            <li class="flex gap-3">
+                                                <span class="flex flex-col items-center">
+                                                    <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold" :class="phase.done ? 'bg-green-500 text-white' : (phase.active ? 'bg-brand-500 text-white' : 'bg-gray-200 text-gray-500')" x-text="phase.done ? '' : index"></span>
+                                                    <span x-show="index < data.phases.length - 1" class="w-0.5 flex-1" :class="phase.done ? 'bg-green-300' : 'bg-gray-200'"></span>
+                                                </span>
+                                                <span class="min-w-0 flex-1 pb-3">
+                                                    <span class="block text-sm" :class="phase.active ? 'font-bold text-navy-950' : 'text-gray-600'" x-text="phase.name"></span>
+                                                    <span class="block text-xs text-gray-500" x-text="phase.status + (phase.open_work ? ', ' + osFormat.tally(phase.open_work, 'werkpakket open', 'werkpakketten open') : '')"></span>
+                                                </span>
+                                            </li>
+                                        </template>
+                                    </ol>
+                                </section>
+
+                                <section data-enter class="app-card mb-3 grid grid-cols-3 gap-2 p-4">
+                                    <template x-for="tile in [['Uitvoering', 'clipboard-check', 'execution', data ? (data.open_work ? data.open_work + ' open' : 'Alles af') : ''], ['Foto\'s', 'photo', 'photos', data ? data.photos + ' totaal' : ''], ['Chat', 'chat-bubble', 'chat', 'Projectchat']]" :key="tile[0]">
+                                        <button type="button" @click="tile[2] === 'execution' && data?.work.length ? $refs.work.scrollIntoView({ behavior: 'smooth', block: 'start' }) : (data?.links[tile[2]] && $store.os.openWeb(data.links[tile[2]]))" class="flex min-w-0 flex-col items-center gap-1 rounded-xl py-1 text-center active:bg-gray-50">
+                                            <span class="flex h-12 w-12 items-center justify-center rounded-2xl border border-gray-200 bg-white text-navy-900 shadow-sm"><span x-icon="tile[1]" class="h-6 w-6"></span></span>
+                                            <span class="w-full truncate text-xs font-semibold text-navy-900" x-text="tile[0]"></span>
+                                            <span class="w-full truncate text-[10px] font-medium text-gray-500" x-text="tile[3]"></span>
+                                        </button>
+                                    </template>
+                                </section>
+
+                                <!-- Werkpakketten per fase: open in de app -->
+                                <section data-enter x-ref="work" class="app-card mb-3 scroll-mt-[calc(72px_+_env(safe-area-inset-top))]" x-show="data?.work.length">
+                                    <div class="app-card-h"><h3>Werk<em>pakketten</em></h3><span class="text-xs font-semibold text-gray-500" x-text="data ? (data.open_work ? data.open_work + ' open' : 'Alles af') : ''"></span></div>
+                                    <div class="app-card-b">
+                                        <template x-for="group in data?.work ?? []" :key="group.phase">
+                                            <div class="mb-1 last:mb-0" x-data="{ open: group.active || group.packages.some((pkg) => !pkg.done) }">
+                                                <button type="button" @click="open = !open" class="flex w-full items-center gap-2 py-2 text-left" :aria-expanded="open">
+                                                    <span class="min-w-0 flex-1 truncate text-[11px] font-bold tracking-widest uppercase" :class="group.active ? 'text-brand-700' : 'text-gray-600'" x-text="group.phase"></span>
+                                                    <span class="text-xs text-gray-500" x-show="!open" x-text="osFormat.tally(group.packages.length, 'werkpakket', 'werkpakketten')"></span>
+                                                    <span x-icon="'chevron-down'" class="h-4 w-4 text-gray-400 transition" :class="open && 'rotate-180'"></span>
+                                                </button>
+                                                <div x-show="open">
+                                                    <template x-for="pkg in group.packages" :key="pkg.id">
+                                                        <a :href="'#/werkpakket/' + pkg.id" class="app-li" :class="pkg.done && 'opacity-60'">
+                                                            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full" :class="pkg.done ? 'bg-green-500 text-white' : 'border-2 border-gray-300'"><span x-show="pkg.done" x-icon="'check'" class="h-3.5 w-3.5"></span></span>
+                                                            <span class="min-w-0 flex-1">
+                                                                <b x-text="pkg.name"></b>
+                                                                <small :class="pkg.overdue && '!text-red-700'" x-text="[pkg.items ? pkg.items_done + '/' + pkg.items + ' afgevinkt' : null, pkg.deadline && !pkg.done ? (pkg.overdue ? 'verlopen, ' : '') + osFormat.day(pkg.deadline) : null].filter(Boolean).join(', ') || pkg.status.label"></small>
+                                                            </span>
+                                                            <span x-show="!pkg.done" class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold" :class="pkg.status.classes" x-text="pkg.status.label"></span>
+                                                            <span x-icon="'chevron-right'" class="h-4 w-4 shrink-0 text-gray-300"></span>
+                                                        </a>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </section>
+
+                                <section data-enter class="app-card mb-3" x-show="data?.tasks.length">
+                                    <div class="app-card-h"><h3>Open <em>taken</em></h3><a href="#/taken" class="app-btn ghost">Alle taken</a></div>
+                                    <div class="app-card-b">
+                                        <template x-for="task in data?.tasks ?? []" :key="task.id">
+                                            <div class="app-li items-start" :class="task.done && 'opacity-50'">
+                                                <button type="button" @click="finish(task)" :disabled="task.done" class="-m-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full" aria-label="Taak afronden">
+                                                    <span class="h-[22px] w-[22px] rounded-[7px] border-2" :class="task.done ? 'border-green-500 bg-green-500' : 'border-gray-300'"></span>
+                                                </button>
+                                                <span class="min-w-0 flex-1">
+                                                    <b :class="task.overdue && 'text-red-700'" x-text="task.title"></b>
+                                                    <small x-text="task.deadline ? (task.overdue ? 'Verlopen, ' : '') + osFormat.day(task.deadline) : 'Geen deadline'"></small>
+                                                </span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </section>
+
+                                <section data-enter class="app-card mb-3" x-show="data?.planning.length">
+                                    <div class="app-card-h"><h3>Gepland</h3><a href="#/planning" class="app-btn ghost">Planning</a></div>
+                                    <div class="app-card-b">
+                                        <template x-for="entry in data?.planning ?? []" :key="entry.id">
+                                            <div class="app-li">
+                                                <span class="min-w-0 flex-1">
+                                                    <span class="mb-1 block font-[family-name:var(--font-display)] font-semibold text-navy-900" x-text="osFormat.day(entry.date) + (entry.start ? ', ' + entry.start : '')"></span>
+                                                    <b x-text="entry.title"></b>
+                                                    <small x-text="[entry.who, entry.type].filter(Boolean).join(', ')"></small>
+                                                </span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </section>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+                <!-- ===== Werkpakket ===== -->
+                <template x-if="$store.os.route === 'werkpakket'">
+                    <div>
+                        <template x-for="id in [$store.os.param]" :key="id">
+                            <div x-data="workPackage(id)" class="pb-4">
+                                <nav class="mb-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs font-semibold text-gray-600">
+                                    <a :href="data ? '#/project/' + data.project.id : '#/projecten'" class="tap" x-text="data?.project.name ?? 'Project'"></a>
+                                    <span x-icon="'chevron-right'" class="h-3 w-3"></span>
+                                    <span x-text="data?.phase ?? ''"></span>
+                                </nav>
+                                <div data-enter class="app-ph">
+                                    <p class="sec-eye"><span x-icon="'clipboard-check'"></span> Werkpakket</p>
+                                    <h1 x-text="data?.name ?? ''"></h1>
+                                    <span x-show="!data" class="skeleton block h-7 w-2/3"></span>
+                                    <p class="sub flex flex-wrap items-center gap-2" x-show="data">
+                                        <span class="rounded-full px-2.5 py-0.5 text-xs font-semibold" :class="data?.status.classes" x-text="data?.status.label"></span>
+                                        <span :class="data?.overdue && 'text-red-700'" x-text="[data?.responsible ?? 'Niet toegewezen', data?.deadline && !data?.done ? (data.overdue ? 'verlopen, ' : 'deadline ') + osFormat.day(data.deadline).toLowerCase() : null].filter(Boolean).join(', ')"></span>
+                                    </p>
+                                </div>
+
+                                <template x-if="failed">
+                                    <div class="app-card mb-3 p-5 text-center">
+                                        <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                                        <button type="button" @click="load()" class="app-btn mt-3">Opnieuw proberen</button>
+                                    </div>
+                                </template>
+
+                                <!-- Checklist: de hele rij is de afvinkknop -->
+                                <section data-enter class="app-card mb-3">
+                                    <div class="app-card-h"><h3>Checklist</h3><span class="text-xs font-semibold text-gray-500" x-show="data?.items.length" x-text="doneCount + '/' + (data?.items.length ?? 0)"></span></div>
+                                    <div class="app-card-b">
+                                        <template x-if="!data"><div class="p-1"><span class="skeleton mb-3 block h-10 w-full"></span><span class="skeleton block h-10 w-full"></span></div></template>
+                                        <p x-show="data && !data.items.length" class="py-1 text-sm text-gray-500">Nog geen checklistitems.</p>
+                                        <template x-for="item in data?.items ?? []" :key="item.id">
+                                            <div class="app-li !gap-2 !py-1.5">
+                                                <button type="button" @click="toggle(item)" :disabled="data.done || ticking.includes(item.id)" class="flex min-h-12 min-w-0 flex-1 items-center gap-3 text-left disabled:opacity-60">
+                                                    <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border-2 transition" :class="item.done ? 'border-brand-500 bg-brand-500 text-white' : 'border-gray-300'">
+                                                        <span x-show="item.done" x-icon="'check'" class="h-4 w-4"></span>
+                                                    </span>
+                                                    <span class="min-w-0 flex-1">
+                                                        <b class="!font-medium" :class="item.done && 'text-gray-500 line-through'" x-text="item.label"></b>
+                                                        <small x-show="item.done_by" x-text="item.done_by"></small>
+                                                    </span>
+                                                </button>
+                                                <template x-if="item.requires_photos > 0">
+                                                    <span class="flex shrink-0 items-center gap-1.5">
+                                                        <span class="flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap" :class="needsPhotos(item) ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800'">
+                                                            <span x-icon="'camera'" class="h-3 w-3"></span> <span x-text="item.photos + '/' + item.requires_photos"></span>
+                                                        </span>
+                                                        <label x-show="needsPhotos(item) && !data.done" class="tap flex h-9 cursor-pointer items-center gap-1 rounded-lg bg-gray-100 px-2.5 text-xs font-semibold text-gray-700 active:bg-gray-200" :class="uploadsFor(item.id).length && 'opacity-60'">
+                                                            <span x-icon="'camera'" class="h-4 w-4"></span> Foto
+                                                            <input type="file" accept="image/*" capture="environment" multiple class="sr-only" :aria-label="'Bewijsfoto voor ' + item.label" @change="addPhotos($event, item.id)">
+                                                        </label>
+                                                    </span>
+                                                </template>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </section>
+
+                                <!-- Foto's -->
+                                <section data-enter class="app-card mb-3">
+                                    <div class="app-card-h"><h3>Foto's</h3><span class="text-xs font-semibold text-gray-500" x-text="data ? data.photos.length : ''"></span></div>
+                                    <div class="app-card-b">
+                                        <div x-show="uploads.length || data?.photos.length" class="mb-3 grid grid-cols-3 gap-2">
+                                            <template x-for="upload in uploads" :key="upload.key">
+                                                <div class="relative aspect-square overflow-hidden rounded-xl bg-gray-100">
+                                                    <img :src="upload.preview" alt="" class="h-full w-full object-cover opacity-60">
+                                                    <span x-show="upload.state === 'busy'" class="absolute inset-x-2 bottom-2 rounded-full bg-navy-950/80 px-2 py-0.5 text-center text-[10px] font-semibold text-white" x-text="upload.count > 1 ? upload.count + ' foto\'s versturen' : 'Versturen'"></span>
+                                                    <button type="button" x-show="upload.state === 'failed'" @click="send(upload)" class="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-navy-950/60 text-xs font-semibold text-white">
+                                                        Niet verstuurd <span class="rounded-full bg-white px-2 py-0.5 text-[11px] font-bold text-navy-950">Opnieuw</span>
+                                                    </button>
+                                                </div>
+                                            </template>
+                                            <template x-for="photo in data?.photos ?? []" :key="photo.id">
+                                                <button type="button" @click="viewer = photo" class="relative aspect-square overflow-hidden rounded-xl bg-gray-100" :aria-label="'Foto bekijken: ' + photo.caption">
+                                                    <img :src="photoUrl(photo)" alt="" loading="lazy" class="h-full w-full object-cover">
+                                                    <span x-show="photo.internal" class="absolute top-1.5 left-1.5 rounded-full bg-navy-950/80 px-2 py-0.5 text-[10px] font-semibold text-white">Intern</span>
+                                                </button>
+                                            </template>
+                                        </div>
+                                        <template x-if="data && !data.done">
+                                            <div class="space-y-2">
+                                                <input type="text" x-model="caption" maxlength="255" placeholder="Omschrijving (optioneel)" aria-label="Omschrijving bij de foto" class="w-full min-w-0 rounded-xl border-gray-200 bg-gray-50 text-sm">
+                                                <div class="flex gap-2">
+                                                    <label class="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-brand-500 px-4 py-3 text-sm font-bold text-white active:bg-brand-600">
+                                                        <span x-icon="'camera'" class="h-5 w-5"></span> Foto maken
+                                                        <input type="file" accept="image/*" capture="environment" multiple class="sr-only" aria-label="Foto maken" @change="addPhotos($event)">
+                                                    </label>
+                                                    <label class="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-navy-900 active:bg-gray-50">
+                                                        <span x-icon="'photo'" class="h-5 w-5"></span> Galerij
+                                                        <input type="file" accept="image/*" multiple class="sr-only" aria-label="Foto's uit de galerij kiezen" @change="addPhotos($event)">
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </template>
+                                        <p x-show="data?.done && !data.photos.length" class="text-sm text-gray-500">Geen foto's.</p>
+                                    </div>
+                                </section>
+
+                                <section data-enter class="app-card mb-3 p-4" x-show="data?.description">
+                                    <h3 class="mb-1.5 text-sm font-bold text-navy-900">Omschrijving</h3>
+                                    <p class="text-sm whitespace-pre-line text-gray-600" x-text="data?.description"></p>
+                                </section>
+
+                                <!-- Afronden: oranje pas als het kan -->
+                                <section data-enter class="app-card mb-3 p-4" x-show="data">
+                                    <template x-if="data?.done">
+                                        <div>
+                                            <p class="mb-3 flex items-center gap-2 text-sm font-semibold text-green-700"><span x-icon="'check'" class="h-4 w-4"></span> <span x-text="'Afgerond op ' + data.completed_at"></span></p>
+                                            <button type="button" @click="reopen()" :disabled="busy" class="app-btn w-full justify-center">Heropenen</button>
+                                        </div>
+                                    </template>
+                                    <template x-if="data && !data.done">
+                                        <div>
+                                            <button type="button" @click="complete()" :disabled="busy === 'complete'" class="w-full rounded-xl py-3.5 text-base font-bold transition" :class="canComplete ? 'bg-brand-500 text-white active:bg-brand-600' : 'bg-gray-200 text-gray-500'">
+                                                <span x-text="busy === 'complete' ? 'Bezig' : 'Taak afronden'"></span>
+                                            </button>
+                                            <p x-show="!data.checklist_complete" class="mt-2 text-xs text-gray-500" x-text="'Kan pas afgerond worden als de checklist compleet is (' + doneCount + '/' + data.items.length + ').'"></p>
+                                            <p x-show="data.checklist_complete && !data.evidence_complete" class="mt-2 text-xs text-amber-700">Het verplichte foto-bewijs is nog niet compleet.</p>
+                                        </div>
+                                    </template>
+                                </section>
+
+                                <button type="button" x-show="data?.can_manage" @click="$store.os.openWeb(data.path)" class="app-btn ghost w-full justify-center">Werkpakket beheren</button>
+
+                                <!-- Foto schermvullend -->
+                                <div x-show="viewer" x-cloak data-popup @renovion-back.window="if (viewer) { viewer = null; $event.preventDefault(); }" class="fixed inset-0 z-[70] flex flex-col bg-black pt-safe pb-safe">
+                                    <template x-if="viewer">
+                                        <div class="flex h-full flex-col">
+                                            <div class="flex items-center gap-3 px-4 py-3 text-white">
+                                                <span class="min-w-0 flex-1">
+                                                    <span class="block truncate text-sm font-semibold" x-text="viewer.caption"></span>
+                                                    <span class="block truncate text-xs text-white/70" x-text="viewer.meta"></span>
+                                                </span>
+                                                <button type="button" x-show="viewer.removable && !data.done" @click="removePhoto(viewer)" class="tap rounded-lg p-2 text-white/80" aria-label="Foto verwijderen"><span x-icon="'trash'" class="h-5 w-5"></span></button>
+                                                <button type="button" @click="viewer = null" class="tap rounded-lg p-2 text-white" aria-label="Sluiten"><span x-icon="'x-mark'" class="h-6 w-6"></span></button>
+                                            </div>
+                                            <div class="flex min-h-0 flex-1 items-center justify-center" @click.self="viewer = null">
+                                                <img :src="photoUrl(viewer)" :alt="viewer.caption" class="max-h-full max-w-full object-contain">
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+            </main>
+
+            <!-- Onderbalk (AppMenu op de server) -->
+            <nav class="app-bnav phone-tabbar hide-on-keyboard fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 bg-white pb-safe">
+                <template x-for="item in $store.os.menu.tabs" :key="item.label">
+                    <a :href="item.screen ? '#/' + item.screen : '#'" @click="if (!item.screen) { $event.preventDefault(); $store.os.open(item); }" :class="$store.os.isActive(item.screen) && 'on'">
+                        <span class="relative"><span x-icon="item.icon" class="h-[22px] w-[22px]"></span>
+                            <span class="cnt" x-show="item.count && $store.os.counts[item.count] > 0" x-text="$store.os.counts[item.count] > 99 ? '99+' : $store.os.counts[item.count]"></span></span>
+                        <span class="tab-label" x-text="item.label"></span>
+                    </a>
+                </template>
+                <button type="button" @click="$store.os.drawer = true">
+                    <span class="relative"><span x-icon="'list-bullet'" class="h-[22px] w-[22px]"></span>
+                        <span x-show="$store.os.crm && $store.os.counts.chat > 0" class="absolute -top-0.5 -right-1 h-2 w-2 rounded-full bg-brand-500 ring-2 ring-white"></span></span>
+                    <span class="tab-label">Menu</span>
+                </button>
+            </nav>
+
+            <!-- Zijmenu -->
+            <div x-show="$store.os.drawer" x-cloak class="app-drawer fixed inset-0 z-[60]" @keydown.escape.window="$store.os.drawer = false"
+                 x-effect="$store.os.drawer; setTimeout(() => window.dispatchEvent(new Event('renovion-top-changed')), 230)">
+                <div class="app-scrim absolute inset-0" x-show="$store.os.drawer" x-transition.opacity @click="$store.os.drawer = false"></div>
+                <aside class="absolute inset-y-0 left-0 flex w-[264px] flex-col bg-navy-950 pt-safe" x-show="$store.os.drawer"
+                       x-transition:enter="transition duration-200 ease-out" x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
+                       x-transition:leave="transition duration-150 ease-in" x-transition:leave-start="translate-x-0" x-transition:leave-end="-translate-x-full">
+                    <a href="#/vandaag" class="block px-4 pt-5 pb-3">
+                        <svg viewBox="70 88 470 156" role="img" aria-label="Renovion OS" class="h-[58px] w-auto">
+                            <path d="M117 205H80V136L140 99L200 136V152" fill="none" stroke="#F26A1B" stroke-width="7" />
+                            <text x="124" y="205" textLength="288" lengthAdjust="spacingAndGlyphs" font-family="Outfit, sans-serif" font-size="70" font-weight="500" fill="#FFFFFF">Renovion</text>
+                            <text x="428" y="205" textLength="96" lengthAdjust="spacingAndGlyphs" font-family="Outfit, sans-serif" font-size="70" font-weight="700" fill="#F26A1B">OS</text>
+                            <text x="128" y="236" font-family="'Plus Jakarta Sans', sans-serif" font-size="15" font-weight="500" textLength="396" lengthAdjust="spacing" fill="#A9B5C8">ÉÉN PLATFORM. HELE BOUWPROJECTEN.</text>
+                        </svg>
+                    </a>
+                    <nav class="sidebar-scroll flex-1 overflow-y-auto pb-3 pl-3 pr-0.5">
+                        <template x-for="group in $store.os.menu.groups" :key="group.name">
+                            <div x-data="{ open: true }" class="mb-2">
+                                <button type="button" @click="open = !open" class="app-ngroup"><span x-text="group.name"></span><span x-icon="'chevron-down'" class="h-3.5 w-3.5 transition" :class="!open && '-rotate-90'"></span></button>
+                                <div x-show="open" class="space-y-0.5">
+                                    <template x-for="item in group.items" :key="item.label">
+                                        <button type="button" class="app-nitem" :class="$store.os.isActive(item.screen) && 'active'" @click="$store.os.open(item)">
+                                            <span x-icon="item.icon" class="h-5 w-5"></span>
+                                            <span class="flex-1 truncate" x-text="item.label"></span>
+                                            <template x-if="item.count && $store.os.counts[item.count] > 0"><span class="cnt" :class="item.accent && 'accent'" x-text="$store.os.counts[item.count]"></span></template>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </nav>
+                    <div class="flex items-center gap-2.5 border-t border-navy-800 p-3 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))]">
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navy-700 text-xs font-bold text-navy-100" x-text="$store.os.profile.user.initials"></span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-white" x-text="$store.os.profile.user.name"></span>
+                            <span class="block truncate text-xs text-navy-300" x-text="$store.os.profile.user.role_label"></span>
+                        </span>
+                        <button type="button" @click="$store.os.openWeb('/instellingen/meldingen')" class="tap p-2 text-navy-300" aria-label="Instellingen"><span x-icon="'cog'" class="h-5 w-5"></span></button>
+                        <button type="button" @click="$store.os.logout()" class="tap p-2 text-navy-300" aria-label="Uitloggen"><span x-icon="'arrow-right-on-rectangle'" class="h-5 w-5"></span></button>
+                    </div>
+                </aside>
+            </div>
+
+            <!-- Hulp -->
+            <div data-popup x-show="$store.os.help" x-cloak @click.self="$store.os.help = false" class="fixed inset-0 z-[60] flex items-end bg-navy-950/60 backdrop-blur-sm">
+                <div x-swipe-dismiss="$store.os.help = false" class="max-h-[85dvh] w-full overflow-y-auto rounded-t-[20px] bg-white px-4 pt-3 pb-[calc(1rem_+_env(safe-area-inset-bottom))]">
+                    <div class="mx-auto mb-3 h-1.5 w-10 rounded-full bg-gray-300"></div>
+                    <h2 class="mb-2 text-lg font-bold text-navy-950">Hulp</h2>
+                    <template x-if="$store.os.crm">
+                        <button type="button" @click="$store.os.help = false; $store.os.nova = true" class="app-li w-full text-left">
+                            <span class="app-ic or"><span x-icon="'sparkles'" class="h-[18px] w-[18px]"></span></span>
+                            <span class="min-w-0 flex-1"><b>Vraag het Nova</b><small>Inspreken of typen, Nova zet het voor je klaar</small></span>
+                        </button>
+                    </template>
+                    <button type="button" @click="$store.os.help = false; $store.os.openWeb('/instellingen/meldingen')" class="app-li w-full text-left">
+                        <span class="app-ic blue"><span x-icon="'bell'" class="h-[18px] w-[18px]"></span></span>
+                        <span class="min-w-0 flex-1"><b>Meldingen instellen</b><small>Kies welke pushmeldingen je wilt krijgen</small></span>
+                    </button>
+                    <div x-data="{ open: false }" @click="open = !open" class="app-li cursor-pointer" x-show="$store.os.profile?.news?.length">
+                        <span class="app-ic ok"><span x-icon="'sparkles'" class="h-[18px] w-[18px]"></span></span>
+                        <span class="min-w-0 flex-1">
+                            <b>Wat is nieuw</b>
+                            <small x-show="!open">De laatste verbeteringen in de app</small>
+                            <ul x-show="open" class="mt-1 list-disc space-y-0.5 pl-4 text-[12.5px] text-gray-600">
+                                <template x-for="item in $store.os.profile?.news ?? []" :key="item"><li x-text="item"></li></template>
+                            </ul>
+                        </span>
+                        <span x-icon="'chevron-down'" class="mt-2.5 h-4 w-4 text-gray-300 transition" :class="open && 'rotate-180'"></span>
+                    </div>
+                    <a href="mailto:info@renovion.nl" class="app-li">
+                        <span class="app-ic vio"><span x-icon="'envelope'" class="h-[18px] w-[18px]"></span></span>
+                        <span class="min-w-0 flex-1"><b>Mail Renovion</b><small>info@renovion.nl</small></span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Nova (alleen kantoor) -->
+            <template x-if="$store.os.crm">
+                <div x-data="nova">
+                    <button type="button" @click="$store.os.nova = true" x-show="!$store.os.nova" class="app-nova hide-on-keyboard" aria-label="Nova openen">
+                        <img :src="$store.os.novaUrl" alt="" class="h-full w-full rounded-full object-cover">
+                        <span class="cnt" x-show="$store.os.counts.attention > 0" x-text="$store.os.counts.attention"></span>
+                        <span class="spark"><span x-icon="'sparkles'" class="h-3 w-3"></span></span>
+                    </button>
+                    <div data-popup x-show="$store.os.nova" x-cloak @click.self="$store.os.nova = false" class="fixed inset-0 z-[60] flex items-end bg-navy-950/60 backdrop-blur-sm">
+                        <div x-swipe-dismiss="$store.os.nova = false" class="flex h-[85dvh] w-full flex-col rounded-t-[20px] bg-white" @click.stop>
+                            <div class="mx-auto mt-2 h-1.5 w-10 rounded-full bg-gray-300"></div>
+                            <div class="flex items-center gap-3 border-b border-gray-100 p-4">
+                                <img :src="$store.os.novaUrl" alt="Nova" class="h-10 w-10 rounded-full object-cover ring-2 ring-brand-500">
+                                <div class="flex-1"><p class="font-bold text-navy-900">Nova</p><p class="text-xs text-gray-500">Stelt voor, jij bevestigt</p></div>
+                                <button type="button" @click="$store.os.nova = false" class="tap rounded-lg p-2 text-gray-500" aria-label="Sluiten"><span x-icon="'x-mark'" class="h-5 w-5"></span></button>
+                            </div>
+                            <div x-ref="novaMessages" class="flex-1 space-y-3 overflow-y-auto p-4">
+                                <template x-for="(message, index) in messages" :key="index">
+                                    <div class="flex gap-2" :class="message.role === 'user' && 'justify-end'">
+                                        <template x-if="message.role === 'nova'"><img :src="$store.os.novaUrl" alt="" class="mt-0.5 h-8 w-8 shrink-0 rounded-full object-cover"></template>
+                                        <div class="max-w-[85%]">
+                                            <div class="rounded-2xl px-4 py-2.5 text-sm whitespace-pre-line" :class="message.role === 'user' ? 'bg-navy-950 text-white' : 'bg-gray-100 text-navy-900'">
+                                                <span x-text="message.text"></span>
+                                                <template x-if="message.path"><button type="button" @click="$store.os.nova = false; $store.os.go(message.path)" class="tap mt-1 block text-xs font-semibold text-brand-700">Bekijken</button></template>
+                                            </div>
+                                            <template x-if="message.proposal">
+                                                <div class="mt-2 rounded-2xl border border-brand-200 bg-brand-50 p-3">
+                                                    <p class="text-sm font-medium text-navy-900" x-text="message.proposal.preview"></p>
+                                                    <div class="mt-3 flex gap-2" x-show="message.proposal.state === 'open' || message.proposal.state === 'busy'">
+                                                        <button type="button" @click="confirm(message)" :disabled="message.proposal.state === 'busy'" class="flex-1 rounded-xl bg-brand-500 py-2.5 text-sm font-bold text-white disabled:opacity-50" x-text="message.proposal.state === 'busy' ? 'Bezig' : 'Bevestigen'"></button>
+                                                        <button type="button" @click="cancel(message)" :disabled="message.proposal.state === 'busy'" class="rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600">Annuleren</button>
+                                                    </div>
+                                                    <p x-show="message.proposal.state === 'done'" class="mt-2 text-xs font-semibold text-green-700">Uitgevoerd</p>
+                                                    <p x-show="message.proposal.state === 'cancelled'" class="mt-2 text-xs font-semibold text-gray-500">Geannuleerd</p>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </template>
+                                <div x-show="busy" class="flex items-center gap-2">
+                                    <img :src="$store.os.novaUrl" alt="" class="h-8 w-8 shrink-0 rounded-full object-cover">
+                                    <span class="flex items-center gap-2 rounded-2xl bg-gray-100 px-4 py-2.5 text-xs text-gray-500"><span class="inline-block h-2 w-2 animate-pulse rounded-full bg-brand-500"></span> Nova denkt na</span>
+                                </div>
+                            </div>
+                            <form @submit.prevent="send()" class="flex items-center gap-2 border-t border-gray-100 p-3 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))]">
+                                <button type="button" @click="toggleMic()" x-show="speechSupported" :class="listening ? 'animate-pulse bg-red-500 text-white' : 'bg-gray-100 text-gray-500'" class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full" :aria-label="listening ? 'Stop met luisteren' : 'Inspreken'">
+                                    <span x-icon="'microphone'" class="h-5 w-5"></span>
+                                </button>
+                                <input x-ref="novaInput" x-model="input" type="text" :disabled="busy" placeholder="Typ of spreek je opdracht" aria-label="Opdracht voor Nova" class="min-w-0 flex-1">
+                                <button type="submit" :disabled="busy || !input.trim()" class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-500 text-white disabled:opacity-40" aria-label="Versturen">
+                                    <span x-icon="'paper-airplane'" class="h-4 w-4"></span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Bevestigen -->
+            <div data-popup x-show="$store.os.question" x-cloak @click.self="$store.os.answer(false)" class="fixed inset-0 z-[80] flex items-end bg-navy-950/60 backdrop-blur-sm">
+                <template x-if="$store.os.question">
+                    <div x-swipe-dismiss="$store.os.answer(false)" class="w-full rounded-t-[20px] bg-white px-5 pt-3 pb-[calc(1.25rem_+_env(safe-area-inset-bottom))]">
+                        <div class="mx-auto mb-4 h-1.5 w-10 rounded-full bg-gray-300"></div>
+                        <p class="mb-5 text-base font-semibold text-navy-950" x-text="$store.os.question.text"></p>
+                        <div class="flex gap-2">
+                            <button type="button" @click="$store.os.answer(true)" class="flex-1 rounded-xl bg-red-600 py-3 text-sm font-bold text-white active:bg-red-700" x-text="$store.os.question.confirmLabel"></button>
+                            <button type="button" @click="$store.os.answer(false)" class="flex-1 rounded-xl border border-gray-300 py-3 text-sm font-semibold text-gray-600">Annuleren</button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Naar een serverpagina, of een melding -->
+            <div x-show="$store.os.leaving" x-cloak class="fixed inset-x-0 top-[calc(59px_+_env(safe-area-inset-top))] bottom-0 z-[35] overflow-hidden bg-gray-100 px-4 pt-4">
+                <span class="skeleton mb-2 block h-3 w-24"></span>
+                <span class="skeleton mb-3 block h-7 w-2/3"></span>
+                <span class="skeleton mb-5 block h-3.5 w-4/5"></span>
+                <template x-for="i in 4" :key="i"><div class="mb-3 rounded-[14px] border border-gray-200 bg-white p-4"><span class="skeleton mb-2 block h-4 w-2/3"></span><span class="skeleton mb-2 block h-3 w-1/2"></span><span class="skeleton block h-3 w-1/3"></span></div></template>
+            </div>
+            <div x-show="$store.os.toastText" x-cloak x-transition.opacity class="fixed inset-x-4 bottom-[calc(84px_+_env(safe-area-inset-bottom))] z-[70] rounded-xl bg-navy-950 px-4 py-3 text-center text-sm font-medium text-white" x-text="$store.os.toastText"></div>
+        </div>
+    </template>
+</body>
+</html>

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\CompleteWorkPackage;
 use App\Enums\PhaseStatus;
-use App\Enums\TimelineEventType;
 use App\Models\AuditLog;
 use App\Models\Project;
 use App\Models\User;
@@ -11,6 +11,7 @@ use App\Models\WorkPackage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class WorkPackageController extends Controller
@@ -88,33 +89,11 @@ class WorkPackageController extends Controller
     {
         abort_unless($workPackage->project->isAccessibleBy($request->user()), 403);
 
-        $workPackage->load('items');
-
-        if (! $workPackage->checklistComplete()) {
-            return redirect()->route('work-packages.show', $workPackage)
-                ->with('error', 'Nog niet alle checklistitems zijn afgevinkt - rond eerst de checklist af.');
+        try {
+            app(CompleteWorkPackage::class)->handle($workPackage);
+        } catch (ValidationException $exception) {
+            return redirect()->route('work-packages.show', $workPackage)->with('error', $exception->getMessage());
         }
-
-        // Briefing §9: zonder verplicht foto-bewijs kan de taak niet definitief dicht.
-        if (! $workPackage->evidenceComplete()) {
-            return redirect()->route('work-packages.show', $workPackage)
-                ->with('error', 'Het verplichte foto-bewijs is nog niet compleet - upload eerst de ontbrekende foto\'s.');
-        }
-
-        $workPackage->update([
-            'status' => PhaseStatus::Gereed,
-            'completed_at' => now(),
-        ]);
-
-        AuditLog::record($workPackage, 'afgerond', [], ['name' => $workPackage->name]);
-        $workPackage->project->customer->recordEvent(
-            TimelineEventType::Projectupdate,
-            'Werkpakket afgerond: '.$workPackage->name,
-            null,
-            $workPackage,
-        );
-
-        $workPackage->project->syncProgress();
 
         return redirect()->route('work-packages.show', $workPackage)
             ->with('success', 'Werkpakket afgerond.');
@@ -123,17 +102,11 @@ class WorkPackageController extends Controller
     /**
      * Heropenen na (per ongeluk) afronden.
      */
-    public function reopen(Request $request, WorkPackage $workPackage): RedirectResponse
+    public function reopen(Request $request, WorkPackage $workPackage, CompleteWorkPackage $completeWorkPackage): RedirectResponse
     {
         abort_unless($workPackage->project->isAccessibleBy($request->user()), 403);
 
-        $workPackage->update([
-            'status' => PhaseStatus::Bezig,
-            'completed_at' => null,
-        ]);
-
-        AuditLog::record($workPackage, 'heropend', [], ['name' => $workPackage->name]);
-        $workPackage->project->syncProgress();
+        $completeWorkPackage->reopen($workPackage);
 
         return redirect()->route('work-packages.show', $workPackage)->with('success', 'Werkpakket heropend.');
     }

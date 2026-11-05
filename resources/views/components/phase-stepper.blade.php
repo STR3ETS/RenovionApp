@@ -20,7 +20,7 @@
     <div {{ $attributes->class('@container') }}>
 
         {{-- Smal: segmentbalk + huidige fase in woorden, alle fasen uitklapbaar (geen zijwaarts scrollen) --}}
-        <div class="@[40rem]:hidden" x-data="{ open: false }">
+        <div class="@[40rem]:hidden" x-data="{ open: false }" @nativeapp x-on:fasen-wisselen.window="open = !open" @endnativeapp>
             <div class="flex gap-1" aria-hidden="true">
                 @foreach ($phases as $phase)
                     @php $isActief = $current !== null && $phase->is($current); @endphp

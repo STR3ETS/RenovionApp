@@ -44,7 +44,7 @@
 
     @if ($lead->customer->phone)
         <a href="tel:{{ $lead->customer->phone }}"
-           class="mt-3 flex items-center justify-center gap-1.5 rounded-lg bg-brand-500 py-1.5 text-center text-xs font-bold text-white transition hover:bg-brand-600 active:bg-brand-600">
+           class="mt-3 flex items-center justify-center gap-1.5 rounded-lg bg-brand-500 py-1.5 text-center text-xs font-bold text-white transition hover:bg-brand-600 active:bg-brand-600 app:w-fit app:border app:border-gray-200 app:bg-white app:px-3.5 app:font-semibold app:text-navy-900 app:active:bg-gray-50">
             <x-icon name="phone" class="h-3.5 w-3.5" /> Contact opnemen
         </a>
     @else

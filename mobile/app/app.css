@@ -1,0 +1,76 @@
+/* Dezelfde stijl als de server: Tailwind-tokens uit app.css en de Renovion OS-laag uit native-app.css. */
+@import '../../resources/css/app.css';
+
+/* Lettertypen in de app zelf: alleen Latijnse tekens en alleen woff2, dat kent elke webview van de app. */
+@font-face {
+    font-family: 'Outfit';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 500;
+    src: url('../../node_modules/@fontsource/outfit/files/outfit-latin-500-normal.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Outfit';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 600;
+    src: url('../../node_modules/@fontsource/outfit/files/outfit-latin-600-normal.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Outfit';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 700;
+    src: url('../../node_modules/@fontsource/outfit/files/outfit-latin-700-normal.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Plus Jakarta Sans';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 400;
+    src: url('../../node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-400-normal.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Plus Jakarta Sans';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 500;
+    src: url('../../node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-500-normal.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Plus Jakarta Sans';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 600;
+    src: url('../../node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-600-normal.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Plus Jakarta Sans';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 700;
+    src: url('../../node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-700-normal.woff2') format('woff2');
+}
+
+/* Klassen die de API meegeeft (statuskleuren uit de enums) */
+@source '../../app/Enums';
+
+[x-cloak] {
+    display: none !important;
+}
+
+.os-icon {
+    display: inline-flex;
+    flex: none;
+}
+
+.os-icon > svg {
+    width: 100%;
+    height: 100%;
+}

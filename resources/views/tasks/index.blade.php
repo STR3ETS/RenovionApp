@@ -2,7 +2,7 @@
 
     <div x-data="{ nieuw: false }">
         <x-page-header :eyebrow="auth()->user()->can('manage-crm') ? 'Werk organiseren' : 'Mijn werk'" category="planning" title="Taken" subtitle="{{ \App\Support\Tally::of($tasks->total(), 'taak', 'taken') }} in deze weergave">
-            <button @click="nieuw = !nieuw" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600">+ Taak</button>
+            <button @click="nieuw = !nieuw" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600"><x-app-label web="+ Taak" app="Taak" /></button>
         </x-page-header>
 
         {{-- Quick add --}}
@@ -42,7 +42,7 @@
         </form>
 
         {{-- Filters --}}
-        <div class="mb-4 flex flex-wrap gap-1.5">
+        <div class="mb-4 flex flex-wrap gap-1.5 app:-mx-4 app:flex-nowrap app:gap-1 app:overflow-x-auto app:px-4 app:pb-1">
             <a href="{{ route('tasks.index') }}"
                class="tap rounded-full px-3 py-1.5 text-xs font-semibold {{ $status === null ? 'bg-navy-900 text-white' : 'bg-white text-gray-600 border border-gray-300' }}">Open</a>
             @foreach (\App\Enums\TaskStatus::cases() as $statusOption)
@@ -52,6 +52,68 @@
         </div>
 
         {{-- Takenlijst --}}
+        @nativeapp
+            {{-- iOS/Android-app (prototype Renovion OS): één kaart, per taak de velden onder elkaar --}}
+            @if ($tasks->isEmpty())
+                <x-empty-state title="Geen taken in deze weergave" subtitle="Voeg een taak toe met de knop hierboven." icon="clipboard-check" category="planning" />
+            @else
+                <div class="app-card">
+                    @foreach ($tasks as $task)
+                        <div class="app-rec">
+                            <div class="flex items-start gap-3">
+                                @if ($task->status->isOpen())
+                                    <button x-data @click="patchJson('{{ route('tasks.status', $task) }}', { status: 'afgerond' }).then(() => window.location.reload())"
+                                            class="group -m-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full" title="Afronden" aria-label="Taak afronden">
+                                        <span class="h-[22px] w-[22px] rounded-[7px] border-2 border-gray-300 group-active:border-green-500 group-active:bg-green-50"></span>
+                                    </button>
+                                @else
+                                    <span class="-m-2.5 flex h-11 w-11 shrink-0 items-center justify-center"><span class="flex h-[22px] w-[22px] items-center justify-center rounded-[7px] bg-green-100 text-green-700"><x-icon name="check" class="h-3.5 w-3.5" /></span></span>
+                                @endif
+                                <span class="min-w-0 flex-1">
+                                    <span class="app-lbl">Taak</span>
+                                    <h4 class="{{ $task->status->isOpen() ? '' : 'text-gray-500 line-through' }}">{{ $task->title }}</h4>
+                                </span>
+                                <span class="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full {{ $task->priority->dotClasses() }}" title="Prioriteit: {{ $task->priority->label() }}"></span>
+                            </div>
+                            <div class="app-fields">
+                                <div>
+                                    <span class="app-lbl">Project / klant</span>
+                                    @if ($task->project)
+                                        <a href="{{ route('projects.show', $task->project) }}" class="block font-medium text-navy-900">{{ $task->project->name }}</a>
+                                    @endif
+                                    @if ($task->customer)
+                                        <small>{{ $task->customer->name }}</small>
+                                    @elseif (! $task->project)
+                                        <b>Algemeen</b>
+                                    @endif
+                                </div>
+                                <div>
+                                    <span class="app-lbl">Eigenaar</span>
+                                    <b>{{ $task->owner?->name ?? 'Geen eigenaar' }}</b>
+                                </div>
+                                <div>
+                                    <span class="app-lbl">Deadline</span>
+                                    <b class="{{ $task->isOverdue() ? 'text-red-700' : '' }}">{{ $task->deadline ? ($task->isOverdue() ? 'Verlopen, ' : '').($task->deadline->isToday() ? 'vandaag' : $task->deadline->translatedFormat('j M')) : 'Geen' }}</b>
+                                </div>
+                                <div>
+                                    <span class="app-lbl">Status</span>
+                                    @if ($task->status->isOpen())
+                                        <select x-data aria-label="Status" @change="patchJson('{{ route('tasks.status', $task) }}', { status: $event.target.value }).then(() => window.location.reload())"
+                                                class="!min-h-9 w-full py-1 pr-7 pl-3 !text-sm">
+                                            @foreach (\App\Enums\TaskStatus::cases() as $statusOption)
+                                                <option value="{{ $statusOption->value }}" @selected($statusOption === $task->status)>{{ $statusOption->label() }}</option>
+                                            @endforeach
+                                        </select>
+                                    @else
+                                        <b>{{ $task->status->label() }}</b>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        @else
         <div class="space-y-2">
             @forelse ($tasks as $task)
                 <div class="flex items-center gap-3 rounded-xl border border-gray-200 border-l-4 bg-white p-3 {{ $task->isOverdue() ? 'border-l-red-500' : 'border-l-planning-500' }}">
@@ -92,6 +154,7 @@
                 <x-empty-state title="Geen taken in deze weergave" subtitle="Voeg een taak toe met de knop hierboven." icon="clipboard-check" category="planning" />
             @endforelse
         </div>
+        @endnativeapp
 
         <div class="mt-4">
             {{ $tasks->links() }}

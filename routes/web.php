@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AppWebSessionController;
 use App\Http\Controllers\AttentionController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\AutomationController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\LeadContactController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\LeadStatusController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationSettingsController;
 use App\Http\Controllers\NovaController;
 use App\Http\Controllers\PhotoController;
@@ -41,6 +43,7 @@ use App\Http\Controllers\WorkPackageController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/login', [LoginController::class, 'create'])->name('login');
+Route::get('/app/sessie', AppWebSessionController::class)->middleware('throttle:30,1')->name('app.web-session');
 Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:login')->name('login.store');
 Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
@@ -114,6 +117,7 @@ Route::middleware('auth')->group(function () {
         Route::post('apparaten', [DeviceTokenController::class, 'store'])->middleware('throttle:30,1')->name('devices.store');
 
         // Instellingen > Meldingen: welke pushmeldingen je wilt krijgen, plus een testmelding.
+        Route::get('meldingen', [NotificationController::class, 'index'])->name('notifications.index');
         Route::get('instellingen/meldingen', [NotificationSettingsController::class, 'edit'])->name('notification-settings.edit');
         Route::patch('instellingen/meldingen', [NotificationSettingsController::class, 'update'])->middleware('throttle:60,1')->name('notification-settings.update');
         Route::patch('instellingen/beweging', [NotificationSettingsController::class, 'updateMotion'])->middleware('throttle:60,1')->name('motion-settings.update');

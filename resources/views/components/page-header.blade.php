@@ -13,6 +13,31 @@
     };
 @endphp
 
+@nativeapp
+    {{-- Paginakop van de iOS/Android-app (prototype Renovion OS) --}}
+    @php
+        $section = \App\Support\AppSection::current();
+        [$kop, $accent] = \App\Support\AppSection::heading($title);
+        $subtitle = \App\Support\AppSection::subtitle() ?? $subtitle;
+    @endphp
+    <div data-enter {{ $attributes->class('app-ph') }}>
+        @if ($section || $eyebrow)
+            <p class="sec-eye">
+                @if ($section)
+                    <x-icon :name="$section['icon']" />
+                @endif
+                {{ $section['label'] ?? $eyebrow }}
+            </p>
+        @endif
+        <h1>{{ $kop }}@if ($accent !== '')<em>{{ $accent }}</em>@endif</h1>
+        @if ($subtitle)
+            <p class="sub">{{ $subtitle }}</p>
+        @endif
+        @if (trim($slot))
+            <div class="app-ph-acts">{{ $slot }}</div>
+        @endif
+    </div>
+@else
 <div data-enter {{ $attributes }} class="mb-5 flex flex-wrap items-center justify-between gap-3">
     <div class="flex min-w-0 items-center gap-3">
         @if ($image)
@@ -35,3 +60,4 @@
         </div>
     @endif
 </div>
+@endnativeapp

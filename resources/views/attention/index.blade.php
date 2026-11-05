@@ -1,5 +1,38 @@
 <x-layouts.app title="Aandacht">
 
+    @nativeapp
+        @php $rood = $items->where('severity', 'rood')->count(); @endphp
+        <div x-data="{ filter: 'alles' }">
+            <x-page-header title="Inbox" :subtitle="\App\Support\Tally::of($items->count(), 'punt vraagt', 'punten vragen').' jouw actie. Wat goed loopt zie je hier niet.'" />
+
+            @if ($items->isEmpty())
+                <x-empty-state title="Niets vraagt op dit moment aandacht"
+                               subtitle="Alle projecten, offertes en taken lopen op schema." icon="check" category="project" />
+            @else
+                <div class="app-chips">
+                    <button type="button" @click="filter = 'alles'" :class="filter === 'alles' && 'on'" class="app-chip">Te doen <span>{{ $items->count() }}</span></button>
+                    <button type="button" @click="filter = 'rood'" :class="filter === 'rood' && 'on'" class="app-chip">Actie nodig <span>{{ $rood }}</span></button>
+                    <button type="button" @click="filter = 'oranje'" :class="filter === 'oranje' && 'on'" class="app-chip">Signaal <span>{{ $items->count() - $rood }}</span></button>
+                </div>
+
+                <div class="app-card">
+                    <div class="app-card-b">
+                        @foreach ($items as $item)
+                            @php $urgent = $item['severity'] === 'rood'; @endphp
+                            <a href="{{ $item['url'] }}" class="app-li ibx" style="--st: {{ $urgent ? '#f26a1b' : '#3e6ba8' }}" x-show="filter === 'alles' || filter === @js($urgent ? 'rood' : 'oranje')">
+                                <span class="app-ic {{ $urgent ? 'bad' : 'warn' }}"><x-icon :name="$item['icon']" class="h-[18px] w-[18px]" /></span>
+                                <span class="min-w-0 flex-1">
+                                    <b>{{ $item['title'] }}</b>
+                                    <small class="line-clamp-2"><span class="src">{{ $item['label'] }}</span>@if ($item['subtitle']) {{ $item['subtitle'] }}@endif</small>
+                                </span>
+                                <x-icon name="chevron-right" class="mt-2.5 h-4 w-4 text-gray-300" />
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+        </div>
+    @else
     <x-page-header eyebrow="Nova signaleert" title="Aandacht" subtitle="Alleen uitzonderingen - wat goed loopt zie je hier niet" />
 
     @if ($items->isEmpty())
@@ -27,5 +60,6 @@
             @endforeach
         </div>
     @endif
+    @endnativeapp
 
 </x-layouts.app>

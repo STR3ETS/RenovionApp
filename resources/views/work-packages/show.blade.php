@@ -156,7 +156,7 @@
                     @csrf
                     <input type="hidden" name="work_package_id" value="{{ $workPackage->id }}">
                     <x-photo-button />
-                    <div class="flex gap-2">
+                    <div class="flex gap-2 app:flex-col">
                         <input type="text" name="caption" maxlength="255" placeholder="Omschrijving (optioneel)" aria-label="Omschrijving" class="min-w-0 flex-1 rounded-xl border-gray-200 bg-gray-50 text-sm focus:border-brand-500 focus:bg-white focus:ring-brand-500">
                         <button type="submit" :disabled="!files.length" class="rounded-xl bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-200 disabled:opacity-40">Uploaden</button>
                     </div>

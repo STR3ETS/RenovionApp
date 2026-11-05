@@ -2,13 +2,13 @@
 
     <x-page-header eyebrow="Uitvoering" category="project" title="Projecten" subtitle="{{ \App\Support\Tally::of($projects->total(), 'project', 'projecten') }}">
         @can('manage-crm')
-            <a href="{{ route('projects.create') }}" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600">+ Project</a>
+            <a href="{{ route('projects.create') }}" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600"><x-app-label web="+ Project" app="Nieuw projectdossier" /></a>
         @endcan
     </x-page-header>
 
     {{-- Uitvoerders met een paar projecten hebben geen filters nodig. --}}
     @if (auth()->user()->can('manage-crm') || $status !== null || $projects->total() > 4)
-    <div class="mb-4 flex flex-wrap gap-1.5">
+    <div class="mb-4 flex flex-wrap gap-1.5 app:-mx-4 app:flex-nowrap app:gap-1 app:overflow-x-auto app:px-4 app:pb-1">
         <a href="{{ route('projects.index') }}"
            class="tap rounded-full px-3 py-1.5 text-xs font-semibold {{ $status === null ? 'bg-navy-900 text-white' : 'bg-white text-gray-600 border border-gray-300' }}">Lopend</a>
         @foreach (\App\Enums\ProjectStatus::cases() as $statusOption)

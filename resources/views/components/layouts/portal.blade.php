@@ -1,7 +1,7 @@
 @props(['title' => null])
 
 <!DOCTYPE html>
-<html lang="nl" @if (auth()->user()?->motion ?? true) data-motion @endif>
+<html lang="nl" @nativeapp class="native-app" @endnativeapp @if (auth()->user()?->motion ?? true) data-motion @endif>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -10,8 +10,7 @@
     <title>{{ $title ? $title.' - ' : '' }}Klantportaal Renovion</title>
     @include('partials.favicon')
 
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=inter-tight:400,500,600,700,800" rel="stylesheet">
+    @include('partials.fonts')
 
     @include('partials.load-guard')
     @include('partials.motion-head')
@@ -24,7 +23,11 @@
     <header class="sticky top-0 z-30 bg-navy-950 pt-safe text-white">
         <div class="mx-auto flex h-16 w-full max-w-3xl items-center justify-between px-4">
             <a href="{{ route('portal.index') }}">
+                @nativeapp
+                    <x-os-logo class="h-12 w-auto" />
+                @else
                 <img src="{{ asset('images/renovion-logo.svg') }}" alt="Renovion" class="h-9 w-auto">
+                @endnativeapp
             </a>
             <div class="flex items-center gap-3">
                 <span class="hidden text-sm text-navy-200 sm:block">{{ auth()->user()->name }}</span>

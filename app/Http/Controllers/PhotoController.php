@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\TimelineEventType;
+use App\Actions\StorePhotos;
 use App\Models\AuditLog;
 use App\Models\Photo;
 use App\Models\Project;
@@ -19,7 +19,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  */
 class PhotoController extends Controller
 {
-    public function store(Request $request, Project $project): RedirectResponse
+    public function store(Request $request, Project $project, StorePhotos $storePhotos): RedirectResponse
     {
         abort_unless($project->isAccessibleBy($request->user()), 403);
 
@@ -37,36 +37,7 @@ class PhotoController extends Controller
             ? WorkPackage::find($validated['work_package_id'])
             : null;
 
-        // Checklistitem moet bij het werkpakket horen.
-        if (isset($validated['checklist_item_id'])
-            && $workPackage?->items()->whereKey($validated['checklist_item_id'])->doesntExist()) {
-            abort(422, 'Checklistitem hoort niet bij dit werkpakket.');
-        }
-
-        foreach ($validated['photos'] as $file) {
-            $project->photos()->create([
-                'project_phase_id' => $validated['project_phase_id'] ?? $workPackage?->project_phase_id,
-                'work_package_id' => $workPackage?->id,
-                'checklist_item_id' => $validated['checklist_item_id'] ?? null,
-                'uploaded_by' => $request->user()->id,
-                'path' => $file->store('project-photos'),
-                'caption' => $validated['caption'] ?? null,
-                'client_visible' => (bool) ($validated['client_visible'] ?? true),
-            ]);
-        }
-
-        $count = count($validated['photos']);
-
-        AuditLog::record($project, 'fotos_toegevoegd', [], [
-            'aantal' => $count,
-            'werkpakket' => $workPackage?->name,
-        ]);
-        $project->customer->recordEvent(
-            TimelineEventType::Document,
-            $count.' '.($count === 1 ? 'foto' : 'foto\'s').' toegevoegd'.($workPackage ? ' bij '.$workPackage->name : ''),
-            null,
-            $project,
-        );
+        $count = $storePhotos->handle($project, $validated['photos'], $request->user(), $workPackage, $validated);
 
         return back()->with('success', $count.' '.($count === 1 ? 'foto' : 'foto\'s').' geüpload.');
     }
