@@ -30,7 +30,7 @@ class SeederTest extends TestCase
 
         $imad = User::firstWhere('email', 'imad@renovion.nl');
         $this->assertSame(UserRole::Admin, $imad->role);
-        $this->assertTrue(Hash::check('Tulp-Vuur-Uil-94', $imad->password));
+        $this->assertTrue(Hash::check('renoviontest26', $imad->password));
 
         $peter = User::firstWhere('email', 'peter@renovion.nl');
         $this->assertSame(UserRole::Uitvoerder, $peter->role);

@@ -16,10 +16,10 @@ class TeamSeeder extends Seeder
     public function run(): void
     {
         $team = [
-            ['name' => 'Imad', 'email' => 'imad@renovion.nl', 'role' => UserRole::Admin, 'password' => 'Tulp-Vuur-Uil-94'],
-            ['name' => 'Raphael', 'email' => 'raphael@renovion.nl', 'role' => UserRole::Admin, 'password' => 'Veer-Beitel-Gips-64'],
-            ['name' => 'Peter', 'email' => 'peter@renovion.nl', 'role' => UserRole::Uitvoerder, 'password' => 'Wind-Trein-Maan-89'],
-            ['name' => 'Mehmet', 'email' => 'mehmet@renovion.nl', 'role' => UserRole::Uitvoerder, 'password' => 'Zomer-Roos-Mes-73'],
+            ['name' => 'Imad', 'email' => 'imad@renovion.nl', 'role' => UserRole::Admin, 'password' => 'renoviontest26'],
+            ['name' => 'Raphael', 'email' => 'raphael@renovion.nl', 'role' => UserRole::Admin, 'password' => 'renoviontest26'],
+            ['name' => 'Peter', 'email' => 'peter@renovion.nl', 'role' => UserRole::Uitvoerder, 'password' => 'renoviontest26'],
+            ['name' => 'Mehmet', 'email' => 'mehmet@renovion.nl', 'role' => UserRole::Uitvoerder, 'password' => 'renoviontest26'],
         ];
 
         foreach ($team as $member) {
