@@ -8,6 +8,7 @@ use App\Enums\ProjectStatus;
 use App\Enums\QuoteStatus;
 use App\Enums\ScheduleEntryType;
 use App\Enums\TaskPriority;
+use App\Enums\TaskStatus;
 use App\Enums\TimelineEventType;
 use App\Models\Customer;
 use App\Models\Project;
@@ -21,6 +22,8 @@ use Illuminate\Database\Seeder;
  * Demo-data op basis van de voorbeelden uit de technische briefing.
  * Alleen voor lokale ontwikkeling - draait bewust niet op productie.
  * Verwacht dat de teamaccounts al bestaan (TeamSeeder).
+ * Zonder factories of Faker (vaste waarden), zodat hij ook draait waar de
+ * dev-pakketten ontbreken (`composer install --no-dev`).
  */
 class DemoSeeder extends Seeder
 {
@@ -40,7 +43,7 @@ class DemoSeeder extends Seeder
         $maandag = today()->startOfWeek();
 
         // --- Familie Jansen: badkamerproject in uitvoering, loopt uit + lead zonder telefoonnummer ---
-        $jansen = Customer::factory()->create([
+        $jansen = Customer::create([
             'name' => 'Familie Jansen',
             'email' => 'jansen@example.nl',
             'phone' => null,
@@ -59,13 +62,15 @@ class DemoSeeder extends Seeder
             'phone_requested_at' => now()->subDay(),
         ]);
 
-        $jansenProject = Project::factory()->inUitvoering()->create([
+        $jansenProject = Project::create([
             'customer_id' => $jansen->id,
             'name' => 'Badkamer Jansen',
             'address' => $jansen->address,
             'city' => $jansen->city,
+            'status' => ProjectStatus::Uitvoering,
             'value' => 18500,
             'deposit_amount' => 5550,
+            'deposit_received_at' => now()->subDays(14),
             'paid_amount' => 5550,
             'project_leader_id' => $raphael->id,
             'start_date' => $maandag->copy()->subWeek(),
@@ -76,7 +81,7 @@ class DemoSeeder extends Seeder
         $jansenProject->craftsmen()->attach($peter);
 
         // --- Dhr. Ahmed: offerte 5 dagen open, 2x bekeken ---
-        $ahmed = Customer::factory()->create([
+        $ahmed = Customer::create([
             'name' => 'Dhr. Ahmed',
             'email' => 'ahmed@example.nl',
             'phone' => '06-23456789',
@@ -95,11 +100,12 @@ class DemoSeeder extends Seeder
             'last_contact_at' => now()->subDays(6),
         ]);
 
-        $ahmedQuote = Quote::factory()->create([
+        $ahmedQuote = Quote::create([
             'number' => Quote::nextNumber(),
             'customer_id' => $ahmed->id,
             'lead_id' => $ahmedLead->id,
             'status' => QuoteStatus::Bekeken,
+            'valid_until' => today()->addDays(25)->toDateString(),
             'sent_at' => now()->subDays(5),
             'viewed_at' => now()->subDays(2),
             'viewed_count' => 2,
@@ -111,7 +117,7 @@ class DemoSeeder extends Seeder
         $ahmedQuote->recalculateTotals();
 
         // --- Familie de Vries: terugbelafspraak om 11:00 + project gepland op vrijdag ---
-        $deVries = Customer::factory()->create([
+        $deVries = Customer::create([
             'name' => 'Familie de Vries',
             'email' => 'devries@example.nl',
             'phone' => '06-34567890',
@@ -130,7 +136,7 @@ class DemoSeeder extends Seeder
             'next_action_at' => today()->setTime(11, 0),
         ]);
 
-        $deVriesProject = Project::factory()->create([
+        $deVriesProject = Project::create([
             'customer_id' => $deVries->id,
             'name' => 'Stucwerk De Vries',
             'address' => $deVries->address,
@@ -146,7 +152,7 @@ class DemoSeeder extends Seeder
         $deVriesProject->craftsmen()->attach($peter);
 
         // --- Familie Bakker: aanbetaling nog niet ontvangen, start over 4 dagen ---
-        $bakker = Customer::factory()->create([
+        $bakker = Customer::create([
             'name' => 'Familie Bakker',
             'email' => 'bakker@example.nl',
             'phone' => '06-45678901',
@@ -155,7 +161,7 @@ class DemoSeeder extends Seeder
             'city' => 'Arnhem',
         ]);
 
-        $bakkerProject = Project::factory()->create([
+        $bakkerProject = Project::create([
             'customer_id' => $bakker->id,
             'name' => 'Complete renovatie Bakker',
             'address' => $bakker->address,
@@ -171,7 +177,7 @@ class DemoSeeder extends Seeder
         $bakkerProject->craftsmen()->attach($mehmet);
 
         // --- Familie Smit: uitvoering, materiaal vertraagd ---
-        $smit = Customer::factory()->create([
+        $smit = Customer::create([
             'name' => 'Familie Smit',
             'email' => 'smit@example.nl',
             'phone' => '06-56789012',
@@ -180,15 +186,19 @@ class DemoSeeder extends Seeder
             'city' => 'Arnhem',
         ]);
 
-        $smitProject = Project::factory()->inUitvoering()->create([
+        $smitProject = Project::create([
             'customer_id' => $smit->id,
             'name' => 'Stucwerk Smit',
             'address' => $smit->address,
             'city' => $smit->city,
+            'status' => ProjectStatus::Uitvoering,
             'value' => 9400,
             'deposit_amount' => 2820,
+            'deposit_received_at' => now()->subDays(15),
             'paid_amount' => 2820,
             'project_leader_id' => $raphael->id,
+            'start_date' => $maandag->copy()->subDays(5),
+            'end_date_expected' => $maandag->copy()->addDays(18),
             'progress' => 40,
             'notes' => 'Materiaal vertraagd: levering stucmateriaal verwacht +2 dagen.',
         ]);
@@ -196,15 +206,11 @@ class DemoSeeder extends Seeder
 
         // --- Nieuwe websiteaanvragen (3) ---
         foreach ([
-            ['name' => 'Familie Visser', 'city' => 'Nijmegen', 'service' => 'Badkamerrenovatie', 'phone' => '06-67890123'],
-            ['name' => 'Familie van den Berg', 'city' => 'Ede', 'service' => 'Schilderwerk', 'phone' => null],
-            ['name' => 'Mevr. El Amrani', 'city' => 'Arnhem', 'service' => 'Toiletrenovatie', 'phone' => '06-78901234'],
+            ['name' => 'Familie Visser', 'email' => 'visser@example.nl', 'address' => 'Groesbeekseweg 140', 'postal_code' => '6524 DL', 'city' => 'Nijmegen', 'service' => 'Badkamerrenovatie', 'phone' => '06-67890123'],
+            ['name' => 'Familie van den Berg', 'email' => 'vandenberg@example.nl', 'address' => 'Molenstraat 7', 'postal_code' => '6711 AW', 'city' => 'Ede', 'service' => 'Schilderwerk', 'phone' => null],
+            ['name' => 'Mevr. El Amrani', 'email' => 'elamrani@example.nl', 'address' => 'Klarendalseweg 55', 'postal_code' => '6822 GC', 'city' => 'Arnhem', 'service' => 'Toiletrenovatie', 'phone' => '06-78901234'],
         ] as $nieuw) {
-            $customer = Customer::factory()->create([
-                'name' => $nieuw['name'],
-                'city' => $nieuw['city'],
-                'phone' => $nieuw['phone'],
-            ]);
+            $customer = Customer::create(collect($nieuw)->except('service')->all());
             $lead = $customer->leads()->create([
                 'service' => $nieuw['service'],
                 'description' => 'Websiteaanvraag via renovion.nl.',
@@ -222,31 +228,38 @@ class DemoSeeder extends Seeder
         }
 
         // --- Taken (Nu doen) ---
-        Task::factory()->vandaag()->hoog()->create([
+        $taak = fn (array $attributes) => Task::create([
+            'deadline' => today()->toDateString(),
+            'priority' => TaskPriority::Normaal,
+            'status' => TaskStatus::TeDoen,
+            'source' => ActionSource::Handmatig,
+            ...$attributes,
+        ]);
+        $taak([
             'title' => 'Aanbetaling Bakker controleren',
             'customer_id' => $bakker->id,
             'project_id' => $bakkerProject->id,
             'owner_id' => $imad->id,
+            'priority' => TaskPriority::Hoog,
         ]);
-        Task::factory()->vandaag()->hoog()->create([
+        $taak([
             'title' => 'Offerte Ahmed opvolgen (5 dagen open)',
             'customer_id' => $ahmed->id,
             'lead_id' => $ahmedLead->id,
             'owner_id' => $imad->id,
+            'priority' => TaskPriority::Hoog,
         ]);
-        Task::factory()->vandaag()->create([
+        $taak([
             'title' => 'Materiaalleverancier Smit nabellen',
             'customer_id' => $smit->id,
             'project_id' => $smitProject->id,
             'owner_id' => $raphael->id,
-            'priority' => TaskPriority::Normaal,
         ]);
-        Task::factory()->create([
+        $taak([
             'title' => 'Telefoonnummer familie Jansen opvragen',
             'customer_id' => $jansen->id,
             'lead_id' => $jansenLead->id,
             'owner_id' => $raphael->id,
-            'deadline' => today()->toDateString(),
             'source' => ActionSource::Automation,
         ]);
 
