@@ -55,6 +55,7 @@ class AppMenu
                 $crm ? self::item('Calculatie & offertes', 'document-text', config('renovion.modules.quotes') ? 'quotes.index' : 'calculations.index', 'offertes') : null,
                 self::item('Projecten', 'folder', 'projects.index', 'projecten'),
                 self::item('Planning & uitvoering', 'calendar', 'planning.index', 'uitvoering'),
+                self::item('Gespreksverslagen', 'microphone', 'meetings.index', 'uitvoering'),
             ])),
             'Bedrijf' => $crm ? array_values(array_filter([
                 $user->can('manage-team') ? self::item('Mensen & partners', 'users', 'team.index', 'mensen') : null,
@@ -72,6 +73,7 @@ class AppMenu
             return [
                 ['label' => 'Foto bij project', 'icon' => 'camera', 'route' => 'projects.index'],
                 ['label' => 'Taak', 'icon' => 'clipboard-check', 'route' => 'tasks.index'],
+                ['label' => 'Gesprek opnemen', 'icon' => 'microphone', 'route' => 'meetings.create'],
                 ['label' => 'Bericht aan team', 'icon' => 'chat-bubble', 'route' => 'chat.index'],
             ];
         }
@@ -81,6 +83,7 @@ class AppMenu
             ['label' => 'Nieuw project', 'icon' => 'folder', 'route' => 'projects.create'],
             ['label' => 'Taak', 'icon' => 'clipboard-check', 'route' => 'tasks.index'],
             ['label' => 'Werk inplannen', 'icon' => 'calendar', 'route' => 'planning.index'],
+            ['label' => 'Gesprek opnemen', 'icon' => 'microphone', 'route' => 'meetings.create'],
             ['label' => 'Calculatie', 'icon' => 'calculator', 'route' => 'calculations.create'],
             config('renovion.modules.quotes') ? ['label' => 'Offerte', 'icon' => 'document-text', 'route' => 'quotes.create'] : null,
         ]));

@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "644638060272",
-    "project_id": "renovion-test-ccce9",
-    "storage_bucket": "renovion-test-ccce9.firebasestorage.app"
+    "project_number": "716136318754",
+    "project_id": "renovion-app",
+    "storage_bucket": "renovion-app.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:644638060272:android:c08628aac4066491eadc35",
+        "mobilesdk_app_id": "1:716136318754:android:6be54f3f95d7ad6de2477b",
         "android_client_info": {
           "package_name": "nl.renovion.dash"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCGZzU6W7mA5jfKG8t7UNm7y2W5oOyZjQ4"
+          "current_key": "AIzaSyCbZW8_6RKZsWgr1nt-7KOzb13dE--_dY8"
         }
       ],
       "services": {

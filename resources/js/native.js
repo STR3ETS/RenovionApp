@@ -213,7 +213,8 @@ if (isNativeApp) {
     // (data-turbo-preload in partials/app/shell): die verschijnen direct en worden daarna ververst.
     // Formulieren blijven gewone paginaverzoeken. Chat (polling) en de offerte-builder (eigen opstart)
     // laden altijd volledig, net als schermen zonder de app-schil (inloggen, portaal, foutpagina's).
-    const FULL_LOAD = /^\/(chat|offertes\/\d+\/builder)(\/|$)/;
+    // Gesprek opnemen ook: weggaan moet langs de waarschuwing (beforeunload), anders stopt de opname stil.
+    const FULL_LOAD = /^\/(chat|offertes\/\d+\/builder|verslagen\/opnemen)(\/|$)/;
     const usesTurbo = (url) => !FULL_LOAD.test(new URL(url, window.location.href).pathname);
 
     if (!document.documentElement.hasAttribute('data-bundle')) import('@hotwired/turbo').then((Turbo) => {

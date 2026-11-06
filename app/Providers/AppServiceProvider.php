@@ -10,6 +10,7 @@ use App\Models\Customer;
 use App\Models\DeliveryReport;
 use App\Models\Document;
 use App\Models\Lead;
+use App\Models\Meeting;
 use App\Models\Photo;
 use App\Models\Project;
 use App\Models\ProjectPhase;
@@ -18,6 +19,10 @@ use App\Models\ScheduleEntry;
 use App\Models\Task;
 use App\Models\User;
 use App\Models\WorkPackage;
+use App\Services\Transcription\AssemblyAiTranscriber;
+use App\Services\Transcription\DemoTranscriber;
+use App\Services\Transcription\Transcriber;
+use App\Services\Transcription\WhisperTranscriber;
 use App\Support\NativeApp;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
@@ -39,7 +44,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Gespreksverslagen: Whisper (standaard), AssemblyAI (EU, met sprekers), of het vaste voorbeeldgesprek
+        // om lokaal te testen. Dat laatste nooit live.
+        $this->app->bind(Transcriber::class, fn () => match (config('renovion.transcription.driver')) {
+            'assemblyai' => new AssemblyAiTranscriber,
+            'demo' => $this->app->isProduction() ? new WhisperTranscriber : new DemoTranscriber,
+            default => new WhisperTranscriber,
+        });
     }
 
     /**
@@ -79,6 +90,7 @@ class AppServiceProvider extends ServiceProvider
             'task' => Task::class,
             'user' => User::class,
             'work_package' => WorkPackage::class,
+            'meeting' => Meeting::class,
         ]);
 
         RateLimiter::for('login', function (Request $request) {

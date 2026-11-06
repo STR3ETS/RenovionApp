@@ -160,6 +160,9 @@ return [
         'photos' => [
             'required' => 'Kies minimaal één foto.',
         ],
+        'consent' => [
+            'accepted' => 'Bevestig dat iedereen weet dat het gesprek wordt opgenomen.',
+        ],
     ],
 
     // Veldnamen zoals de gebruiker ze op het scherm ziet.
@@ -169,6 +172,14 @@ return [
         'body' => 'bericht',
         'caption' => 'omschrijving',
         'category' => 'categorie',
+        'channel_id' => 'kanaal',
+        'chunk' => 'geluid',
+        'consent' => 'toestemming',
+        'kind' => 'soort gesprek',
+        'actions' => 'acties',
+        'actions.*.title' => 'actie',
+        'actions.*.owner_id' => 'eigenaar',
+        'actions.*.deadline' => 'datum',
         'city' => 'plaats',
         'customer_id' => 'klant',
         'date' => 'datum',

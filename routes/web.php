@@ -19,6 +19,7 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\LeadContactController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\LeadStatusController;
+use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationSettingsController;
 use App\Http\Controllers\NovaController;
@@ -122,6 +123,20 @@ Route::middleware('auth')->group(function () {
         Route::patch('instellingen/meldingen', [NotificationSettingsController::class, 'update'])->middleware('throttle:60,1')->name('notification-settings.update');
         Route::patch('instellingen/beweging', [NotificationSettingsController::class, 'updateMotion'])->middleware('throttle:60,1')->name('motion-settings.update');
         Route::post('instellingen/meldingen/test', [NotificationSettingsController::class, 'test'])->middleware('throttle:5,1')->name('notification-settings.test');
+
+        // Gespreksverslagen (Nova notuleert): opnemen kan het hele team, toegang volgt project of eigen opname.
+        Route::get('verslagen', [MeetingController::class, 'index'])->name('meetings.index');
+        Route::get('verslagen/opnemen', [MeetingController::class, 'create'])->name('meetings.create');
+        Route::post('verslagen', [MeetingController::class, 'store'])->middleware('throttle:10,1')->name('meetings.store');
+        Route::post('verslagen/{meeting}/geluid', [MeetingController::class, 'chunk'])->middleware('throttle:120,1')->name('meetings.chunk');
+        Route::post('verslagen/{meeting}/stoppen', [MeetingController::class, 'stop'])->name('meetings.stop');
+        Route::get('verslagen/{meeting}', [MeetingController::class, 'show'])->name('meetings.show');
+        Route::get('verslagen/{meeting}/status', [MeetingController::class, 'status'])->middleware('throttle:30,1')->name('meetings.status');
+        Route::get('verslagen/{meeting}/geluid', [MeetingController::class, 'audio'])->name('meetings.audio');
+        Route::post('verslagen/{meeting}/taken', [MeetingController::class, 'tasks'])->name('meetings.tasks');
+        Route::post('verslagen/{meeting}/delen', [MeetingController::class, 'share'])->name('meetings.share');
+        Route::post('verslagen/{meeting}/opnieuw', [MeetingController::class, 'retry'])->name('meetings.retry');
+        Route::delete('verslagen/{meeting}', [MeetingController::class, 'destroy'])->name('meetings.destroy');
 
         Route::post('documenten', [DocumentController::class, 'store'])->name('documents.store');
         Route::get('documenten/{document}', [DocumentController::class, 'show'])->name('documents.show');

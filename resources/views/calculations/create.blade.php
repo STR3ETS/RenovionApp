@@ -33,15 +33,23 @@
 
             {{-- Invoermethode (mockup §18) --}}
             <section class="rounded-2xl border border-gray-200 bg-white p-5">
+                {{-- Op de telefoon is elke knop ~75px breed: korte naam met de uitleg klein eronder, anders loopt
+                     "AI (spraak/tekst)" buiten de knop. --}}
                 <div class="mb-4 grid grid-cols-3 gap-2 text-sm font-semibold">
                     <button type="button" @click="mode = 'handmatig'"
                             :class="mode === 'handmatig' ? 'bg-brand-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
-                            class="rounded-xl px-3 py-2.5 transition">Handmatig</button>
+                            class="flex min-w-0 flex-col items-center justify-center rounded-xl px-2 py-2 leading-tight transition">
+                        Handmatig <span class="mt-0.5 text-[11px] font-medium opacity-80">uit de prijslijst</span>
+                    </button>
                     <button type="button" @click="mode = 'ai'"
                             :class="mode === 'ai' ? 'bg-brand-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
-                            class="rounded-xl px-3 py-2.5 transition">AI (spraak/tekst)</button>
+                            class="flex min-w-0 flex-col items-center justify-center rounded-xl px-2 py-2 leading-tight transition">
+                        AI <span class="mt-0.5 text-[11px] font-medium opacity-80">spraak of tekst</span>
+                    </button>
                     <button type="button" disabled title="PDF-import volgt in een volgende versie"
-                            class="cursor-not-allowed rounded-xl bg-gray-50 px-3 py-2.5 text-gray-300">PDF import</button>
+                            class="flex min-w-0 cursor-not-allowed flex-col items-center justify-center rounded-xl bg-gray-50 px-2 py-2 leading-tight text-gray-400">
+                        PDF import <span class="mt-0.5 text-[11px] font-medium">binnenkort</span>
+                    </button>
                 </div>
 
                 <div class="relative">

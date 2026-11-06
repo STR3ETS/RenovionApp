@@ -20,7 +20,7 @@ class AppSection
         'verkoop' => ['label' => 'Verkoop', 'icon' => 'funnel', 'routes' => ['leads.*', 'customers.*']],
         'offertes' => ['label' => 'Calculatie & offertes', 'icon' => 'document-text', 'routes' => ['quotes.*', 'calculations.*', 'price-items.*']],
         'projecten' => ['label' => 'Projecten', 'icon' => 'folder', 'routes' => ['projects.*', 'work-packages.*', 'delivery-reports.*']],
-        'uitvoering' => ['label' => 'Planning & uitvoering', 'icon' => 'calendar', 'routes' => ['planning.*', 'tasks.*']],
+        'uitvoering' => ['label' => 'Planning & uitvoering', 'icon' => 'calendar', 'routes' => ['planning.*', 'tasks.*', 'meetings.*']],
         'mensen' => ['label' => 'Mensen & partners', 'icon' => 'users', 'routes' => ['team.*']],
         'organisatie' => ['label' => 'Organisatie', 'icon' => 'cog', 'routes' => ['automations.*', 'notification-settings.*']],
     ];
@@ -34,6 +34,7 @@ class AppSection
         'leads.index' => ['Aanvragen & ', 'sales'],
         'customers.index' => ['Klanten & ', 'CRM'],
         'tasks.index' => ['Taken & ', 'werkstroom'],
+        'meetings.index' => ['Gespreks', 'verslagen'],
     ];
 
     /** @return array{key: string, label: string, icon: string}|null */
@@ -68,6 +69,7 @@ class AppSection
             'uitvoering' => [
                 ['Planning', 'planning.index'],
                 ['Taken', 'tasks.index'],
+                ['Verslagen', 'meetings.index'],
             ],
             'organisatie' => [
                 config('renovion.modules.automations') && Gate::allows('manage-crm') ? ['Automations', 'automations.index'] : null,
@@ -96,6 +98,7 @@ class AppSection
             'calculations.index' => 'Elke calculatie wordt met één actie een offerte.',
             'planning.index' => Gate::allows('manage-crm') ? 'Dagoverzicht per persoon. Tik op een blok voor de details.' : 'Jouw planning vanaf vandaag, met adressen.',
             'tasks.index' => 'Van actie tot oplevering. Tik het rondje om een taak af te ronden.',
+            'meetings.index' => 'Nova luistert mee bij overleg en klantgesprek, en maakt het verslag.',
             default => null,
         };
     }

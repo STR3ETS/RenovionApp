@@ -5,7 +5,8 @@
     <input type="file" name="photos[]" multiple required accept="image/*" capture="environment" class="sr-only"
            aria-label="Foto maken of kiezen" @change="files = Array.from($event.target.files).map((file) => file.name)">
 </label>
-<p x-show="files.length" x-cloak class="flex items-center gap-1.5 text-xs font-medium text-green-700">
-    <x-icon name="check" class="h-3.5 w-3.5" />
-    <span x-text="files.length === 1 ? '1 foto gekozen: ' + files[0] : files.length + ' foto\'s gekozen'"></span>
+{{-- Lange bestandsnamen van de camera (IMG_20261105_...) hebben geen breekpunt: afkappen, niet uitrekken --}}
+<p x-show="files.length" x-cloak class="flex min-w-0 items-center gap-1.5 text-xs font-medium text-green-700">
+    <x-icon name="check" class="h-3.5 w-3.5 shrink-0" />
+    <span class="min-w-0 truncate" :title="files.join(', ')" x-text="files.length === 1 ? '1 foto gekozen: ' + files[0] : files.length + ' foto\'s gekozen'"></span>
 </p>

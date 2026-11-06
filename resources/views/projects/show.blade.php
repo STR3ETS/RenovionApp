@@ -3,7 +3,7 @@
     @nativeapp
         {{-- Dossierkop van de iOS/Android-app (prototype Renovion OS) --}}
         @php $hasCover = $project->cover_photo_path || $project->photos->where('client_visible', true)->isNotEmpty(); @endphp
-        <section data-zoom-target data-enter class="app-band mb-3">
+        <section id="project-kop" data-live-region data-zoom-target data-enter class="app-band mb-3">
             <img src="{{ $hasCover ? route('projects.cover', $project) : asset('images/os-hero.jpg') }}" alt="" class="bimg">
             <nav class="app-crumbs">
                 <a href="{{ route('projects.index') }}">Projectdossiers</a>
@@ -55,7 +55,7 @@
     @endnativeapp
 
     {{-- Fasering (briefing §7): voortgang + fase-stepper. In de app klapt een tik op de kaart de fasen uit. --}}
-    <section class="mb-4 rounded-2xl border border-gray-200 bg-white p-5 app:cursor-pointer app:select-none" @nativeapp x-data x-on:click="if (! $event.target.closest('a, button, select, input, textarea, label, form')) $dispatch('fasen-wisselen')" @endnativeapp>
+    <section id="project-voortgang" data-live-region class="mb-4 rounded-2xl border border-gray-200 bg-white p-5 app:cursor-pointer app:select-none" @nativeapp x-data x-on:click="if (! $event.target.closest('a, button, select, input, textarea, label, form')) $dispatch('fasen-wisselen')" @endnativeapp>
         <div class="mb-2 flex items-center justify-between">
             <h2 class="text-sm font-bold text-navy-900">Projectvoortgang</h2>
             <span class="text-xs font-semibold text-gray-500">{{ $project->progress }}%</span>
@@ -67,10 +67,12 @@
     </section>
 
     {{-- ?tab=uitvoering|fotos opent direct die tab (snelkoppelingen op het uitvoerder-dashboard) --}}
-    <div x-data="{ tab: @js(in_array(request('tab'), ['uitvoering', 'fotos'], true) ? request('tab') : 'overzicht'), fotoFilter: 'alle' }" @nativeapp x-on:app-tab.window="tab = $event.detail; $nextTick(() => $el.scrollIntoView({ behavior: 'smooth', block: 'start' }))" @endnativeapp>
+    {{-- De tab staat ook in het adres, zodat opslaan (redirect back) op dezelfde tab terugkomt --}}
+    <div x-data="{ tab: @js(in_array(request('tab'), ['uitvoering', 'fotos'], true) ? request('tab') : 'overzicht'), fotoFilter: 'alle' }"
+         x-init="$watch('tab', (value) => { const url = new URL(location.href); value === 'overzicht' ? url.searchParams.delete('tab') : url.searchParams.set('tab', value); history.replaceState(history.state, '', url); })" @nativeapp x-on:app-tab.window="tab = $event.detail; $nextTick(() => $el.scrollIntoView({ behavior: 'smooth', block: 'start' }))" @endnativeapp>
 
     {{-- Tabs (mockup §18) --}}
-    <div data-pill class="mb-5 flex gap-1 rounded-xl border border-gray-200 bg-white p-1 text-sm font-semibold app:gap-2 app:rounded-none app:border-0 app:bg-transparent app:p-0">
+    <div id="project-tabs" data-live-region data-pill class="mb-5 flex gap-1 rounded-xl border border-gray-200 bg-white p-1 text-sm font-semibold app:gap-2 app:rounded-none app:border-0 app:bg-transparent app:p-0">
         <button type="button" @click="tab = 'overzicht'" :class="tab === 'overzicht' ? 'bg-navy-950 text-white' : 'text-gray-600 hover:bg-gray-50'" class="min-w-0 flex-1 rounded-lg px-2 py-2.5 transition app:flex-none app:rounded-full app:px-4 app:py-2">Overzicht</button>
         <button type="button" @click="tab = 'uitvoering'" :class="tab === 'uitvoering' ? 'bg-navy-950 text-white' : 'text-gray-600 hover:bg-gray-50'" class="flex min-w-0 flex-1 items-center justify-center gap-1 rounded-lg px-2 py-2.5 whitespace-nowrap transition app:flex-none app:rounded-full app:px-4 app:py-2">
             Uitvoering
@@ -170,14 +172,16 @@
     </div>
 
     {{-- ===== Tab: Uitvoering - fasen, gates en werkpakketten (briefing §7) ===== --}}
-    <div x-show="tab === 'uitvoering'" x-cloak class="space-y-3">
+    {{-- Status wijzigen en vrijgeven slaan op zonder herladen (data-live in app.js): alleen de blokken met
+         data-live-region worden vervangen, ingeklapte fasen blijven ingeklapt. --}}
+    <div id="project-uitvoering" data-live-region x-show="tab === 'uitvoering'" x-cloak class="space-y-3">
         @foreach ($project->phases as $phase)
             @php
                 $isActief = $project->currentPhase()?->is($phase);
                 // Afgeronde fasen zijn op mobiel ingeklapt (één regel), zodat je snel bij de huidige fase bent.
                 $isInklapbaar = $phase->status === \App\Enums\PhaseStatus::Gereed && $phase->workPackages->isNotEmpty();
             @endphp
-            <section class="rounded-2xl border bg-white {{ $isActief ? 'border-brand-300 ring-1 ring-brand-100' : 'border-gray-200' }}"
+            <section id="fase-{{ $phase->id }}" class="rounded-2xl border bg-white {{ $isActief ? 'border-brand-300 ring-1 ring-brand-100' : 'border-gray-200' }}"
                      x-data="{ open: {{ $isInklapbaar ? "window.matchMedia('(min-width: 1024px)').matches" : 'true' }} }">
                 <header class="flex flex-wrap items-center gap-3 px-5 py-4 {{ $isInklapbaar ? 'app:cursor-pointer app:select-none' : '' }}" @if ($isInklapbaar) @nativeapp x-on:click="if (! $event.target.closest('a, button, select, input, textarea, label, form')) open = !open" @endnativeapp @endif>
                     <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold {{ $phase->status === \App\Enums\PhaseStatus::Gereed ? 'bg-green-500 text-white' : ($isActief ? 'bg-brand-500 text-white' : 'bg-gray-200 text-gray-500') }}">
@@ -206,9 +210,9 @@
                         {{-- Op mobiel een eigen regel onder de fasenaam (uitgelijnd met de naam), anders drukt
                              de keuzelijst de naam weg; vanaf sm naast de naam. --}}
                         <div class="flex w-full items-center gap-2 pl-10 sm:w-auto sm:pl-0">
-                        <form method="POST" action="{{ route('phases.update', $phase) }}" class="min-w-0 flex-1 sm:flex-none">
+                        <form method="POST" action="{{ route('phases.update', $phase) }}" data-live class="min-w-0 flex-1 sm:flex-none">
                             @csrf @method('PATCH')
-                            <select name="status" onchange="this.form.submit()" aria-label="Status van {{ $phase->name }}" class="w-full rounded-lg border-gray-200 py-1.5 text-xs font-semibold focus:border-brand-500 focus:ring-brand-500 sm:w-auto pointer-coarse:py-2.5">
+                            <select name="status" onchange="this.form.requestSubmit()" aria-label="Status van {{ $phase->name }}" class="w-full rounded-lg border-gray-200 py-1.5 text-xs font-semibold focus:border-brand-500 focus:ring-brand-500 sm:w-auto pointer-coarse:py-2.5">
                                 @foreach (\App\Enums\PhaseStatus::cases() as $statusOption)
                                     <option value="{{ $statusOption->value }}" @selected($phase->status === $statusOption)>{{ $statusOption->label() }}</option>
                                 @endforeach
@@ -217,7 +221,7 @@
                         @if ($phase->status !== \App\Enums\PhaseStatus::Gereed)
                             <details class="relative shrink-0">
                                 <summary class="tap cursor-pointer list-none rounded-lg bg-navy-950 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-navy-900 [&::-webkit-details-marker]:hidden">Vrijgeven</summary>
-                                <form method="POST" action="{{ route('phases.approve', $phase) }}" class="absolute right-0 z-20 mt-2 w-64 space-y-2 rounded-xl border border-gray-200 bg-white p-3 shadow-lg">
+                                <form method="POST" action="{{ route('phases.approve', $phase) }}" data-live class="absolute right-0 z-20 mt-2 w-64 space-y-2 rounded-xl border border-gray-200 bg-white p-3 shadow-lg">
                                     @csrf
                                     <p class="text-xs text-gray-500">Gate: alle werkpakketten in deze fase moeten gereed zijn.</p>
                                     <input type="text" name="gate_note" maxlength="255" placeholder="Bewijs/notitie (optioneel)" aria-label="Bewijs of notitie" class="w-full rounded-lg border-gray-300 text-xs focus:border-brand-500 focus:ring-brand-500">
@@ -390,6 +394,28 @@
                     </div>
                 @empty
                     <p class="text-sm text-gray-500">Geen open taken.</p>
+                @endforelse
+            </section>
+
+            {{-- Gespreksverslagen: Nova notuleert bouwvergaderingen en klantgesprekken bij dit project --}}
+            <section class="rounded-2xl border border-gray-200 bg-white p-5">
+                <div class="mb-3 flex items-center justify-between gap-3">
+                    <h2 class="text-sm font-bold text-navy-900">Gespreksverslagen</h2>
+                    <a href="{{ route('meetings.create', ['project' => $project->id]) }}" class="tap flex items-center gap-1 text-xs font-semibold text-brand-700 hover:text-brand-600"><x-icon name="microphone" class="h-3.5 w-3.5" /> Gesprek opnemen</a>
+                </div>
+                @forelse ($project->meetings as $meeting)
+                    <a href="{{ route('meetings.show', $meeting) }}" class="-mx-2 flex items-center gap-3 rounded-lg px-2 py-2 transition hover:bg-gray-50">
+                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-planning-100 text-planning-700"><x-icon name="microphone" class="h-4 w-4" /></span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-navy-900">{{ $meeting->title }}</span>
+                            <span class="block truncate text-xs text-gray-500">{{ collect([$meeting->kind->label(), $meeting->started_at->translatedFormat('j M Y')])->implode(', ') }}</span>
+                        </span>
+                        @unless ($meeting->status === \App\Enums\MeetingStatus::Klaar)
+                            <span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold {{ $meeting->status->badgeClasses() }}">{{ $meeting->status === \App\Enums\MeetingStatus::Verwerken ? 'Bezig' : $meeting->status->label() }}</span>
+                        @endunless
+                    </a>
+                @empty
+                    <p class="text-sm text-gray-500">Nog geen verslagen. Neem een bouwvergadering of klantgesprek op, Nova schrijft het verslag.</p>
                 @endforelse
             </section>
 

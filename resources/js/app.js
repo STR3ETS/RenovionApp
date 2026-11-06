@@ -2,6 +2,7 @@ import Alpine from 'alpinejs';
 import './native.js';
 import './motion.js';
 import swipeDismiss from './swipe-dismiss.js';
+import meetingRecorder from './meeting-recorder.js';
 
 window.Alpine = Alpine;
 
@@ -45,6 +46,112 @@ document.addEventListener('submit', (event) => {
         button.classList.add('opacity-60');
     }), 0);
 });
+// Melding onderaan in beeld in plaats van bovenaan de pagina (opslaan zonder naar boven te springen).
+const FLOATING_FLASH = ['fixed', 'inset-x-4', 'bottom-[calc(6rem_+_env(safe-area-inset-bottom))]', 'app:bottom-[calc(9.5rem_+_env(safe-area-inset-bottom))]', 'z-50', 'shadow-lg', 'lg:inset-x-auto', 'lg:right-8', 'lg:bottom-8', 'lg:w-96'];
+
+// Opslaan zonder herladen: <form data-live> gaat op de achtergrond, en de blokken met data-live-region (met
+// een id) krijgen de nieuwe versie uit het antwoord. Wat open of ingeklapt was (Alpine "open") blijft zo.
+// Komt het antwoord op een andere pagina uit, of gaat er iets mis, dan alsnog gewoon versturen.
+function showFlash(flash) {
+    document.querySelectorAll('[data-flash]').forEach((old) => old.remove());
+    if (!flash) return;
+    flash.classList.add(...FLOATING_FLASH);
+    document.querySelector('main')?.prepend(flash);
+}
+// Wat er open stond (uitgeklapte fasen, "Alle fasen bekijken", een <details>-venster) blijft open na het
+// vervangen. Herkend aan het id, anders aan de plek in het blok (de server levert dezelfde opbouw). Het
+// venster waaruit je net verstuurde ("Vrijgeven") gaat wel dicht.
+const placeOf = (el, root) => {
+    if (el.id) return `#${el.id}`;
+    const path = [];
+    for (let node = el; node !== root; node = node.parentElement) path.unshift([...node.parentElement.children].indexOf(node));
+    return path.join('.');
+};
+const findPlace = (root, place) => (place.startsWith('#')
+    ? root.querySelector(place.replace(/^#(.*)$/, (_, id) => `#${CSS.escape(id)}`))
+    : place.split('.').reduce((node, index) => node?.children[index], root));
+function rememberOpen(region, form) {
+    const alpine = [...region.querySelectorAll('[x-data]')]
+        .filter((el) => typeof el._x_dataStack?.[0]?.open === 'boolean')
+        .map((el) => [placeOf(el, region), el._x_dataStack[0].open]);
+    const details = [...region.querySelectorAll('details[open]')].filter((el) => !el.contains(form)).map((el) => placeOf(el, region));
+    return { alpine, details };
+}
+function restoreOpen(region, { alpine, details }) {
+    alpine.forEach(([place, open]) => {
+        const data = findPlace(region, place)?._x_dataStack?.[0];
+        if (data && typeof data.open === 'boolean') data.open = open;
+    });
+    details.forEach((place) => findPlace(region, place)?.setAttribute('open', ''));
+}
+
+async function liveSubmit(form) {
+    const regions = [...document.querySelectorAll('[data-live-region][id]')];
+    let response;
+    try {
+        response = await fetch(form.action, { method: 'POST', body: new FormData(form), headers: { Accept: 'text/html' }, credentials: 'same-origin' });
+    } catch {
+        form.submit();
+        return;
+    }
+    const target = new URL(response.url);
+    if (!response.ok || target.pathname !== location.pathname) {
+        location.href = response.ok ? response.url : location.href;
+        return;
+    }
+
+    const page = new DOMParser().parseFromString(await response.text(), 'text/html');
+    regions.forEach((region) => {
+        const fresh = page.getElementById(region.id);
+        if (!fresh) return;
+        const opened = rememberOpen(region, form);
+        Alpine.mutateDom(() => region.replaceWith(fresh));
+        Alpine.initTree(fresh);
+        restoreOpen(fresh, opened);
+    });
+    showFlash(page.querySelector('[data-flash]'));
+
+    // Stond het formulier zelf niet in een vervangen blok, dan mag het weer.
+    if (form.isConnected) {
+        delete form.dataset.submitting;
+        form.querySelectorAll('button[disabled].opacity-60').forEach((button) => {
+            button.disabled = false;
+            button.classList.remove('opacity-60');
+        });
+    }
+}
+document.addEventListener('submit', (event) => {
+    const form = event.target;
+    if (!form.matches('form[data-live]') || event.defaultPrevented) return;
+    event.preventDefault();
+    liveSubmit(form);
+});
+
+// Op je plek blijven: komt een formulier (opslaan, status wijzigen, afvinken) terug op dezelfde pagina,
+// dan staat die weer waar je was in plaats van bovenaan. Via pagehide, want this.form.submit() (keuzelijsten)
+// geeft geen submit-event. De melding staat dan onderaan in beeld in plaats van bovenaan de pagina.
+const KEEP_PLACE = 'renovion-place';
+window.addEventListener('pagehide', () => {
+    try {
+        sessionStorage.setItem(KEEP_PLACE, JSON.stringify({ url: location.pathname + location.search, y: scrollY, at: Date.now() }));
+    } catch { /* geen opslag */ }
+});
+function keepPlace() {
+    let place = null;
+    try {
+        place = JSON.parse(sessionStorage.getItem(KEEP_PLACE) ?? 'null');
+        sessionStorage.removeItem(KEEP_PLACE);
+    } catch { /* geen opslag */ }
+    const navigation = performance.getEntriesByType('navigation')[0];
+    if (!place || place.y < 80 || navigation?.type !== 'navigate' || Date.now() - place.at > 60_000) return;
+    if (place.url !== location.pathname + location.search) return;
+
+    scrollTo({ top: place.y, behavior: 'instant' });
+    document.querySelector('[data-flash]')?.classList.add(...FLOATING_FLASH);
+}
+// Na Alpine: tabs en ingeklapte blokken staan dan goed, anders klopt de hoogte van de pagina nog niet.
+document.addEventListener('alpine:initialized', () => requestAnimationFrame(keepPlace));
+
 window.addEventListener('pageshow', () => document.querySelectorAll('form[data-submitting]').forEach((form) => {
     delete form.dataset.submitting;
     form.querySelectorAll('button[disabled].opacity-60').forEach((button) => {
@@ -605,4 +712,5 @@ Alpine.data('nova', (proposeUrl, executeUrl) => ({
 }));
 
 Alpine.plugin(swipeDismiss);
+Alpine.plugin(meetingRecorder);
 Alpine.start();

@@ -188,6 +188,12 @@ class Project extends Model
         return $this->morphMany(Document::class, 'documentable');
     }
 
+    /** Gespreksverslagen (Nova notuleert) bij dit project. */
+    public function meetings(): HasMany
+    {
+        return $this->hasMany(Meeting::class);
+    }
+
     #[Scope]
     protected function active(Builder $query): Builder
     {

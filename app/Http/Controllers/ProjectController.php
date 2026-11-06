@@ -114,6 +114,7 @@ class ProjectController extends Controller
 
         $project->load([
             'customer',
+            'meetings' => fn ($query) => $query->latest('started_at')->limit(5),
             'lead',
             'quote',
             'projectLeader',

@@ -59,6 +59,7 @@
             ['label' => 'Projecten', 'icon' => 'building-office', 'route' => 'projects.index', 'active' => request()->routeIs('projects.*')],
             ['label' => 'Planning', 'icon' => 'calendar', 'route' => 'planning.index', 'active' => request()->routeIs('planning.*')],
             ['label' => 'Taken', 'icon' => 'clipboard-check', 'route' => 'tasks.index', 'active' => request()->routeIs('tasks.*')],
+            ['label' => 'Verslagen', 'icon' => 'microphone', 'route' => 'meetings.index', 'active' => request()->routeIs('meetings.*')],
             ['label' => 'Klanten', 'icon' => 'users', 'route' => 'customers.index', 'active' => request()->routeIs('customers.*')],
             config('renovion.modules.automations') ? ['label' => 'Automations', 'icon' => 'bolt', 'route' => 'automations.index', 'active' => request()->routeIs('automations.*')] : null,
             ['label' => 'Chat', 'icon' => 'chat-bubble', 'route' => 'chat.index', 'active' => request()->routeIs('chat.*'), 'badge' => $chatUnread],
@@ -68,6 +69,7 @@
             ['label' => 'Projecten', 'icon' => 'building-office', 'route' => 'projects.index', 'active' => request()->routeIs('projects.*')],
             ['label' => 'Planning', 'icon' => 'calendar', 'route' => 'planning.index', 'active' => request()->routeIs('planning.*')],
             ['label' => 'Taken', 'icon' => 'clipboard-check', 'route' => 'tasks.index', 'active' => request()->routeIs('tasks.*')],
+            ['label' => 'Verslagen', 'icon' => 'microphone', 'route' => 'meetings.index', 'active' => request()->routeIs('meetings.*')],
             ['label' => 'Chat', 'icon' => 'chat-bubble', 'route' => 'chat.index', 'active' => request()->routeIs('chat.*'), 'badge' => $chatUnread],
         ]);
     @endphp
@@ -175,7 +177,7 @@
 
             {{-- Flash messages --}}
             @if (session('success') || session('error'))
-                <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)" x-cloak
+                <div data-flash x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)" x-cloak
                      class="mb-4 flex items-center justify-between rounded-xl px-4 py-3 text-sm font-medium {{ session('error') ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800' }}">
                     <span>{{ session('error') ?? session('success') }}</span>
                     <button @click="show = false" class="tap ml-3 opacity-60 hover:opacity-100" title="Sluiten"><x-icon name="x-mark" class="h-3.5 w-3.5" /></button>
@@ -311,10 +313,12 @@
             ['label' => 'Nieuwe aanvraag', 'route' => 'leads.create', 'icon' => 'inbox', 'chip' => 'bg-lead-100 text-lead-700'],
             ['label' => 'Nieuw project', 'route' => 'projects.create', 'icon' => 'building-office', 'chip' => 'bg-project-100 text-project-700'],
             ['label' => 'Nieuwe taak', 'route' => 'tasks.index', 'icon' => 'clipboard-check', 'chip' => 'bg-planning-100 text-planning-700'],
+            ['label' => 'Gesprek opnemen', 'route' => 'meetings.create', 'icon' => 'microphone', 'chip' => 'bg-planning-100 text-planning-700'],
             ['label' => 'Bericht aan team', 'route' => 'chat.index', 'icon' => 'chat-bubble', 'chip' => 'bg-gray-100 text-navy-900'],
         ] : [
             ['label' => 'Foto bij project', 'route' => 'projects.index', 'icon' => 'camera', 'chip' => 'bg-project-100 text-project-700'],
             ['label' => 'Nieuwe taak', 'route' => 'tasks.index', 'icon' => 'clipboard-check', 'chip' => 'bg-planning-100 text-planning-700'],
+            ['label' => 'Gesprek opnemen', 'route' => 'meetings.create', 'icon' => 'microphone', 'chip' => 'bg-planning-100 text-planning-700'],
             ['label' => 'Bericht aan team', 'route' => 'chat.index', 'icon' => 'chat-bubble', 'chip' => 'bg-gray-100 text-navy-900'],
         ];
         // "Meer" = alles uit de sidebar dat niet al als tab in de bottom-nav staat.
