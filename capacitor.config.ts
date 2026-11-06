@@ -6,6 +6,10 @@ import type { CapacitorConfig } from '@capacitor/cli';
 //   RENOVION_API_URL=http://10.0.2.2:8000 npm run app:build && npx cap copy android
 const serverUrl = process.env.RENOVION_API_URL ?? 'https://dash.renovion.nl';
 const insecure = serverUrl.startsWith('http://');
+// Een technisch Plesk-domein (*.plesk.page) toont elke browser eerst een waarschuwingspagina (428) met een
+// "Continue"-knop; de app kan die niet wegklikken. Zonder "Mozilla" in de user agent komt hij er niet. Laravel
+// herkent de app nog steeds aan "RenovionApp". Alleen voor testbuilds tegen zo'n domein.
+const technicalDomain = new URL(serverUrl).hostname.endsWith('.plesk.page');
 
 const config: CapacitorConfig = {
     appId: 'nl.renovion.dash',
@@ -14,6 +18,7 @@ const config: CapacitorConfig = {
     backgroundColor: '#0D1A2E',
     // Laravel herkent de app hieraan (bijv. "Ingelogd blijven" standaard aan).
     appendUserAgent: 'RenovionApp',
+    ...(technicalDomain ? { overrideUserAgent: 'RenovionApp (testserver)' } : {}),
     server: {
         // http://localhost bij een lokale testserver over http, anders blokkeert de webview de API (gemengde inhoud).
         androidScheme: insecure ? 'http' : 'https',
