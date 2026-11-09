@@ -28,3 +28,7 @@ Thumbs.db
 
 # Build van de app-schermen (npm run app:build, mobile/app)
 /mobile/www/
+
+# Firebase-configuratie met een API-sleutel: niet in Git (lokaal neerzetten, zie CLAUDE.md).
+/android/app/google-services.json
+/ios/App/App/GoogleService-Info.plist
