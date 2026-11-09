@@ -17,6 +17,22 @@ const SECTIONS = { planning: 'uitvoering', taken: 'uitvoering', project: 'projec
 // Serverpaden die in de app een eigen scherm hebben (meldingen, inbox, menu)
 const SCREEN_PATHS = { '/': 'vandaag', '/aandacht': 'inbox', '/projecten': 'projecten', '/planning': 'planning', '/taken': 'taken' };
 
+// Laadscherm voor een serverpagina in de vorm van die pagina (index.html, "Naar een serverpagina"):
+// chatlijst, gesprek, formulier, projectdossier, aanvragen, zoeken of een gewone lijst. tabs = de
+// onderstreepte sectietabs bovenaan (AppSection op de server).
+const SECTION_TABS = /^\/(aanvragen|klanten|offertes|calculaties|prijslijst|verslagen|automations|instellingen)(\/|$)/;
+function leaveScreen(path) {
+    const pathname = path.split('?')[0].replace(/\/+$/, '') || '/';
+    const kind = pathname === '/chat' ? 'chats'
+        : /^\/chat\/\d+$/.test(pathname) ? 'gesprek'
+            : /\/(aanmaken|create|nieuw|bewerken|opnemen)$/.test(pathname) ? 'form'
+                : /^\/projecten\/\d+$/.test(pathname) ? 'dossier'
+                    : pathname === '/aanvragen' ? 'kanban'
+                        : pathname === '/zoeken' ? 'zoeken'
+                            : 'lijst';
+    return { kind, tabs: kind === 'kanban' || (kind === 'lijst' && SECTION_TABS.test(pathname)) };
+}
+
 const capacitor = () => window.Capacitor?.Plugins ?? {};
 
 const storage = {
@@ -103,7 +119,7 @@ Alpine.store('os', {
     drawer: false,
     help: false,
     nova: false,
-    leaving: false,
+    leaving: null, // { kind, tabs } van de serverpagina die opent, zie leaveScreen()
     offline: false,
     shownAt: null,
     toastText: null,
@@ -145,6 +161,8 @@ Alpine.store('os', {
         });
         // Tik op een pushmelding (native.js): naar het scherm in de app, of anders de serverpagina.
         window.renovionOpenPath = (path) => this.go(path);
+        // Terug van een serverpagina uit de terug-cache: het laadscherm van daarnet mag niet blijven staan.
+        window.addEventListener('pageshow', (event) => { if (event.persisted) this.leaving = null; });
         this.navigate();
         // Pas na het laden van dit bestand: Alpine roept init() al aan bij het registreren van de store,
         // als fetchScreen en de cache verderop nog niet bestaan.
@@ -256,13 +274,14 @@ Alpine.store('os', {
     },
 
     // Een scherm dat nog niet in de app zit: de serverpagina openen, ingelogd via een eenmalige code.
+    // Tot hij er is, staat er een laadscherm in de vorm van die pagina (leaveScreen).
     async openWeb(path) {
-        this.leaving = true;
+        this.leaving = leaveScreen(path);
         try {
             const { url } = await api('webcode', { method: 'POST', body: { naar: path, terug: location.origin } });
             location.href = url;
         } catch {
-            this.leaving = false;
+            this.leaving = null;
             this.toast('Geen verbinding. Probeer het zo nog eens.');
         }
     },

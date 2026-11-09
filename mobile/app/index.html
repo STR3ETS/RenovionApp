@@ -1156,15 +1156,16 @@
                             <div x-ref="novaMessages" class="flex-1 space-y-3 overflow-y-auto p-4">
                                 <template x-for="(message, index) in messages" :key="index">
                                     <div class="flex gap-2" :class="message.role === 'user' && 'justify-end'">
-                                        <template x-if="message.role === 'nova'"><img :src="$store.os.novaUrl" alt="" class="mt-0.5 h-8 w-8 shrink-0 rounded-full object-cover"></template>
-                                        <div class="max-w-[85%]">
-                                            <div class="rounded-2xl px-4 py-2.5 text-sm whitespace-pre-line" :class="message.role === 'user' ? 'bg-navy-950 text-white' : 'bg-gray-100 text-navy-900'">
-                                                <span x-text="message.text"></span>
+                                        <template x-if="message.role === 'nova'"><img :src="$store.os.novaUrl" alt="" class="mt-0.5 h-7 w-7 shrink-0 rounded-full object-cover"></template>
+                                        <div class="max-w-[80%]">
+                                            <!-- Alleen de tekst houdt regelovergangen aan; op de bubbel zelf zouden de regels van deze HTML lege regels worden. -->
+                                            <div class="rounded-[18px] px-3.5 py-2 text-[13.5px] leading-snug" :class="message.role === 'user' ? 'rounded-br-md bg-navy-950 text-white' : 'rounded-bl-md bg-gray-100 text-navy-900'">
+                                                <span class="whitespace-pre-line" x-text="message.text"></span>
                                                 <template x-if="message.path"><button type="button" @click="$store.os.nova = false; $store.os.go(message.path)" class="tap mt-1 block text-xs font-semibold text-brand-700">Bekijken</button></template>
                                             </div>
                                             <template x-if="message.proposal">
-                                                <div class="mt-2 rounded-2xl border border-brand-200 bg-brand-50 p-3">
-                                                    <p class="text-sm font-medium text-navy-900" x-text="message.proposal.preview"></p>
+                                                <div class="mt-1.5 rounded-2xl border border-brand-200 bg-brand-50 p-3">
+                                                    <p class="text-[13px] leading-snug font-medium text-navy-900" x-text="message.proposal.preview"></p>
                                                     <div class="mt-3 flex gap-2" x-show="message.proposal.state === 'open' || message.proposal.state === 'busy'">
                                                         <button type="button" @click="confirm(message)" :disabled="message.proposal.state === 'busy'" class="flex-1 rounded-xl bg-brand-500 py-2.5 text-sm font-bold text-white disabled:opacity-50" x-text="message.proposal.state === 'busy' ? 'Bezig' : 'Bevestigen'"></button>
                                                         <button type="button" @click="cancel(message)" :disabled="message.proposal.state === 'busy'" class="rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600">Annuleren</button>
@@ -1177,7 +1178,7 @@
                                     </div>
                                 </template>
                                 <div x-show="busy" class="flex items-center gap-2">
-                                    <img :src="$store.os.novaUrl" alt="" class="h-8 w-8 shrink-0 rounded-full object-cover">
+                                    <img :src="$store.os.novaUrl" alt="" class="h-7 w-7 shrink-0 rounded-full object-cover">
                                     <span class="flex items-center gap-2 rounded-2xl bg-gray-100 px-4 py-2.5 text-xs text-gray-500"><span class="inline-block h-2 w-2 animate-pulse rounded-full bg-brand-500"></span> Nova denkt na</span>
                                 </div>
                             </div>
@@ -1209,12 +1210,76 @@
                 </template>
             </div>
 
-            <!-- Naar een serverpagina, of een melding -->
-            <div x-show="$store.os.leaving" x-cloak class="fixed inset-x-0 top-[calc(59px_+_env(safe-area-inset-top))] bottom-0 z-[35] overflow-hidden bg-gray-100 px-4 pt-4">
-                <span class="skeleton mb-2 block h-3 w-24"></span>
-                <span class="skeleton mb-3 block h-7 w-2/3"></span>
-                <span class="skeleton mb-5 block h-3.5 w-4/5"></span>
-                <template x-for="i in 4" :key="i"><div class="mb-3 rounded-[14px] border border-gray-200 bg-white p-4"><span class="skeleton mb-2 block h-4 w-2/3"></span><span class="skeleton mb-2 block h-3 w-1/2"></span><span class="skeleton block h-3 w-1/3"></span></div></template>
+            <!-- Naar een serverpagina, of een melding: tot hij er is een laadscherm in de vorm van die pagina (leaveScreen in main.js) -->
+            <template x-if="$store.os.leaving?.kind === 'gesprek'">
+                <!-- Een gesprek is schermvullend, met een eigen kop en het invoerveld onderaan (geen onderbalk) -->
+                <div class="fixed inset-0 z-[90] flex flex-col bg-[#f7f5f0]">
+                    <div class="flex items-center gap-3 border-b border-gray-200 bg-white px-4 pb-3 pt-[calc(0.75rem_+_env(safe-area-inset-top))]">
+                        <span class="skeleton h-5 w-5 shrink-0"></span>
+                        <span class="skeleton h-8 w-8 shrink-0 !rounded-lg"></span>
+                        <span class="min-w-0 flex-1"><span class="skeleton mb-1.5 block h-4 w-1/2"></span><span class="skeleton block h-3 w-3/4"></span></span>
+                    </div>
+                    <div class="flex-1 space-y-3 overflow-hidden px-4 py-5">
+                        <span class="skeleton block h-12 w-2/3 !rounded-2xl"></span>
+                        <span class="skeleton ml-auto block h-10 w-1/2 !rounded-2xl"></span>
+                        <span class="skeleton block h-16 w-3/5 !rounded-2xl"></span>
+                        <span class="skeleton ml-auto block h-10 w-2/5 !rounded-2xl"></span>
+                    </div>
+                    <div class="p-3 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))]"><span class="skeleton block h-12 w-full !rounded-full"></span></div>
+                </div>
+            </template>
+            <div x-show="$store.os.leaving && $store.os.leaving.kind !== 'gesprek'" x-cloak class="fixed inset-x-0 top-[calc(59px_+_env(safe-area-inset-top))] bottom-0 z-[35] overflow-hidden bg-gray-100 px-4 pt-4">
+                <template x-if="$store.os.leaving?.tabs">
+                    <div class="mb-4 flex gap-5"><span class="skeleton h-4 w-20"></span><span class="skeleton h-4 w-16"></span><span class="skeleton h-4 w-16"></span></div>
+                </template>
+                <template x-if="$store.os.leaving?.kind === 'chats'">
+                    <div>
+                        <div class="mb-3 flex items-center justify-between"><span class="skeleton h-7 w-24"></span><span class="skeleton h-9 w-9 !rounded-full"></span></div>
+                        <span class="skeleton mb-3 block h-10 w-full !rounded-xl"></span>
+                        <div class="mb-3 flex gap-2"><span class="skeleton h-7 w-14 !rounded-full"></span><span class="skeleton h-7 w-20 !rounded-full"></span><span class="skeleton h-7 w-20 !rounded-full"></span><span class="skeleton h-7 w-16 !rounded-full"></span></div>
+                        <template x-for="i in 6" :key="i"><div class="flex items-center gap-3 py-2.5"><span class="skeleton h-9 w-9 shrink-0 !rounded-[11px]"></span><span class="min-w-0 flex-1"><span class="skeleton mb-1.5 block h-3.5 w-1/2"></span><span class="skeleton block h-3 w-1/3"></span></span></div></template>
+                    </div>
+                </template>
+                <template x-if="$store.os.leaving?.kind === 'dossier'">
+                    <div>
+                        <div class="mb-3 rounded-[18px] bg-navy-950 p-4">
+                            <span class="skeleton skeleton-dark mb-3 block h-3 w-1/2"></span>
+                            <div class="mb-4 flex gap-2"><span class="skeleton skeleton-dark h-8 w-20 !rounded-full"></span><span class="skeleton skeleton-dark h-8 w-28 !rounded-full"></span></div>
+                            <span class="skeleton skeleton-dark mb-2 block h-3 w-28"></span>
+                            <span class="skeleton skeleton-dark mb-2 block h-7 w-3/4"></span>
+                            <span class="skeleton skeleton-dark mb-5 block h-4 w-1/2"></span>
+                            <div class="grid grid-cols-2 gap-x-4 gap-y-4"><template x-for="i in 4" :key="i"><span><span class="skeleton skeleton-dark mb-1.5 block h-2.5 w-2/3"></span><span class="skeleton skeleton-dark block h-4 w-3/4"></span></span></template></div>
+                        </div>
+                        <div class="rounded-[14px] border border-gray-200 bg-white p-4"><span class="skeleton mb-3 block h-4 w-1/3"></span><span class="skeleton mb-4 block h-2 w-full"></span><span class="skeleton block h-4 w-1/2"></span></div>
+                    </div>
+                </template>
+                <template x-if="['lijst', 'form', 'kanban', 'zoeken'].includes($store.os.leaving?.kind)">
+                    <div>
+                        <span class="skeleton mb-2 block h-3 w-28"></span>
+                        <span class="skeleton mb-3 block h-7 w-2/3"></span>
+                        <span class="skeleton mb-5 block h-3.5 w-4/5"></span>
+                        <template x-if="$store.os.leaving.kind === 'form'">
+                            <div>
+                                <div class="mb-3 space-y-4 rounded-[14px] border border-gray-200 bg-white p-4"><template x-for="i in 4" :key="i"><div><span class="skeleton mb-2 block h-3 w-24"></span><span class="skeleton block h-11 w-full !rounded-xl"></span></div></template></div>
+                                <span class="skeleton block h-11 w-full !rounded-full"></span>
+                            </div>
+                        </template>
+                        <template x-if="$store.os.leaving.kind === 'kanban'">
+                            <div>
+                                <div class="mb-3 flex gap-2"><span class="skeleton h-7 w-16 !rounded-full"></span><span class="skeleton h-7 w-12 !rounded-full"></span></div>
+                                <span class="skeleton mb-3 block h-10 w-full !rounded-full"></span>
+                                <div class="mb-3 grid grid-cols-2 gap-3"><span class="skeleton block h-20 !rounded-[14px]"></span><span class="skeleton block h-20 !rounded-[14px]"></span></div>
+                                <div class="rounded-[14px] border border-gray-200 bg-white p-3"><span class="skeleton mb-3 block h-4 w-1/3"></span><template x-for="i in 2" :key="i"><div class="mb-2 rounded-xl border border-gray-200 p-3"><span class="skeleton mb-2 block h-4 w-1/2"></span><span class="skeleton mb-2 block h-3 w-1/3"></span><span class="skeleton block h-3 w-2/5"></span></div></template></div>
+                            </div>
+                        </template>
+                        <template x-if="$store.os.leaving.kind === 'zoeken'">
+                            <div><span class="skeleton mb-3 block h-11 w-full !rounded-xl"></span><span class="skeleton block h-32 w-full !rounded-[14px]"></span></div>
+                        </template>
+                        <template x-if="$store.os.leaving.kind === 'lijst'">
+                            <div><template x-for="i in 4" :key="i"><div class="mb-3 rounded-[14px] border border-gray-200 bg-white p-4"><span class="skeleton mb-2 block h-4 w-2/3"></span><span class="skeleton mb-2 block h-3 w-1/2"></span><span class="skeleton block h-3 w-1/3"></span></div></template></div>
+                        </template>
+                    </div>
+                </template>
             </div>
             <div x-show="$store.os.toastText" x-cloak x-transition.opacity class="fixed inset-x-4 bottom-[calc(84px_+_env(safe-area-inset-bottom))] z-[70] rounded-xl bg-navy-950 px-4 py-3 text-center text-sm font-medium text-white" x-text="$store.os.toastText"></div>
         </div>

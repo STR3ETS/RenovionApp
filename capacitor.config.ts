@@ -33,6 +33,11 @@ const config: CapacitorConfig = {
         scheme: 'App',
     },
     plugins: {
+        // Geen echte plugin: MainActivity leest hier het serveradres uit, om de Capacitor-brug ook op de
+        // serverpagina's te zetten (Capacitor doet dat zelf alleen op het adres van de app, https://localhost).
+        RenovionServer: {
+            url: serverUrl,
+        },
         SplashScreen: {
             // native.js verbergt de splash zodra de eerste pagina staat (of offline.html).
             launchAutoHide: false,

@@ -303,18 +303,26 @@ if (isNativeApp) {
     });
 
     // De zwevende Nova-knop gaat opzij bij omlaag scrollen en komt terug bij omhoog scrollen of stilstaan,
-    // zodat hij niet over knoppen en bedragen ligt (native-app.css, .nova-away).
-    let lastScroll = window.scrollY;
-    let idle = null;
-    window.addEventListener('scroll', () => {
-        const y = window.scrollY;
+    // zodat hij niet over knoppen en bedragen ligt (native-app.css, .nova-away). De afstand telt op sinds
+    // de laatste richtingswissel: een rustige vinger schuift maar een paar pixels per scroll-event. Ook voor
+    // vakken die zelf scrollen (Kanban-kolommen), niet voor invoervelden.
+    const novaScroll = new WeakMap();
+    let novaIdle = null;
+    document.addEventListener('scroll', (event) => {
+        const target = event.target === document ? document.scrollingElement : event.target;
+        if (!(target instanceof Element) || target.matches('textarea, input') || target.scrollHeight <= target.clientHeight) return;
+        const y = target.scrollTop;
+        const state = novaScroll.get(target) ?? { anchor: y, last: y };
+        novaScroll.set(target, state);
+        if (y === state.last) return; // alleen opzij geveegd
+        if ((y - state.last) * (state.last - state.anchor) < 0) state.anchor = state.last; // andere richting
         const root = document.documentElement;
-        if (y > lastScroll + 6 && y > 80) root.classList.add('nova-away');
-        else if (y < lastScroll - 6) root.classList.remove('nova-away');
-        lastScroll = y;
-        clearTimeout(idle);
-        idle = setTimeout(() => root.classList.remove('nova-away'), 900);
-    }, { passive: true });
+        if (y - state.anchor > 24 && y > 60) root.classList.add('nova-away');
+        else if (state.anchor - y > 24) root.classList.remove('nova-away');
+        state.last = y;
+        clearTimeout(novaIdle);
+        novaIdle = setTimeout(() => root.classList.remove('nova-away'), 900);
+    }, { capture: true, passive: true });
 
     // Filterrijen die opzij scrollen: zachte vervaging aan de rechterkant zolang er nog meer is.
     const updateFades = () => document.querySelectorAll('main .overflow-x-auto, main [class~="app:overflow-x-auto"]').forEach((row) => {
