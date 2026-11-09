@@ -166,13 +166,22 @@ class MeetingController extends Controller
         ]);
     }
 
-    /** Het verslag kijkt elke paar seconden of het klaar is; daarbij gaat de verwerking ook een stap verder. */
+    /**
+     * Het verslag kijkt elke paar seconden of het klaar is; daarbij gaat de verwerking ook een stap verder,
+     * maar pas ná het antwoord: Whisper zet een lange opname in één keer om en het verslag van Nova kan ook
+     * even duren. Een verzoek dat zo lang open staat, breekt de webserver af (504). De pagina vraagt 5 s later
+     * opnieuw en ziet dan of het klaar is.
+     */
     public function status(Request $request, Meeting $meeting, ProcessMeeting $process): JsonResponse
     {
         abort_unless($meeting->isAccessibleBy($request->user()), 403);
 
-        $process->handle($meeting);
-        $meeting->refresh();
+        if ($meeting->status === MeetingStatus::Verwerken) {
+            defer(function () use ($process, $meeting) {
+                ignore_user_abort(true);
+                $process->handle($meeting);
+            }, 'meeting-process-'.$meeting->id);
+        }
 
         return response()->json(['status' => $meeting->status->value, 'label' => $meeting->status->label()]);
     }
@@ -197,7 +206,8 @@ class MeetingController extends Controller
             'actions' => ['required', 'array', 'min:1'],
             'actions.*.selected' => ['nullable', 'boolean'],
             'actions.*.title' => ['required', 'string', 'max:255'],
-            'actions.*.owner_id' => ['nullable', 'integer', 'exists:users,id'],
+            // Alleen iemand van het team, nooit een klantaccount (het formulier biedt ook alleen het team aan).
+            'actions.*.owner_id' => ['nullable', 'integer', Rule::exists('users', 'id')->whereNot('role', UserRole::Klant->value)],
             'actions.*.deadline' => ['nullable', 'date'],
         ]);
 
@@ -251,6 +261,7 @@ class MeetingController extends Controller
         abort_unless($meeting->isAccessibleBy($request->user()) && $meeting->status === MeetingStatus::Mislukt, 403);
 
         $meeting->update(['status' => MeetingStatus::Verwerken, 'error' => null, 'attempts' => 0, 'provider_id' => $meeting->transcript === null ? null : $meeting->provider_id]);
+        ProcessMeeting::clearBackoff($meeting);
 
         return back()->with('success', 'Nova probeert het opnieuw.');
     }

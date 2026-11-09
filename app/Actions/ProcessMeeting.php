@@ -26,7 +26,9 @@ class ProcessMeeting
 
     public function handle(Meeting $meeting): void
     {
-        if ($meeting->status !== MeetingStatus::Verwerken) {
+        // Na een mislukte poging even wachten: het verslag vraagt elke 5 s, en anders zijn de pogingen bij een
+        // korte storing al binnen een halve minuut op.
+        if ($meeting->status !== MeetingStatus::Verwerken || Cache::has(self::backoffKey($meeting))) {
             return;
         }
 
@@ -95,8 +97,21 @@ class ProcessMeeting
             $meeting->increment('attempts');
             if ($meeting->attempts >= self::MAX_ATTEMPTS) {
                 $this->fail($meeting, 'Verwerken lukte niet na een paar pogingen. Probeer het opnieuw.');
+            } else {
+                Cache::put(self::backoffKey($meeting), true, now()->addSeconds(min(300, 30 * $meeting->attempts)));
             }
         }
+    }
+
+    /** "Opnieuw proberen" wacht niet op de pauze van de vorige mislukte poging. */
+    public static function clearBackoff(Meeting $meeting): void
+    {
+        Cache::forget(self::backoffKey($meeting));
+    }
+
+    private static function backoffKey(Meeting $meeting): string
+    {
+        return 'meeting-backoff:'.$meeting->id;
     }
 
     private function fail(Meeting $meeting, string $message): void

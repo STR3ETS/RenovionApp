@@ -158,6 +158,9 @@ export default (Alpine) => Alpine.data('meetingRecorder', ({ storeUrl, project =
         },
 
         // Stukjes op volgorde versturen; bij geen verbinding blijven ze staan en probeert hij het opnieuw.
+        // Een tijdelijke weigering (te veel tegelijk na een tijd offline, serverfout, verlopen sessie) is ook
+        // geen reden om geluid weg te gooien: dat stukje blijft vooraan staan tot het lukt. Alleen een
+        // definitief nee (opname al gestopt of te lang, 422) laat het stukje vallen.
         async send() {
             if (sending) return;
             sending = true;
@@ -167,25 +170,35 @@ export default (Alpine) => Alpine.data('meetingRecorder', ({ storeUrl, project =
                 const body = new FormData();
                 body.append('seq', chunk.seq);
                 body.append('chunk', chunk.blob, `stuk-${chunk.seq}`);
+                let retry = false;
                 try {
                     const response = await fetch(urls.chunk_url, { method: 'POST', body, headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrf() }, credentials: 'same-origin' });
                     const result = await response.json().catch(() => ({}));
                     if (response.ok) {
                         queue.shift();
+                        attempt = 0;
+                        this.error = null;
                     } else if (response.status === 409) {
                         // De server mist stukjes die er niet meer zijn: nummer de rest vanaf wat hij verwacht.
                         queue.forEach((item, index) => { item.seq = result.received + index; });
                         nextSeq = result.received + queue.length;
-                    } else {
+                    } else if (response.status === 422 || response.status === 403 || response.status === 413) {
                         this.error = result.message ?? 'Een stukje geluid werd geweigerd.';
                         queue.shift();
+                    } else {
+                        // 429, 419, 5xx: tijdelijk. Even wachten (bij 429 zo lang als de server vraagt) en opnieuw.
+                        retry = true;
+                        if (response.status === 419) this.error = 'Je sessie is verlopen. De opname loopt door; log in een ander tabblad opnieuw in, dan gaat het geluid vanzelf mee.';
+                        const after = Number(response.headers.get('Retry-After')) * 1000;
+                        await wait(after > 0 ? Math.min(after, 60000) : Math.min(15000, 1500 * ++attempt));
                     }
-                    attempt = 0;
                     this.offline = false;
                 } catch {
+                    retry = true;
                     this.offline = true;
                     await wait(Math.min(15000, 1500 * ++attempt));
                 }
+                if (!retry) attempt = 0;
                 this.pending = queue.length;
             }
             sending = false;

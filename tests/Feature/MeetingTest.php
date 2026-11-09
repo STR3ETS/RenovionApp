@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Actions\ProcessMeeting;
 use App\Enums\MeetingStatus;
+use App\Enums\UserRole;
 use App\Models\Meeting;
 use App\Models\Project;
 use App\Models\Task;
@@ -98,7 +99,9 @@ class MeetingTest extends TestCase
             ]);
         });
 
-        // Het verslag kijkt zelf of het klaar is; daarmee gaat de verwerking verder (ook zonder wachtrij).
+        // Het verslag kijkt zelf of het klaar is; daarmee gaat de verwerking verder (ook zonder wachtrij), maar
+        // pas ná het antwoord, zodat een lange transcriptie het verzoek niet laat verlopen.
+        $this->getJson(route('meetings.status', $meeting))->assertOk()->assertJsonPath('status', 'verwerken');
         $this->getJson(route('meetings.status', $meeting))->assertOk()->assertJsonPath('status', 'klaar');
 
         $meeting->refresh();
@@ -148,7 +151,8 @@ class MeetingTest extends TestCase
         $meeting = $this->start(User::factory()->create());
         $this->chunk($meeting, 0);
         $this->postJson(route('meetings.stop', $meeting));
-        $this->getJson(route('meetings.status', $meeting))->assertJsonPath('status', 'klaar');
+        $this->getJson(route('meetings.status', $meeting));
+        $this->assertSame(MeetingStatus::Klaar, $meeting->fresh()->status);
 
         Http::assertSent(fn ($request) => $request->url() === 'https://api.openai.com/v1/audio/transcriptions'
             && $request->hasHeader('Authorization', 'Bearer sk-test')
@@ -159,6 +163,42 @@ class MeetingTest extends TestCase
         $this->assertSame([0, 4500], array_column($transcript, 'start'));
         $this->assertSame('', $transcript[0]['speaker']);
         $this->get(route('meetings.show', $meeting))->assertOk()->assertSee('We kiezen voor de inloopdouche.')->assertDontSee('Spreker');
+    }
+
+    public function test_after_a_failed_attempt_processing_pauses_instead_of_using_up_the_attempts(): void
+    {
+        $this->mock(MeetingReporter::class, function ($mock) {
+            $mock->shouldReceive('isConfigured')->andReturn(true);
+            $mock->shouldReceive('report')->andThrow(new \RuntimeException('Claude even niet bereikbaar'));
+        });
+        $meeting = $this->start(User::factory()->create());
+        $this->chunk($meeting, 0);
+        $this->postJson(route('meetings.stop', $meeting));
+
+        // Het verslag vraagt elke 5 s: alleen de eerste poging telt, daarna wacht de verwerking even.
+        foreach (range(1, 6) as $_) {
+            $this->getJson(route('meetings.status', $meeting))->assertOk();
+        }
+        $this->assertSame(1, $meeting->fresh()->attempts);
+        $this->assertSame(MeetingStatus::Verwerken, $meeting->fresh()->status);
+
+        // Na de pauze volgt de volgende poging.
+        $this->travel(31)->seconds();
+        $this->getJson(route('meetings.status', $meeting));
+        $this->assertSame(2, $meeting->fresh()->attempts);
+    }
+
+    public function test_an_action_can_only_go_to_someone_from_the_team(): void
+    {
+        $user = User::factory()->create();
+        $meeting = $this->start($user);
+        $meeting->update(['status' => MeetingStatus::Klaar, 'actions' => [['title' => 'Tegels bestellen', 'owner_id' => null, 'owner' => null, 'due' => null, 'task_id' => null]]]);
+        $klant = User::factory()->create(['role' => UserRole::Klant]);
+
+        $this->actingAs($user)->post(route('meetings.tasks', $meeting), [
+            'actions' => [['selected' => 1, 'title' => 'Tegels bestellen', 'owner_id' => $klant->id]],
+        ])->assertSessionHasErrors('actions.0.owner_id');
+        $this->assertSame(0, Task::count());
     }
 
     public function test_a_craftsman_only_sees_meetings_of_his_projects(): void
