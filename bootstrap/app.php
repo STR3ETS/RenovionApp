@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\ThrottlePerRoute;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -13,7 +14,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Elke route een eigen teller bij "throttle:30,1" (zie ThrottlePerRoute).
+        $middleware->alias(['throttle' => ThrottlePerRoute::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

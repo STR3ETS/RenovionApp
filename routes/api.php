@@ -29,7 +29,7 @@ Route::prefix('app')->name('api.app.')->group(function () {
     Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
         Route::get('ik', [AppSessionController::class, 'show'])->name('me');
         Route::post('uitloggen', [AppSessionController::class, 'destroy'])->name('logout');
-        Route::post('webcode', [AppSessionController::class, 'webCode'])->middleware('throttle:60,1')->name('web-code');
+        Route::post('webcode', [AppSessionController::class, 'webCode'])->middleware('throttle:app-webcode')->name('web-code');
         Route::post('apparaten', [DeviceTokenController::class, 'store'])->middleware('throttle:30,1')->name('devices');
 
         Route::middleware('can:internal')->group(function () {

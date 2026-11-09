@@ -44,7 +44,7 @@ use App\Http\Controllers\WorkPackageController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/login', [LoginController::class, 'create'])->name('login');
-Route::get('/app/sessie', AppWebSessionController::class)->middleware('throttle:30,1')->name('app.web-session');
+Route::get('/app/sessie', AppWebSessionController::class)->middleware('throttle:app-session')->name('app.web-session');
 Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:login')->name('login.store');
 Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 

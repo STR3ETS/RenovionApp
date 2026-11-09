@@ -99,6 +99,12 @@ class AppServiceProvider extends ServiceProvider
             ));
         });
 
+        // Van de app naar een serverpagina (app/sessie). Een eigen teller: een naamloze limiet ("throttle:30,1")
+        // deelt per gebruiker één teller met alle andere naamloze limieten, ook die van de app-API. Dan gaf een
+        // paar schermen wisselen in een minuut al "Even rustig aan". De code zelf is eenmalig en niet te raden.
+        RateLimiter::for('app-session', fn (Request $request) => Limit::perMinute(60)->by($request->ip()));
+        RateLimiter::for('app-webcode', fn (Request $request) => Limit::perMinute(60)->by((string) $request->user()?->id ?: $request->ip()));
+
         // Briefing §15: uitvoerders zien alleen hun eigen projecten, taken en planning.
         Gate::define('manage-crm', fn (User $user) => ! in_array($user->role, [UserRole::Uitvoerder, UserRole::Klant], true));
 
