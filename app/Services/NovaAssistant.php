@@ -211,13 +211,12 @@ class NovaAssistant
                 isset($params['owner_id']) ? 'voor: '.User::find($params['owner_id'])?->name : null,
             ])->filter()->implode(', '),
             'create_appointment' => collect([
-                ScheduleEntryType::from($params['type'])->label().' inplannen',
+                ScheduleEntryType::from($params['type'])->label().(isset($params['title']) ? ': "'.$params['title'].'"' : ' inplannen'),
                 'voor: '.User::find($params['user_id'])?->name,
                 'op '.Carbon::parse($params['date'])->translatedFormat('l j F'),
-                isset($params['start_time']) ? 'om '.$params['start_time'] : null,
+                isset($params['start_time']) ? $params['start_time'].(isset($params['end_time']) ? '-'.$params['end_time'] : '') : null,
                 $customer?->name ? 'met '.$customer->name : null,
                 $project?->name ? 'project: '.$project->name : null,
-                isset($params['title']) ? '- '.$params['title'] : null,
             ])->filter()->implode(', '),
             'create_note' => 'Notitie bij '.($customer?->name ?? 'klant').': "'.str($params['body'])->limit(120).'"',
             'log_contact' => collect([
@@ -361,10 +360,11 @@ class NovaAssistant
             De gebruiker bevestigt of annuleert het voorstel - jij voert zelf nooit iets definitief uit.
 
             Regels:
-            - Gebruik de juiste id's uit de onderstaande context. Verzin nooit id's.
+            - Gebruik de juiste id's uit de onderstaande context. Verzin nooit id's. Id's zijn alleen voor de tool: noem ze nooit in je tekst aan de gebruiker, gebruik daar namen.
             - Herken relatieve datums ("morgen", "vrijdag", "volgende week dinsdag") en reken ze om naar YYYY-MM-DD op basis van vandaag.
             - Een "terugbelafspraak" is type "terugbel"; een intake is type "intake"; overleg of bezoek is "afspraak".
-            - Bij onduidelijkheid (welke klant, welke datum) vraag je kort terug in plaats van te gokken.
+            - Bij onduidelijkheid (welke klant, welke datum) vraag je kort terug in plaats van te gokken. Stel dan een gewone vraag in één of twee zinnen, zonder opsomming en zonder vraagtekens als invulplek (dus niet "10:00-??", wel "Tot hoe laat duurt de afspraak?").
+            - Een afspraak zonder eindtijd duurt een uur; vraag alleen naar de eindtijd als de duur echt onduidelijk is. Plan je voor iemand anders dan de gebruiker, dan staat dat in de opdracht; anders plan je voor de gebruiker zelf.
             - Informatieve vragen over klanten, projecten of planning beantwoord je direct op basis van de context hieronder.
             - Vragen buiten Renovion Dash (nieuws, algemene kennis) wimpel je vriendelijk af.
             - Gebruik nooit een em-dash of het teken · in je teksten; schrijf gewone zinnen met komma's en punten.
