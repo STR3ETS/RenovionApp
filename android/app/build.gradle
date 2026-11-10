@@ -1,5 +1,9 @@
 apply plugin: 'com.android.application'
 
+// Het buildnummer staat op één plek: mobile/release.json. De server vergelijkt het met minimum_build
+// voor een verplichte update (App\Support\AppRelease).
+def appRelease = new groovy.json.JsonSlurper().parse(file('../../mobile/release.json'))
+
 android {
     namespace = "nl.renovion.dash"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +11,8 @@ android {
         applicationId "nl.renovion.dash"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode appRelease.build as int
+        versionName "1.${appRelease.build - 1}"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

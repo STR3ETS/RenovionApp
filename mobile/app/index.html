@@ -8,6 +8,23 @@
 </head>
 <body class="min-h-screen bg-gray-100 font-sans text-gray-900 antialiased" x-data>
 
+    <!-- ===== Verplichte update (mobile/release.json, 426 van de server): bovenop alles, niet weg te tikken ===== -->
+    <template x-if="$store.os.update">
+        <div class="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-navy-950 px-6 pt-safe pb-safe text-center text-white"
+             @renovion-back.window="$event.preventDefault()">
+            <span class="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-500/15 text-brand-300">
+                <span x-icon="'arrow-down-tray'" class="h-7 w-7"></span>
+            </span>
+            <h1 class="text-2xl font-bold">Update nodig</h1>
+            <p class="mt-2 max-w-xs text-sm leading-relaxed text-navy-200">Er is een nieuwe versie van Renovion OS. Installeer de update om verder te werken.</p>
+            <p x-show="$store.os.update?.reason" x-text="$store.os.update?.reason" class="mt-3 max-w-xs text-sm leading-relaxed text-navy-300"></p>
+            <button type="button" x-show="$store.os.update?.url" @click="$store.os.openUpdate()"
+                    class="mt-8 w-full max-w-xs rounded-xl bg-brand-500 py-3 text-sm font-bold text-white active:bg-brand-600">Update installeren</button>
+            <p x-show="!$store.os.update?.url" class="mt-8 w-full max-w-xs rounded-xl bg-navy-900 px-4 py-3 text-sm text-navy-200">Vraag kantoor om de nieuwste versie van de app.</p>
+            <button type="button" @click="$store.os.checkVersion()" class="tap mt-3 text-sm font-semibold text-navy-300">Opnieuw controleren</button>
+        </div>
+    </template>
+
     <!-- ===== Inloggen ===== -->
     <template x-if="!$store.os.signedIn">
         <div x-data="login" class="flex min-h-screen items-center justify-center bg-navy-900 px-4 pt-safe pb-safe">

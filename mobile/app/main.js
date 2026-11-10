@@ -57,15 +57,27 @@ class ApiError extends Error {
     }
 }
 
+// Buildnummer van deze app (Android versionCode, iOS CFBundleVersion; uit mobile/release.json). Gaat mee
+// met elk verzoek: is de app ouder dan minimum_build, dan antwoordt de server met 426 (verplichte update).
+const appBuild = Promise.resolve(capacitor().App?.getInfo?.())
+    .then((info) => (info?.build ? String(parseInt(info.build, 10) || 0) : null))
+    .catch(() => null);
+
 async function api(path, { method = 'GET', body } = {}) {
     const token = storage.get(TOKEN_KEY);
+    const build = await appBuild;
     // Foto's gaan als FormData: dan zet de browser zelf het Content-Type (met de multipart-grens).
     const form = body instanceof FormData;
     let response;
     try {
         response = await fetch(`${API}/api/app/${path}`, {
             method,
-            headers: { Accept: 'application/json', ...(form ? {} : { 'Content-Type': 'application/json' }), ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+            headers: {
+                Accept: 'application/json',
+                ...(form ? {} : { 'Content-Type': 'application/json' }),
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                ...(build ? { 'X-App-Build': build } : {}),
+            },
             body: form ? body : body ? JSON.stringify(body) : undefined,
         });
     } catch (error) {
@@ -75,6 +87,12 @@ async function api(path, { method = 'GET', body } = {}) {
     }
     Alpine.store('os').offline = false;
     if (response.status === 401 && token) Alpine.store('os').forget();
+    if (response.status === 426) {
+        // Verplichte update: het hele scherm wordt "Update nodig" tot de nieuwe versie er is.
+        const data = await response.json().catch(() => null);
+        Alpine.store('os').update = data?.update ?? { url: null, reason: null };
+        throw new ApiError(426, data);
+    }
     if (!response.ok) throw new ApiError(response.status, await response.json().catch(() => null));
     return response.status === 204 ? null : response.json();
 }
@@ -120,6 +138,7 @@ Alpine.store('os', {
     help: false,
     nova: false,
     leaving: null, // { kind, tabs } van de serverpagina die opent, zie leaveScreen()
+    update: null, // { url, reason } als deze app te oud is (426), zie api() en checkVersion()
     offline: false,
     shownAt: null,
     toastText: null,
@@ -150,7 +169,11 @@ Alpine.store('os', {
 
     init() {
         window.addEventListener('hashchange', () => this.navigate());
-        document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && this.refreshProfile().then(() => this.token && preload(this.crm)));
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState !== 'visible') return;
+            this.checkVersion();
+            this.refreshProfile().then(() => this.token && preload(this.crm));
+        });
         window.addEventListener('renovion-push', () => this.refreshProfile());
         // Elke minuut de tellers; zonder verbinding elke 15 seconden kijken of de server er weer is.
         setInterval(() => document.visibilityState === 'visible' && !this.offline && this.refreshProfile(), 60_000);
@@ -168,7 +191,16 @@ Alpine.store('os', {
         this.navigate();
         // Pas na het laden van dit bestand: Alpine roept init() al aan bij het registreren van de store,
         // als fetchScreen en de cache verderop nog niet bestaan.
-        setTimeout(() => this.restore());
+        setTimeout(() => { this.checkVersion(); this.restore(); });
+    },
+
+    // Mag deze app nog? Ook vóór het inloggen. Te oud = 426, en dan zet api() het scherm "Update nodig".
+    checkVersion() {
+        api('versie').then(() => { this.update = null; }).catch(() => { /* 426 of geen verbinding */ });
+    },
+
+    openUpdate() {
+        if (this.update?.url) location.href = this.update.url;
     },
 
     // Na een herstart: het token terug uit de native opslag als de webview het kwijt is (iOS).

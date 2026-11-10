@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\AttentionService;
 use App\Support\AppMenu;
 use App\Support\AppNews;
+use App\Support\AppRelease;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -25,6 +26,15 @@ class SessionController extends Controller
 {
     /** Adressen waarop de app zelf draait: alleen daarheen mag een serverpagina terugverwijzen. */
     public const APP_ORIGINS = ['https://localhost', 'http://localhost', 'capacitor://localhost'];
+
+    /**
+     * Bij opstarten en terugkeren vraagt de app of hij nog mag. Een te oude app komt hier niet eens:
+     * RequireAppUpdate antwoordt dan al met 426 en de link naar de update.
+     */
+    public function version(): JsonResponse
+    {
+        return response()->json(['ok' => true, 'build' => AppRelease::currentBuild(), 'minimum_build' => AppRelease::minimumBuild()]);
+    }
 
     public function store(Request $request): JsonResponse
     {
@@ -79,6 +89,8 @@ class SessionController extends Controller
             'user' => $request->user()->id,
             'naar' => $validated['naar'],
             'terug' => $validated['terug'],
+            // Voor de verplichte update op serverpagina's (RequireAppUpdate leest het uit de sessie).
+            'build' => AppRelease::buildOf($request),
         ], now()->addMinute());
 
         return response()->json(['url' => route('app.web-session', ['code' => $code])]);

@@ -25,6 +25,8 @@ class AppWebSessionController extends Controller
         Auth::guard('web')->loginUsingId($data['user'], remember: true);
         $request->session()->regenerate();
         $request->session()->put('app_bundle', $data['terug']);
+        // Buildnummer van de app, voor de verplichte update op serverpagina's (RequireAppUpdate).
+        $request->session()->put('app_build', $data['build'] ?? 0);
 
         return redirect($data['naar']);
     }

@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\LeadIntakeController;
 use App\Http\Controllers\DeviceTokenController;
 use App\Http\Controllers\NovaController;
 use App\Http\Controllers\TaskStatusController;
+use App\Http\Middleware\RequireAppUpdate;
 use App\Http\Middleware\VerifyLeadIntakeToken;
 use Illuminate\Support\Facades\Route;
 
@@ -20,7 +21,10 @@ Route::post('/aanvragen', LeadIntakeController::class)
     ->name('api.leads.intake');
 
 // De iOS/Android-app (mobile/app): schermen zitten in de app, deze routes leveren de gegevens.
-Route::prefix('app')->name('api.app.')->group(function () {
+// Een app ouder dan minimum_build (mobile/release.json) krijgt overal 426 met uitleg (RequireAppUpdate).
+Route::prefix('app')->name('api.app.')->middleware(RequireAppUpdate::class)->group(function () {
+    // Bij opstarten en terugkeren: mag deze app nog, of moet hij eerst updaten?
+    Route::get('versie', [AppSessionController::class, 'version'])->middleware('throttle:60,1')->name('version');
     Route::post('inloggen', [AppSessionController::class, 'store'])->middleware('throttle:login')->name('login');
     // Foto's voor <img> in de app: zonder token, met een ondertekend adres uit het werkpakket.
     Route::get('fotos/{photo}', [AppWorkPackageController::class, 'photo'])->middleware('signed:relative')->name('photo');
