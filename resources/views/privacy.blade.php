@@ -62,7 +62,7 @@
             <section id="wie">
                 <h2>1. Wie zijn wij</h2>
                 <p class="mt-2">Renovion is een renovatiebedrijf in Arnhem. Wij gebruiken Renovion Dash om aanvragen, offertes, projecten en de uitvoering bij te houden. Wij zijn verantwoordelijk voor de persoonsgegevens die daarin staan.</p>
-                <p>Renovion, Mercatorweg 28, 6827 DC Arnhem, KVK 95384782. Vragen over privacy: <a href="mailto:info@renovion.nl" class="font-semibold text-brand-700 underline">info@renovion.nl</a> of +31 6 395 353 00.</p>
+                <p>Renovion, Mercatorweg 28, 6827 DC Arnhem, KVK 95384782. Vragen over privacy: <a href="mailto:info@renovion.nl" class="font-semibold text-brand-700 underline">info@renovion.nl</a> of <a href="tel:+31639535300" class="font-semibold text-brand-700 underline">+31 6 395 353 00</a>.</p>
                 <p>Deze verklaring geldt voor klanten en mensen die een aanvraag doen, voor bezoekers van een offertelink of het klantportaal, en voor medewerkers en partners die met Renovion Dash of de app werken.</p>
             </section>
 
