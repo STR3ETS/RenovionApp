@@ -47,6 +47,7 @@
         </form>
 
         <p class="mt-6 text-center text-xs text-navy-400">Innovatieve oplossingen voor elke renovatie</p>
+        <p class="mt-2 text-center text-xs"><a href="{{ route('privacy') }}" class="tap text-navy-300 underline-offset-2 hover:text-white hover:underline">Privacyverklaring</a></p>
     </div>
 </body>
 </html>

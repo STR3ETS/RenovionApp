@@ -36,6 +36,7 @@
                         <input type="checkbox" x-model="consent" class="mt-0.5 h-5 w-5 shrink-0 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
                         <span class="text-sm text-gray-700">Alle aanwezigen weten dat het gesprek wordt opgenomen en zijn akkoord.</span>
                     </label>
+                    <p class="-mt-2 text-xs text-gray-500">Vraagt iemand wat er met de opname gebeurt? <a href="{{ route('privacy') }}#gesprekken" class="font-semibold text-brand-700 underline underline-offset-2">Zo gaan we ermee om</a>.</p>
 
                     <p x-show="error" x-cloak class="rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700" x-text="error"></p>
 

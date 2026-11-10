@@ -56,6 +56,7 @@
     <footer class="border-t border-gray-200 bg-white pt-5 pb-[calc(1.25rem_+_env(safe-area-inset-bottom))] text-center text-xs text-gray-500">
         <p class="font-semibold text-gray-500">Renovion - geen half werk en vage beloftes</p>
         <p class="mt-1">Mercatorweg 28, 6827 DC Arnhem, info@renovion.nl, +31 6 395 353 00</p>
+        <p class="mt-1"><a href="{{ route('privacy') }}" class="tap font-semibold text-gray-600 underline underline-offset-2">Privacyverklaring</a></p>
     </footer>
 
     <x-photo-viewer />

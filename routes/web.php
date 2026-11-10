@@ -48,6 +48,9 @@ Route::get('/app/sessie', AppWebSessionController::class)->middleware('throttle:
 Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:login')->name('login.store');
 Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
+// Privacyverklaring: openbaar, ook voor de stores (Google Play en App Store vragen een link).
+Route::view('/privacy', 'privacy')->name('privacy');
+
 // Klantview van de offerte: privélink zonder inlog (briefing §6).
 if (config('renovion.modules.quotes')) {
     Route::middleware('throttle:30,1')->group(function () {

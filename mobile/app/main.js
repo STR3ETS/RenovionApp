@@ -126,6 +126,8 @@ Alpine.store('os', {
     question: null,
     heroUrl,
     novaUrl,
+    // Openbare pagina op de server, dus zonder eenmalige code; ook vanaf het inlogscherm.
+    privacyUrl: `${API}/privacy`,
 
     get signedIn() {
         return Boolean(this.token && this.profile);

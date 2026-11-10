@@ -169,6 +169,10 @@
                 <span class="app-ic vio"><x-icon name="envelope" class="h-[18px] w-[18px]" /></span>
                 <span class="min-w-0 flex-1"><b>Mail Renovion</b><small>info@renovion.nl</small></span>
             </a>
+            <a href="{{ route('privacy') }}" class="app-li">
+                <span class="app-ic ok"><x-icon name="shield-check" class="h-[18px] w-[18px]" /></span>
+                <span class="min-w-0 flex-1"><b>Privacyverklaring</b><small>Hoe Renovion met gegevens omgaat</small></span>
+            </a>
         </div>
     </div>
 </div>

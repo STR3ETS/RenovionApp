@@ -119,6 +119,7 @@
                     </form>
                 </div>
             </div>
+            <a href="{{ route('privacy') }}" class="mt-2 inline-block text-xs text-navy-300 transition hover:text-white">Privacyverklaring</a>
         </div>
     </aside>
 
@@ -426,6 +427,11 @@
                         <a href="{{ route('notification-settings.edit') }}" class="flex items-center gap-3 py-3 {{ request()->routeIs('notification-settings.*') ? 'text-brand-700' : 'text-navy-900' }}">
                             <x-icon name="cog" class="h-5 w-5 {{ request()->routeIs('notification-settings.*') ? 'text-brand-500' : 'text-gray-500' }}" />
                             <span class="flex-1 text-sm font-semibold">Meldingsinstellingen</span>
+                            <x-icon name="chevron-right" class="h-4 w-4 text-gray-300" />
+                        </a>
+                        <a href="{{ route('privacy') }}" class="flex items-center gap-3 py-3 text-navy-900">
+                            <x-icon name="shield-check" class="h-5 w-5 text-gray-500" />
+                            <span class="flex-1 text-sm font-semibold">Privacyverklaring</span>
                             <x-icon name="chevron-right" class="h-4 w-4 text-gray-300" />
                         </a>
                         <form method="POST" action="{{ route('logout') }}">

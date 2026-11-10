@@ -34,6 +34,7 @@
                         <span x-text="busy ? 'Bezig met inloggen' : 'Inloggen'"></span>
                     </button>
                 </form>
+                <p class="mt-6 text-center text-xs"><a :href="$store.os.privacyUrl" class="tap text-navy-300">Privacyverklaring</a></p>
             </div>
         </div>
     </template>
@@ -1133,6 +1134,10 @@
                     <a href="mailto:info@renovion.nl" class="app-li">
                         <span class="app-ic vio"><span x-icon="'envelope'" class="h-[18px] w-[18px]"></span></span>
                         <span class="min-w-0 flex-1"><b>Mail Renovion</b><small>info@renovion.nl</small></span>
+                    </a>
+                    <a :href="$store.os.privacyUrl" class="app-li">
+                        <span class="app-ic ok"><span x-icon="'shield-check'" class="h-[18px] w-[18px]"></span></span>
+                        <span class="min-w-0 flex-1"><b>Privacyverklaring</b><small>Hoe Renovion met gegevens omgaat</small></span>
                     </a>
                 </div>
             </div>
