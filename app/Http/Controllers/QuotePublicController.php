@@ -22,7 +22,7 @@ use Illuminate\View\View;
  */
 class QuotePublicController extends Controller
 {
-    public function show(Quote $quote): View
+    public function show(Request $request, Quote $quote): View
     {
         abort_if($quote->status === QuoteStatus::Concept, 404);
 
@@ -36,6 +36,14 @@ class QuotePublicController extends Controller
                 'viewed_at' => now(),
                 'viewed_count' => $quote->viewed_count + 1,
             ])->save();
+
+            // Elke keer apart vastleggen: hoe vaak en wanneer iemand kijkt, zegt
+            // meer over de kans dat hij tekent dan alleen "ooit bekeken".
+            $quote->views()->create([
+                'viewed_at' => now(),
+                'ip' => $request->ip(),
+                'user_agent' => str($request->userAgent())->limit(250)->value(),
+            ]);
 
             if ($wasUnseen) {
                 $quote->customer->recordEvent(

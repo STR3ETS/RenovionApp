@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'user_id', 'project_id', 'lead_id', 'customer_id', 'type',
-    'title', 'date', 'start_time', 'end_time', 'notes',
+    'title', 'date', 'end_date', 'start_time', 'end_time', 'notes',
 ])]
 class ScheduleEntry extends Model
 {
@@ -26,6 +26,7 @@ class ScheduleEntry extends Model
         return [
             'type' => ScheduleEntryType::class,
             'date' => 'date',
+            'end_date' => 'date',
         ];
     }
 

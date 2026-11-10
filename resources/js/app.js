@@ -714,3 +714,84 @@ Alpine.data('nova', (proposeUrl, executeUrl) => ({
 Alpine.plugin(swipeDismiss);
 Alpine.plugin(meetingRecorder);
 Alpine.start();
+
+/*
+ * Beweging (briefing hoofdstuk 6). De CSS doet de animaties; dit script
+ * bepaalt alleen de volgorde van de blokken, de draaihoek van de waaier en
+ * laat KPI-cijfers optellen. Alles gebeurt eenmalig bij het laden van een
+ * pagina, nooit bij opslaan of filteren.
+ */
+const motionAllowed = () =>
+    document.body.dataset.motion === 'on'
+    && ! window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function staggerBlocks() {
+    const main = document.querySelector('main');
+    if (! main) return;
+
+    // Maximaal 28 blokken in beeld; daarna zou het wachten gaan opvallen.
+    Array.from(main.children).slice(0, 28).forEach((block, index) => {
+        block.style.setProperty('--motion-i', index);
+        block.classList.add('motion-block');
+    });
+}
+
+function fanCards() {
+    document.querySelectorAll('[data-motion-fan]').forEach((group) => {
+        const cards = Array.from(group.children);
+        const middle = (cards.length - 1) / 2;
+
+        cards.forEach((card, index) => {
+            card.style.setProperty('--motion-rotate', `${((index - middle) * 2.4).toFixed(2)}deg`);
+            card.style.setProperty('--motion-i', index);
+            card.classList.add('motion-fan');
+        });
+    });
+}
+
+/**
+ * KPI-cijfers tellen op van 0 naar hun echte waarde, met behoud van de
+ * Nederlandse notatie (punt als duizendtal, komma als decimaal) en van
+ * alles wat er omheen staat, zoals een euroteken of een procentteken.
+ */
+function countUpNumbers() {
+    document.querySelectorAll('[data-count]').forEach((element) => {
+        const text = element.textContent.trim();
+        const match = text.match(/-?\d[\d.]*(,\d+)?/);
+        if (! match) return;
+
+        const raw = match[0];
+        const target = parseFloat(raw.replace(/\./g, '').replace(',', '.'));
+        if (! isFinite(target) || target === 0) return;
+
+        const decimals = raw.includes(',') ? raw.split(',')[1].length : 0;
+        const prefix = text.slice(0, match.index);
+        const suffix = text.slice(match.index + raw.length);
+        const format = (value) => value.toLocaleString('nl-NL', {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals,
+        });
+
+        const duration = 1000;
+        const startAt = performance.now() + 250;
+        element.textContent = `${prefix}${format(0)}${suffix}`;
+
+        const tick = (now) => {
+            const progress = Math.min(1, Math.max(0, (now - startAt) / duration));
+            const eased = 1 - Math.pow(1 - progress, 3);
+            element.textContent = `${prefix}${format(target * eased)}${suffix}`;
+
+            if (progress < 1) requestAnimationFrame(tick);
+        };
+
+        requestAnimationFrame(tick);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (! motionAllowed()) return;
+
+    staggerBlocks();
+    fanCards();
+    countUpNumbers();
+});

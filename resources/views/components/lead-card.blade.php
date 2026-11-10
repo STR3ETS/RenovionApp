@@ -1,41 +1,41 @@
 @props(['lead'])
 
 {{-- Leadcard volgens briefing: alleen wat nodig is om een beslissing te nemen. --}}
-<div {{ $attributes->merge(['class' => 'rounded-xl border border-gray-200 border-t-2 border-t-lead-500 bg-white p-3 shadow-sm transition hover:shadow-md']) }}>
+<div {{ $attributes->merge(['class' => 'rounded-xl border border-surface-700 border-t-2 border-t-lead-500 bg-surface-800 p-3 shadow-sm transition hover:shadow-md']) }}>
     <a href="{{ route('leads.show', $lead) }}" class="block">
         <div class="flex items-start justify-between gap-2">
-            <p class="font-semibold text-navy-900">{{ $lead->customer->name }}</p>
+            <p class="font-semibold text-white">{{ $lead->customer->name }}</p>
             @if ($lead->qualification !== \App\Enums\LeadQualification::Onbeoordeeld)
                 <x-signal-dot :color="$lead->qualification->dotColor()" class="mt-1.5" title="Kwalificatie: {{ $lead->qualification->label() }}" />
             @endif
         </div>
-        <p class="text-xs text-gray-500">{{ $lead->customer->city ?? 'Plaats onbekend' }}</p>
+        <p class="text-xs text-slate-400">{{ $lead->customer->city ?? 'Plaats onbekend' }}</p>
         @if ($lead->service)
-            <p class="mt-1 text-sm text-gray-700">{{ $lead->service }}</p>
+            <p class="mt-1 text-sm text-slate-200">{{ $lead->service }}</p>
         @endif
         @if ($lead->value)
-            <p class="mt-1 text-sm font-bold text-navy-900">€ {{ number_format((float) $lead->value, 0, ',', '.') }}</p>
+            <p class="mt-1 text-sm font-bold text-white">€ {{ number_format((float) $lead->value, 0, ',', '.') }}</p>
         @endif
 
         <div class="mt-2 space-y-1">
             @if ($lead->missingPhone())
-                <p class="flex items-center gap-1.5 text-xs font-medium text-amber-700"><x-signal-dot color="amber" /> Geen telefoonnummer</p>
+                <p class="flex items-center gap-1.5 text-xs font-medium text-amber-400"><x-signal-dot color="amber" /> Geen telefoonnummer</p>
             @endif
             @if ($lead->next_action_at?->isPast() && ! $lead->next_action_at->isToday())
-                <p class="flex items-center gap-1.5 text-xs font-medium text-red-600"><x-signal-dot color="red" /> Opvolging verlopen ({{ $lead->next_action_at->translatedFormat('j M') }})</p>
+                <p class="flex items-center gap-1.5 text-xs font-medium text-red-400"><x-signal-dot color="red" /> Opvolging verlopen ({{ $lead->next_action_at->translatedFormat('j M') }})</p>
             @elseif ($lead->needsFollowUpToday())
-                <p class="flex items-center gap-1.5 text-xs font-medium text-amber-700"><x-icon name="calendar" class="h-3.5 w-3.5" /> Vandaag opvolgen</p>
+                <p class="flex items-center gap-1.5 text-xs font-medium text-amber-400"><x-icon name="calendar" class="h-3.5 w-3.5" /> Vandaag opvolgen</p>
             @elseif ($lead->isSilent())
-                <p class="flex items-center gap-1.5 text-xs font-medium text-amber-700"><x-signal-dot color="amber" /> Geen opvolging gepland</p>
+                <p class="flex items-center gap-1.5 text-xs font-medium text-amber-400"><x-signal-dot color="amber" /> Geen opvolging gepland</p>
             @endif
             @if ($lead->status->isOpen() && $lead->qualification === \App\Enums\LeadQualification::Onbeoordeeld)
-                <p class="flex items-center gap-1.5 text-xs font-medium text-gray-500"><x-signal-dot color="gray" /> Nog kwalificeren</p>
+                <p class="flex items-center gap-1.5 text-xs font-medium text-slate-500"><x-signal-dot color="gray" /> Nog kwalificeren</p>
             @endif
             @if (config('renovion.modules.quotes'))
                 @foreach ($lead->quotes->filter(fn ($quote) => $quote->status->isOpen() && $quote->daysOpen() !== null && $quote->daysOpen() >= 3) as $openQuote)
-                    <p class="flex items-center gap-1.5 text-xs font-medium text-amber-700"><x-signal-dot color="amber" /> Offerte {{ $openQuote->daysOpen() }} dagen open</p>
+                    <p class="flex items-center gap-1.5 text-xs font-medium text-amber-400"><x-signal-dot color="amber" /> Offerte {{ $openQuote->daysOpen() }} dagen open</p>
                     @if ($openQuote->viewed_count > 0)
-                        <p class="flex items-center gap-1.5 text-xs font-medium text-gray-500"><x-icon name="eye" class="h-3.5 w-3.5" /> {{ $openQuote->viewed_count }}× bekeken</p>
+                        <p class="flex items-center gap-1.5 text-xs font-medium text-slate-400"><x-icon name="eye" class="h-3.5 w-3.5" /> {{ $openQuote->viewed_count }}× bekeken</p>
                     @endif
                 @endforeach
             @endif
@@ -44,12 +44,12 @@
 
     @if ($lead->customer->phone)
         <a href="tel:{{ $lead->customer->phone }}"
-           class="mt-3 flex items-center justify-center gap-1.5 rounded-lg bg-brand-500 py-1.5 text-center text-xs font-bold text-white transition hover:bg-brand-600 active:bg-brand-600 app:w-fit app:border app:border-gray-200 app:bg-white app:px-3.5 app:font-semibold app:text-navy-900 app:active:bg-gray-50">
+           class="mt-3 flex items-center justify-center gap-1.5 rounded-lg bg-brand-600 py-1.5 text-center text-xs font-semibold text-white transition hover:bg-brand-500">
             <x-icon name="phone" class="h-3.5 w-3.5" /> Contact opnemen
         </a>
     @else
         <a href="{{ route('leads.edit', $lead) }}"
-           class="mt-3 block rounded-lg bg-gray-100 py-1.5 text-center text-xs font-semibold text-gray-600 transition hover:bg-gray-200">
+           class="mt-3 block rounded-lg bg-surface-750 py-1.5 text-center text-xs font-semibold text-slate-300 transition hover:bg-surface-700">
             Gegevens aanvullen
         </a>
     @endif

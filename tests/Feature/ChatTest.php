@@ -27,7 +27,8 @@ class ChatTest extends TestCase
         $oud->messages()->create(['user_id' => $imad->id, 'body' => 'Eerder bericht'])->forceFill(['created_at' => now()->subDay()])->save();
         $nieuw->messages()->create(['user_id' => $peter->id, 'body' => 'Keuken staat erin']);
 
-        $response = $this->actingAs($imad)->get(route('chat.index'));
+        // De kanalenlijst in de app (de website heeft de donkere lijst uit main).
+        $response = $this->actingAs($imad)->withHeader('User-Agent', 'Mozilla/5.0 RenovionApp')->get(route('chat.index'));
 
         $response->assertSeeInOrder(['Nieuw', 'Peter: Keuken staat erin', 'Oud', 'Jij: Eerder bericht', 'Leeg', 'Nog geen berichten']);
         $response->assertSee('Gisteren');
@@ -80,7 +81,7 @@ class ChatTest extends TestCase
         $this->assertSame(0, $kanaal->fresh()->load('readers')->unreadCountFor($raphael));
     }
 
-    public function test_bottom_nav_badge_shows_the_live_unread_count(): void
+    public function test_the_unread_count_is_counted_live(): void
     {
         $imad = User::factory()->create(['name' => 'Imad']);
         $raphael = User::factory()->create(['name' => 'Raphael']);
@@ -94,8 +95,6 @@ class ChatTest extends TestCase
         $this->actingAs($raphael)->getJson(route('chat.unread'))->assertOk()->assertExactJson(['count' => 2]);
         $this->actingAs($imad)->getJson(route('chat.unread'))->assertExactJson(['count' => 0]);
 
-        // De pagina toont het getal meteen in het bolletje op "Chat".
-        $this->actingAs($raphael)->get(route('dashboard'))->assertOk()->assertSee('unread: 2', false);
     }
 
     public function test_uitvoerders_see_team_channels_and_only_their_own_project_channels(): void

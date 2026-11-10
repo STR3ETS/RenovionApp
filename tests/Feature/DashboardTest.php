@@ -25,9 +25,10 @@ class DashboardTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Imad');
-        $response->assertSee('nieuwe aanvragen');
+        $response->assertSee('Nieuwe aanvragen');
         $response->assertSee('Aanbetaling Bakker controleren');
-        $response->assertSee('Nu doen');
+        // De kop staat opgesplitst in de opmaak: "Nu <span>doen</span>".
+        $response->assertSeeInOrder(['Nu ', 'doen'], escape: false);
     }
 
     public function test_the_attention_sentence_and_badge_show_the_same_total(): void

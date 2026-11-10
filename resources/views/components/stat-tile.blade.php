@@ -3,13 +3,13 @@
 @php
     // Statcard (stijlgids §06): zachte categorietint met gevulde chip.
     $styles = match ($category) {
-        'lead' => ['card' => 'border-lead-200 bg-lead-50', 'chip' => 'bg-lead-500 text-white', 'label' => 'text-lead-700', 'sub' => 'text-lead-700/60'],
-        'klant' => ['card' => 'border-klant-200 bg-klant-50', 'chip' => 'bg-klant-500 text-white', 'label' => 'text-klant-700', 'sub' => 'text-klant-700/60'],
-        'calc' => ['card' => 'border-calc-200 bg-calc-50', 'chip' => 'bg-calc-500 text-white', 'label' => 'text-calc-700', 'sub' => 'text-calc-700/60'],
-        'offerte' => ['card' => 'border-offerte-200 bg-offerte-50', 'chip' => 'bg-offerte-500 text-white', 'label' => 'text-offerte-700', 'sub' => 'text-offerte-700/60'],
-        'project' => ['card' => 'border-project-200 bg-project-50', 'chip' => 'bg-project-500 text-white', 'label' => 'text-project-700', 'sub' => 'text-project-700/60'],
-        'planning' => ['card' => 'border-planning-200 bg-planning-50', 'chip' => 'bg-planning-500 text-white', 'label' => 'text-planning-700', 'sub' => 'text-planning-700/60'],
-        default => ['card' => 'border-gray-200 bg-white', 'chip' => 'bg-navy-950 text-white', 'label' => 'text-gray-500', 'sub' => 'text-gray-500'],
+        'lead' => ['card' => 'border-lead-500/30 bg-lead-500/10', 'chip' => 'bg-lead-500 text-white', 'label' => 'text-lead-300', 'sub' => 'text-lead-300/60'],
+        'klant' => ['card' => 'border-klant-500/30 bg-klant-500/10', 'chip' => 'bg-klant-500 text-white', 'label' => 'text-klant-300', 'sub' => 'text-klant-300/60'],
+        'calc' => ['card' => 'border-calc-500/30 bg-calc-500/10', 'chip' => 'bg-calc-500 text-white', 'label' => 'text-calc-300', 'sub' => 'text-calc-300/60'],
+        'offerte' => ['card' => 'border-offerte-500/30 bg-offerte-500/10', 'chip' => 'bg-offerte-500 text-white', 'label' => 'text-offerte-300', 'sub' => 'text-offerte-300/60'],
+        'project' => ['card' => 'border-project-500/30 bg-project-500/10', 'chip' => 'bg-project-500 text-white', 'label' => 'text-project-300', 'sub' => 'text-project-300/60'],
+        'planning' => ['card' => 'border-planning-500/30 bg-planning-500/10', 'chip' => 'bg-planning-500 text-white', 'label' => 'text-planning-300', 'sub' => 'text-planning-300/60'],
+        default => ['card' => 'border-surface-700 bg-surface-800', 'chip' => 'bg-navy-950 text-white', 'label' => 'text-slate-400', 'sub' => 'text-slate-500'],
     };
 @endphp
 
@@ -23,8 +23,8 @@
             </span>
         @endif
     </div>
-    <p data-count class="mt-1 text-2xl font-bold text-navy-950 tabular-nums lg:text-3xl">{{ $value }}</p>
+    <p class="mt-1 text-2xl font-bold text-white lg:text-3xl">{{ $value }}</p>
     @if ($sub)
-        <p class="mt-0.5 text-xs font-medium {{ $alert ? 'text-red-600' : $styles['sub'] }}">{{ $sub }}</p>
+        <p class="mt-0.5 text-xs font-medium {{ $alert ? 'text-red-400' : $styles['sub'] }}">{{ $sub }}</p>
     @endif
 </a>

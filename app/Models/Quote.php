@@ -95,6 +95,17 @@ class Quote extends Model
         return $this->hasMany(QuoteVersion::class)->orderByDesc('version');
     }
 
+    /** Elke keer dat de klant de link opende, met datum en tijd. */
+    public function views(): HasMany
+    {
+        return $this->hasMany(QuoteView::class)->latest('viewed_at');
+    }
+
+    public function questions(): HasMany
+    {
+        return $this->hasMany(QuoteQuestion::class)->latest();
+    }
+
     #[Scope]
     protected function open(Builder $query): Builder
     {

@@ -53,6 +53,8 @@ class PlanningController extends Controller
             ])->values(),
             'entries' => $entries->map(fn (ScheduleEntry $entry) => [
                 ...$planning->detail($entry, $user),
+                // De app heeft lichte schermen; de website (detail) gebruikt de donkere kleuren.
+                'classes' => $entry->type->appBlockClasses(),
                 'id' => $entry->id,
                 'user_id' => $entry->user_id,
                 'day' => $entry->date->toDateString(),

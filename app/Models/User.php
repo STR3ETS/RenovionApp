@@ -17,7 +17,10 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'password', 'role', 'phone', 'customer_id'])]
+#[Fillable([
+    'name', 'email', 'password', 'role', 'phone', 'customer_id', 'motion_enabled',
+    'job_title', 'trades', 'hourly_rate', 'weekly_capacity', 'plannable', 'started_on', 'active',
+])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -31,6 +34,7 @@ class User extends Authenticatable
      */
     protected $attributes = [
         'role' => 'uitvoerder',
+        'motion_enabled' => true,
     ];
 
     /**
@@ -45,8 +49,36 @@ class User extends Authenticatable
             'password' => 'hashed',
             'role' => UserRole::class,
             'notification_preferences' => 'array',
-            'motion' => 'boolean',
+            'onboarding_dismissed_at' => 'datetime',
+            'motion_enabled' => 'boolean',
+            'trades' => 'array',
+            'hourly_rate' => 'decimal:2',
+            'plannable' => 'boolean',
+            'started_on' => 'date',
+            'active' => 'boolean',
         ];
+    }
+
+    public function certificates(): HasMany
+    {
+        return $this->hasMany(Certificate::class)->orderBy('valid_until');
+    }
+
+    public function absences(): HasMany
+    {
+        return $this->hasMany(Absence::class)->orderBy('from');
+    }
+
+    /** Het tarief waarmee uren naar kosten gaan; zonder tarief rekenen we met 50 euro. */
+    public function rate(): float
+    {
+        return (float) ($this->hourly_rate ?? 50);
+    }
+
+    /** Alleen wie planbaar is, verschijnt in de planning en de capaciteitsweergave. */
+    public function isPlannable(): bool
+    {
+        return $this->plannable && $this->active && ! $this->role->isExternal();
     }
 
     /**

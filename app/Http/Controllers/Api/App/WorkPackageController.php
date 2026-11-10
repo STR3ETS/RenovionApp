@@ -114,7 +114,7 @@ class WorkPackageController extends Controller
             'id' => $workPackage->id,
             'name' => $workPackage->name,
             'description' => $workPackage->description,
-            'status' => ['value' => $workPackage->status->value, 'label' => $workPackage->status->label(), 'classes' => $workPackage->status->badgeClasses()],
+            'status' => ['value' => $workPackage->status->value, 'label' => $workPackage->status->label(), 'classes' => $workPackage->status->appBadgeClasses()],
             'done' => $workPackage->isDone(),
             'completed_at' => $workPackage->completed_at?->translatedFormat('j M Y H:i'),
             'deadline' => $workPackage->deadline?->toDateString(),

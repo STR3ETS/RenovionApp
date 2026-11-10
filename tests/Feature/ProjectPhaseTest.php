@@ -29,9 +29,10 @@ class ProjectPhaseTest extends TestCase
         $user = User::factory()->create();
         $project = Project::factory()->create();
 
+        // De kop staat opgesplitst in de opmaak: "Project<span>voortgang</span>".
         $this->actingAs($user)->get('/projecten/'.$project->id)
             ->assertOk()
-            ->assertSee('Projectvoortgang')
+            ->assertSeeInOrder(['Project', 'voortgang'], escape: false)
             ->assertSee('Werkvoorbereiding')
             ->assertSee('Oplevering');
     }

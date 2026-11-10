@@ -25,10 +25,10 @@ class StyleguideTest extends TestCase
     {
         $admin = User::factory()->create(['role' => UserRole::Admin]);
 
+        // De koppen staan opgesplitst in de opmaak: "Nu <span>doen</span>".
         $this->actingAs($admin)->get('/')
             ->assertOk()
-            ->assertSee('Nu doen')
-            ->assertSee('Vandaag gepland');
+            ->assertSeeInOrder(['Nu ', 'doen', 'Vandaag ', 'gepland'], escape: false);
     }
 
     public function test_uitvoerder_cannot_view_the_styleguide(): void

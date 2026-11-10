@@ -23,7 +23,7 @@ class AppPayload
             'name' => $project->name,
             'customer' => $project->customer->name,
             'city' => $project->city,
-            'status' => ['label' => $project->status->label(), 'classes' => $project->status->badgeClasses()],
+            'status' => ['label' => $project->status->label(), 'classes' => $project->status->appBadgeClasses()],
             'phase' => $phase?->name,
             'overdue' => $project->isOverdue(),
             'progress' => $project->progress,

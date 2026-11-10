@@ -12,6 +12,8 @@ use App\Models\ScheduleEntry;
 use App\Models\Task;
 use App\Models\User;
 use App\Services\AttentionService;
+use App\Services\OnboardingGuide;
+use App\Services\ProjectHealthService;
 use App\Support\NativeApp;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,17 +24,46 @@ class DashboardController extends Controller
     /**
      * Het Vandaag-scherm: actie gaat vóór informatie.
      */
-    public function __invoke(Request $request): View|RedirectResponse
+    public function __invoke(Request $request, OnboardingGuide $onboarding): View|RedirectResponse
     {
+        // De twee buitenrollen komen de interne omgeving niet in: zij hebben hun
+        // eigen portaal.
         if ($request->user()->role === UserRole::Klant) {
             return redirect()->route('portal.index');
         }
 
-        if ($request->user()->cannot('manage-crm')) {
-            return view('dashboard.uitvoerder', $this->uitvoerderData($request->user()));
+        if ($request->user()->role === UserRole::Onderaannemer) {
+            return redirect()->route('partner.index');
         }
 
-        return view(NativeApp::active() ? 'dashboard.app' : 'dashboard.index', $this->managementData());
+        // "Aan de slag"-banner zolang de gebruiker de uitleg niet uit het menu heeft gehaald.
+        $onboardingSummary = $onboarding->summaryFor($request->user());
+        $onboardingBanner = $onboardingSummary['dismissed'] ? null : $onboardingSummary;
+
+        if ($request->user()->cannot('manage-crm')) {
+            return view('dashboard.uitvoerder', [
+                'onboarding' => $onboardingBanner,
+                'taken' => Task::open()
+                    ->where('owner_id', $request->user()->id)
+                    ->with(['customer', 'project'])
+                    ->orderByRaw('deadline is null, deadline asc')
+                    ->limit(20)
+                    ->get(),
+                'planningWeek' => ScheduleEntry::where('user_id', $request->user()->id)
+                    ->whereBetween('date', [today(), today()->addDays(7)])
+                    ->with(['project', 'customer'])
+                    ->orderBy('date')
+                    ->orderByRaw('start_time is null, start_time asc')
+                    ->get(),
+            ]);
+        }
+
+        // In de iOS/Android-app een eigen Vandaag in Renovion OS-stijl (meestal opent de app zijn eigen scherm).
+        if (NativeApp::active()) {
+            return view('dashboard.app', $this->managementData());
+        }
+
+        return view('dashboard.index', ['onboarding' => $onboardingBanner, ...$this->managementData()]);
     }
 
     /**
@@ -144,12 +175,12 @@ class DashboardController extends Controller
             ->get();
 
         $planningVandaag = ScheduleEntry::whereDate('date', today())
-            ->with(['user', 'project', 'customer'])
+            ->with(['user', 'project', 'lead', 'customer'])
             ->orderByRaw('start_time is null, start_time asc')
             ->get();
 
         $recenteProjecten = Project::active()
-            ->with(['customer', 'craftsmen', 'phases'])
+            ->with(['customer', 'craftsmen', 'phases', 'projectLeader'])
             ->withCount(['photos' => fn ($query) => $query->where('client_visible', true)])
             ->latest('updated_at')
             ->limit(4)
@@ -160,6 +191,13 @@ class DashboardController extends Controller
         return [
             'stats' => $stats,
             'recenteProjecten' => $recenteProjecten,
+            'mijnTaken' => Task::open()
+                ->where('owner_id', auth()->id())
+                ->with(['customer', 'project'])
+                ->orderByRaw('deadline is null, deadline asc')
+                ->limit(5)
+                ->get(),
+            'projectHealth' => app(ProjectHealthService::class)->forMany($recenteProjecten),
             'aandachtItems' => $attentionItems->take(4),
             'attentionCount' => $attentionItems->count(),
             'taken' => $taken,

@@ -48,7 +48,7 @@ class ProjectDetailController extends Controller
             'current' => $current ? [
                 'step' => $project->phases->search(fn ($phase) => $phase->is($current)) + 1,
                 'name' => $current->name,
-                'status' => ['label' => $current->status->label(), 'classes' => $current->status->badgeClasses()],
+                'status' => ['label' => $current->status->label(), 'classes' => $current->status->appBadgeClasses()],
                 'next' => $current->status !== PhaseStatus::Gereed ? $next?->name : null,
             ] : null,
             'phases' => $project->phases->map(fn ($phase) => [
@@ -68,7 +68,7 @@ class ProjectDetailController extends Controller
                     'id' => $package->id,
                     'name' => $package->name,
                     'done' => $package->isDone(),
-                    'status' => ['label' => $package->status->label(), 'classes' => $package->status->badgeClasses()],
+                    'status' => ['label' => $package->status->label(), 'classes' => $package->status->appBadgeClasses()],
                     'deadline' => $package->deadline?->toDateString(),
                     'overdue' => $package->isOverdue(),
                     'items' => $package->items_count,

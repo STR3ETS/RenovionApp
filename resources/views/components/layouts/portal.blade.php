@@ -1,19 +1,28 @@
-@props(['title' => null])
+{{-- Dezelfde buitenschil voor het klantportaal en het partnerportaal: licht,
+     smal en zonder het interne menu. --}}
+@props(['title' => null, 'portal' => 'Klantportaal', 'home' => 'portal.index'])
+
+@php
+    // In de iOS/Android-app de Renovion OS-stijl en de pagina-opbouw van de app (html[data-motion]).
+    $isApp = \App\Support\NativeApp::active();
+@endphp
 
 <!DOCTYPE html>
-<html lang="nl" @nativeapp class="native-app" @endnativeapp @if (auth()->user()?->motion ?? true) data-motion @endif>
+<html lang="nl" @if ($isApp) class="native-app" @if (auth()->user()?->motion_enabled !== false) data-motion @endif @endif>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="robots" content="noindex, nofollow">
-    <title>{{ $title ? $title.' - ' : '' }}Klantportaal Renovion</title>
+    <title>{{ $title ? $title.' - ' : '' }}{{ $portal }} Renovion</title>
     @include('partials.favicon')
 
     @include('partials.fonts')
 
     @include('partials.load-guard')
-    @include('partials.motion-head')
+    @if ($isApp)
+        @include('partials.motion-head')
+    @endif
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -22,7 +31,7 @@
     {{-- Sticky: anders schuift de pagina in de app onder de klok door en is de statusbalk onleesbaar. --}}
     <header class="sticky top-0 z-30 bg-navy-950 pt-safe text-white">
         <div class="mx-auto flex h-16 w-full max-w-3xl items-center justify-between px-4">
-            <a href="{{ route('portal.index') }}">
+            <a href="{{ route($home) }}">
                 @nativeapp
                     <x-os-logo class="h-12 w-auto" />
                 @else
@@ -50,7 +59,9 @@
 
         {{ $slot }}
 
-        @include('partials.motion-stage')
+        @if ($isApp)
+            @include('partials.motion-stage')
+        @endif
     </main>
 
     <footer class="border-t border-gray-200 bg-white pt-5 pb-[calc(1.25rem_+_env(safe-area-inset-bottom))] text-center text-xs text-gray-500">

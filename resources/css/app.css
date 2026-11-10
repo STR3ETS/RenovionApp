@@ -44,6 +44,8 @@
     --color-lead-50: #f0f9ff;
     --color-lead-100: #e0f2fe;
     --color-lead-200: #bae6fd;
+    --color-lead-300: #7dd3fc;
+    --color-lead-400: #38bdf8;
     --color-lead-500: #0ea5e9;
     --color-lead-600: #0284c7;
     --color-lead-700: #0369a1;
@@ -52,6 +54,8 @@
     --color-klant-50: #f0fdfa;
     --color-klant-100: #ccfbf1;
     --color-klant-200: #99f6e4;
+    --color-klant-300: #5eead4;
+    --color-klant-400: #2dd4bf;
     --color-klant-500: #14b8a6;
     --color-klant-600: #0d9488;
     --color-klant-700: #0f766e;
@@ -60,6 +64,8 @@
     --color-calc-50: #f5f3ff;
     --color-calc-100: #ede9fe;
     --color-calc-200: #ddd6fe;
+    --color-calc-300: #c4b5fd;
+    --color-calc-400: #a78bfa;
     --color-calc-500: #8b5cf6;
     --color-calc-600: #7c3aed;
     --color-calc-700: #6d28d9;
@@ -68,6 +74,8 @@
     --color-offerte-50: #eef2ff;
     --color-offerte-100: #e0e7ff;
     --color-offerte-200: #c7d2fe;
+    --color-offerte-300: #a5b4fc;
+    --color-offerte-400: #818cf8;
     --color-offerte-500: #6366f1;
     --color-offerte-600: #4f46e5;
     --color-offerte-700: #4338ca;
@@ -76,6 +84,8 @@
     --color-project-50: #f0fdf4;
     --color-project-100: #dcfce7;
     --color-project-200: #bbf7d0;
+    --color-project-300: #86efac;
+    --color-project-400: #4ade80;
     --color-project-500: #22c55e;
     --color-project-600: #16a34a;
     --color-project-700: #15803d;
@@ -84,9 +94,25 @@
     --color-planning-50: #fdf2f8;
     --color-planning-100: #fce7f3;
     --color-planning-200: #fbcfe8;
+    --color-planning-300: #f9a8d4;
+    --color-planning-400: #f472b6;
     --color-planning-500: #ec4899;
     --color-planning-600: #db2777;
     --color-planning-700: #be185d;
+
+    /*
+     * Donkere schil (Renovion OS): de interne omgeving draait op een donker
+     * navy-slate vlak met oranje als enige actiekleur. Klantgerichte en
+     * afdrukbare schermen (offertedocument, klantportaal, opleverrapport)
+     * blijven bewust licht.
+     */
+    --color-surface-950: #080d16; /* sidebar */
+    --color-surface-900: #0e1524; /* paginavlak */
+    --color-surface-850: #141c2d; /* ingezonken vlakken */
+    --color-surface-800: #1a2333; /* kaarten */
+    --color-surface-750: #202a3d; /* hover op kaarten */
+    --color-surface-700: #27334a; /* randen */
+    --color-surface-600: #35425e; /* sterkere randen */
 
     /* Staalblauw — secundaire accenten (v1, wordt uitgefaseerd) */
     --color-steel-50: #f2f6fa;
@@ -452,4 +478,203 @@ html:not([data-motion])::view-transition-new(root) {
 .quote-prose a {
     text-decoration: underline;
     text-underline-offset: 2px;
+}
+
+/*
+ * Beweging (briefing hoofdstuk 6). Animaties spelen alleen bij het wisselen
+ * van pagina of het openen van iets, nooit bij opslaan, filteren of typen.
+ * Er wordt uitsluitend transform, opacity en filter geanimeerd, zodat het
+ * soepel blijft op telefoon en tablet.
+ *
+ * Alles staat uit bij prefers-reduced-motion en bij motion="off" op de body
+ * (per gebruiker in te stellen).
+ */
+@media (prefers-reduced-motion: no-preference) {
+    /* Pagina-opbouw: blokken komen na elkaar binnen, van onscherp en iets lager. */
+    body[data-motion='on'] .motion-block {
+        animation: motion-rise 620ms cubic-bezier(0.22, 0.68, 0.3, 1) both;
+        animation-delay: calc(var(--motion-i, 0) * 55ms);
+    }
+
+    /* Waaier: kaarten komen licht gedraaid binnen en vallen recht. */
+    body[data-motion='on'] .motion-fan {
+        animation: motion-fan 900ms cubic-bezier(0.16, 0.84, 0.28, 1) both;
+        animation-delay: calc(var(--motion-i, 0) * 55ms);
+    }
+
+    /* Pop-up: venster zoomt in van 94 procent en wordt scherp. */
+    body[data-motion='on'] .motion-pop {
+        animation: motion-pop 250ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+    }
+
+    /* Voortgangsbalken lopen vol van links. */
+    body[data-motion='on'] .motion-bar {
+        animation: motion-bar 340ms ease-out both;
+        transform-origin: left center;
+    }
+
+    /* Micro-interacties: knoppen veren in bij klik, klikbare kaarten tillen op. */
+    body[data-motion='on'] button:active:not(:disabled),
+    body[data-motion='on'] [role='button']:active {
+        transform: scale(0.96);
+    }
+
+    body[data-motion='on'] button,
+    body[data-motion='on'] [role='button'] {
+        transition: transform 150ms ease-out;
+    }
+
+    body[data-motion='on'] .motion-lift {
+        transition: transform 180ms ease-out, box-shadow 180ms ease-out;
+    }
+
+    body[data-motion='on'] .motion-lift:hover {
+        transform: translateY(-3px);
+    }
+}
+
+@keyframes motion-rise {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+        filter: blur(6px);
+    }
+}
+
+@keyframes motion-fan {
+    from {
+        opacity: 0;
+        transform: translateY(18px) rotate(var(--motion-rotate, 0deg));
+        filter: blur(5px);
+    }
+}
+
+@keyframes motion-pop {
+    from {
+        opacity: 0;
+        transform: scale(0.94);
+        filter: blur(4px);
+    }
+}
+
+@keyframes motion-bar {
+    from {
+        transform: scaleX(0);
+    }
+}
+
+/*
+ * Formuliervelden in de donkere schil. @tailwindcss/forms geeft ze standaard
+ * een witte achtergrond; binnen de interne omgeving (body.app-shell) maken we
+ * ze donker. Klantgerichte en afdrukbare schermen hebben die klasse niet en
+ * blijven dus licht.
+ */
+.app-shell input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not([type='file']),
+.app-shell select,
+.app-shell textarea {
+    background-color: var(--color-surface-850);
+    border-color: var(--color-surface-700);
+    color: #fff;
+}
+
+.app-shell input::placeholder,
+.app-shell textarea::placeholder {
+    color: var(--color-slate-500);
+}
+
+.app-shell option {
+    background-color: var(--color-surface-850);
+    color: #fff;
+}
+
+.app-shell input[type='checkbox'],
+.app-shell input[type='radio'] {
+    background-color: var(--color-surface-750);
+    border-color: var(--color-surface-600);
+}
+
+.app-shell input[type='date']::-webkit-calendar-picker-indicator,
+.app-shell input[type='time']::-webkit-calendar-picker-indicator {
+    filter: invert(1) opacity(0.5);
+}
+
+/* Scrollbars in de donkere schil. */
+.app-shell * {
+    scrollbar-color: var(--color-surface-600) transparent;
+}
+
+/*
+ * Dichte tabellen (.t uit het prototype). Lijsten met veel kolommen lezen
+ * beter als tabel dan als rijkaart: kleine uppercase kolomkoppen, getallen
+ * rechts uitgelijnd met vaste cijferbreedte, een hele rij is klikbaar.
+ * Zelfde klassenamen als het prototype, zodat vergelijken makkelijk blijft.
+ */
+.tw {
+    overflow-x: auto;
+}
+
+.t {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8125rem;
+}
+
+.t th {
+    text-align: left;
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-slate-500);
+    font-weight: 600;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--color-surface-700);
+    white-space: nowrap;
+    background: var(--color-surface-850);
+}
+
+.t td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--color-surface-700);
+    vertical-align: middle;
+    color: var(--color-slate-300);
+}
+
+.t tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.t tfoot td {
+    background: var(--color-surface-850);
+    border-top: 1px solid var(--color-surface-700);
+    border-bottom: 0;
+    color: #fff;
+}
+
+.t tr.click {
+    cursor: pointer;
+}
+
+.t tr.click:hover td {
+    background: var(--color-surface-750);
+}
+
+.t .r {
+    text-align: right;
+}
+
+.t td.r {
+    font-variant-numeric: tabular-nums;
+}
+
+.t td b,
+.t td strong {
+    color: #fff;
+    font-weight: 600;
+}
+
+.t td .sub {
+    display: block;
+    font-size: 11.5px;
+    color: var(--color-slate-500);
+    font-weight: 400;
 }

@@ -51,7 +51,8 @@ class NotificationSettingsController extends Controller
     {
         $validated = $request->validate(['enabled' => ['required', 'boolean']]);
 
-        $request->user()->forceFill(['motion' => $validated['enabled']])->save();
+        // Dezelfde voorkeur als de bliksemknop op de website (MotionPreferenceController).
+        $request->user()->forceFill(['motion_enabled' => $validated['enabled']])->save();
 
         return response()->json(['enabled' => (bool) $validated['enabled']]);
     }

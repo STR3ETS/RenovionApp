@@ -1,65 +1,85 @@
-<x-layouts.app title="Aandacht">
+@php
+    use App\Services\AttentionService;
 
-    @nativeapp
-        @php $rood = $items->where('severity', 'rood')->count(); @endphp
-        <div x-data="{ filter: 'alles' }">
-            <x-page-header title="Inbox" :subtitle="\App\Support\Tally::of($items->count(), 'punt vraagt', 'punten vragen').' jouw actie. Wat goed loopt zie je hier niet.'" />
+    // Tellers per soort. "Te doen" is de doorsnede: alles behalve informatie.
+    $tellen = fn (string $kind) => $kind === 'todo'
+        ? $items->where('kind', '!=', 'info')->count()
+        : $items->where('kind', $kind)->count();
 
-            @if ($items->isEmpty())
-                <x-empty-state title="Niets vraagt op dit moment aandacht"
-                               subtitle="Alle projecten, offertes en taken lopen op schema." icon="check" category="project" />
-            @else
-                <div class="app-chips">
-                    <button type="button" @click="filter = 'alles'" :class="filter === 'alles' && 'on'" class="app-chip">Te doen <span>{{ $items->count() }}</span></button>
-                    <button type="button" @click="filter = 'rood'" :class="filter === 'rood' && 'on'" class="app-chip">Actie nodig <span>{{ $rood }}</span></button>
-                    <button type="button" @click="filter = 'oranje'" :class="filter === 'oranje' && 'on'" class="app-chip">Signaal <span>{{ $items->count() - $rood }}</span></button>
-                </div>
+    $teDoen = $tellen('todo');
+    $terInfo = $tellen('info');
 
-                <div class="app-card">
-                    <div class="app-card-b">
-                        @foreach ($items as $item)
-                            @php $urgent = $item['severity'] === 'rood'; @endphp
-                            <a href="{{ $item['url'] }}" class="app-li ibx" style="--st: {{ $urgent ? '#f26a1b' : '#3e6ba8' }}" x-show="filter === 'alles' || filter === @js($urgent ? 'rood' : 'oranje')">
-                                <span class="app-ic {{ $urgent ? 'bad' : 'warn' }}"><x-icon :name="$item['icon']" class="h-[18px] w-[18px]" /></span>
-                                <span class="min-w-0 flex-1">
-                                    <b>{{ $item['title'] }}</b>
-                                    <small class="line-clamp-2"><span class="src">{{ $item['label'] }}</span>@if ($item['subtitle']) {{ $item['subtitle'] }}@endif</small>
+    // Knoptekst per soort signaal, zodat de actie meteen duidelijk is.
+    $knop = fn (array $item) => match ($item['kind']) {
+        'bevestigen' => 'Controleren',
+        'service' => 'Afhandelen',
+        'info' => 'Lezen',
+        default => match ($item['icon']) {
+            'phone', 'document-text' => 'Opvolgen',
+            'currency-euro' => 'Controleer',
+            'calendar', 'exclamation-triangle' => 'Oplossen',
+            default => 'Bekijk',
+        },
+    };
+@endphp
+
+<x-layouts.app title="Inbox">
+    <div x-data="{ tab: 'todo' }">
+        <div class="mb-6 max-w-2xl">
+            <p class="flex items-center gap-2 text-[11px] font-bold tracking-widest text-brand-400 uppercase">
+                <span class="flex h-6 w-6 items-center justify-center rounded-md bg-brand-500/15"><x-icon name="exclamation-triangle" class="h-3.5 w-3.5" /></span>
+                Nova signaleert
+            </p>
+            <h1 class="mt-3 text-3xl font-bold text-white">Inbox</h1>
+            <p class="mt-2 text-sm text-slate-300">
+                @if ($items->isEmpty())
+                    Je inbox is leeg. Alles loopt volgens plan.
+                @else
+                    <span class="font-bold text-white">{{ $teDoen }} {{ $teDoen === 1 ? 'punt vraagt' : 'punten vragen' }} jouw actie</span>@if ($terInfo), {{ $terInfo }} ter informatie @endif.
+                    Signalen, werkbonnen, servicemeldingen en berichten op één plek.
+                @endif
+            </p>
+        </div>
+
+        @if ($items->isEmpty())
+            <x-empty-state title="Niets meer te doen"
+                           subtitle="Alle projecten, offertes, werkbonnen en taken lopen op schema." icon="check" category="project" />
+        @else
+            <nav class="scrollbar-none mb-6 flex gap-1 overflow-x-auto rounded-full border border-surface-700 bg-surface-850 p-1 lg:w-fit lg:max-w-full">
+                @foreach (AttentionService::KINDS as $key => $label)
+                    @continue($key !== 'todo' && $tellen($key) === 0)
+                    <button type="button" @click="tab = '{{ $key }}'"
+                            :class="tab === '{{ $key }}' ? 'bg-brand-500 text-white' : 'text-slate-400 hover:text-white'"
+                            class="flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-semibold whitespace-nowrap transition">
+                        {{ $label }}
+                        <span :class="tab === '{{ $key }}' ? 'bg-white/25 text-white' : 'bg-surface-700 text-slate-400'"
+                              class="rounded-full px-1.5 text-[10px] font-bold">{{ $tellen($key) }}</span>
+                    </button>
+                @endforeach
+            </nav>
+
+            <div class="rounded-2xl border border-surface-700 bg-surface-850 p-3">
+                @foreach ($items as $item)
+                    @php($isRood = $item['severity'] === 'rood')
+                    <div x-show="tab === '{{ $item['kind'] }}' || (tab === 'todo' && '{{ $item['kind'] }}' !== 'info')"
+                         class="flex items-center gap-4 border-b border-surface-700 px-2 py-3 last:border-b-0">
+                        <span class="h-10 w-1 shrink-0 rounded-full {{ $isRood ? 'bg-red-500' : 'bg-amber-500' }}"></span>
+                        <a href="{{ $item['url'] }}" class="flex min-w-0 flex-1 items-center gap-4">
+                            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg {{ $isRood ? 'bg-red-500/15 text-red-400' : 'bg-amber-500/15 text-amber-400' }}">
+                                <x-icon :name="$item['icon']" class="h-4 w-4" />
+                            </span>
+                            <span class="min-w-0 flex-1">
+                                <span class="block truncate text-sm font-bold text-white">{{ $item['title'] }}</span>
+                                <span class="block truncate text-xs text-slate-400">
+                                    <span class="mr-1 text-[11px] font-bold tracking-wider uppercase {{ $isRood ? 'text-red-400' : 'text-amber-400' }}">{{ $item['label'] }}</span>
+                                    {{ $item['subtitle'] }}
                                 </span>
-                                <x-icon name="chevron-right" class="mt-2.5 h-4 w-4 text-gray-300" />
-                            </a>
-                        @endforeach
+                            </span>
+                        </a>
+                        <a href="{{ $item['url'] }}" class="shrink-0 rounded-full border border-surface-600 px-4 py-1.5 text-sm font-semibold text-white transition hover:border-surface-500 hover:bg-surface-750">{{ $knop($item) }}</a>
                     </div>
-                </div>
-            @endif
-        </div>
-    @else
-    <x-page-header eyebrow="Nova signaleert" title="Aandacht" subtitle="Alleen uitzonderingen - wat goed loopt zie je hier niet" />
-
-    @if ($items->isEmpty())
-        <x-empty-state title="Niets vraagt op dit moment aandacht"
-                       subtitle="Alle projecten, offertes en taken lopen op schema." icon="check" category="project" />
-    @else
-        <div class="space-y-2">
-            @foreach ($items as $item)
-                <a href="{{ $item['url'] }}"
-                   class="flex items-center gap-3 rounded-xl border border-gray-200 border-l-4 bg-white p-3 transition hover:shadow-sm {{ $item['severity'] === 'rood' ? 'border-l-red-500' : 'border-l-amber-400' }}">
-                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full {{ $item['severity'] === 'rood' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-700' }}">
-                        <x-icon :name="$item['icon']" class="h-4.5 w-4.5" />
-                    </span>
-                    <span class="min-w-0 flex-1">
-                        <span class="block truncate text-sm font-semibold text-navy-900">{{ $item['title'] }}</span>
-                        @if ($item['subtitle'])
-                            <span class="block truncate text-xs text-gray-500">{{ $item['subtitle'] }}</span>
-                        @endif
-                    </span>
-                    <span class="hidden rounded-full px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap sm:block {{ $item['severity'] === 'rood' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700' }}">
-                        {{ $item['label'] }}
-                    </span>
-                    <x-signal-dot :color="$item['severity'] === 'rood' ? 'red' : 'amber'" class="sm:hidden" />
-                </a>
-            @endforeach
-        </div>
-    @endif
-    @endnativeapp
-
+                @endforeach
+            </div>
+        @endif
+    </div>
 </x-layouts.app>

@@ -7,6 +7,7 @@ use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\AuditLog;
 use App\Models\User;
+use App\Support\Navigation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -14,11 +15,30 @@ class TeamController extends Controller
 {
     public function index(): View
     {
+        // De rechtenmatrix erbij: zo is te zien waarom een collega iets niet ziet,
+        // in plaats van dat het op een fout lijkt.
+        $sections = Navigation::sections();
+        $roles = array_values(array_filter(
+            UserRole::cases(),
+            fn (UserRole $role) => $role !== UserRole::Klant,
+        ));
+
         return view('team.index', [
             'users' => User::withCount(['projects', 'tasks' => fn ($query) => $query->open()])
                 ->where('role', '!=', UserRole::Klant)
                 ->orderBy('name')
                 ->get(),
+            'roles' => $roles,
+            'sections' => $sections,
+            'matrix' => collect($sections)
+                ->mapWithKeys(fn (array $section, string $id) => [$id => collect($section['items'])
+                    ->mapWithKeys(fn (array $item, string $module) => [$module => collect($roles)
+                        ->mapWithKeys(fn (UserRole $role) => [
+                            $role->value => Navigation::allows($role, $module),
+                        ])->all()])
+                    ->all()])
+                ->all(),
+            'managementOnly' => Navigation::MANAGEMENT_ONLY,
         ]);
     }
 

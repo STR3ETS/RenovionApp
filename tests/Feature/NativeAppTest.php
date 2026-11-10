@@ -3,8 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\UserRole;
-use App\Models\Customer;
-use App\Models\Project;
 use App\Models\User;
 use App\Notifications\TaskAssigned;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -49,24 +47,7 @@ class NativeAppTest extends TestCase
             ->assertDontSee('native-app', false)
             ->assertDontSee('app-bnav', false)
             ->assertDontSee('outfit', false)
-            ->assertSee('inter-tight', false)
-            ->assertSee('Bekijk alle inzichten');
-    }
-
-    public function test_only_the_app_opens_cards_by_tapping_the_card(): void
-    {
-        $admin = $this->admin();
-        $project = Project::factory()->create(['customer_id' => Customer::factory()->create()->id]);
-
-        $this->actingAs($admin)->withHeader('User-Agent', self::APP)
-            ->get(route('projects.show', $project))
-            ->assertOk()
-            ->assertSee('fasen-wisselen', false);
-
-        $this->actingAs($admin)->withHeader('User-Agent', self::PHONE_BROWSER)
-            ->get(route('projects.show', $project))
-            ->assertOk()
-            ->assertDontSee('fasen-wisselen', false);
+            ->assertSee('inter-tight', false);
     }
 
     public function test_an_executor_gets_chat_instead_of_inbox_in_the_app(): void

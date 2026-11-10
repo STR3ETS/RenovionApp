@@ -9,7 +9,7 @@
     @include('partials.load-guard')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="flex min-h-screen items-center justify-center bg-navy-900 px-4 font-sans antialiased">
+<body class="app-shell flex min-h-screen items-center justify-center bg-surface-950 px-4 pt-safe pb-safe font-sans antialiased">
     <div class="w-full max-w-sm">
         <div class="mb-8 text-center">
             @nativeapp
@@ -20,34 +20,34 @@
             @endnativeapp
         </div>
 
-        <form method="POST" action="{{ route('login.store') }}" class="space-y-4 rounded-2xl bg-white p-6 shadow-xl">
+        <form method="POST" action="{{ route('login.store') }}" class="space-y-4 rounded-2xl border border-surface-700 bg-surface-800 p-6 shadow-2xl shadow-black/40">
             @csrf
 
             <x-field label="E-mailadres" name="email">
                 <input type="email" name="email" id="email" value="{{ old('email') }}" required autofocus
-                       class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+                       class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
             </x-field>
 
             <x-field label="Wachtwoord" name="password">
                 <input type="password" name="password" id="password" required
-                       class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+                       class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
             </x-field>
 
-            <label class="flex items-center gap-2 text-sm text-gray-600">
+            <label class="flex items-center gap-2 text-sm text-slate-300">
                 {{-- In de iOS/Android-app (user agent "RenovionApp") staat dit standaard aan. --}}
                 <input type="checkbox" name="remember" value="1" @checked(\App\Support\NativeApp::active())
-                       class="rounded border-gray-300 text-brand-700 focus:ring-brand-500">
+                       class="rounded border-surface-600 text-brand-600 focus:ring-brand-500">
                 Ingelogd blijven
             </label>
 
             <button type="submit"
-                    class="w-full rounded-xl bg-brand-500 py-3 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600">
+                    class="w-full rounded-xl bg-brand-600 py-3 text-sm font-bold text-white transition hover:bg-brand-500">
                 Inloggen
             </button>
         </form>
 
-        <p class="mt-6 text-center text-xs text-navy-400">Innovatieve oplossingen voor elke renovatie</p>
-        <p class="mt-2 text-center text-xs"><a href="{{ route('privacy') }}" class="tap text-navy-300 underline-offset-2 hover:text-white hover:underline">Privacyverklaring</a></p>
+        <p class="mt-6 text-center text-xs text-slate-500">Innovatieve oplossingen voor elke renovatie</p>
+        <p class="mt-2 text-center text-xs"><a href="{{ route('privacy') }}" class="tap text-slate-400 underline-offset-2 hover:text-white hover:underline">Privacyverklaring</a></p>
     </div>
 </body>
 </html>

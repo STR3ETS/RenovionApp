@@ -23,8 +23,18 @@ enum ScheduleEntryType: string
 
     public function blockClasses(): string
     {
-        // Categoriekleuren uit de huisstijl (oranje is voor acties, staalblauw wordt uitgefaseerd):
-        // projectwerk = planning (roze), afspraak = klant (teal), intake = aanvraag (sky).
+        return match ($this) {
+            self::Project => 'bg-brand-500/15 text-brand-900 border-brand-300',
+            self::Afspraak => 'bg-steel-100 text-steel-900 border-steel-300',
+            self::Terugbel => 'bg-amber-500/15 text-amber-900 border-amber-300',
+            self::Intake => 'bg-purple-500/15 text-purple-900 border-purple-300',
+            self::Overig => 'bg-white/10 text-slate-200 border-surface-600',
+        };
+    }
+
+    /** Planningsblokken op de lichte schermen van de iOS/Android-app: categoriekleuren, nooit oranje. */
+    public function appBlockClasses(): string
+    {
         return match ($this) {
             self::Project => 'bg-planning-100 text-planning-700 border-planning-200',
             self::Afspraak => 'bg-klant-100 text-klant-700 border-klant-200',

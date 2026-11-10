@@ -1,63 +1,48 @@
-@props(['title', 'subtitle' => null, 'image' => null, 'eyebrow' => null, 'category' => null])
+@props([
+    'title',
+    'accent' => null,
+    'subtitle' => null,
+    'image' => null,
+    // Een klein label boven de kop. Op de meeste schermen is dat de sectie,
+    // op detailschermen het recordnummer, dus het blijft staan.
+    'eyebrow' => null,
+    'category' => null,
+])
 
 @php
-    // Eyebrow in de categoriekleur van de module (stijlgids §03).
-    $eyebrowColor = match ($category) {
-        'lead' => 'text-lead-700',
-        'klant' => 'text-klant-700',
-        'calc' => 'text-calc-700',
-        'offerte' => 'text-offerte-700',
-        'project' => 'text-project-700',
-        'planning' => 'text-planning-700',
-        default => 'text-gray-600',
-    };
+    // Eén woord van de kop is oranje, net als in het prototype ("Project-
+    // dossiers", "Aan de slag"). Zeg je het niet zelf, dan pakt hij het laatste
+    // woord, maar alleen bij een korte kop: in een hele zin staat dat raar.
+    $kop = trim($title);
+    $woorden = preg_split('/\s+/', $kop) ?: [];
+    $orange = $accent ?? (count($woorden) > 1 && count($woorden) <= 3 ? end($woorden) : null);
+    $plain = $orange !== null && str_ends_with($kop, $orange)
+        ? rtrim(mb_substr($kop, 0, mb_strlen($kop) - mb_strlen($orange)))
+        : $kop;
 @endphp
 
-@nativeapp
-    {{-- Paginakop van de iOS/Android-app (prototype Renovion OS) --}}
-    @php
-        $section = \App\Support\AppSection::current();
-        [$kop, $accent] = \App\Support\AppSection::heading($title);
-        $subtitle = \App\Support\AppSection::subtitle() ?? $subtitle;
-    @endphp
-    <div data-enter {{ $attributes->class('app-ph') }}>
-        @if ($section || $eyebrow)
-            <p class="sec-eye">
-                @if ($section)
-                    <x-icon :name="$section['icon']" />
-                @endif
-                {{ $section['label'] ?? $eyebrow }}
-            </p>
-        @endif
-        <h1>{{ $kop }}@if ($accent !== '')<em>{{ $accent }}</em>@endif</h1>
-        @if ($subtitle)
-            <p class="sub">{{ $subtitle }}</p>
-        @endif
-        @if (trim($slot))
-            <div class="app-ph-acts">{{ $slot }}</div>
-        @endif
-    </div>
-@else
-<div data-enter {{ $attributes }} class="mb-5 flex flex-wrap items-center justify-between gap-3">
-    <div class="flex min-w-0 items-center gap-3">
+<div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div class="flex min-w-0 items-end gap-3">
         @if ($image)
-            <img src="{{ $image }}" alt="" class="h-11 w-11 shrink-0 rounded-xl object-cover ring-1 ring-gray-200">
+            <img src="{{ $image }}" alt="" class="h-12 w-12 shrink-0 rounded-xl object-cover ring-1 ring-surface-700">
         @endif
+
         <div class="min-w-0">
             @if ($eyebrow)
-                <p class="text-[11px] font-bold tracking-widest uppercase {{ $eyebrowColor }}">{{ $eyebrow }}</p>
+                <p class="mb-1 text-[10.5px] font-semibold tracking-[0.1em] text-slate-500 uppercase">{{ $eyebrow }}</p>
             @endif
-            {{-- Op mobiel doorlopen op een tweede regel, zodat lange namen volledig leesbaar blijven. --}}
-            <h1 class="text-xl font-bold break-words text-navy-950 lg:truncate lg:text-2xl">{{ $title }}</h1>
+            <h1 class="text-2xl font-bold tracking-tight text-white lg:text-[28px]">
+                {{ $plain }}@if ($orange) <em class="text-brand-500 not-italic">{{ $orange }}</em>@endif
+            </h1>
             @if ($subtitle)
-                <p class="mt-0.5 text-sm text-gray-600 lg:truncate">{{ $subtitle }}</p>
+                <p class="mt-1 max-w-2xl text-sm text-slate-400">{{ $subtitle }}</p>
             @endif
         </div>
     </div>
+
     @if (trim($slot))
         <div class="flex flex-wrap items-center gap-2">
             {{ $slot }}
         </div>
     @endif
 </div>
-@endnativeapp

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'project_id', 'project_phase_id', 'work_package_id', 'checklist_item_id',
+    'job_step_id', 'job_report_id',
     'uploaded_by', 'path', 'caption', 'client_visible',
 ])]
 class Photo extends Model
@@ -45,6 +46,16 @@ class Photo extends Model
     public function checklistItem(): BelongsTo
     {
         return $this->belongsTo(ChecklistItem::class);
+    }
+
+    public function jobStep(): BelongsTo
+    {
+        return $this->belongsTo(JobStep::class);
+    }
+
+    public function jobReport(): BelongsTo
+    {
+        return $this->belongsTo(JobReport::class);
     }
 
     public function uploader(): BelongsTo

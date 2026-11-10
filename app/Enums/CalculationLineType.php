@@ -24,11 +24,11 @@ enum CalculationLineType: string
     public function badgeClasses(): string
     {
         return match ($this) {
-            self::Arbeid => 'bg-brand-100 text-brand-800',
-            self::Materiaal => 'bg-navy-100 text-navy-800',
-            self::Onderaannemer => 'bg-amber-100 text-amber-800',
-            self::Materieel => 'bg-gray-200 text-gray-700',
-            self::Stelpost => 'bg-calc-100 text-calc-700',
+            self::Arbeid => 'bg-brand-500/15 text-brand-300',
+            self::Materiaal => 'bg-white/10 text-slate-200',
+            self::Onderaannemer => 'bg-amber-500/15 text-amber-300',
+            self::Materieel => 'bg-white/10 text-slate-300',
+            self::Stelpost => 'bg-calc-500/15 text-calc-300',
         };
     }
 }

@@ -157,8 +157,7 @@ class WorkPackageTest extends TestCase
         $this->actingAs($uitvoerder)->get('/werkpakketten/'.$package->id)
             ->assertOk()
             ->assertSee('Taak afronden')
-            // Foto-bewijs: grote cameraknop die direct de camera opent.
-            ->assertSee('Foto maken')
+            // Foto-bewijs: upload die direct de camera opent.
             ->assertSee('name="photos[]" multiple required accept="image/*" capture="environment"', false);
     }
 

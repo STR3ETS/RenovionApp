@@ -1,50 +1,63 @@
-{{-- Kanalenlijst: één lijst op laatste bericht, met wie wat zei en het aantal ongelezen. --}}
-<div class="divide-y divide-gray-100">
-    @foreach ($channels as $kanaal)
-        @php
-            $unread = $kanaal->unreadCountFor($user);
-            $laatste = $kanaal->latestMessage;
-        @endphp
-        <a href="{{ route('chat.show', $kanaal) }}"
-           class="flex min-h-[4.25rem] items-center gap-3 px-4 py-2.5 transition active:bg-gray-50 {{ ($active ?? null) === $kanaal->id ? 'bg-gray-100' : 'hover:bg-gray-50' }}">
-            <x-chat-avatar :channel="$kanaal" class="h-11 w-11" />
-            <span class="min-w-0 flex-1">
-                <span class="flex items-baseline justify-between gap-3">
-                    <span class="truncate text-sm font-bold text-navy-950">{{ $kanaal->displayName() }}</span>
-                    @if ($laatste)
-                        <span class="shrink-0 text-xs {{ $unread > 0 ? 'font-semibold text-brand-700' : 'text-gray-500' }}">{{ $laatste->listTime() }}</span>
-                    @endif
-                </span>
-                <span class="mt-0.5 flex items-center justify-between gap-3">
-                    <span class="truncate text-sm {{ $unread > 0 ? 'font-medium text-navy-900' : 'text-gray-500' }}">{{ $laatste?->preview($user) ?? 'Nog geen berichten' }}</span>
+{{-- Kanalenlijst (mockup §18): Team en Projecten met unread counters. --}}
+@php
+    $teamKanalen = $channels->where('type', 'team');
+    $projectKanalen = $channels->where('type', 'project');
+@endphp
+
+<div class="space-y-4">
+    <div>
+        <p class="mb-1.5 px-1 text-xs font-bold tracking-wide text-slate-500 uppercase">Team</p>
+        <div class="space-y-1">
+            @foreach ($teamKanalen as $kanaal)
+                @php $unread = $kanaal->unreadCountFor($user); @endphp
+                <a href="{{ route('chat.show', $kanaal) }}"
+                   class="flex items-center gap-2.5 rounded-xl px-3 py-2.5 transition {{ ($active ?? null) === $kanaal->id ? 'bg-brand-500/10 ring-1 ring-brand-200' : 'hover:bg-surface-850' }}">
+                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-slate-200">{{ str($kanaal->name)->substr(0, 1)->upper() }}</span>
+                    <span class="min-w-0 flex-1">
+                        <span class="block truncate text-sm font-semibold text-white">{{ $kanaal->displayName() }}</span>
+                        @if ($kanaal->last_message_at)
+                            <span class="block text-xs text-slate-500">{{ \Illuminate\Support\Carbon::parse($kanaal->last_message_at)->translatedFormat('j M H:i') }}</span>
+                        @endif
+                    </span>
                     @if ($unread > 0)
-                        <span class="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-brand-500 px-1.5 text-[11px] font-bold text-white">{{ $unread }}</span>
+                        <span class="rounded-full bg-brand-500 px-2 py-0.5 text-[10px] font-bold text-white">{{ $unread }}</span>
                     @endif
-                </span>
-            </span>
-        </a>
-    @endforeach
-</div>
-
-@can('manage-crm')
-    {{-- Nieuw kanaal: ingeklapt een knop, open één afgebakend blok --}}
-    <div x-data="{ adding: false }" class="border-t border-gray-100 p-3">
-        <button type="button" x-show="!adding" @click="adding = true; $nextTick(() => $refs.naam.focus())"
-                class="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-gray-300 py-2.5 text-sm font-semibold text-gray-500 transition hover:border-brand-400 hover:text-brand-700 active:bg-gray-50">
-            <x-icon name="plus" class="h-4 w-4" /> Nieuw kanaal
-        </button>
-
-        <form method="POST" action="{{ route('chat.channels.store') }}" x-show="adding" x-cloak class="space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
-            @csrf
-            <label class="block">
-                <span class="mb-1 block text-xs font-semibold text-gray-600">Naam van het kanaal</span>
-                <input x-ref="naam" type="text" name="name" required maxlength="60" placeholder="Bijv. Werkvoorbereiding"
-                       class="w-full rounded-xl border-gray-200 bg-white text-sm placeholder:text-gray-400 focus:border-brand-500 focus:ring-brand-500">
-            </label>
-            <div class="flex gap-2">
-                <button type="submit" class="flex-1 rounded-xl bg-brand-500 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600">Toevoegen</button>
-                <button type="button" @click="adding = false" class="rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">Annuleren</button>
-            </div>
-        </form>
+                </a>
+            @endforeach
+        </div>
+        @can('manage-crm')
+            <form method="POST" action="{{ route('chat.channels.store') }}" class="mt-2 flex gap-1.5 px-1">
+                @csrf
+                <input type="text" name="name" required maxlength="60" placeholder="+ Nieuw kanaal"
+                       class="min-w-0 flex-1 rounded-lg border-surface-700 bg-surface-850 py-1.5 text-xs placeholder:text-slate-500 focus:border-brand-500 focus:bg-surface-800 focus:ring-brand-500">
+                <button type="submit" class="rounded-lg bg-surface-750 px-2.5 text-xs font-semibold text-slate-300 transition hover:bg-surface-700">OK</button>
+            </form>
+        @endcan
     </div>
-@endcan
+
+    @if ($projectKanalen->isNotEmpty())
+        <div>
+            <p class="mb-1.5 px-1 text-xs font-bold tracking-wide text-slate-500 uppercase">Projecten</p>
+            <div class="space-y-1">
+                @foreach ($projectKanalen as $kanaal)
+                    @php $unread = $kanaal->unreadCountFor($user); @endphp
+                    <a href="{{ route('chat.show', $kanaal) }}"
+                       class="flex items-center gap-2.5 rounded-xl px-3 py-2.5 transition {{ ($active ?? null) === $kanaal->id ? 'bg-brand-500/10 ring-1 ring-brand-200' : 'hover:bg-surface-850' }}">
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-navy-700 to-navy-950 text-white">
+                            <x-icon name="building-office" class="h-4 w-4" />
+                        </span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-white">{{ $kanaal->displayName() }}</span>
+                            @if ($kanaal->last_message_at)
+                                <span class="block text-xs text-slate-500">{{ \Illuminate\Support\Carbon::parse($kanaal->last_message_at)->translatedFormat('j M H:i') }}</span>
+                            @endif
+                        </span>
+                        @if ($unread > 0)
+                            <span class="rounded-full bg-brand-500 px-2 py-0.5 text-[10px] font-bold text-white">{{ $unread }}</span>
+                        @endif
+                    </a>
+                @endforeach
+            </div>
+        </div>
+    @endif
+</div>
