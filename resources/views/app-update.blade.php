@@ -23,14 +23,11 @@
             <x-icon name="arrow-down-tray" class="h-7 w-7" />
         </span>
         <h1 class="text-2xl font-bold">Update nodig</h1>
-        <p class="mt-2 text-sm leading-relaxed text-navy-200">Er is een nieuwe versie van Renovion OS. Installeer de update om verder te werken.</p>
-        @if ($update['reason'])
-            <p class="mt-3 text-sm leading-relaxed text-navy-300">{{ $update['reason'] }}</p>
-        @endif
+        <p class="mt-2 text-sm leading-relaxed text-navy-200">Er is een nieuwe versie van Renovion OS. Download de nieuwste versie om verder te werken.</p>
 
         @if ($update['url'])
             <a href="{{ $update['url'] }}" class="mt-8 w-full rounded-xl bg-brand-500 py-3 text-sm font-bold text-white transition hover:bg-brand-600 active:bg-brand-600">
-                Update installeren
+                Nieuwste versie downloaden
             </a>
         @else
             <p class="mt-8 w-full rounded-xl bg-navy-900 px-4 py-3 text-sm text-navy-200">Vraag kantoor om de nieuwste versie van de app.</p>

@@ -22,7 +22,7 @@ class AppUpdateTest extends TestCase
 
     private function require(int $minimum): void
     {
-        AppRelease::flush(['build' => 3, 'minimum_build' => $minimum, 'reason' => 'De planning werkt anders.', 'links' => ['android' => 'https://play.google.com/store/apps/details?id=nl.renovion.dash', 'ios' => null]]);
+        AppRelease::flush(['build' => 3, 'minimum_build' => $minimum, 'links' => ['android' => 'https://play.google.com/store/apps/details?id=nl.renovion.dash', 'ios' => null]]);
     }
 
     public function test_the_release_file_never_locks_out_the_newest_app(): void
@@ -49,8 +49,7 @@ class AppUpdateTest extends TestCase
 
         $this->withHeaders(['X-App-Build' => '1', 'User-Agent' => self::APP])->getJson('/api/app/versie')
             ->assertStatus(426)
-            ->assertJsonPath('update.url', 'https://play.google.com/store/apps/details?id=nl.renovion.dash')
-            ->assertJsonPath('update.reason', 'De planning werkt anders.');
+            ->assertJsonPath('update.url', 'https://play.google.com/store/apps/details?id=nl.renovion.dash');
 
         $this->withHeader('X-App-Build', '2')->getJson('/api/app/versie')->assertOk();
         $this->withHeader('X-App-Build', '3')->getJson('/api/app/versie')->assertOk();
@@ -64,7 +63,7 @@ class AppUpdateTest extends TestCase
         // Oude apps sturen geen buildnummer en tonen de "message" van de server op het inlogscherm.
         $this->postJson('/api/app/inloggen', ['email' => $user->email, 'password' => 'geheim-wachtwoord', 'device' => 'Telefoon'])
             ->assertStatus(426)
-            ->assertJsonPath('message', 'Er is een nieuwe versie van Renovion OS. Installeer de update om verder te werken.');
+            ->assertJsonPath('message', 'Er is een nieuwe versie van Renovion OS. Download de nieuwste versie om verder te werken.');
     }
 
     public function test_server_pages_in_an_old_app_show_the_update_screen_but_the_website_does_not(): void
@@ -73,7 +72,7 @@ class AppUpdateTest extends TestCase
         $user = User::factory()->create();
 
         $this->actingAs($user)->withHeader('User-Agent', self::APP)->withSession(['app_build' => 1])->get('/')
-            ->assertStatus(426)->assertSee('Update nodig')->assertSee('Update installeren');
+            ->assertStatus(426)->assertSee('Update nodig')->assertSee('Nieuwste versie downloaden');
 
         $this->actingAs($user)->withHeader('User-Agent', self::APP)->withSession(['app_build' => 2])->get('/')->assertOk();
 

@@ -90,7 +90,7 @@ async function api(path, { method = 'GET', body } = {}) {
     if (response.status === 426) {
         // Verplichte update: het hele scherm wordt "Update nodig" tot de nieuwe versie er is.
         const data = await response.json().catch(() => null);
-        Alpine.store('os').update = data?.update ?? { url: null, reason: null };
+        Alpine.store('os').update = data?.update ?? { url: null };
         throw new ApiError(426, data);
     }
     if (!response.ok) throw new ApiError(response.status, await response.json().catch(() => null));
@@ -138,7 +138,7 @@ Alpine.store('os', {
     help: false,
     nova: false,
     leaving: null, // { kind, tabs } van de serverpagina die opent, zie leaveScreen()
-    update: null, // { url, reason } als deze app te oud is (426), zie api() en checkVersion()
+    update: null, // { url } als deze app te oud is (426), zie api() en checkVersion()
     offline: false,
     shownAt: null,
     toastText: null,

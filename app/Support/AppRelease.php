@@ -72,12 +72,11 @@ class AppRelease
     public static function payload(Request $request): array
     {
         return [
-            'message' => 'Er is een nieuwe versie van Renovion OS. Installeer de update om verder te werken.',
+            'message' => 'Er is een nieuwe versie van Renovion OS. Download de nieuwste versie om verder te werken.',
             'update' => [
                 'required' => true,
                 'minimum_build' => self::minimumBuild(),
                 'url' => self::link($request),
-                'reason' => self::data()['reason'] ?: null,
             ],
         ];
     }
