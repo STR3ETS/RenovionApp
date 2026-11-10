@@ -35,6 +35,8 @@ use App\Http\Controllers\LeadStatusController;
 use App\Http\Controllers\MailTemplateController;
 use App\Http\Controllers\MotionPreferenceController;
 use App\Http\Controllers\NovaController;
+use App\Http\Controllers\OfferToolClientController;
+use App\Http\Controllers\OfferToolController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\PartnerPortalController;
 use App\Http\Controllers\PhotoController;
@@ -86,6 +88,16 @@ if (config('renovion.modules.quotes')) {
         Route::post('offerte/{quote:public_token}/afwijzen', [QuotePublicController::class, 'reject'])->name('quotes.public.reject');
     });
 }
+
+// Offertetool voor de klant: inloggen met mobiel nummer en toegangscode. De
+// controller telt zelf de inlogpogingen, per adres en per offerte.
+Route::middleware('throttle:120,1')->group(function () {
+    Route::get('inzage/{offer}', [OfferToolClientController::class, 'show'])->name('offer-tool.client');
+    Route::post('inzage/{offer}/toegang', [OfferToolClientController::class, 'login'])->name('offer-tool.client.login');
+    Route::post('inzage/{offer}/akkoord', [OfferToolClientController::class, 'sign'])->name('offer-tool.client.sign');
+    Route::get('inzage/{offer}/bestanden/{file}', [OfferToolClientController::class, 'file'])
+        ->where('file', '[a-f0-9-]{36}')->name('offer-tool.file');
+});
 
 Route::middleware('auth')->group(function () {
     // Voor iedereen; klanten worden vanuit het dashboard doorgestuurd naar het portaal.
@@ -271,6 +283,15 @@ Route::middleware('auth')->group(function () {
             Route::post('intakes/{intake}/afronden', [IntakeController::class, 'complete'])->name('intakes.complete');
 
             Route::get('opvolging', [FollowUpController::class, 'index'])->name('follow-ups.index');
+
+            // Offertetool: begroting en offerte in één scherm, voor wie calculeert en verkoopt.
+            Route::middleware('can:module,"offertetool"')->group(function () {
+                Route::get('offertetool', [OfferToolController::class, 'index'])->name('offer-tool.index');
+                Route::post('offertetool', [OfferToolController::class, 'store'])->name('offer-tool.store');
+                Route::get('offertetool/{offer}', [OfferToolController::class, 'show'])->name('offer-tool.show');
+                Route::put('offertetool/{offer}', [OfferToolController::class, 'save'])->name('offer-tool.save');
+                Route::post('offertetool/{offer}/bestanden', [OfferToolController::class, 'upload'])->middleware('throttle:60,1')->name('offer-tool.upload');
+            });
             Route::get('offertedashboard', QuoteDashboardController::class)->name('quote-dashboard');
 
             // Mensen en partners: eigen mensen, onderaannemers en prijsaanvragen.
@@ -409,6 +430,8 @@ Route::middleware('auth')->group(function () {
             Route::post('team', [TeamController::class, 'store'])->name('team.store');
             Route::get('team/{user}/bewerken', [TeamController::class, 'edit'])->name('team.edit');
             Route::match(['put', 'patch'], 'team/{user}', [TeamController::class, 'update'])->name('team.update');
+            Route::delete('team/{user}', [TeamController::class, 'destroy'])->name('team.destroy');
+            Route::post('team/{user}/activeren', [TeamController::class, 'activate'])->name('team.activate');
 
             // Instellingen: bedrijfsgegevens en de standaardwaarden waarmee het
             // systeem rekent. Geheimen blijven in .env.

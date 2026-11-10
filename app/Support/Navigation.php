@@ -69,6 +69,7 @@ class Navigation
                 'items' => [
                     'offertedash' => ['Dashboard', 'quote-dashboard'],
                     'offertes' => ['Offertes', 'quotes.index'],
+                    'offertetool' => ['Offertetool', 'offer-tool.index'],
                     'calculaties' => ['Calculaties', 'calculations.index'],
                     'begrotingen' => ['Begrotingen', 'budgets.index'],
                     'prijslijst' => ['Prijslijst', 'price-items.index'],
@@ -146,11 +147,11 @@ class Navigation
             UserRole::Directie->value => '*',
             UserRole::Sales->value => [
                 ...self::WORKDAY, 'sales', 'opvolging', 'klanten', 'intake', 'calculaties',
-                'offertes', 'offertedash', 'projecten', 'taken', 'planning', 'servicehub',
+                'offertes', 'offertetool', 'offertedash', 'projecten', 'taken', 'planning', 'servicehub',
                 'documenten', 'marketing', 'academy',
             ],
             UserRole::Calculator->value => [
-                ...self::WORKDAY, 'calculaties', 'begrotingen', 'prijslijst', 'offertes', 'offertedash',
+                ...self::WORKDAY, 'calculaties', 'begrotingen', 'prijslijst', 'offertes', 'offertetool', 'offertedash',
                 'intake', 'projecten', 'taken', 'inkoop', 'werkhub', 'documenten', 'academy',
             ],
             UserRole::Projectleider->value => [

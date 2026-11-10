@@ -47,6 +47,8 @@ use App\Models\SnagItem;
 use App\Models\Subcontractor;
 use App\Models\SubcontractorDocument;
 use App\Models\Task;
+use App\Models\ToolOffer;
+use App\Models\ToolOfferSignature;
 use App\Models\User;
 use App\Models\WorkOrder;
 use App\Models\WorkPackage;
@@ -119,6 +121,8 @@ class AppServiceProvider extends ServiceProvider
             'subcontractor' => Subcontractor::class,
             'subcontractor_document' => SubcontractorDocument::class,
             'task' => Task::class,
+            'tool_offer' => ToolOffer::class,
+            'tool_offer_signature' => ToolOfferSignature::class,
             'user' => User::class,
             'work_order' => WorkOrder::class,
             'work_package' => WorkPackage::class,

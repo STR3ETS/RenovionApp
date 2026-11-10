@@ -25,3 +25,6 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Aangeleverde zip van de offertetool; de inhoud staat in resources/offer-tool.
+/Renovion_Offerte_eigen_systeem_*.zip

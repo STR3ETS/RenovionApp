@@ -16,6 +16,9 @@
                         @if ($user->is(auth()->user()))
                             <span class="rounded-full bg-surface-750 px-2 py-0.5 text-[10px] font-semibold text-slate-400">jij</span>
                         @endif
+                        @unless ($user->active)
+                            <span class="rounded-full bg-red-500/15 px-2 py-0.5 text-[10px] font-semibold text-red-300">gedeactiveerd</span>
+                        @endunless
                     </span>
                     <span class="block truncate text-xs text-slate-400">
                         {{ $user->email }}{{ $user->phone ? ', '.$user->phone : '' }}

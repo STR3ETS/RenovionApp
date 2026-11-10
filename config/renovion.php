@@ -45,4 +45,26 @@ return [
         'automations' => (bool) env('MODULE_AUTOMATIONS', true),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Offertetool
+    |--------------------------------------------------------------------------
+    |
+    | De tool (resources/offer-tool/tool.html) bevat in zijn broncode nog de
+    | voorbeeldgegevens van één project. Zolang dat zo is, hoort er maar één
+    | offerte in: een klant van een ander project zou die gegevens anders in
+    | de broncode kunnen lezen. Staat er een opgeschoonde tool, zet dan
+    | OFFER_TOOL_MULTI=true om meer offertes toe te staan.
+    |
+    */
+
+    'offer_tool' => [
+        'multi_project' => (bool) env('OFFER_TOOL_MULTI', false),
+        'email' => env('OFFER_TOOL_EMAIL', 'info@renoviongroep.nl'),
+        // Inlogpogingen per kwartier, per IP-adres en per offerte.
+        'max_attempts' => 5,
+        'decay_seconds' => 900,
+        'max_upload_kb' => 20480,
+    ],
+
 ];

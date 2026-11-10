@@ -21,7 +21,8 @@
             "where": { "and": [
                 { "href_matches": "/*" },
                 { "not": { "href_matches": "/chat*" } },
-                { "not": { "href_matches": "/offertes/*/builder*" } }
+                { "not": { "href_matches": "/offertes/*/builder*" } },
+                { "not": { "href_matches": "/offertetool/*" } }
             ]},
             "eagerness": "moderate"
         }]

@@ -26,7 +26,8 @@ class LoginController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
+        // Een gedeactiveerd account (uit het team gehaald) komt er niet meer in.
+        if (! Auth::attempt([...$credentials, 'active' => true], $request->boolean('remember'))) {
             return back()
                 ->withInput($request->only('email'))
                 ->withErrors(['email' => 'De combinatie van e-mailadres en wachtwoord klopt niet.']);

@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Enums\UserRole;
+use App\Models\JobExecution;
+use App\Models\ScheduleEntry;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -89,5 +91,70 @@ class TeamTest extends TestCase
                 'name' => 'X', 'email' => 'x'.$role->value.'@test.nl', 'role' => 'admin', 'password' => 'wachtwoord123',
             ])->assertForbidden();
         }
+    }
+
+    public function test_admin_can_delete_a_team_member_without_work_history(): void
+    {
+        $admin = User::factory()->create();
+        $uitvoerder = User::factory()->uitvoerder()->create(['name' => 'Mehmet']);
+
+        $this->actingAs($admin)->get('/team/'.$uitvoerder->id.'/bewerken')
+            ->assertOk()
+            ->assertSee('Verwijderen');
+
+        $this->actingAs($admin)->delete('/team/'.$uitvoerder->id)
+            ->assertRedirect(route('team.index'))
+            ->assertSessionHas('success', 'Mehmet is verwijderd.');
+
+        $this->assertDatabaseMissing('users', ['id' => $uitvoerder->id]);
+        $this->assertDatabaseHas('audit_logs', ['auditable_type' => 'user', 'action' => 'verwijderd']);
+    }
+
+    public function test_a_team_member_with_jobs_is_deactivated_so_the_work_stays(): void
+    {
+        $admin = User::factory()->create();
+        $uitvoerder = User::factory()->uitvoerder()->create(['password' => 'geheim-wachtwoord']);
+        $entry = ScheduleEntry::factory()->create(['user_id' => $uitvoerder->id]);
+        $job = JobExecution::create(['schedule_entry_id' => $entry->id, 'user_id' => $uitvoerder->id]);
+
+        $this->actingAs($admin)->delete('/team/'.$uitvoerder->id)
+            ->assertRedirect(route('team.index'));
+
+        // Het account blijft bestaan, de klus ook, maar inloggen kan niet meer.
+        $this->assertFalse($uitvoerder->refresh()->active);
+        $this->assertDatabaseHas('job_executions', ['id' => $job->id]);
+
+        $this->post('/logout');
+        $this->post('/login', ['email' => $uitvoerder->email, 'password' => 'geheim-wachtwoord'])
+            ->assertSessionHasErrors('email');
+        $this->assertGuest();
+
+        // En terugzetten kan ook.
+        $this->actingAs($admin)->post('/team/'.$uitvoerder->id.'/activeren')
+            ->assertRedirect(route('team.index'));
+        $this->assertTrue($uitvoerder->refresh()->active);
+    }
+
+    public function test_admin_cannot_delete_own_account(): void
+    {
+        $admin = User::factory()->create();
+
+        $this->actingAs($admin)->delete('/team/'.$admin->id)
+            ->assertSessionHas('error');
+
+        $this->assertDatabaseHas('users', ['id' => $admin->id]);
+        $this->actingAs($admin)->get('/team/'.$admin->id.'/bewerken')
+            ->assertOk()
+            ->assertDontSee('Uit het team halen');
+    }
+
+    public function test_non_admins_cannot_delete_team_members(): void
+    {
+        $leider = User::factory()->create(['role' => UserRole::Projectleider]);
+        $uitvoerder = User::factory()->uitvoerder()->create();
+
+        $this->actingAs($leider)->delete('/team/'.$uitvoerder->id)->assertForbidden();
+
+        $this->assertDatabaseHas('users', ['id' => $uitvoerder->id]);
     }
 }

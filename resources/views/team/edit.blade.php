@@ -41,4 +41,37 @@
         </div>
     </form>
 
+    {{-- Uit het team halen. Staat los van het formulier, zodat Enter in een
+         veld nooit per ongeluk iemand verwijdert. --}}
+    @unless ($user->is(auth()->user()))
+        <section class="mt-8 max-w-xl rounded-2xl border border-red-500/25 bg-red-500/5 p-5">
+            @if ($user->active)
+                <h2 class="text-sm font-bold text-white">Uit het team halen</h2>
+                <p class="mt-1 text-sm text-slate-400">
+                    {{ $user->name }} kan daarna niet meer inloggen. Staan er klussen of meldingen op zijn naam,
+                    dan blijft dat werk bewaard en wordt het account gedeactiveerd in plaats van verwijderd.
+                </p>
+                <form method="POST" action="{{ route('team.destroy', $user) }}" class="mt-4"
+                      onsubmit="return confirm(@js($user->name.' uit het team halen? Dit account kan daarna niet meer inloggen.'))">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="rounded-full border border-red-500/40 bg-red-500/10 px-5 py-2.5 text-sm font-bold text-red-300 transition hover:bg-red-500/20">
+                        Verwijderen
+                    </button>
+                </form>
+            @else
+                <h2 class="text-sm font-bold text-white">Dit account is gedeactiveerd</h2>
+                <p class="mt-1 text-sm text-slate-400">
+                    {{ $user->name }} kan niet inloggen. Het werk op zijn naam is bewaard gebleven.
+                </p>
+                <form method="POST" action="{{ route('team.activate', $user) }}" class="mt-4">
+                    @csrf
+                    <button type="submit" class="rounded-full border border-surface-600 bg-surface-800 px-5 py-2.5 text-sm font-bold text-slate-200 transition hover:bg-surface-750">
+                        Weer activeren
+                    </button>
+                </form>
+            @endif
+        </section>
+    @endunless
+
 </x-layouts.app>
