@@ -1,7 +1,7 @@
 {
-    "build": 1,
-    "minimum_build": 0,
-    "reason": "",
+    "build": 2,
+    "minimum_build": 2,
+    "reason": "Test van de verplichte update: build 1 is te oud.",
     "links": {
         "android": "https://play.google.com/store/apps/details?id=nl.renovion.dash",
         "ios": null
