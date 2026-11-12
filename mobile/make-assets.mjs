@@ -62,9 +62,10 @@ function renderOs(width, height, scale, { background = true, round = false, glow
 
 // Het merk vult ruim de helft van het icoon (0.54): met lucht eromheen oogt het rustiger op het beginscherm.
 // iOS: één 1024px-icoon zonder transparantie (eis App Store) en een 2732px-splash (aspect fill).
+// Op iOS groter (0.68): iOS rondt de hoeken sterk af, waardoor het merk anders klein oogt naast andere apps.
 const ios = '../ios/App/App/Assets.xcassets';
 if (existsSync(path(ios))) {
-    await renderOs(1024, 1024, 0.54, { glow: true }).toFile(path(`${ios}/AppIcon.appiconset/AppIcon-512@2x.png`));
+    await renderOs(1024, 1024, 0.68, { glow: true }).toFile(path(`${ios}/AppIcon.appiconset/AppIcon-512@2x.png`));
     for (const file of ['splash-2732x2732.png', 'splash-2732x2732-1.png', 'splash-2732x2732-2.png']) {
         await renderOs(2732, 2732, 0.14).toFile(path(`${ios}/Splash.imageset/${file}`));
     }
