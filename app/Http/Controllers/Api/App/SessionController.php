@@ -118,6 +118,7 @@ class SessionController extends Controller
                 'automations' => (bool) config('renovion.modules.automations'),
             ],
             'menu' => $user->can('internal') ? AppMenu::forApp($user) : null,
+            'theme' => $user->app_theme,
             'news' => AppNews::ITEMS,
             'counts' => $user->can('internal') ? [
                 'attention' => $crm ? AttentionService::cachedCount() : 0,

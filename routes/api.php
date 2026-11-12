@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\App\TaskController as AppTaskController;
 use App\Http\Controllers\Api\App\TodayController as AppTodayController;
 use App\Http\Controllers\Api\App\WorkPackageController as AppWorkPackageController;
 use App\Http\Controllers\Api\LeadIntakeController;
+use App\Http\Controllers\AppThemeController;
 use App\Http\Controllers\ChatMessageController;
 use App\Http\Controllers\DeviceTokenController;
 use App\Http\Controllers\LeadContactController;
@@ -44,6 +45,7 @@ Route::prefix('app')->name('api.app.')->middleware(RequireAppUpdate::class)->gro
         Route::post('uitloggen', [AppSessionController::class, 'destroy'])->name('logout');
         Route::post('webcode', [AppSessionController::class, 'webCode'])->middleware('throttle:app-webcode')->name('web-code');
         Route::post('apparaten', [DeviceTokenController::class, 'store'])->middleware('throttle:30,1')->name('devices');
+        Route::patch('weergave', [AppThemeController::class, 'update'])->middleware('throttle:30,1')->name('theme');
 
         Route::middleware('can:internal')->group(function () {
             Route::get('vandaag', AppTodayController::class)->name('today');

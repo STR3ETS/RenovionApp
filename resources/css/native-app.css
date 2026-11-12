@@ -1334,3 +1334,317 @@ form + .app-li {
     height: 3px;
     background-color: var(--color-brand-500);
 }
+
+/* Weergave-keuze in het zijmenu (app en serverpagina's): licht, donker of volgens de telefoon */
+.app-theme-switch {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    padding: 3px;
+    border-radius: 12px;
+    background: rgb(255 255 255 / 0.06);
+}
+
+.app-theme-switch button {
+    display: flex;
+    min-height: 44px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    border-radius: 9px;
+    color: var(--color-navy-300);
+    font-size: 11.5px;
+    font-weight: 600;
+}
+
+.app-theme-switch button.on {
+    background: rgb(255 255 255 / 0.13);
+    color: #fff;
+}
+
+/*
+ * Donkere weergave (html.os-dark, gezet door de app of partials/app/theme). Twee lagen:
+ * 1. De schermen in de app zelf (html[data-bundle]): alle tokens om. Grijs draait om (lichte vlakken worden
+ *    donker, donkere tekst licht); de kleurschalen houden hun 500 en krijgen donkere tinten (50-300) en
+ *    lichte tekstkleuren (600-900), zodat paren als bg-amber-100 met text-amber-800 leesbaar blijven.
+ * 2. De serverpagina's in de app: de inhoud is al donker (de schil van main), dus alleen de lichte schil
+ *    (topbalk, onderbalk, sectietabs, menu's, sheets) gaat om. De kleurschalen blijven daar zoals ze zijn,
+ *    want de donkere inhoud gebruikt ze als lichte tekst.
+ */
+.native-app.os-dark {
+    color-scheme: dark;
+
+    --os-bg: #0c1420;
+    --os-surface: #151f2f;
+    --os-raised: #1d2a3e;
+    --os-line: #27354c;
+    --os-ink: #eef2f8;
+    --app-shadow: 0 1px 2px rgb(0 0 0 / 0.35), 0 8px 24px -18px rgb(0 0 0 / 0.7);
+}
+
+/* Op een serverpagina gaan alleen de lichte delen om: de schil en lichte kaarten (bijv. Instellingen). */
+.native-app.os-dark[data-bundle],
+.native-app.os-dark :is(.app-top, .app-bnav, .app-sectabs, .app-menu, [data-popup], .bg-white, .app-card, .app-kpi, .app-pcard) {
+    --color-gray-50: #111a29;
+    --color-gray-100: #1a2537;
+    --color-gray-200: #27354c;
+    --color-gray-300: #34445e;
+    --color-gray-400: #6d7c94;
+    --color-gray-500: #98a4b7;
+    --color-gray-600: #b5bfcf;
+    --color-gray-700: #c8d0dc;
+    --color-gray-800: #dce2eb;
+    --color-gray-900: #eef2f8;
+    --color-gray-950: #f6f8fb;
+}
+
+.native-app.os-dark[data-bundle],
+.native-app.os-dark :is([data-popup], .bg-white, .app-card, .app-kpi, .app-pcard) {
+    --color-brand-50: color-mix(in srgb, var(--color-brand-500) 10%, var(--os-surface));
+    --color-brand-100: color-mix(in srgb, var(--color-brand-500) 18%, var(--os-surface));
+    --color-brand-200: color-mix(in srgb, var(--color-brand-500) 30%, var(--os-surface));
+    --color-brand-300: color-mix(in srgb, var(--color-brand-500) 50%, var(--os-surface));
+    --color-brand-600: color-mix(in srgb, var(--color-brand-500) 85%, #fff);
+    --color-brand-700: color-mix(in srgb, var(--color-brand-500) 72%, #fff);
+    --color-brand-800: color-mix(in srgb, var(--color-brand-500) 60%, #fff);
+    --color-brand-900: color-mix(in srgb, var(--color-brand-500) 50%, #fff);
+
+    --color-green-50: color-mix(in srgb, var(--color-green-500) 10%, var(--os-surface));
+    --color-green-100: color-mix(in srgb, var(--color-green-500) 20%, var(--os-surface));
+    --color-green-200: color-mix(in srgb, var(--color-green-500) 32%, var(--os-surface));
+    --color-green-300: color-mix(in srgb, var(--color-green-500) 50%, var(--os-surface));
+    --color-green-600: color-mix(in srgb, var(--color-green-500) 80%, #fff);
+    --color-green-700: color-mix(in srgb, var(--color-green-500) 65%, #fff);
+    --color-green-800: color-mix(in srgb, var(--color-green-500) 55%, #fff);
+
+    --color-amber-50: color-mix(in srgb, var(--color-amber-500) 10%, var(--os-surface));
+    --color-amber-100: color-mix(in srgb, var(--color-amber-500) 18%, var(--os-surface));
+    --color-amber-200: color-mix(in srgb, var(--color-amber-500) 32%, var(--os-surface));
+    --color-amber-600: color-mix(in srgb, var(--color-amber-500) 80%, #fff);
+    --color-amber-700: color-mix(in srgb, var(--color-amber-500) 68%, #fff);
+    --color-amber-800: color-mix(in srgb, var(--color-amber-500) 58%, #fff);
+    --color-amber-900: color-mix(in srgb, var(--color-amber-500) 50%, #fff);
+
+    --color-red-50: color-mix(in srgb, var(--color-red-500) 12%, var(--os-surface));
+    --color-red-100: color-mix(in srgb, var(--color-red-500) 22%, var(--os-surface));
+    --color-red-200: color-mix(in srgb, var(--color-red-500) 34%, var(--os-surface));
+    --color-red-600: color-mix(in srgb, var(--color-red-500) 70%, #fff);
+    --color-red-700: color-mix(in srgb, var(--color-red-500) 60%, #fff);
+    --color-red-800: color-mix(in srgb, var(--color-red-500) 52%, #fff);
+
+    --color-blue-100: color-mix(in srgb, var(--color-blue-500) 22%, var(--os-surface));
+    --color-blue-700: color-mix(in srgb, var(--color-blue-500) 55%, #fff);
+
+    --color-steel-50: color-mix(in srgb, var(--color-steel-500) 12%, var(--os-surface));
+    --color-steel-100: color-mix(in srgb, var(--color-steel-500) 22%, var(--os-surface));
+    --color-steel-200: color-mix(in srgb, var(--color-steel-500) 34%, var(--os-surface));
+    --color-steel-700: color-mix(in srgb, var(--color-steel-500) 55%, #fff);
+    --color-steel-800: color-mix(in srgb, var(--color-steel-500) 45%, #fff);
+
+    --color-lead-50: color-mix(in srgb, var(--color-lead-500) 12%, var(--os-surface));
+    --color-lead-100: color-mix(in srgb, var(--color-lead-500) 22%, var(--os-surface));
+    --color-lead-200: color-mix(in srgb, var(--color-lead-500) 34%, var(--os-surface));
+    --color-lead-600: color-mix(in srgb, var(--color-lead-500) 75%, #fff);
+    --color-lead-700: color-mix(in srgb, var(--color-lead-500) 62%, #fff);
+    --color-klant-50: color-mix(in srgb, var(--color-klant-500) 12%, var(--os-surface));
+    --color-klant-100: color-mix(in srgb, var(--color-klant-500) 22%, var(--os-surface));
+    --color-klant-200: color-mix(in srgb, var(--color-klant-500) 34%, var(--os-surface));
+    --color-klant-600: color-mix(in srgb, var(--color-klant-500) 75%, #fff);
+    --color-klant-700: color-mix(in srgb, var(--color-klant-500) 62%, #fff);
+    --color-project-50: color-mix(in srgb, var(--color-project-500) 10%, var(--os-surface));
+    --color-project-100: color-mix(in srgb, var(--color-project-500) 18%, var(--os-surface));
+    --color-project-200: color-mix(in srgb, var(--color-project-500) 30%, var(--os-surface));
+    --color-project-600: color-mix(in srgb, var(--color-project-500) 80%, #fff);
+    --color-project-700: color-mix(in srgb, var(--color-project-500) 65%, #fff);
+    --color-planning-50: color-mix(in srgb, var(--color-planning-500) 10%, var(--os-surface));
+    --color-planning-100: color-mix(in srgb, var(--color-planning-500) 20%, var(--os-surface));
+    --color-planning-200: color-mix(in srgb, var(--color-planning-500) 32%, var(--os-surface));
+    --color-planning-700: color-mix(in srgb, var(--color-planning-500) 65%, #fff);
+    --color-calc-100: color-mix(in srgb, var(--color-calc-500) 22%, var(--os-surface));
+    --color-calc-700: color-mix(in srgb, var(--color-calc-500) 55%, #fff);
+    --color-offerte-100: color-mix(in srgb, var(--color-offerte-500) 22%, var(--os-surface));
+    --color-offerte-700: color-mix(in srgb, var(--color-offerte-500) 55%, #fff);
+
+    /* Navy blijft: de lichte tinten zijn tekst op donker (zijmenu, sheets), de donkere tinten
+       achtergrond. Alleen de donkere inkt (text-navy-800/900/950) wordt hieronder licht. */
+}
+
+/* Pagina, vlakken en tekst van de schermen in de app */
+.native-app.os-dark[data-bundle] body {
+    background-color: var(--os-bg);
+    color: var(--os-ink);
+}
+
+/* Donkere inkt en witte vlakken komen alleen voor in lichte delen, dus overal om (ook op serverpagina's). */
+.native-app.os-dark :is(.text-navy-950, .text-navy-900, .text-navy-800) {
+    color: var(--os-ink);
+}
+
+.native-app.os-dark .text-navy-700 {
+    color: #c8d0dc;
+}
+
+.native-app.os-dark .bg-white {
+    background-color: var(--os-surface);
+}
+
+.native-app.os-dark .ring-white {
+    --tw-ring-color: var(--os-surface);
+}
+
+/* Donkere knoppen en bubbels (actieve filter, Nova) moeten opvallen tegen de donkere pagina */
+.native-app.os-dark[data-bundle] main :is(.bg-navy-950, .bg-navy-900) {
+    background-color: #2f405c;
+}
+
+.native-app.os-dark:is([data-bundle]) :is(input:not([type='checkbox'], [type='radio'], [type='range'], [type='file']), select, textarea),
+.native-app.os-dark :is(.bg-white, .app-card, [data-popup]) :is(input:not([type='checkbox'], [type='radio'], [type='range'], [type='file']), select, textarea) {
+    border-color: var(--os-line);
+    background-color: var(--os-raised);
+    color: var(--os-ink);
+}
+
+.native-app.os-dark :is(input, textarea)::placeholder {
+    color: #6d7c94;
+}
+
+.native-app.os-dark .skeleton {
+    background-color: rgb(255 255 255 / 0.07);
+}
+
+.native-app.os-dark .skeleton::after {
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.07), transparent);
+}
+
+/* De schil (app en serverpagina's) */
+.native-app.os-dark :is(.app-top, .app-bnav) {
+    background-color: var(--os-surface);
+}
+
+.native-app.os-dark .app-top {
+    border-bottom: 1px solid var(--os-line);
+}
+
+.native-app.os-dark .app-bnav {
+    border-top: 1px solid var(--os-line);
+    box-shadow: none;
+}
+
+.native-app.os-dark .app-top :is(.bg-white, a[class*='rounded-full'], button[class*='rounded-full']):not(.bg-brand-500) {
+    border-color: var(--os-line);
+    background-color: var(--os-raised);
+}
+
+.native-app.os-dark :is(.app-iconbtn, .app-menu, .app-chip, .app-btn) {
+    border-color: var(--os-line);
+    background: var(--os-raised);
+    color: var(--os-ink);
+}
+
+.native-app.os-dark .app-menu hr,
+.native-app.os-dark :is(.app-sectabs, .app-card-h) {
+    border-color: var(--os-line);
+}
+
+.native-app.os-dark .app-sectabs {
+    background-color: var(--os-bg);
+}
+
+.native-app.os-dark .app-btn.pri {
+    border-color: transparent;
+    background: var(--color-brand-500);
+    color: #fff;
+}
+
+.native-app.os-dark .app-btn.onnavy {
+    border-color: rgb(255 255 255 / 0.16);
+    background: rgb(255 255 255 / 0.08);
+    color: #fff;
+}
+
+.native-app.os-dark .app-chip.on {
+    background: var(--h);
+    color: #fff;
+}
+
+.native-app.os-dark .app-nova {
+    background: var(--os-bg);
+    box-shadow: 0 10px 26px -10px rgb(0 0 0 / 0.8), 0 0 0 6px var(--os-bg);
+}
+
+.native-app.os-dark .app-nova :is(.cnt, .spark) {
+    box-shadow: 0 0 0 2px var(--os-bg);
+}
+
+.native-app.os-dark [data-popup] > :is(.bg-white, form, div)[class*='rounded-t-'] {
+    background-color: var(--os-surface);
+    color: var(--os-ink);
+}
+
+/* Kaarten en lijsten */
+.native-app.os-dark :is(.app-card, .app-kpi, .app-pcard) {
+    border-color: var(--os-line);
+    background: var(--os-surface);
+}
+
+.native-app.os-dark .app-kpi.dark {
+    background: linear-gradient(135deg, #22324c, #2c4063);
+}
+
+.native-app.os-dark :is(.app-rec + .app-rec, form + .app-li) {
+    border-color: var(--os-line);
+}
+
+.native-app.os-dark .app-rec:nth-child(even) {
+    background: color-mix(in srgb, #fff 2%, var(--os-surface));
+}
+
+.native-app.os-dark .app-novaline {
+    background: linear-gradient(100deg, var(--color-brand-50), var(--os-surface) 70%);
+}
+
+.native-app.os-dark .app-ic.or {
+    color: #f89a5f;
+}
+
+.native-app.os-dark .app-ic.bad {
+    color: #f07a7e;
+}
+
+/* Teamchat */
+.native-app.os-dark .app-chat-list {
+    background: var(--os-bg);
+}
+
+.native-app.os-dark :is(.app-chat-item:active, .app-chat-av) {
+    background: var(--os-raised);
+}
+
+.native-app.os-dark .app-chat-av {
+    color: #8fb1e0;
+}
+
+.native-app.os-dark .chat-panel .chat-scroll {
+    background-color: var(--os-bg);
+    background-image: radial-gradient(rgb(255 255 255 / 0.04) 1px, transparent 1px);
+}
+
+.native-app.os-dark .chat-panel :is(header, form) {
+    border-color: var(--os-line);
+    background: var(--os-surface);
+}
+
+.native-app.os-dark .chat-panel :is(.chat-day, .chat-bubble) {
+    background: var(--os-raised);
+    box-shadow: 0 1px 1px rgb(0 0 0 / 0.3);
+    color: var(--os-ink);
+}
+
+.native-app.os-dark .chat-panel .chat-bubble.mine {
+    background: color-mix(in srgb, var(--color-brand-500) 30%, var(--os-surface));
+}
+
+.native-app.os-dark .chat-panel .chat-name {
+    color: color-mix(in srgb, var(--who, #3e6ba8) 65%, #fff);
+}

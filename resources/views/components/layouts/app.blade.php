@@ -26,6 +26,7 @@
 
     @include('partials.load-guard')
     @if ($isApp)
+        @include('partials.app.theme')
         @include('partials.motion-head')
     @endif
 

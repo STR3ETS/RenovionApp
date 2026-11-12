@@ -18,7 +18,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
 #[Fillable([
-    'name', 'email', 'password', 'role', 'phone', 'customer_id', 'motion_enabled',
+    'name', 'email', 'password', 'role', 'phone', 'customer_id', 'motion_enabled', 'app_theme',
     'job_title', 'trades', 'hourly_rate', 'weekly_capacity', 'plannable', 'started_on', 'active',
 ])]
 #[Hidden(['password', 'remember_token'])]
@@ -26,6 +26,9 @@ class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
+
+    /** Weergave in de iOS/Android-app (app_theme): telefoon = volgt de donkere modus van de telefoon. */
+    public const APP_THEMES = ['licht', 'donker', 'telefoon'];
 
     /**
      * Spiegelt de databasedefault zodat ongepersisteerde/verse modellen ook een rol hebben.
@@ -35,6 +38,7 @@ class User extends Authenticatable
     protected $attributes = [
         'role' => 'uitvoerder',
         'motion_enabled' => true,
+        'app_theme' => 'licht',
     ];
 
     /**

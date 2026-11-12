@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AcademyController;
 use App\Http\Controllers\AgentController;
+use App\Http\Controllers\AppThemeController;
 use App\Http\Controllers\AppWebSessionController;
 use App\Http\Controllers\AttentionController;
 use App\Http\Controllers\Auth\LoginController;
@@ -192,6 +193,8 @@ Route::middleware('auth')->group(function () {
         Route::get('instellingen/meldingen', [NotificationSettingsController::class, 'edit'])->name('notification-settings.edit');
         Route::patch('instellingen/meldingen', [NotificationSettingsController::class, 'update'])->middleware('throttle:60,1')->name('notification-settings.update');
         Route::patch('instellingen/beweging', [NotificationSettingsController::class, 'updateMotion'])->middleware('throttle:60,1')->name('motion-settings.update');
+        // Weergave van de app (licht/donker/telefoon), vanuit het zijmenu van een serverpagina in de app.
+        Route::patch('instellingen/weergave', [AppThemeController::class, 'update'])->middleware('throttle:30,1')->name('app-theme.update');
         Route::post('instellingen/meldingen/test', [NotificationSettingsController::class, 'test'])->middleware('throttle:5,1')->name('notification-settings.test');
 
         // Gespreksverslagen (Nova notuleert): opnemen kan het hele team, toegang volgt project of eigen opname.

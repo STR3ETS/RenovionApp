@@ -11,6 +11,9 @@ import novaUrl from '../../public/nova.jpg';
 const API = import.meta.env.VITE_RENOVION_API;
 const TOKEN_KEY = 'renovion-os-token';
 const PROFILE_KEY = 'renovion-os-profile';
+// Weergave: licht, donker of telefoon (volgt de donkere modus van de telefoon). Ook in index.html (vóór het eerste beeld).
+const THEME_KEY = 'renovion-os-theme';
+const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
 const SCREENS = ['vandaag', 'inbox', 'projecten', 'planning', 'taken', 'meldingen', 'zoeken', 'klanten', 'aanvragen', 'chat'];
 // Schermen met een id: #/project/5. Pad op de server => scherm in de app (go()).
 const DETAILS = {
@@ -156,6 +159,7 @@ Alpine.store('os', {
     leaving: null, // { kind, tabs } van de serverpagina die opent, zie leaveScreen()
     update: null, // { url } als deze app te oud is (426), zie api() en checkVersion()
     offline: false,
+    theme: storage.get(THEME_KEY) ?? 'licht',
     shownAt: null,
     toastText: null,
     question: null,
@@ -182,6 +186,8 @@ Alpine.store('os', {
     },
 
     init() {
+        this.applyTheme();
+        darkQuery.addEventListener?.('change', () => this.applyTheme());
         window.addEventListener('hashchange', () => this.navigate());
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState !== 'visible') return;
@@ -289,6 +295,37 @@ Alpine.store('os', {
     setProfile(profile) {
         this.profile = profile;
         storage.set(PROFILE_KEY, JSON.stringify(profile));
+        // De keuze staat op de server (ook voor de serverpagina's): een andere telefoon of het zijmenu daar wint.
+        if (profile?.theme && profile.theme !== this.theme) {
+            this.theme = profile.theme;
+            storage.set(THEME_KEY, profile.theme);
+            this.applyTheme();
+        }
+    },
+
+    applyTheme() {
+        const dark = this.theme === 'donker' || (this.theme === 'telefoon' && darkQuery.matches);
+        document.documentElement.classList.toggle('os-dark', dark);
+        // De statusbalk volgt de kleur bovenaan (native.js).
+        setTimeout(() => window.dispatchEvent(new Event('renovion-top-changed')), 50);
+    },
+
+    // Meteen op de telefoon, daarna op de server; lukt dat niet, dan terug naar wat het was.
+    async setTheme(value) {
+        if (value === this.theme) return;
+        const before = this.theme;
+        this.theme = value;
+        storage.set(THEME_KEY, value);
+        this.applyTheme();
+        try {
+            await api('weergave', { method: 'PATCH', body: { theme: value } });
+            if (this.profile) this.setProfile({ ...this.profile, theme: value });
+        } catch {
+            this.theme = before;
+            storage.set(THEME_KEY, before);
+            this.applyTheme();
+            this.toast('Opslaan lukte niet. Controleer de verbinding.');
+        }
     },
 
     // Pushmeldingen: native.js vraagt het token op en meldt het via de app-API aan.
