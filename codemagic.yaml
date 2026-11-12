@@ -48,11 +48,13 @@ workflows:
       - name: IPA bouwen
         script: |
           BUILD=$(jq -r .build mobile/release.json)
-          echo "Build $BUILD, versie 1.$((BUILD - 1))"
+          # Zichtbare versie: 0.<build - 3> (build 4 = 0.1), zelfde formule als versionName op Android.
+          VERSION="0.$((BUILD - 3))"
+          echo "Build $BUILD, versie $VERSION"
           xcode-project build-ipa \
             --project "$XCODE_PROJECT" \
             --scheme "$XCODE_SCHEME" \
-            --archive-xcargs "CURRENT_PROJECT_VERSION=$BUILD MARKETING_VERSION=1.$((BUILD - 1))"
+            --archive-xcargs "CURRENT_PROJECT_VERSION=$BUILD MARKETING_VERSION=$VERSION"
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log

@@ -41,7 +41,9 @@ Lokaal bouwen vraagt `ios/App/App/GoogleService-Info.plist` (Firebase-console > 
 
 [`codemagic.yaml`](../codemagic.yaml) bouwt de app en zet hem in TestFlight. Het buildnummer komt uit
 `mobile/release.json` (zoals bij Android): **verhoog `build` vóór elke upload**, TestFlight weigert een
-nummer dat al bestaat. De versie wordt `1.<build - 1>`, net als `versionName` op Android.
+nummer dat al bestaat. De zichtbare versie wordt `0.<build - 3>` (build 4 = 0.1, build 5 = 0.2), net als
+`versionName` op Android. Alleen de versie mocht terug naar 0.1; het buildnummer moet altijd omhoog
+(TestFlight, Google Play en `minimum_build` op de server).
 
 Eenmalig:
 
