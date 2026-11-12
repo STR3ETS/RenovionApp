@@ -11,25 +11,26 @@ import novaUrl from '../../public/nova.jpg';
 const API = import.meta.env.VITE_RENOVION_API;
 const TOKEN_KEY = 'renovion-os-token';
 const PROFILE_KEY = 'renovion-os-profile';
-const SCREENS = ['vandaag', 'inbox', 'projecten', 'planning', 'taken', 'meldingen', 'zoeken', 'klanten', 'aanvragen'];
+const SCREENS = ['vandaag', 'inbox', 'projecten', 'planning', 'taken', 'meldingen', 'zoeken', 'klanten', 'aanvragen', 'chat'];
 // Schermen met een id: #/project/5. Pad op de server => scherm in de app (go()).
 const DETAILS = {
     project: /^\/projecten\/(\d+)$/,
     werkpakket: /^\/werkpakketten\/(\d+)$/,
     klant: /^\/klanten\/(\d+)$/,
     aanvraag: /^\/aanvragen\/(\d+)$/,
+    gesprek: /^\/chat\/(\d+)$/,
 };
 // Bij welk scherm in de onderbalk/het menu een detailscherm hoort
-const PARENTS = { project: 'projecten', werkpakket: 'projecten', klant: 'klanten', aanvraag: 'aanvragen', taken: 'planning' };
+const PARENTS = { project: 'projecten', werkpakket: 'projecten', klant: 'klanten', aanvraag: 'aanvragen', taken: 'planning', gesprek: 'chat' };
 // Sectiekleur per scherm (native-app.css, data-sec)
 const SECTIONS = {
     planning: 'uitvoering', taken: 'uitvoering', project: 'projecten', werkpakket: 'projecten',
-    klanten: 'verkoop', klant: 'verkoop', aanvragen: 'verkoop', aanvraag: 'verkoop',
+    klanten: 'verkoop', klant: 'verkoop', aanvragen: 'verkoop', aanvraag: 'verkoop', chat: 'teamchat', gesprek: 'teamchat',
 };
 // Serverpaden die in de app een eigen scherm hebben (meldingen, inbox, menu)
 const SCREEN_PATHS = {
     '/': 'vandaag', '/aandacht': 'inbox', '/projecten': 'projecten', '/planning': 'planning', '/taken': 'taken',
-    '/meldingen': 'meldingen', '/zoeken': 'zoeken', '/klanten': 'klanten', '/aanvragen': 'aanvragen',
+    '/meldingen': 'meldingen', '/zoeken': 'zoeken', '/klanten': 'klanten', '/aanvragen': 'aanvragen', '/chat': 'chat',
 };
 
 // Laadscherm voor een serverpagina in de vorm van die pagina (index.html, "Naar een serverpagina"):
@@ -748,6 +749,242 @@ Alpine.data('lead', (id) => ({
             Alpine.store('os').toast(errorText(error, 'Vastleggen lukte niet. Controleer de verbinding.'));
         }
         this.busy = null;
+    },
+}));
+
+// Teamchat: kanalenlijst met zoeken en filters (op de telefoon zelf), en voor kantoor een nieuw kanaal.
+Alpine.data('chats', () => ({
+    ...screen('chat', 'chat'),
+    filter: 'alles',
+    q: '',
+    adding: false,
+    newName: '',
+    saving: false,
+    shows(channel) {
+        if (this.q.trim() && !channel.name.toLowerCase().includes(this.q.trim().toLowerCase())) return false;
+        return this.filter === 'alles' || this.filter === channel.kind || (this.filter === 'ongelezen' && channel.unread > 0);
+    },
+    async createChannel() {
+        const name = this.newName.trim();
+        if (!name || this.saving) return;
+        this.saving = true;
+        try {
+            const { id } = await api('chat/kanalen', { method: 'POST', body: { name } });
+            fetchedAt.chat = 0;
+            this.adding = false;
+            this.newName = '';
+            location.hash = `#/gesprek/${id}`;
+        } catch (error) {
+            Alpine.store('os').toast(errorText(error, 'Aanmaken lukte niet. Controleer de verbinding.'));
+        }
+        this.saving = false;
+    },
+}));
+
+// Een gesprek: schermvullend, de laatste berichten meteen uit de opslag, daarna vers en elke 8 s nieuwe.
+// Versturen, foto's (eerst kleiner gemaakt), inspreken, Nova-voorstellen bevestigen en "→ Taak".
+const CHAT_POLL_MS = 8_000;
+
+Alpine.data('conversation', (id) => ({
+    cacheName: `gesprek:${id}`,
+    data: null,
+    failed: false,
+    input: '',
+    busy: false,
+    listening: false,
+    recognition: null,
+    actionsFor: null,
+    timer: null,
+    onResize: null,
+
+    init() {
+        const cached = cache.read(this.cacheName);
+        if (cached) this.data = cached.data;
+        this.scrollDown(false);
+        this.open();
+        this.timer = setInterval(() => document.visibilityState === 'visible' && !Alpine.store('os').offline && this.poll(), CHAT_POLL_MS);
+        // Toetsenbord open of dicht: het gesprek past in wat er zichtbaar is, het nieuwste bericht in beeld.
+        this.onResize = () => { this.fit(); this.scrollDown(false); };
+        window.visualViewport?.addEventListener('resize', this.onResize);
+        this.fit();
+    },
+    destroy() {
+        clearInterval(this.timer);
+        window.visualViewport?.removeEventListener('resize', this.onResize);
+        this.recognition?.stop();
+    },
+    fit() {
+        if (window.visualViewport) this.$el.style.height = `${window.visualViewport.height}px`;
+    },
+
+    async open() {
+        this.failed = false;
+        try {
+            this.data = await api(`chat/${id}`);
+            this.save();
+            this.scrollDown(false);
+            // Gelezen: de teller op Chat en in de lijst bijwerken.
+            fetchedAt.chat = 0;
+            Alpine.store('os').refreshProfile();
+        } catch (error) {
+            if (error.status !== 401) this.failed = this.data === null;
+        }
+    },
+    save() {
+        cache.write(this.cacheName, this.data, JSON.stringify(this.data));
+    },
+    get messages() {
+        return this.data?.messages ?? [];
+    },
+    get lastId() {
+        return this.messages.length ? Math.max(...this.messages.map((message) => message.id)) : 0;
+    },
+    // Reeksen van dezelfde afzender horen bij elkaar: één naam, één tijd onderaan de reeks.
+    get thread() {
+        const same = (earlier, later) => earlier && later && earlier.author === later.author && earlier.day === later.day && later.at - earlier.at < 600;
+        return this.messages.map((message, index) => ({
+            message,
+            newDay: this.messages[index - 1]?.day !== message.day,
+            startsGroup: !same(this.messages[index - 1], message),
+            endsGroup: !same(message, this.messages[index + 1]),
+        }));
+    },
+    nameColor(name) {
+        const colors = ['#c2506d', '#3e6ba8', '#1e8a5a', '#7c5cd6', '#2b8c8c', '#d98a0b'];
+        return colors[[...name].reduce((sum, letter) => sum + letter.charCodeAt(0), 0) % colors.length];
+    },
+    format(body) {
+        if (!body) return '';
+        return body
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+            .replace(/@([\wÀ-ÿ-]+)/g, '<span class="font-semibold text-brand-700">@$1</span>')
+            .replace(/\n/g, '<br>');
+    },
+    attachmentUrl: (message) => `${API}${message.attachment_url}`,
+
+    // Nieuwe of bijgewerkte berichten erbij (bevestigd Nova-voorstel vervangt het oude).
+    append(list) {
+        if (!this.data || !list.length) return;
+        const messages = [...this.messages];
+        for (const incoming of list) {
+            const index = messages.findIndex((message) => message.id === incoming.id);
+            if (index >= 0) messages.splice(index, 1, incoming);
+            else messages.push(incoming);
+        }
+        this.data = { ...this.data, messages: messages.slice(-150) };
+        this.save();
+        this.scrollDown();
+    },
+    async poll() {
+        if (!this.data) return;
+        try {
+            const { messages } = await api(`chat/${id}/berichten?after=${this.lastId}`);
+            if (messages.length) {
+                this.append(messages);
+                fetchedAt.chat = 0;
+            }
+        } catch { /* de volgende keer weer */ }
+    },
+    // Na het tekenen (volgende frame) naar beneden: dan staan alle berichten er.
+    scrollDown(smooth = true) {
+        this.$nextTick(() => requestAnimationFrame(() => {
+            const scroll = this.$refs.scroll;
+            if (scroll) scroll.scrollTo({ top: scroll.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
+        }));
+    },
+    // Een foto die later binnenkomt, maakt het gesprek langer: blijf onderaan als je daar was.
+    photoLoaded() {
+        const scroll = this.$refs.scroll;
+        if (scroll && scroll.scrollHeight - scroll.scrollTop - scroll.clientHeight < scroll.clientHeight) this.scrollDown(false);
+    },
+
+    async send() {
+        const text = this.input.trim();
+        if (!text || this.busy) return;
+        this.busy = true;
+        this.input = '';
+        try {
+            const { messages } = await api(`chat/${id}/berichten`, { method: 'POST', body: { body: text } });
+            this.append(messages);
+            fetchedAt.chat = 0;
+        } catch (error) {
+            this.input = text; // niets kwijt: de tekst staat er weer
+            Alpine.store('os').toast(errorText(error, 'Versturen lukte niet. Controleer de verbinding.'));
+        }
+        this.busy = false;
+    },
+    // Tijdens het versturen staat de foto er al, met "Versturen" erop (preview = adres van de foto zelf).
+    sending: null,
+    async attach(event) {
+        const file = event.target.files[0];
+        event.target.value = '';
+        if (!file || this.busy) return;
+        this.busy = true;
+        this.sending = URL.createObjectURL(file);
+        this.scrollDown();
+        const body = new FormData();
+        body.append('attachment', await shrinkPhoto(file));
+        const text = this.input.trim();
+        if (text) body.append('body', text);
+        try {
+            const { messages } = await api(`chat/${id}/berichten`, { method: 'POST', body });
+            this.input = '';
+            this.append(messages);
+        } catch (error) {
+            Alpine.store('os').toast(errorText(error, 'De foto versturen lukte niet. Controleer de verbinding.'));
+        }
+        URL.revokeObjectURL(this.sending);
+        this.sending = null;
+        this.busy = false;
+    },
+
+    get speechSupported() {
+        return 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+    },
+    toggleMic() {
+        if (this.listening) {
+            this.recognition?.stop();
+            return;
+        }
+        const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const before = this.input ? `${this.input.trim()} ` : '';
+        this.recognition = new Recognition();
+        this.recognition.lang = 'nl-NL';
+        this.recognition.interimResults = true;
+        this.recognition.onresult = (event) => { this.input = before + Array.from(event.results).map((result) => result[0].transcript).join(''); };
+        this.recognition.onend = () => { this.listening = false; };
+        this.recognition.onerror = () => { this.listening = false; };
+        this.listening = true;
+        this.recognition.start();
+    },
+
+    async confirmNova(message) {
+        if (message.nova?.executed) return;
+        try {
+            const { messages } = await api(`chat/berichten/${message.id}/nova-bevestigen`, { method: 'POST' });
+            this.append(messages);
+            Object.keys(fetchedAt).forEach((name) => { fetchedAt[name] = 0; });
+        } catch (error) {
+            Alpine.store('os').toast(errorText(error, 'Uitvoeren lukte niet. Probeer het opnieuw.'));
+        }
+    },
+    // Een uitgevoerd Nova-voorstel wijst naar een pagina op de server: in de app openen.
+    openNova(message) {
+        Alpine.store('os').go(new URL(message.nova.url, API).pathname);
+    },
+    async toTask(message) {
+        this.actionsFor = null;
+        try {
+            const { message: text } = await api(`chat/berichten/${message.id}/taak`, { method: 'POST' });
+            fetchedAt.taken = fetchedAt.vandaag = 0;
+            Alpine.store('os').toast(text);
+        } catch (error) {
+            Alpine.store('os').toast(errorText(error, 'Taak maken lukte niet. Probeer het opnieuw.'));
+        }
+    },
+    back() {
+        if (history.length > 1) history.back();
+        else location.hash = '#/chat';
     },
 }));
 

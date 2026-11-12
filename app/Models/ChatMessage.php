@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\URL;
 
 #[Fillable(['chat_channel_id', 'user_id', 'body', 'attachment_path', 'attachment_name', 'nova'])]
 class ChatMessage extends Model
@@ -61,11 +62,13 @@ class ChatMessage extends Model
     }
 
     /**
-     * Payload voor de Alpine-chatcomponent.
+     * Payload voor de Alpine-chatcomponent. Voor de iOS/Android-app ($forApp) is de bijlage een
+     * ondertekend adres (api/app): een <img> in de app kan geen token meesturen. Het adres blijft
+     * twee dagen gelijk, zodat de webview de foto uit zijn cache haalt.
      *
      * @return array<string, mixed>
      */
-    public function toChatArray(?User $viewer = null): array
+    public function toChatArray(?User $viewer = null, bool $forApp = false): array
     {
         return [
             'id' => $this->id,
@@ -82,7 +85,11 @@ class ChatMessage extends Model
             'author' => $this->user_id ?? 'nova',
             'mine' => $viewer !== null && $this->user_id === $viewer->id,
             'body' => $this->body,
-            'attachment_url' => $this->attachment_path ? route('chat.attachment', $this) : null,
+            'attachment_url' => match (true) {
+                $this->attachment_path === null => null,
+                $forApp => URL::temporarySignedRoute('api.app.chat.attachment', today()->addDays(2), $this, absolute: false),
+                default => route('chat.attachment', $this),
+            },
             'attachment_name' => $this->attachment_name,
             'at' => $this->created_at->timestamp,
             'day' => $this->dayLabel(),

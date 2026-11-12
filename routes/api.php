@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\App\ChatController as AppChatController;
 use App\Http\Controllers\Api\App\CustomerController as AppCustomerController;
 use App\Http\Controllers\Api\App\InboxController as AppInboxController;
 use App\Http\Controllers\Api\App\LeadController as AppLeadController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Api\App\TaskController as AppTaskController;
 use App\Http\Controllers\Api\App\TodayController as AppTodayController;
 use App\Http\Controllers\Api\App\WorkPackageController as AppWorkPackageController;
 use App\Http\Controllers\Api\LeadIntakeController;
+use App\Http\Controllers\ChatMessageController;
 use App\Http\Controllers\DeviceTokenController;
 use App\Http\Controllers\LeadContactController;
 use App\Http\Controllers\LeadStatusController;
@@ -34,6 +36,7 @@ Route::prefix('app')->name('api.app.')->middleware(RequireAppUpdate::class)->gro
     Route::post('inloggen', [AppSessionController::class, 'store'])->middleware('throttle:login')->name('login');
     // Foto's voor <img> in de app: zonder token, met een ondertekend adres uit het werkpakket.
     Route::get('fotos/{photo}', [AppWorkPackageController::class, 'photo'])->middleware('signed:relative')->name('photo');
+    Route::get('chat/bijlagen/{message}', [AppChatController::class, 'attachment'])->middleware('signed:relative')->name('chat.attachment');
 
     // 120 per minuut per gebruiker: ruim voor vooraf laden en verversen, te weinig om de server te bestoken.
     Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
@@ -45,6 +48,15 @@ Route::prefix('app')->name('api.app.')->middleware(RequireAppUpdate::class)->gro
         Route::middleware('can:internal')->group(function () {
             Route::get('vandaag', AppTodayController::class)->name('today');
             Route::get('meldingen', AppNotificationController::class)->name('notifications');
+
+            // Teamchat: kanalen en een gesprek openen hier; berichten via dezelfde controller als de website.
+            Route::get('chat', [AppChatController::class, 'index'])->name('chat');
+            Route::post('chat/kanalen', [AppChatController::class, 'store'])->middleware('throttle:10,1')->name('chat.channels.store');
+            Route::get('chat/{channel}', [AppChatController::class, 'show'])->name('chat.show');
+            Route::get('chat/{channel}/berichten', [ChatMessageController::class, 'index'])->name('chat.messages');
+            Route::post('chat/{channel}/berichten', [ChatMessageController::class, 'store'])->middleware('throttle:60,1')->name('chat.messages.store');
+            Route::post('chat/berichten/{message}/nova-bevestigen', [ChatMessageController::class, 'confirmNova'])->name('chat.nova.confirm');
+            Route::post('chat/berichten/{message}/taak', [ChatMessageController::class, 'toTask'])->middleware('throttle:30,1')->name('chat.task');
             Route::get('projecten', AppProjectController::class)->name('projects');
             Route::get('projecten/{project}', AppProjectDetailController::class)->name('projects.show');
             Route::get('taken', [AppTaskController::class, 'index'])->name('tasks');

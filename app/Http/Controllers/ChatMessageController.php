@@ -37,7 +37,7 @@ class ChatMessageController extends Controller
         }
 
         return response()->json([
-            'messages' => $messages->map(fn (ChatMessage $message) => $message->toChatArray($request->user())),
+            'messages' => $messages->map(fn (ChatMessage $message) => $message->toChatArray($request->user(), $request->is('api/*'))),
         ]);
     }
 
@@ -71,7 +71,7 @@ class ChatMessageController extends Controller
         }
 
         return response()->json([
-            'messages' => $nieuw->filter()->map(fn (ChatMessage $bericht) => $bericht->toChatArray($request->user()))->values(),
+            'messages' => $nieuw->filter()->map(fn (ChatMessage $bericht) => $bericht->toChatArray($request->user(), $request->is('api/*')))->values(),
         ]);
     }
 
@@ -101,8 +101,8 @@ class ChatMessageController extends Controller
 
         return response()->json([
             'messages' => [
-                $message->fresh('user')->toChatArray($request->user()),
-                $bevestiging->toChatArray($request->user()),
+                $message->fresh('user')->toChatArray($request->user(), $request->is('api/*')),
+                $bevestiging->toChatArray($request->user(), $request->is('api/*')),
             ],
         ]);
     }

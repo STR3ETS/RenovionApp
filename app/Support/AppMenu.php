@@ -22,6 +22,7 @@ class AppMenu
         'search' => 'zoeken',
         'leads.index' => 'aanvragen',
         'customers.index' => 'klanten',
+        'chat.index' => 'chat',
     ];
 
     /**
@@ -33,6 +34,7 @@ class AppMenu
         'search' => 3,
         'leads.index' => 3,
         'customers.index' => 3,
+        'chat.index' => 3,
     ];
 
     /** Het scherm in de app voor deze route, als de app die dit verzoek doet het kent. */
