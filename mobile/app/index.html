@@ -1112,6 +1112,95 @@
                     </div>
                 </template>
 
+                <!-- ===== Instellingen (tandwiel in het zijmenu): opslaan gebeurt bij het verlaten (saveSettings) ===== -->
+                <template x-if="$store.os.route === 'instellingen'">
+                    <div x-data="settings">
+                        <div data-enter class="app-ph">
+                            <p class="sec-eye"><span x-icon="'cog'"></span> Instellingen</p>
+                            <h1><em>Instellingen</em></h1>
+                            <p class="sub">Wat je hier kiest, geldt meteen en wordt bewaard zodra je dit scherm verlaat.</p>
+                        </div>
+
+                        <template x-if="failed">
+                            <div class="app-card p-5 text-center">
+                                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                                <button type="button" @click="load()" class="app-btn mt-3">Opnieuw proberen</button>
+                            </div>
+                        </template>
+
+                        <div x-show="!failed">
+                            <!-- Pushmeldingen per soort -->
+                            <p class="mb-2 px-1 text-xs font-bold tracking-wide text-gray-500 uppercase">Pushmeldingen</p>
+                            <div data-enter class="app-card mb-4">
+                                <div class="app-card-b">
+                                    <template x-for="i in (data ? 0 : 3)" :key="i">
+                                        <div class="flex gap-3.5 py-3.5"><span class="skeleton h-9 w-9 shrink-0 !rounded-[11px]"></span><span class="flex-1"><span class="skeleton mb-2 block h-3.5 w-3/4"></span><span class="skeleton block h-3 w-1/2"></span></span></div>
+                                    </template>
+                                    <template x-for="item in data?.notifications ?? []" :key="item.type">
+                                        <button type="button" role="switch" :aria-checked="enabled(item)" @click="toggle(item)" class="app-li w-full text-left">
+                                            <span class="app-ic blue"><span x-icon="item.icon" class="h-[18px] w-[18px]"></span></span>
+                                            <span class="min-w-0 flex-1">
+                                                <b x-text="item.label"></b>
+                                                <small x-text="item.description"></small>
+                                            </span>
+                                            <span class="relative mt-1 h-6 w-11 shrink-0 rounded-full transition" :class="enabled(item) ? 'bg-brand-500' : 'bg-gray-300'">
+                                                <span class="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition" :class="enabled(item) && 'translate-x-5'"></span>
+                                            </span>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- Deze telefoon: toestemming van de telefoon en een testmelding -->
+                            <div data-enter class="app-card mb-4 p-4">
+                                <p class="text-sm font-bold text-navy-900">Deze telefoon</p>
+                                <p x-show="permission === 'granted'" class="mt-1.5 flex items-center gap-2 text-sm text-green-700">
+                                    <span class="h-2 w-2 rounded-full bg-green-500"></span> Ontvangt meldingen.
+                                </p>
+                                <div x-show="permission && permission !== 'granted'" class="mt-2 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">
+                                    <p class="font-semibold">Meldingen staan uit voor Renovion op deze telefoon.</p>
+                                    <p class="mt-1 text-xs">Zet ze aan in de instellingen van je telefoon. Android: Instellingen, Apps, Renovion, Meldingen. iPhone: Instellingen, Renovion, Berichtgeving.</p>
+                                </div>
+                                <button type="button" x-show="data?.devices > 0" @click="sendTest()" :disabled="testing"
+                                        class="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-navy-900 disabled:opacity-60">
+                                    <span x-icon="'paper-airplane'" class="h-4 w-4"></span>
+                                    <span x-text="testing ? 'Versturen…' : 'Testmelding sturen'"></span>
+                                </button>
+                            </div>
+
+                            <!-- Weergave: dezelfde keuze als in het zijmenu -->
+                            <p class="mb-2 px-1 text-xs font-bold tracking-wide text-gray-500 uppercase">Weergave</p>
+                            <div data-enter class="app-card mb-4 p-1.5">
+                                <div class="grid grid-cols-3 gap-1" role="radiogroup" aria-label="Weergave">
+                                    <template x-for="[value, label, icon] in [['licht', 'Licht', 'sun'], ['donker', 'Donker', 'moon'], ['telefoon', 'Telefoon', 'device-phone-mobile']]" :key="value">
+                                        <button type="button" role="radio" :aria-checked="$store.os.theme === value" @click="$store.os.setTheme(value)"
+                                                class="flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-xs font-semibold transition"
+                                                :class="$store.os.theme === value ? 'bg-navy-900 text-white' : 'text-gray-600'">
+                                            <span x-icon="icon" class="h-5 w-5"></span> <span x-text="label"></span>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- Animaties -->
+                            <div data-enter class="app-card mb-4">
+                                <div class="app-card-b">
+                                    <button type="button" role="switch" :aria-checked="motion" @click="toggleMotion()" class="app-li w-full text-left">
+                                        <span class="app-ic blue"><span x-icon="'sparkles'" class="h-[18px] w-[18px]"></span></span>
+                                        <span class="min-w-0 flex-1">
+                                            <b>Animaties</b>
+                                            <small>Beweging bij het openen van pagina's op de server. Staat je telefoon op minder beweging, dan staan ze altijd uit.</small>
+                                        </span>
+                                        <span class="relative mt-1 h-6 w-11 shrink-0 rounded-full transition" :class="motion ? 'bg-brand-500' : 'bg-gray-300'">
+                                            <span class="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition" :class="motion && 'translate-x-5'"></span>
+                                        </span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
                 <!-- ===== Zoeken (topbalk, kantoor) ===== -->
                 <template x-if="$store.os.route === 'zoeken'">
                     <div x-data="search">
@@ -1793,7 +1882,7 @@
                             <span class="block truncate text-sm font-semibold text-white" x-text="$store.os.profile.user.name"></span>
                             <span class="block truncate text-xs text-navy-300" x-text="$store.os.profile.user.role_label"></span>
                         </span>
-                        <button type="button" @click="$store.os.openWeb('/instellingen/meldingen')" class="tap p-2 text-navy-300" aria-label="Instellingen"><span x-icon="'cog'" class="h-5 w-5"></span></button>
+                        <button type="button" @click="$store.os.go('/instellingen/meldingen')" class="tap p-2 text-navy-300" aria-label="Instellingen"><span x-icon="'cog'" class="h-5 w-5"></span></button>
                         <button type="button" @click="$store.os.logout()" class="tap p-2 text-navy-300" aria-label="Uitloggen"><span x-icon="'arrow-right-on-rectangle'" class="h-5 w-5"></span></button>
                     </div>
                 </aside>
@@ -1810,7 +1899,7 @@
                             <span class="min-w-0 flex-1"><b>Vraag het Nova</b><small>Inspreken of typen, Nova zet het voor je klaar</small></span>
                         </button>
                     </template>
-                    <button type="button" @click="$store.os.help = false; $store.os.openWeb('/instellingen/meldingen')" class="app-li w-full text-left">
+                    <button type="button" @click="$store.os.help = false; $store.os.go('/instellingen/meldingen')" class="app-li w-full text-left">
                         <span class="app-ic blue"><span x-icon="'bell'" class="h-[18px] w-[18px]"></span></span>
                         <span class="min-w-0 flex-1"><b>Meldingen instellen</b><small>Kies welke pushmeldingen je wilt krijgen</small></span>
                     </button>

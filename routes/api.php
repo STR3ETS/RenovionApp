@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\App\ProjectDetailController as AppProjectDetailCont
 use App\Http\Controllers\Api\App\SearchController as AppSearchController;
 use App\Http\Controllers\Api\App\SessionController as AppSessionController;
 use App\Http\Controllers\Api\App\TaskController as AppTaskController;
+use App\Http\Controllers\Api\App\SettingsController as AppSettingsController;
 use App\Http\Controllers\Api\App\TodayController as AppTodayController;
 use App\Http\Controllers\Api\App\WorkPackageController as AppWorkPackageController;
 use App\Http\Controllers\Api\LeadIntakeController;
@@ -54,6 +55,11 @@ Route::prefix('app')->name('api.app.')->middleware(RequireAppUpdate::class)->gro
             // Teamchat: kanalen en een gesprek openen hier; berichten via dezelfde controller als de website.
             Route::get('chat', [AppChatController::class, 'index'])->name('chat');
             Route::post('chat/kanalen', [AppChatController::class, 'store'])->middleware('throttle:10,1')->name('chat.channels.store');
+            // Instellingen: de app stuurt wijzigingen in één keer bij het verlaten van het scherm of het zijmenu.
+            Route::get('instellingen', [AppSettingsController::class, 'show'])->name('settings');
+            Route::patch('instellingen', [AppSettingsController::class, 'update'])->middleware('throttle:30,1')->name('settings.update');
+            Route::post('instellingen/testmelding', [AppSettingsController::class, 'test'])->middleware('throttle:5,1')->name('settings.test');
+
             Route::get('chat/{channel}', [AppChatController::class, 'show'])->name('chat.show');
             Route::get('chat/{channel}/berichten', [ChatMessageController::class, 'index'])->name('chat.messages');
             Route::post('chat/{channel}/berichten', [ChatMessageController::class, 'store'])->middleware('throttle:60,1')->name('chat.messages.store');

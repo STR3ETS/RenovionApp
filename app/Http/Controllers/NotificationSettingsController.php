@@ -33,13 +33,8 @@ class NotificationSettingsController extends Controller
             'enabled' => ['required', 'boolean'],
         ]);
 
-        // Alleen uitgezette soorten opslaan; nieuwe soorten staan dan vanzelf aan.
-        $preferences = collect($request->user()->notification_preferences ?? [])
-            ->except($validated['type'])
-            ->when(! $validated['enabled'], fn ($preferences) => $preferences->put($validated['type'], false))
-            ->all();
-
-        $request->user()->forceFill(['notification_preferences' => $preferences ?: null])->save();
+        $request->user()->setPushPreferences([$validated['type'] => (bool) $validated['enabled']]);
+        $request->user()->save();
 
         return response()->json(['type' => $validated['type'], 'enabled' => (bool) $validated['enabled']]);
     }

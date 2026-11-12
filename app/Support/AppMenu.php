@@ -23,6 +23,7 @@ class AppMenu
         'leads.index' => 'aanvragen',
         'customers.index' => 'klanten',
         'chat.index' => 'chat',
+        'notification-settings.edit' => 'instellingen',
     ];
 
     /**
@@ -35,6 +36,7 @@ class AppMenu
         'leads.index' => 3,
         'customers.index' => 3,
         'chat.index' => 3,
+        'notification-settings.edit' => 5,
     ];
 
     /** Het scherm in de app voor deze route, als de app die dit verzoek doet het kent. */

@@ -93,6 +93,23 @@ class User extends Authenticatable
         return ($this->notification_preferences[$type->value] ?? true) !== false;
     }
 
+    /**
+     * Pushmeldingen per soort aan of uit zetten (nog niet opgeslagen). Alleen uitgezette soorten blijven
+     * bewaard, zodat nieuwe soorten vanzelf aan staan.
+     *
+     * @param  array<string, bool>  $enabled  soort => aan
+     */
+    public function setPushPreferences(array $enabled): void
+    {
+        $preferences = collect($this->notification_preferences ?? []);
+
+        foreach ($enabled as $type => $on) {
+            $preferences = $on ? $preferences->except($type) : $preferences->put($type, false);
+        }
+
+        $this->notification_preferences = $preferences->all() ?: null;
+    }
+
     public function projects(): BelongsToMany
     {
         return $this->belongsToMany(Project::class);

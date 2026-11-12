@@ -114,21 +114,29 @@
             @endforeach
         </nav>
 
-        {{-- Weergave: dezelfde keuze als het zijmenu in de app (users.app_theme, partials/app/theme). --}}
+        {{-- Weergave: dezelfde keuze als het zijmenu in de app (users.app_theme, partials/app/theme). Wisselt
+             meteen, maar gaat pas naar de server als het zijmenu dichtgaat of je de pagina verlaat (niet per tik). --}}
         <div class="border-t border-navy-800 px-3 pt-3" x-data="{
                 theme: window.renovionTheme?.get() ?? 'licht',
-                async choose(value) {
-                    const before = this.theme;
+                saved: window.renovionTheme?.get() ?? 'licht',
+                choose(value) {
                     this.theme = value;
                     window.renovionTheme?.set(value);
+                },
+                async save() {
+                    const value = this.theme;
+                    if (value === this.saved) return;
                     try {
-                        await patchJson(@js(route('app-theme.update')), { theme: value });
+                        await patchJson(@js(route('app-theme.update')), { theme: value }, { keepalive: true });
+                        this.saved = value;
                     } catch {
-                        this.theme = before;
-                        window.renovionTheme?.set(before);
+                        this.theme = this.saved;
+                        window.renovionTheme?.set(this.saved);
                     }
                 },
-             }">
+             }"
+             x-effect="if (!$store.shell.drawer) save()"
+             @pagehide.window="save()">
             <p class="mb-1.5 px-1 text-[11px] font-bold tracking-widest text-navy-300 uppercase">Weergave</p>
             <div class="app-theme-switch" role="radiogroup" aria-label="Weergave">
                 @foreach (['licht' => ['Licht', 'sun'], 'donker' => ['Donker', 'moon'], 'telefoon' => ['Telefoon', 'device-phone-mobile']] as $value => [$label, $icon])

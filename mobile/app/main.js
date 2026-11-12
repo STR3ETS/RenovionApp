@@ -15,7 +15,9 @@ const PROFILE_KEY = 'renovion-os-profile';
 // Weergave: licht, donker of telefoon (volgt de donkere modus van de telefoon). Ook in index.html (vóór het eerste beeld).
 const THEME_KEY = 'renovion-os-theme';
 const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
-const SCREENS = ['vandaag', 'inbox', 'projecten', 'planning', 'taken', 'meldingen', 'zoeken', 'klanten', 'aanvragen', 'chat'];
+// Instellingen die nog naar de server moeten (zie saveSettings): blijven bewaard tot het gelukt is.
+const SETTINGS_PENDING_KEY = 'renovion-os-settings-pending';
+const SCREENS = ['vandaag', 'inbox', 'projecten', 'planning', 'taken', 'meldingen', 'zoeken', 'klanten', 'aanvragen', 'chat', 'instellingen'];
 // Schermen met een id: #/project/5. Pad op de server => scherm in de app (go()).
 const DETAILS = {
     project: /^\/projecten\/(\d+)$/,
@@ -31,11 +33,13 @@ const SECTIONS = {
     planning: 'uitvoering', taken: 'uitvoering', project: 'projecten', werkpakket: 'projecten',
     klanten: 'verkoop', klant: 'verkoop', aanvragen: 'verkoop', aanvraag: 'verkoop', chat: 'teamchat', gesprek: 'teamchat',
 };
+    instellingen: 'organisatie',
 // Serverpaden die in de app een eigen scherm hebben (meldingen, inbox, menu)
 const SCREEN_PATHS = {
     '/': 'vandaag', '/aandacht': 'inbox', '/projecten': 'projecten', '/planning': 'planning', '/taken': 'taken',
     '/meldingen': 'meldingen', '/zoeken': 'zoeken', '/klanten': 'klanten', '/aanvragen': 'aanvragen', '/chat': 'chat',
 };
+    '/instellingen/meldingen': 'instellingen',
 
 // Laadscherm voor een serverpagina in de vorm van die pagina (index.html, "Naar een serverpagina"):
 // chatlijst, gesprek, formulier, projectdossier, aanvragen, zoeken of een gewone lijst. tabs = de
@@ -83,7 +87,8 @@ const appBuild = Promise.resolve(capacitor().App?.getInfo?.())
     .then((info) => (info?.build ? String(parseInt(info.build, 10) || 0) : null))
     .catch(() => null);
 
-async function api(path, { method = 'GET', body } = {}) {
+// keepalive: het verzoek gaat door als de app intussen naar een serverpagina gaat of naar de achtergrond.
+async function api(path, { method = 'GET', body, keepalive = false } = {}) {
     const token = storage.get(TOKEN_KEY);
     const build = await appBuild;
     // Foto's gaan als FormData: dan zet de browser zelf het Content-Type (met de multipart-grens).
@@ -100,6 +105,7 @@ async function api(path, { method = 'GET', body } = {}) {
             },
             body: form ? body : body ? JSON.stringify(body) : undefined,
         });
+            keepalive,
     } catch (error) {
         // Geen verbinding met de server: laten zien dat de gegevens van eerder zijn.
         Alpine.store('os').offline = true;
@@ -154,7 +160,19 @@ Alpine.store('os', {
     profile: JSON.parse(storage.get(PROFILE_KEY) ?? 'null'),
     route: routeFromHash().route,
     param: routeFromHash().param,
-    drawer: false,
+    // Zijmenu: dicht = de gekozen weergave naar de server (saveSettings), niet bij elke tik.
+    menuOpen: false,
+    get drawer() {
+        return this.menuOpen;
+    },
+    set drawer(open) {
+        const closing = this.menuOpen && !open;
+        this.menuOpen = open;
+        if (closing) this.saveSettings();
+    },
+    // Gewijzigde instellingen die nog niet op de server staan: { theme, motion, 'notifications.<soort>' }.
+    pendingSettings: (() => { try { return JSON.parse(storage.get(SETTINGS_PENDING_KEY) ?? '{}') ?? {}; } catch { return {}; } })(),
+    savingSettings: null,
     help: false,
     nova: false,
     leaving: null, // { kind, tabs } van de serverpagina die opent, zie leaveScreen()
@@ -192,6 +210,8 @@ Alpine.store('os', {
         window.addEventListener('hashchange', () => this.navigate());
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState !== 'visible') return;
+            // Naar de achtergrond: wat nog niet verstuurd is, gaat nu mee (anders wacht het tot de volgende keer).
+            if (document.visibilityState === 'hidden') this.saveSettings();
             this.checkVersion();
             this.refreshProfile().then(() => this.token && preload(this.crm));
         });
@@ -243,6 +263,8 @@ Alpine.store('os', {
     navigate() {
         const { route, param } = routeFromHash();
         this.route = route;
+        // Instellingen verlaten: de wijzigingen in één keer naar de server.
+        if (this.route === 'instellingen' && route !== 'instellingen') this.saveSettings();
         this.param = param;
         this.drawer = this.help = this.nova = false;
         if (route === 'uitloggen') {
@@ -296,8 +318,9 @@ Alpine.store('os', {
     setProfile(profile) {
         this.profile = profile;
         storage.set(PROFILE_KEY, JSON.stringify(profile));
-        // De keuze staat op de server (ook voor de serverpagina's): een andere telefoon of het zijmenu daar wint.
-        if (profile?.theme && profile.theme !== this.theme) {
+        // De keuze staat op de server (ook voor de serverpagina's): een andere telefoon of het zijmenu daar wint,
+        // behalve als hier nog een keuze klaarstaat die nog niet verstuurd is.
+        if (profile?.theme && profile.theme !== this.theme && !('theme' in this.pendingSettings)) {
             this.theme = profile.theme;
             storage.set(THEME_KEY, profile.theme);
             this.applyTheme();
@@ -311,23 +334,58 @@ Alpine.store('os', {
         setTimeout(() => window.dispatchEvent(new Event('renovion-top-changed')), 50);
     },
 
-    // Meteen op de telefoon, daarna op de server; lukt dat niet, dan terug naar wat het was.
-    async setTheme(value) {
+    // Meteen op de telefoon; naar de server pas als het zijmenu of Instellingen dichtgaat (saveSettings).
+    setTheme(value) {
         if (value === this.theme) return;
-        const before = this.theme;
         this.theme = value;
         storage.set(THEME_KEY, value);
         this.applyTheme();
-        try {
-            await api('weergave', { method: 'PATCH', body: { theme: value } });
-            if (this.profile) this.setProfile({ ...this.profile, theme: value });
-        } catch {
-            this.theme = before;
-            storage.set(THEME_KEY, before);
-            this.applyTheme();
-            this.toast('Opslaan lukte niet. Controleer de verbinding.');
+        this.changeSetting('theme', value, this.profile?.theme ?? 'licht');
+    },
+
+    // Een instelling klaarzetten voor de server. Terug naar wat er al staat = niets meer te versturen.
+    changeSetting(key, value, saved) {
+        const pending = { ...this.pendingSettings };
+        if (value === saved) delete pending[key];
+        else pending[key] = value;
+        this.pendingSettings = pending;
+        storage.set(SETTINGS_PENDING_KEY, JSON.stringify(pending));
+    },
+
+    // Alle klaargezette instellingen in één verzoek. Geen verbinding: ze blijven staan en gaan bij de
+    // volgende keer mee. Weigert de server ze: terug naar wat op de server staat, met een melding.
+    saveSettings() {
+        if (this.savingSettings) return this.savingSettings;
+        const sent = this.pendingSettings;
+        if (!this.token || Object.keys(sent).length === 0) return Promise.resolve();
+        const body = {};
+        for (const [key, value] of Object.entries(sent)) {
+            if (key.startsWith('notifications.')) (body.notifications ??= {})[key.slice(14)] = value;
+            else body[key] = value;
         }
     },
+        this.savingSettings = (async () => {
+            try {
+                const settings = await api('instellingen', { method: 'PATCH', body, keepalive: true });
+                // Wat intussen opnieuw is gewijzigd, blijft klaarstaan.
+                this.pendingSettings = Object.fromEntries(Object.entries(this.pendingSettings).filter(([key, value]) => sent[key] !== value));
+                storage.set(SETTINGS_PENDING_KEY, JSON.stringify(this.pendingSettings));
+                cache.write('instellingen', settings, JSON.stringify(settings));
+                if (this.profile) this.setProfile({ ...this.profile, theme: settings.theme });
+            } catch (error) {
+                if (!error.status) return; // geen verbinding: later opnieuw
+                this.pendingSettings = {};
+                storage.remove(SETTINGS_PENDING_KEY);
+                this.theme = this.profile?.theme ?? 'licht';
+                storage.set(THEME_KEY, this.theme);
+                this.applyTheme();
+                window.dispatchEvent(new Event('renovion-settings-reset'));
+                this.toast(errorText(error, 'Opslaan lukte niet. Controleer de verbinding.'));
+            } finally {
+                this.savingSettings = null;
+            }
+        })();
+        return this.savingSettings;
 
     // Pushmeldingen: native.js vraagt het token op en meldt het via de app-API aan.
     registerPush() {
@@ -339,6 +397,8 @@ Alpine.store('os', {
     forget() {
         cache.clear();
         this.token = null;
+        this.pendingSettings = {};
+        storage.remove(SETTINGS_PENDING_KEY);
         this.profile = null;
         storage.remove(TOKEN_KEY);
         storage.remove(PROFILE_KEY);
@@ -356,6 +416,8 @@ Alpine.store('os', {
         try {
             this.setProfile(await api('ik'));
         } catch { /* offline: de vorige gegevens blijven staan */ }
+            // Weer verbinding (of opnieuw opgestart): instellingen die toen niet weg konden, gaan nu mee.
+            this.saveSettings();
     },
 
     async logout() {
@@ -371,6 +433,8 @@ Alpine.store('os', {
     async openWeb(path) {
         this.leaving = leaveScreen(path);
         try {
+        // Eerst de klaargezette instellingen, anders opent de serverpagina nog in de oude weergave.
+        await this.saveSettings();
             const { url } = await api('webcode', { method: 'POST', body: { naar: path, terug: location.origin } });
             location.href = url;
         } catch {
@@ -647,6 +711,53 @@ Alpine.data('notifications', () => {
 });
 
 // Zoeken: tijdens het typen, kort na de laatste toets. De laatste zoekopdracht blijft staan als je via
+// Instellingen: schakelaars werken meteen op het scherm, de server krijgt alles in één keer als je het scherm
+// verlaat (store.saveSettings). Wat je ziet = de stand van de server met jouw klaargezette wijzigingen erover.
+Alpine.data('settings', () => {
+    const base = screen('instellingen', 'instellingen');
+    const os = () => Alpine.store('os');
+
+    return {
+        ...base,
+        permission: null, // meldingen op deze telefoon: granted, denied, prompt; null = onbekend
+        testing: false,
+        async init() {
+            this.reset = () => { this.shownJson = null; this.load({ force: true }); };
+            window.addEventListener('renovion-settings-reset', this.reset);
+            capacitor().FirebaseMessaging?.checkPermissions?.()
+                .then((result) => { this.permission = result?.receive ?? null; })
+                .catch(() => {});
+            await base.init.call(this);
+        },
+        destroy() {
+            window.removeEventListener('renovion-settings-reset', this.reset);
+        },
+        enabled(item) {
+            return os().pendingSettings[`notifications.${item.type}`] ?? item.enabled;
+        },
+        toggle(item) {
+            os().changeSetting(`notifications.${item.type}`, !this.enabled(item), item.enabled);
+        },
+        get motion() {
+            return os().pendingSettings.motion ?? this.data?.motion ?? true;
+        },
+        toggleMotion() {
+            os().changeSetting('motion', !this.motion, this.data?.motion ?? true);
+        },
+        async sendTest() {
+            if (this.testing) return;
+            this.testing = true;
+            try {
+                const { message } = await api('instellingen/testmelding', { method: 'POST' });
+                os().toast(message);
+            } catch (error) {
+                os().toast(errorText(error, 'Testmelding sturen lukte niet. Controleer de verbinding.'));
+            }
+            this.testing = false;
+        },
+    };
+});
+
 // een resultaat terugkomt.
 const lastSearch = { q: '', results: null };
 

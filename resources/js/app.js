@@ -11,7 +11,8 @@ function csrfToken() {
     return document.querySelector('meta[name="csrf-token"]').content;
 }
 
-async function sendJson(method, url, data) {
+// keepalive: het verzoek gaat door als de pagina intussen weggaat (alleen voor kleine verzoeken, max. 64 kB).
+async function sendJson(method, url, data, { keepalive = false } = {}) {
     const response = await fetch(url, {
         method,
         headers: {
@@ -20,6 +21,7 @@ async function sendJson(method, url, data) {
             'X-CSRF-TOKEN': csrfToken(),
         },
         body: JSON.stringify(data),
+        keepalive,
     });
 
     if (!response.ok) {
@@ -291,7 +293,7 @@ Alpine.data('photoViewer', () => {
 });
 
 // PATCH-helper voor statuswijzigingen (Kanban, taken) met CSRF-token.
-window.patchJson = (url, data) => sendJson('PATCH', url, data);
+window.patchJson = (url, data, options) => sendJson('PATCH', url, data, options);
 window.postJson = (url, data) => sendJson('POST', url, data);
 
 // Teamchat (briefing §11): berichten versturen, pollen op nieuwe berichten,
