@@ -169,13 +169,16 @@
     font-family: var(--font-display);
 }
 
-/* Onderaan ruimte voor de onderbalk én de Nova-knop, zodat het laatste item er nooit onder ligt. */
+/* Onderaan ruimte voor de onderbalk én de Nova-knop, zodat het laatste item er nooit onder ligt.
+   --main-pb zodat een vlak dat tot de onderrand loopt (.app-chat-list) precies die ruimte kan opheffen. */
 .native-app main {
-    padding: 16px 16px calc(150px + env(safe-area-inset-bottom));
+    --main-pb: calc(150px + env(safe-area-inset-bottom));
+    padding: 16px 16px var(--main-pb);
 }
 
 .keyboard-open.native-app main {
-    padding-bottom: 1rem;
+    --main-pb: 1rem;
+    padding-bottom: var(--main-pb);
 }
 
 /* Bestaande kaarten krijgen de zachte schaduw van het prototype */
@@ -1088,10 +1091,13 @@ form + .app-li {
     font-weight: 700;
 }
 
+/* Vult het scherm onder de topbalk (59px + safe area) tot de onderrand. De onderruimte van <main>
+   (--main-pb, voor onderbalk en Nova-knop) valt binnen de lichte vlakte, anders scrolt de pagina
+   door naar een donkere balk in de kleur van de body. */
 .app-chat-list {
-    margin: -16px -16px 0;
-    padding: 14px 12px 12px;
-    min-height: calc(100dvh - 125px - env(safe-area-inset-top));
+    margin: -16px -16px calc(-1 * var(--main-pb, 0px));
+    padding: 14px 12px calc(var(--main-pb, 0px) + 12px);
+    min-height: calc(100dvh - 59px - env(safe-area-inset-top));
     background: #e9edf3;
 }
 
