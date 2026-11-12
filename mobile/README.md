@@ -34,6 +34,33 @@ In Xcode: target **App** > *Signing & Capabilities* > kies het Apple Developer-t
 iPhone of simulator met Run; voor TestFlight/App Store: *Product > Archive* > *Distribute App*.
 Verhoog per upload `CURRENT_PROJECT_VERSION` (build) en bij een release `MARKETING_VERSION`.
 
+Lokaal bouwen vraagt `ios/App/App/GoogleService-Info.plist` (Firebase-console > iOS-app
+`nl.renovion.dash`); dat bestand staat niet in Git.
+
+## iOS bouwen via Codemagic (zonder Mac)
+
+[`codemagic.yaml`](../codemagic.yaml) bouwt de app en zet hem in TestFlight. Het buildnummer komt uit
+`mobile/release.json` (zoals bij Android): **verhoog `build` vóór elke upload**, TestFlight weigert een
+nummer dat al bestaat. De versie wordt `1.<build - 1>`, net als `versionName` op Android.
+
+Eenmalig:
+
+1. **App Store Connect** (eigenaar van het Apple Developer-account): app-record voor `nl.renovion.dash`;
+   onder *Users and Access > Integrations > App Store Connect API* een sleutel met rol *App Manager*
+   (`.p8`, Issuer ID, Key ID).
+2. **Codemagic** > *Team settings > Team integrations > Developer Portal*: die sleutel toevoegen met de
+   naam `Renovion ASC`.
+3. **Codemagic** > *codemagic.yaml settings > Code signing identities*: een *Apple Distribution*-certificaat
+   genereren en een *App Store*-profiel voor `nl.renovion.dash` ophalen (met Push Notifications aan op
+   de App ID in het Apple Developer-portaal).
+4. **Firebase**: in het project een iOS-app `nl.renovion.dash` toevoegen, `GoogleService-Info.plist`
+   downloaden en onder *Project settings > Cloud Messaging* een APNs-sleutel (`.p8`) uploaden.
+   In Codemagic (app > *Environment variables*) de inhoud base64 als `GOOGLE_SERVICE_INFO_PLIST`
+   in de groep `firebase` zetten (geheim). PowerShell:
+   `[Convert]::ToBase64String([IO.File]::ReadAllBytes("GoogleService-Info.plist"))`
+5. **Codemagic** > *Add application* > GitHub > de repo, en een build starten van workflow
+   `ios-testflight`.
+
 ## Android testen (Windows, Android Studio)
 
 Android Studio staat hier op `D:\Android\Android Studio`; `cap open android` zoekt standaard op C:, dus

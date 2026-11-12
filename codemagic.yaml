@@ -1,0 +1,62 @@
+# Codemagic: iOS-build van de Renovion-app (Capacitor) en upload naar TestFlight. Geen Mac nodig.
+# Eenmalige setup (API-sleutel, ondertekening, Firebase): mobile/README.md, "iOS bouwen via Codemagic".
+#
+# Buildnummer: net als Android uit mobile/release.json ("build"). Verhoog dat getal vóór elke upload;
+# TestFlight weigert een buildnummer dat al eens geüpload is.
+workflows:
+  ios-testflight:
+    name: Renovion iOS → TestFlight
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    integrations:
+      # Naam van de App Store Connect API-sleutel in Codemagic (Team integrations > Developer Portal).
+      app_store_connect: Renovion ASC
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: nl.renovion.dash
+      groups:
+        # Bevat GOOGLE_SERVICE_INFO_PLIST: het iOS-configbestand van Firebase, base64.
+        - firebase
+      vars:
+        XCODE_PROJECT: ios/App/App.xcodeproj
+        XCODE_SCHEME: App
+        RENOVION_API_URL: https://dash.renovion.nl
+      node: 26
+      xcode: latest
+    scripts:
+      - name: Firebase-config (GoogleService-Info.plist)
+        script: |
+          PLIST=ios/App/App/GoogleService-Info.plist
+          if [ ! -f "$PLIST" ]; then
+            if [ -z "$GOOGLE_SERVICE_INFO_PLIST" ]; then
+              echo "GoogleService-Info.plist ontbreekt. Zet hem base64 in de Codemagic-variabele GOOGLE_SERVICE_INFO_PLIST (groep firebase)."
+              exit 1
+            fi
+            echo "$GOOGLE_SERVICE_INFO_PLIST" | base64 --decode > "$PLIST"
+          fi
+      - name: JS-afhankelijkheden
+        script: npm ci
+      - name: App-schermen bouwen (mobile/www)
+        script: npm run app:build
+      - name: Capacitor naar iOS
+        script: npx cap sync ios
+      - name: Ondertekening instellen
+        script: xcode-project use-profiles
+      - name: IPA bouwen
+        script: |
+          BUILD=$(jq -r .build mobile/release.json)
+          echo "Build $BUILD, versie 1.$((BUILD - 1))"
+          xcode-project build-ipa \
+            --project "$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME" \
+            --archive-xcargs "CURRENT_PROJECT_VERSION=$BUILD MARKETING_VERSION=1.$((BUILD - 1))"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
+    publishing:
+      app_store_connect:
+        auth: integration
+        # Interne testers krijgen de build zonder beoordeling door Apple; externe testers pas na review.
+        submit_to_testflight: false
