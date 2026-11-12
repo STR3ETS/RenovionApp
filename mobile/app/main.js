@@ -32,14 +32,14 @@ const PARENTS = { project: 'projecten', werkpakket: 'projecten', klant: 'klanten
 const SECTIONS = {
     planning: 'uitvoering', taken: 'uitvoering', project: 'projecten', werkpakket: 'projecten',
     klanten: 'verkoop', klant: 'verkoop', aanvragen: 'verkoop', aanvraag: 'verkoop', chat: 'teamchat', gesprek: 'teamchat',
-};
     instellingen: 'organisatie',
+};
 // Serverpaden die in de app een eigen scherm hebben (meldingen, inbox, menu)
 const SCREEN_PATHS = {
     '/': 'vandaag', '/aandacht': 'inbox', '/projecten': 'projecten', '/planning': 'planning', '/taken': 'taken',
     '/meldingen': 'meldingen', '/zoeken': 'zoeken', '/klanten': 'klanten', '/aanvragen': 'aanvragen', '/chat': 'chat',
-};
     '/instellingen/meldingen': 'instellingen',
+};
 
 // Laadscherm voor een serverpagina in de vorm van die pagina (index.html, "Naar een serverpagina"):
 // chatlijst, gesprek, formulier, projectdossier, aanvragen, zoeken of een gewone lijst. tabs = de
@@ -104,8 +104,8 @@ async function api(path, { method = 'GET', body, keepalive = false } = {}) {
                 ...(build ? { 'X-App-Build': build } : {}),
             },
             body: form ? body : body ? JSON.stringify(body) : undefined,
-        });
             keepalive,
+        });
     } catch (error) {
         // Geen verbinding met de server: laten zien dat de gegevens van eerder zijn.
         Alpine.store('os').offline = true;
@@ -209,9 +209,9 @@ Alpine.store('os', {
         darkQuery.addEventListener?.('change', () => this.applyTheme());
         window.addEventListener('hashchange', () => this.navigate());
         document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState !== 'visible') return;
             // Naar de achtergrond: wat nog niet verstuurd is, gaat nu mee (anders wacht het tot de volgende keer).
             if (document.visibilityState === 'hidden') this.saveSettings();
+            if (document.visibilityState !== 'visible') return;
             this.checkVersion();
             this.refreshProfile().then(() => this.token && preload(this.crm));
         });
@@ -262,9 +262,9 @@ Alpine.store('os', {
 
     navigate() {
         const { route, param } = routeFromHash();
-        this.route = route;
         // Instellingen verlaten: de wijzigingen in één keer naar de server.
         if (this.route === 'instellingen' && route !== 'instellingen') this.saveSettings();
+        this.route = route;
         this.param = param;
         this.drawer = this.help = this.nova = false;
         if (route === 'uitloggen') {
@@ -363,7 +363,6 @@ Alpine.store('os', {
             if (key.startsWith('notifications.')) (body.notifications ??= {})[key.slice(14)] = value;
             else body[key] = value;
         }
-    },
         this.savingSettings = (async () => {
             try {
                 const settings = await api('instellingen', { method: 'PATCH', body, keepalive: true });
@@ -386,6 +385,7 @@ Alpine.store('os', {
             }
         })();
         return this.savingSettings;
+    },
 
     // Pushmeldingen: native.js vraagt het token op en meldt het via de app-API aan.
     registerPush() {
@@ -396,9 +396,9 @@ Alpine.store('os', {
 
     forget() {
         cache.clear();
-        this.token = null;
         this.pendingSettings = {};
         storage.remove(SETTINGS_PENDING_KEY);
+        this.token = null;
         this.profile = null;
         storage.remove(TOKEN_KEY);
         storage.remove(PROFILE_KEY);
@@ -415,9 +415,9 @@ Alpine.store('os', {
         if (!this.token) return;
         try {
             this.setProfile(await api('ik'));
-        } catch { /* offline: de vorige gegevens blijven staan */ }
             // Weer verbinding (of opnieuw opgestart): instellingen die toen niet weg konden, gaan nu mee.
             this.saveSettings();
+        } catch { /* offline: de vorige gegevens blijven staan */ }
     },
 
     async logout() {
@@ -432,9 +432,9 @@ Alpine.store('os', {
     // Tot hij er is, staat er een laadscherm in de vorm van die pagina (leaveScreen).
     async openWeb(path) {
         this.leaving = leaveScreen(path);
-        try {
         // Eerst de klaargezette instellingen, anders opent de serverpagina nog in de oude weergave.
         await this.saveSettings();
+        try {
             const { url } = await api('webcode', { method: 'POST', body: { naar: path, terug: location.origin } });
             location.href = url;
         } catch {
@@ -710,7 +710,6 @@ Alpine.data('notifications', () => {
     };
 });
 
-// Zoeken: tijdens het typen, kort na de laatste toets. De laatste zoekopdracht blijft staan als je via
 // Instellingen: schakelaars werken meteen op het scherm, de server krijgt alles in één keer als je het scherm
 // verlaat (store.saveSettings). Wat je ziet = de stand van de server met jouw klaargezette wijzigingen erover.
 Alpine.data('settings', () => {
@@ -758,6 +757,7 @@ Alpine.data('settings', () => {
     };
 });
 
+// Zoeken: tijdens het typen, kort na de laatste toets. De laatste zoekopdracht blijft staan als je via
 // een resultaat terugkomt.
 const lastSearch = { q: '', results: null };
 
