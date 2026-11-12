@@ -15,12 +15,46 @@ class MainViewController: CAPBridgeViewController {
         // De app is een server-gerenderde omgeving zonder browserbalk: terug = swipe vanaf de rand.
         webView.allowsBackForwardNavigationGestures = true
 
+        // Geen zoom in de app, zoals een native app: geen dubbeltik- of knijpzoom en geen inzoomen bij het
+        // focussen van een invoerveld. In een WKWebView telt user-scalable=no wel (Safari negeert het), dus de
+        // website in de browser blijft gewoon zoombaar.
+        webView.configuration.userContentController.addUserScript(
+            WKUserScript(source: Self.noZoomScript, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
+        )
+
         if let capacitorDelegate = webView.navigationDelegate {
             let filter = NavigationErrorFilter(target: capacitorDelegate)
             navigationFilter = filter
             webView.navigationDelegate = filter
         }
     }
+
+    /// Zet de viewport vast op schaal 1 en zet dubbeltikzoom uit (touch-action). Turbo vervangt bij elke
+    /// navigatie de <meta name="viewport"> door die van de nieuwe pagina, dus na turbo:render opnieuw.
+    private static let noZoomScript = """
+    (function () {
+        var content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover';
+        function lock() {
+            var head = document.head || document.documentElement;
+            var meta = document.querySelector('meta[name="viewport"]');
+            if (!meta) {
+                meta = document.createElement('meta');
+                meta.name = 'viewport';
+                head.appendChild(meta);
+            }
+            if (meta.getAttribute('content') !== content) meta.setAttribute('content', content);
+            if (!document.getElementById('renovion-no-zoom')) {
+                var style = document.createElement('style');
+                style.id = 'renovion-no-zoom';
+                style.textContent = 'html { touch-action: manipulation; }';
+                head.appendChild(style);
+            }
+        }
+        lock();
+        document.addEventListener('turbo:render', lock);
+        document.addEventListener('turbo:load', lock);
+    })();
+    """
 }
 
 /// Capacitor laadt `server.errorPath` bij elke mislukte navigatie, ook als die alleen werd
