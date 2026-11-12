@@ -1,6 +1,6 @@
 {
     "build": 2,
-    "minimum_build": 2,
+    "minimum_build": 0,
     "links": {
         "android": "https://play.google.com/store/apps/details?id=nl.renovion.dash",
         "ios": null
