@@ -21,7 +21,9 @@ workflows:
       vars:
         XCODE_PROJECT: ios/App/App.xcodeproj
         XCODE_SCHEME: App
-        RENOVION_API_URL: https://dash.renovion.nl
+        # Testserver (Plesk). Voor de echte release: https://dash.renovion.nl, zodra dat domein naar de
+        # Laravel-server wijst en een geldig certificaat heeft.
+        RENOVION_API_URL: https://amazing-kepler.212-114-121-176.plesk.page
       node: 26
       xcode: latest
     scripts:
