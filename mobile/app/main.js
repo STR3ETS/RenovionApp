@@ -3,6 +3,7 @@
 import Alpine from 'alpinejs';
 import './app.css';
 import '../../resources/js/native.js';
+import '../../resources/js/keyboard.js';
 import swipeDismiss from '../../resources/js/swipe-dismiss.js';
 import { iconSvg } from './icons.js';
 import heroUrl from '../../public/images/os-hero.jpg';
@@ -542,7 +543,7 @@ Alpine.data('login', () => ({
             Alpine.store('os').remember(token, profile);
             this.password = '';
         } catch (error) {
-            this.error = error.data?.errors?.email?.[0] ?? error.data?.message ?? 'Geen verbinding met de server.';
+            this.error = error.data?.errors?.email?.[0] ?? (error.status >= 500 ? SERVER_ERROR : error.data?.message) ?? 'Geen verbinding met de server.';
         }
         this.busy = false;
     },
@@ -616,7 +617,7 @@ Alpine.data('planning', () => ({
             await this.load({ force: true });
             Alpine.store('os').toast('Ingepland.');
         } catch (error) {
-            this.formError = Object.values(error.data?.errors ?? {})[0]?.[0] ?? 'Opslaan lukte niet. Controleer de verbinding.';
+            this.formError = errorText(error, 'Opslaan lukte niet. Controleer de verbinding.');
         }
         this.saving = false;
     },
@@ -696,8 +697,15 @@ Alpine.data('search', () => ({
     },
 }));
 
-// Fout van de server als leesbare zin (validatie), of de standaardtekst.
-const errorText = (error, fallback) => Object.values(error.data?.errors ?? {})[0]?.[0] ?? error.data?.message ?? fallback;
+// Fout van de server als leesbare zin (validatie), of de standaardtekst. Bij een serverfout (5xx) is er wél
+// verbinding en zegt Laravel alleen "Server Error": dan niet naar de verbinding wijzen.
+const SERVER_ERROR = 'Er ging iets mis op de server. Probeer het later opnieuw.';
+function errorText(error, fallback) {
+    const field = Object.values(error?.data?.errors ?? {})[0]?.[0];
+    if (field) return field;
+    if (error?.status >= 500) return fallback.replace('Controleer de verbinding.', SERVER_ERROR);
+    return error?.data?.message ?? fallback;
+}
 
 // Klanten: de hele lijst in één keer (tot 200), zoeken gebeurt op de telefoon zelf, dus ook zonder verbinding.
 Alpine.data('customers', () => ({
@@ -1095,7 +1103,7 @@ Alpine.data('workPackage', (id) => {
             fetchedAt[`project:${fresh.project.id}`] = fetchedAt.vandaag = fetchedAt.projecten = 0;
         },
         fail(error, fallback) {
-            Alpine.store('os').toast(error.data?.message ?? fallback);
+            Alpine.store('os').toast(errorText(error, fallback));
         },
 
         // Snel achter elkaar afvinken mag: elk item wacht alleen op zichzelf. Liepen er meer tegelijk, dan kan
@@ -1247,7 +1255,7 @@ Alpine.data('tasks', () => ({
             fetchedAt.vandaag = 0;
             Alpine.store('os').toast('Taak aangemaakt.');
         } catch (error) {
-            this.formError = Object.values(error.data?.errors ?? {})[0]?.[0] ?? 'Opslaan lukte niet. Controleer de verbinding.';
+            this.formError = errorText(error, 'Opslaan lukte niet. Controleer de verbinding.');
         }
         this.saving = false;
     },
@@ -1312,7 +1320,7 @@ Alpine.data('nova', () => ({
                 ? { role: 'nova', text: 'Dit zet ik voor je klaar. Akkoord?', proposal: { action: data.action, preview: data.preview, viaVoice, state: 'open' } }
                 : { role: 'nova', text: data.text });
         } catch (error) {
-            this.messages.push({ role: 'nova', text: error.data?.text ?? error.data?.message ?? 'Nova is nu niet bereikbaar. Probeer het zo nog eens.' });
+            this.messages.push({ role: 'nova', text: error.data?.text ?? (error.status >= 500 ? null : error.data?.message) ?? 'Nova is nu niet bereikbaar. Probeer het zo nog eens.' });
         }
         this.busy = false;
         this.scrollDown();
@@ -1327,7 +1335,7 @@ Alpine.data('nova', () => ({
             Object.keys(fetchedAt).forEach((name) => { fetchedAt[name] = 0; }); // lijsten bij openen opnieuw
         } catch (error) {
             message.proposal.state = 'open';
-            this.messages.push({ role: 'nova', text: error.data?.message ?? 'Uitvoeren lukte niet. Probeer het opnieuw.' });
+            this.messages.push({ role: 'nova', text: (error.status >= 500 ? null : error.data?.message) ?? 'Uitvoeren lukte niet. Probeer het opnieuw.' });
         }
         this.scrollDown();
     },

@@ -286,4 +286,11 @@ class AppApiTest extends TestCase
         $response = $this->withHeaders(['Origin' => 'https://evil.example'])->optionsJson(route('api.app.login'), [], ['Access-Control-Request-Method' => 'POST']);
         $this->assertNotSame('https://evil.example', $response->headers->get('Access-Control-Allow-Origin'));
     }
+
+    public function test_the_app_may_remember_the_cors_check(): void
+    {
+        // Anders gaat vóór elk app-verzoek een extra OPTIONS-verzoek (±0,3 s op de telefoon).
+        $this->withHeaders(['Origin' => 'https://localhost'])->optionsJson(route('api.app.me'), [], ['Access-Control-Request-Method' => 'GET'])
+            ->assertHeader('Access-Control-Max-Age', '7200');
+    }
 }

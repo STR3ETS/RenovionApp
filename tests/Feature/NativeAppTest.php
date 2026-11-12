@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\UserRole;
+use App\Models\ChatChannel;
 use App\Models\User;
 use App\Notifications\TaskAssigned;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -89,5 +90,19 @@ class NativeAppTest extends TestCase
         foreach (['attention.index', 'leads.index', 'customers.index', 'quotes.index', 'calculations.index', 'price-items.index', 'projects.index', 'planning.index', 'tasks.index', 'chat.index', 'automations.index', 'team.index', 'notification-settings.edit'] as $route) {
             $this->get(route($route))->assertOk();
         }
+    }
+
+    public function test_a_chat_in_the_app_fits_a_narrow_phone_and_keeps_send_free(): void
+    {
+        $channel = ChatChannel::create(['type' => 'team', 'name' => 'Algemeen']);
+        $this->actingAs($this->admin())->withHeader('User-Agent', self::APP);
+
+        // Zonder vaste kolom werd de kolom zo breed als de invoerbalk minimaal is (427 px op een 384 px-scherm).
+        $this->get(route('chat.show', $channel))->assertOk()
+            ->assertSee('class="grid grid-cols-1 gap-4 lg:grid-cols-3"', false)
+            ->assertSee('class="min-w-0 lg:col-span-2"', false)
+            ->assertDontSee('class="app-nova', false);
+
+        $this->get(route('dashboard'))->assertOk()->assertSee('class="app-nova', false);
     }
 }

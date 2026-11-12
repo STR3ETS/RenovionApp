@@ -30,7 +30,9 @@ return [
 
     'exposed_headers' => [],
 
-    'max_age' => 0,
+    // Hoe lang de app het antwoord op de CORS-controle (OPTIONS) mag onthouden. Op 0 ging vóór elk verzoek
+    // een extra OPTIONS-verzoek (±0,3 s); Chromium (Android-WebView) onthoudt het hoogstens 2 uur.
+    'max_age' => 7200,
 
     'supports_credentials' => false,
 

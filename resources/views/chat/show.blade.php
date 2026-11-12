@@ -1,6 +1,8 @@
 <x-layouts.app :title="$channel->displayName()">
 
-    <div class="grid gap-4 lg:grid-cols-3">
+    {{-- grid-cols-1 en min-w-0: anders wordt de kolom zo breed als de invoerbalk minimaal is (het tekstveld
+         heeft een vaste minimumbreedte) en past de pagina niet op een smalle telefoon. --}}
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
 
         {{-- Kanalen (desktop) --}}
         <div class="hidden rounded-2xl border border-surface-700 bg-surface-800 p-4 lg:block">
@@ -8,7 +10,7 @@
         </div>
 
         {{-- Gesprek --}}
-        <div class="lg:col-span-2"
+        <div class="min-w-0 lg:col-span-2"
              x-data="chat({
                  messages: @js($messages),
                  messagesUrl: @js(route('chat.messages', $channel)),

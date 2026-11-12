@@ -257,6 +257,8 @@
     <div x-data="nova('{{ route('nova.propose') }}', '{{ route('nova.execute') }}')" @nova-open.window="openPanel()"
          @renovion-back.window="if (open) { open = false; $event.preventDefault(); }">
         @if ($isApp)
+            {{-- Niet in een chatgesprek: daar ligt de knop over Versturen, en @Nova kan in de chat zelf (zoals in de app). --}}
+            @unless (request()->routeIs('chat.show'))
             <button type="button" @click="openPanel()" class="app-nova hide-on-keyboard" title="Nova" aria-label="Nova openen">
                 <x-nova-avatar class="h-full w-full" />
                 @if ($aandachtCount > 0)
@@ -264,6 +266,7 @@
                 @endif
                 <span class="spark"><x-icon name="sparkles" class="h-3 w-3" /></span>
             </button>
+            @endunless
         @else
         <button @click="openPanel()"
                 class="fixed right-4 bottom-24 z-40 rounded-full shadow-lg shadow-navy-950/30 transition hover:scale-105 active:scale-95 lg:bottom-8"
