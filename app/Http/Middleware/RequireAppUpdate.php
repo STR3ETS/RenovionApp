@@ -14,8 +14,12 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class RequireAppUpdate
 {
-    /** Wat ook een verouderde app nog mag: uitloggen en de privacyverklaring lezen. */
-    private const ALWAYS = ['logout', 'privacy', 'api.app.logout'];
+    /**
+     * Wat ook een verouderde app nog mag: uitloggen en de privacyverklaring lezen. Plus de overstap van
+     * de app naar een serverpagina (app.web-session): pas daar zet de controller het buildnummer in de
+     * sessie, en de pagina waar hij naartoe stuurt wordt daarna wel gecontroleerd.
+     */
+    private const ALWAYS = ['logout', 'privacy', 'api.app.logout', 'app.web-session'];
 
     public function handle(Request $request, Closure $next): Response
     {

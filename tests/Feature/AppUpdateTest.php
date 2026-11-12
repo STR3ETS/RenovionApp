@@ -97,4 +97,27 @@ class AppUpdateTest extends TestCase
 
         $this->get($url)->assertRedirect('/planning')->assertSessionHas('app_build', 3);
     }
+
+    public function test_an_up_to_date_app_opens_server_pages_while_an_update_is_required(): void
+    {
+        $this->require(2);
+        $user = User::factory()->create();
+
+        // De overstap (app/sessie) heeft nog geen buildnummer in de sessie: die mag niet blokkeren.
+        Cache::put('app-web-code:nieuw', ['user' => $user->id, 'naar' => '/planning', 'terug' => 'https://localhost', 'build' => 2], now()->addMinute());
+        $this->withHeader('User-Agent', self::APP)->get('/app/sessie?code=nieuw')
+            ->assertRedirect('/planning')->assertSessionHas('app_build', 2);
+        $this->withHeader('User-Agent', self::APP)->get('/planning')->assertOk();
+    }
+
+    public function test_an_old_app_passes_the_hand_over_but_sees_the_update_screen_on_the_page(): void
+    {
+        $this->require(2);
+        $user = User::factory()->create();
+
+        Cache::put('app-web-code:oud', ['user' => $user->id, 'naar' => '/planning', 'terug' => 'https://localhost', 'build' => 1], now()->addMinute());
+        $this->withHeader('User-Agent', self::APP)->get('/app/sessie?code=oud')
+            ->assertRedirect('/planning')->assertSessionHas('app_build', 1);
+        $this->withHeader('User-Agent', self::APP)->get('/planning')->assertStatus(426)->assertSee('Update nodig');
+    }
 }
