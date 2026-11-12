@@ -58,6 +58,20 @@ enum LeadStatus: string
         };
     }
 
+    /** Lichte variant voor de schermen in de iOS/Android-app (api/app). */
+    public function appBadgeClasses(): string
+    {
+        return match ($this) {
+            self::Nieuw => 'bg-brand-100 text-brand-800',
+            self::Contact, self::Intake => 'bg-steel-100 text-steel-800',
+            self::Offerte => 'bg-amber-100 text-amber-800',
+            self::Akkoord => 'bg-green-100 text-green-800',
+            self::Project => 'bg-gray-200 text-gray-700',
+            self::Verloren => 'bg-red-100 text-red-800',
+            self::OnHold => 'bg-gray-100 text-gray-600',
+        };
+    }
+
     public function isOpen(): bool
     {
         return ! in_array($this, [self::Project, self::Verloren], true);

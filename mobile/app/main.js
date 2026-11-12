@@ -11,11 +11,26 @@ import novaUrl from '../../public/nova.jpg';
 const API = import.meta.env.VITE_RENOVION_API;
 const TOKEN_KEY = 'renovion-os-token';
 const PROFILE_KEY = 'renovion-os-profile';
-const SCREENS = ['vandaag', 'inbox', 'projecten', 'planning', 'taken'];
+const SCREENS = ['vandaag', 'inbox', 'projecten', 'planning', 'taken', 'meldingen', 'zoeken', 'klanten', 'aanvragen'];
+// Schermen met een id: #/project/5. Pad op de server => scherm in de app (go()).
+const DETAILS = {
+    project: /^\/projecten\/(\d+)$/,
+    werkpakket: /^\/werkpakketten\/(\d+)$/,
+    klant: /^\/klanten\/(\d+)$/,
+    aanvraag: /^\/aanvragen\/(\d+)$/,
+};
+// Bij welk scherm in de onderbalk/het menu een detailscherm hoort
+const PARENTS = { project: 'projecten', werkpakket: 'projecten', klant: 'klanten', aanvraag: 'aanvragen', taken: 'planning' };
 // Sectiekleur per scherm (native-app.css, data-sec)
-const SECTIONS = { planning: 'uitvoering', taken: 'uitvoering', project: 'projecten', werkpakket: 'projecten' };
+const SECTIONS = {
+    planning: 'uitvoering', taken: 'uitvoering', project: 'projecten', werkpakket: 'projecten',
+    klanten: 'verkoop', klant: 'verkoop', aanvragen: 'verkoop', aanvraag: 'verkoop',
+};
 // Serverpaden die in de app een eigen scherm hebben (meldingen, inbox, menu)
-const SCREEN_PATHS = { '/': 'vandaag', '/aandacht': 'inbox', '/projecten': 'projecten', '/planning': 'planning', '/taken': 'taken' };
+const SCREEN_PATHS = {
+    '/': 'vandaag', '/aandacht': 'inbox', '/projecten': 'projecten', '/planning': 'planning', '/taken': 'taken',
+    '/meldingen': 'meldingen', '/zoeken': 'zoeken', '/klanten': 'klanten', '/aanvragen': 'aanvragen',
+};
 
 // Laadscherm voor een serverpagina in de vorm van die pagina (index.html, "Naar een serverpagina"):
 // chatlijst, gesprek, formulier, projectdossier, aanvragen, zoeken of een gewone lijst. tabs = de
@@ -99,7 +114,7 @@ async function api(path, { method = 'GET', body } = {}) {
 
 const routeFromHash = () => {
     const [route, param] = location.hash.replace(/^#\/?/, '').split('?')[0].split('/');
-    if (['project', 'werkpakket'].includes(route) && /^\d+$/.test(param ?? '')) return { route, param };
+    if (route in DETAILS && /^\d+$/.test(param ?? '')) return { route, param };
     return { route: SCREENS.includes(route) || route === 'uitloggen' ? route : 'vandaag', param: null };
 };
 
@@ -162,9 +177,7 @@ Alpine.store('os', {
     },
     // Menu-item actief: het scherm zelf, of een scherm dat erbij hoort (dossier bij Projecten, Taken bij Planning).
     isActive(screen) {
-        return Boolean(screen) && (screen === this.route
-            || (['project', 'werkpakket'].includes(this.route) && screen === 'projecten')
-            || (this.route === 'taken' && screen === 'planning'));
+        return Boolean(screen) && (screen === this.route || PARENTS[this.route] === screen);
     },
 
     init() {
@@ -236,12 +249,19 @@ Alpine.store('os', {
     // Een pad op de server: naar het scherm in de app als dat er is, anders de serverpagina.
     go(path) {
         const [pathname, query] = path.split('?');
-        const project = pathname.match(/^\/projecten\/(\d+)$/);
-        const workPackage = pathname.match(/^\/werkpakketten\/(\d+)$/);
-        if (SCREEN_PATHS[pathname] && !query) location.hash = `#/${SCREEN_PATHS[pathname]}`;
-        else if (project && !query) location.hash = `#/project/${project[1]}`;
-        else if (workPackage) location.hash = `#/werkpakket/${workPackage[1]}`;
-        else this.openWeb(path);
+        if (SCREEN_PATHS[pathname] && !query) {
+            location.hash = `#/${SCREEN_PATHS[pathname]}`;
+            return;
+        }
+        for (const [screen, pattern] of Object.entries(DETAILS)) {
+            const match = pathname.match(pattern);
+            // Een project met een query (?tab=fotos) is een serverpagina; een werkpakket altijd de app.
+            if (match && (!query || screen === 'werkpakket')) {
+                location.hash = `#/${screen}/${match[1]}`;
+                return;
+            }
+        }
+        this.openWeb(path);
     },
 
     // Een menu-item uit api/app/ik (AppMenu op de server)
@@ -401,10 +421,13 @@ function fetchScreen(name, path, { force = false } = {}) {
     return inflight[name];
 }
 
-// Bij het opstarten alles alvast ophalen, in de volgorde van de onderbalk en daarna Taken, zodat elk
-// scherm al vers is als je erheen gaat.
+// Bij het opstarten alles alvast ophalen, in de volgorde van de onderbalk, daarna Taken (en voor kantoor
+// Aanvragen en Klanten), zodat elk scherm al vers is als je erheen gaat.
 async function preload(crm) {
-    const screens = [['vandaag', 'vandaag'], crm ? ['inbox', 'inbox'] : null, ['projecten', 'projecten'], ['planning', 'planning'], ['taken', 'taken']].filter(Boolean);
+    const screens = [
+        ['vandaag', 'vandaag'], crm ? ['inbox', 'inbox'] : null, ['projecten', 'projecten'], ['planning', 'planning'], ['taken', 'taken'],
+        crm ? ['aanvragen', 'aanvragen'] : null, crm ? ['klanten', 'klanten'] : null,
+    ].filter(Boolean);
     for (const [name, path] of screens) {
         try {
             await fetchScreen(name, path);
@@ -568,6 +591,163 @@ Alpine.data('planning', () => ({
         } catch {
             Alpine.store('os').toast('Verwijderen lukte niet. Probeer het opnieuw.');
         }
+    },
+}));
+
+// Meldingen achter de bel: openen = gelezen (zoals op de server), daarna de stip op de bel weg.
+Alpine.data('notifications', () => {
+    const base = screen('meldingen', 'meldingen');
+
+    return {
+        ...base,
+        async init() {
+            await base.init.call(this);
+            Alpine.store('os').refreshProfile();
+        },
+    };
+});
+
+// Zoeken: tijdens het typen, kort na de laatste toets. De laatste zoekopdracht blijft staan als je via
+// een resultaat terugkomt.
+const lastSearch = { q: '', results: null };
+
+Alpine.data('search', () => ({
+    q: lastSearch.q,
+    results: lastSearch.results,
+    busy: false,
+    failed: false,
+    timer: null,
+    init() {
+        this.$nextTick(() => this.$refs.q?.focus());
+    },
+    destroy() {
+        clearTimeout(this.timer);
+    },
+    typed() {
+        clearTimeout(this.timer);
+        this.timer = setTimeout(() => this.run(), 250);
+    },
+    async run() {
+        const q = this.q.trim();
+        lastSearch.q = q;
+        if (!q) {
+            this.results = lastSearch.results = null;
+            return;
+        }
+        this.busy = true;
+        try {
+            const results = await api(`zoeken?q=${encodeURIComponent(q)}`);
+            // Alleen tonen als er intussen niet verder getypt is.
+            if (q === this.q.trim()) {
+                this.results = lastSearch.results = results;
+                this.failed = false;
+            }
+        } catch (error) {
+            if (error.status !== 401) this.failed = true;
+        }
+        this.busy = false;
+    },
+    get groups() {
+        if (!this.results) return [];
+        return [
+            ['Projecten', 'building-office', this.results.projects],
+            ['Klanten', 'user', this.results.customers],
+            ['Aanvragen', 'inbox', this.results.leads],
+            ['Taken', 'clipboard-check', this.results.tasks],
+        ].filter(([, , items]) => items.length);
+    },
+}));
+
+// Fout van de server als leesbare zin (validatie), of de standaardtekst.
+const errorText = (error, fallback) => Object.values(error.data?.errors ?? {})[0]?.[0] ?? error.data?.message ?? fallback;
+
+// Klanten: de hele lijst in één keer (tot 200), zoeken gebeurt op de telefoon zelf, dus ook zonder verbinding.
+Alpine.data('customers', () => ({
+    ...screen('klanten', 'klanten'),
+    q: '',
+    get shown() {
+        const q = this.q.trim().toLowerCase();
+        const all = this.data?.customers ?? [];
+        return q ? all.filter((customer) => [customer.name, customer.city, customer.phone].some((field) => field?.toLowerCase().includes(q))) : all;
+    },
+}));
+
+// Klantdossier: gegevens, aanvragen, offertes, projecten, documenten en de timeline met notities.
+Alpine.data('customer', (id) => ({
+    ...screen(`klant:${id}`, `klanten/${id}`),
+    note: '',
+    saving: false,
+    async addNote() {
+        const body = this.note.trim();
+        if (!body || this.saving) return;
+        this.saving = true;
+        try {
+            const fresh = await api(`klanten/${id}/notities`, { method: 'POST', body: { body } });
+            cache.write(this.cacheName, fresh, JSON.stringify(fresh));
+            this.present(cache.read(this.cacheName));
+            this.note = '';
+        } catch (error) {
+            Alpine.store('os').toast(errorText(error, 'Opslaan lukte niet. Controleer de verbinding.'));
+        }
+        this.saving = false;
+    },
+}));
+
+// Aanvragen: de pipeline per kolom (op de telefoon één kolom tegelijk), plus verloren en on hold.
+Alpine.data('leads', () => ({
+    ...screen('aanvragen', 'aanvragen'),
+    column: null,
+    get columns() {
+        const columns = this.data?.columns ?? [];
+        return [...columns, { value: 'inactief', label: 'Verloren / on hold', leads: this.data?.inactive ?? [] }];
+    },
+    // Standaard de eerste kolom waar iets in staat.
+    get current() {
+        return this.columns.find((column) => column.value === this.column)
+            ?? this.columns.find((column) => column.leads.length)
+            ?? this.columns[0];
+    },
+}));
+
+// Aanvraag: signalen, bellen/mailen, contactmoment vastleggen, status, en wat erbij hoort.
+const CONTACT_TYPES = [['telefoon', 'Telefoon', 'phone'], ['email', 'E-mail', 'envelope'], ['whatsapp', 'WhatsApp', 'chat-bubble'], ['bezoek', 'Bezoek', 'calendar']];
+
+Alpine.data('lead', (id) => ({
+    ...screen(`aanvraag:${id}`, `aanvragen/${id}`),
+    contactTypes: CONTACT_TYPES,
+    contact: { type: 'telefoon', summary: '', next_action: '', next_action_at: '' },
+    busy: null,
+    // Na een wijziging: deze aanvraag vers, en de lijsten waar hij in staat bij openen opnieuw.
+    async changed() {
+        fetchedAt.aanvragen = fetchedAt.inbox = fetchedAt.vandaag = 0;
+        await this.load({ force: true });
+    },
+    async setStatus(status) {
+        if (status.value === this.data.status.value || this.busy) return;
+        if (['verloren', 'on_hold'].includes(status.value) && !(await Alpine.store('os').ask(`Aanvraag op "${status.label}" zetten?`, status.label))) return;
+        this.busy = 'status';
+        try {
+            await api(`aanvragen/${id}/status`, { method: 'PATCH', body: { status: status.value } });
+            await this.changed();
+            Alpine.store('os').toast(`Status: ${status.label}.`);
+        } catch (error) {
+            Alpine.store('os').toast(errorText(error, 'Status wijzigen lukte niet. Controleer de verbinding.'));
+        }
+        this.busy = null;
+    },
+    async logContact() {
+        if (this.busy) return;
+        this.busy = 'contact';
+        try {
+            const body = Object.fromEntries(Object.entries(this.contact).filter(([, value]) => value !== ''));
+            await api(`aanvragen/${id}/contactmomenten`, { method: 'POST', body });
+            this.contact = { type: this.contact.type, summary: '', next_action: '', next_action_at: '' };
+            await this.changed();
+            Alpine.store('os').toast('Contactmoment vastgelegd.');
+        } catch (error) {
+            Alpine.store('os').toast(errorText(error, 'Vastleggen lukte niet. Controleer de verbinding.'));
+        }
+        this.busy = null;
     },
 }));
 

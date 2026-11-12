@@ -11,7 +11,7 @@
     </button>
 
     @if ($canCrm)
-        <a href="{{ route('search') }}" class="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-full border border-gray-200 bg-white px-3 text-sm text-gray-500">
+        <a href="{{ \App\Support\AppMenu::href('search', session('app_bundle')) }}" class="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-full border border-gray-200 bg-white px-3 text-sm text-gray-500">
             <x-icon name="magnifying-glass" class="h-4 w-4" />
             <span class="truncate">Zoeken</span>
         </a>
@@ -25,7 +25,7 @@
         <x-icon name="question-mark-circle" class="h-[18px] w-[18px]" />
     </button>
 
-    <a href="{{ route('notifications.index') }}" class="app-iconbtn tap relative" title="Meldingen" aria-label="Meldingen">
+    <a href="{{ \App\Support\AppMenu::href('notifications.index', session('app_bundle')) }}" class="app-iconbtn tap relative" title="Meldingen" aria-label="Meldingen">
         <x-icon name="bell" class="h-[18px] w-[18px]" />
         @if ($nieuweMeldingen)
             <span class="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-brand-500 ring-2 ring-white"></span>

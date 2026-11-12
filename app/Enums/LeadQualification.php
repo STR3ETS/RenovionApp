@@ -40,4 +40,15 @@ enum LeadQualification: string
             self::Heet => 'bg-green-500/15 text-green-300',
         };
     }
+
+    /** Lichte variant voor de schermen in de iOS/Android-app (api/app). */
+    public function appBadgeClasses(): string
+    {
+        return match ($this) {
+            self::Onbeoordeeld => 'bg-gray-100 text-gray-500',
+            self::Koud => 'bg-steel-100 text-steel-800',
+            self::Warm => 'bg-amber-100 text-amber-800',
+            self::Heet => 'bg-green-100 text-green-800',
+        };
+    }
 }

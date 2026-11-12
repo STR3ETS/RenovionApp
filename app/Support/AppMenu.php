@@ -18,7 +18,34 @@ class AppMenu
         'projects.index' => 'projecten',
         'planning.index' => 'planning',
         'tasks.index' => 'taken',
+        'notifications.index' => 'meldingen',
+        'search' => 'zoeken',
+        'leads.index' => 'aanvragen',
+        'customers.index' => 'klanten',
     ];
+
+    /**
+     * Schermen die pas vanaf een bepaalde app-build bestaan (mobile/release.json "build"). Een oudere app
+     * kent ze niet en zou op Vandaag uitkomen, dus die krijgt voor deze routes nog de serverpagina.
+     */
+    public const SINCE_BUILD = [
+        'notifications.index' => 3,
+        'search' => 3,
+        'leads.index' => 3,
+        'customers.index' => 3,
+    ];
+
+    /** Het scherm in de app voor deze route, als de app die dit verzoek doet het kent. */
+    public static function screen(string $route): ?string
+    {
+        $screen = self::SCREENS[$route] ?? null;
+
+        if ($screen === null || ! isset(self::SINCE_BUILD[$route])) {
+            return $screen;
+        }
+
+        return (AppRelease::buildOf(request()) ?? 0) >= self::SINCE_BUILD[$route] ? $screen : null;
+    }
 
     /**
      * @return list<array{label: string, icon: string, route: string, section: string, count?: string}>
@@ -95,9 +122,9 @@ class AppMenu
      */
     public static function href(string $route, ?string $bundle): string
     {
-        return $bundle && isset(self::SCREENS[$route])
-            ? $bundle.'/#/'.self::SCREENS[$route]
-            : route($route);
+        $screen = $bundle ? self::screen($route) : null;
+
+        return $screen !== null ? $bundle.'/#/'.$screen : route($route);
     }
 
     /**
@@ -110,7 +137,7 @@ class AppMenu
         $map = fn (array $item) => [
             'label' => $item['label'],
             'icon' => $item['icon'],
-            'screen' => isset($item['route']) ? (self::SCREENS[$item['route']] ?? null) : null,
+            'screen' => isset($item['route']) ? self::screen($item['route']) : null,
             'path' => isset($item['route']) ? route($item['route'], [], false) : null,
             'count' => $item['count'] ?? null,
             'accent' => $item['accent'] ?? false,

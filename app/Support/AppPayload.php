@@ -2,9 +2,11 @@
 
 namespace App\Support;
 
+use App\Enums\ActionSource;
 use App\Models\Project;
 use App\Models\ScheduleEntry;
 use App\Models\Task;
+use App\Models\TimelineEvent;
 use App\Models\User;
 
 /**
@@ -42,6 +44,25 @@ class AppPayload
             'context' => $task->customer?->name ?? $task->project?->name,
             'deadline' => $task->deadline?->toDateString(),
             'overdue' => $task->isOverdue(),
+        ];
+    }
+
+    /** Een regel uit de klanttimeline (klantdossier en aanvraag), zoals op customers/show. @return array<string, mixed> */
+    public static function timelineEvent(TimelineEvent $event): array
+    {
+        $viaNova = in_array($event->source, [ActionSource::Nova, ActionSource::Voice], true);
+
+        return [
+            'id' => $event->id,
+            'title' => $event->title,
+            'body' => $event->body,
+            'icon' => $event->type->icon(),
+            'type' => $event->type->label(),
+            'nova' => $viaNova,
+            'who' => $viaNova
+                ? 'Nova'.($event->user ? ', bevestigd door '.$event->user->name : '')
+                : ($event->user?->name ?? $event->source->label()),
+            'at' => $event->happened_at->toIso8601String(),
         ];
     }
 

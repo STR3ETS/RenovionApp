@@ -1,15 +1,21 @@
 <?php
 
+use App\Http\Controllers\Api\App\CustomerController as AppCustomerController;
 use App\Http\Controllers\Api\App\InboxController as AppInboxController;
+use App\Http\Controllers\Api\App\LeadController as AppLeadController;
+use App\Http\Controllers\Api\App\NotificationController as AppNotificationController;
 use App\Http\Controllers\Api\App\PlanningController as AppPlanningController;
 use App\Http\Controllers\Api\App\ProjectController as AppProjectController;
 use App\Http\Controllers\Api\App\ProjectDetailController as AppProjectDetailController;
+use App\Http\Controllers\Api\App\SearchController as AppSearchController;
 use App\Http\Controllers\Api\App\SessionController as AppSessionController;
 use App\Http\Controllers\Api\App\TaskController as AppTaskController;
 use App\Http\Controllers\Api\App\TodayController as AppTodayController;
 use App\Http\Controllers\Api\App\WorkPackageController as AppWorkPackageController;
 use App\Http\Controllers\Api\LeadIntakeController;
 use App\Http\Controllers\DeviceTokenController;
+use App\Http\Controllers\LeadContactController;
+use App\Http\Controllers\LeadStatusController;
 use App\Http\Controllers\NovaController;
 use App\Http\Controllers\TaskStatusController;
 use App\Http\Middleware\RequireAppUpdate;
@@ -38,6 +44,7 @@ Route::prefix('app')->name('api.app.')->middleware(RequireAppUpdate::class)->gro
 
         Route::middleware('can:internal')->group(function () {
             Route::get('vandaag', AppTodayController::class)->name('today');
+            Route::get('meldingen', AppNotificationController::class)->name('notifications');
             Route::get('projecten', AppProjectController::class)->name('projects');
             Route::get('projecten/{project}', AppProjectDetailController::class)->name('projects.show');
             Route::get('taken', [AppTaskController::class, 'index'])->name('tasks');
@@ -57,6 +64,15 @@ Route::prefix('app')->name('api.app.')->middleware(RequireAppUpdate::class)->gro
                 Route::post('nova', [NovaController::class, 'propose'])->middleware('throttle:30,1')->name('nova');
                 Route::post('nova/uitvoeren', [NovaController::class, 'execute'])->name('nova.execute');
                 Route::get('nova/briefing', [NovaController::class, 'briefing'])->name('nova.briefing');
+                Route::get('zoeken', AppSearchController::class)->middleware('throttle:60,1')->name('search');
+                Route::get('klanten', [AppCustomerController::class, 'index'])->name('customers');
+                Route::get('klanten/{customer}', [AppCustomerController::class, 'show'])->name('customers.show');
+                Route::post('klanten/{customer}/notities', [AppCustomerController::class, 'storeNote'])->middleware('throttle:30,1')->name('customers.notes');
+                Route::get('aanvragen', [AppLeadController::class, 'index'])->name('leads');
+                Route::get('aanvragen/{lead}', [AppLeadController::class, 'show'])->name('leads.show');
+                // Dezelfde regels als de website: die controllers antwoorden JSON aan de app.
+                Route::patch('aanvragen/{lead}/status', [LeadStatusController::class, 'update'])->name('leads.status');
+                Route::post('aanvragen/{lead}/contactmomenten', [LeadContactController::class, 'store'])->middleware('throttle:30,1')->name('leads.contacts');
             });
             Route::patch('taken/{task}/status', [TaskStatusController::class, 'update'])->name('tasks.status');
         });
