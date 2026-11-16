@@ -807,7 +807,7 @@
                                     <h2 class="mb-3 text-sm font-bold text-navy-900">Projectstatus</h2>
                                     <div class="flex flex-wrap gap-2">
                                         <template x-for="status in data?.statuses ?? []" :key="status.value">
-                                            <button type="button" @click="setStatus(status)" :disabled="statusBusy"
+                                            <button type="button" @click="setStatus(status)"
                                                     class="tap min-h-9 rounded-full px-3.5 py-1.5 text-[13px] font-semibold"
                                                     :class="status.value === data.status_value ? status.classes + ' ring-2 ring-navy-900/15' : 'bg-gray-100 text-gray-600'"
                                                     :aria-pressed="status.value === data.status_value" x-text="status.label"></button>
@@ -1574,7 +1574,7 @@
                                     <h2 class="mb-3 text-sm font-bold text-navy-900">Status</h2>
                                     <div class="flex flex-wrap gap-2">
                                         <template x-for="status in data?.statuses ?? []" :key="status.value">
-                                            <button type="button" @click="setStatus(status)" :disabled="busy === 'status'"
+                                            <button type="button" @click="setStatus(status)"
                                                     class="tap min-h-9 rounded-full px-3.5 py-1.5 text-[13px] font-semibold"
                                                     :class="status.value === data.status.value ? status.classes + ' ring-2 ring-navy-900/15' : 'bg-gray-100 text-gray-600'"
                                                     :aria-pressed="status.value === data.status.value" x-text="status.label"></button>

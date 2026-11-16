@@ -1711,3 +1711,25 @@ form + .app-li {
 .native-app.os-dark .chat-panel .chat-name {
     color: color-mix(in srgb, var(--who, #3e6ba8) 65%, #fff);
 }
+
+/* Eén deel van een scherm afdrukken of als PDF bewaren (printPart in mobile/app/main.js): alleen de kopie in
+   #os-print-sheet gaat op papier, zonder de schil van de app. */
+#os-print-sheet {
+    display: none;
+}
+
+@media print {
+    html.os-print body > :not(#os-print-sheet) {
+        display: none !important;
+    }
+
+    html.os-print #os-print-sheet {
+        display: block;
+    }
+
+    html.os-print body {
+        min-height: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+    }
+}

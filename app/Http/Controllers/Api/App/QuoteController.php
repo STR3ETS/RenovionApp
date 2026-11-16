@@ -12,7 +12,7 @@ use Illuminate\Http\JsonResponse;
 /**
  * Een offerte in de app (quotes/show): signalen, klantlink, posten, versies, verloop en de statusknoppen.
  * Status wijzigen en een nieuwe versie gaan via dezelfde controllers als de website; het document zelf
- * (zoals de klant het ziet) opent als lichte serverpagina (quotes.document), met PDF via de printdialoog.
+ * (zoals de klant het ziet) is een eigen scherm in de app (document()), met PDF via de printdialoog.
  */
 class QuoteController extends Controller
 {
@@ -109,6 +109,38 @@ class QuoteController extends Controller
                 'project' => $quote->project ? route('projects.show', $quote->project, false) : null,
                 'lead' => $quote->lead ? route('leads.show', $quote->lead, false) : null,
             ],
+        ]);
+    }
+
+    /**
+     * Het document zoals de klant het ziet, voor het documentscherm in de app (screens/offertedocument.*).
+     * De blokken komen uit dezelfde Blade-weergaven als de klantpagina (quotes.public), dus het blijft gelijk;
+     * de app toont ze in zijn eigen scherm en maakt de PDF via de printdialoog. Telt niet als bekeken.
+     */
+    public function document(Quote $quote): JsonResponse
+    {
+        $quote->load(['lines', 'customer', 'project']);
+
+        $banner = match (true) {
+            $quote->status === QuoteStatus::Akkoord => ['tone' => 'ok', 'text' => 'Ondertekend door '.($quote->signed_name ?? $quote->customer->name)
+                .' op '.($quote->signed_at ?? $quote->accepted_at)?->translatedFormat('j F Y')],
+            $quote->status === QuoteStatus::Afgewezen => ['tone' => 'off', 'text' => 'Deze offerte is afgewezen.'],
+            $quote->isExpired() => ['tone' => 'late', 'text' => 'De geldigheidsdatum is verstreken.'],
+            default => null,
+        };
+
+        return response()->json([
+            'id' => $quote->id,
+            'number' => $quote->number,
+            'version' => $quote->version,
+            'title' => $quote->lead?->service ?? 'Offerte '.$quote->number,
+            'customer' => $quote->customer->name,
+            'concept' => $quote->status === QuoteStatus::Concept,
+            'banner' => $banner,
+            'html' => view('quotes.partials.document', ['quote' => $quote])->render()
+                .view('quotes.partials.footer', ['links' => false])->render(),
+            'path' => route('quotes.show', $quote, false),
+            'project' => $quote->project ? ['name' => $quote->project->name, 'path' => route('projects.show', $quote->project, false)] : null,
         ]);
     }
 }

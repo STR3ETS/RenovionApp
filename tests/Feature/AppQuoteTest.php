@@ -109,6 +109,35 @@ class AppQuoteTest extends TestCase
         $this->withToken($token)->getJson(route('api.app.quotes.show', $quote))->assertForbidden();
     }
 
+    public function test_the_app_gets_the_document_as_the_customer_sees_it_without_counting_a_view(): void
+    {
+        $quote = $this->quote([], 'viewed');
+        $token = $this->admin()->createToken('test')->plainTextToken;
+
+        $data = $this->withToken($token)->getJson(route('api.app.quotes.document', $quote))->assertOk()
+            ->assertJsonPath('number', $quote->number)
+            ->assertJsonPath('title', 'Complete renovatie')
+            ->assertJsonPath('customer', 'Dhr. Ahmed')
+            ->assertJsonPath('banner', null)
+            ->json();
+
+        // Dezelfde blokken als de klantpagina, met de voet maar zonder ondertekenen of links naar de site.
+        $this->assertStringContainsString('Badkamer: tegelwerk en sanitair', $data['html']);
+        $this->assertStringContainsString('KVK 95384782', $data['html']);
+        $this->assertStringNotContainsString('Offerte ondertekenen', $data['html']);
+        $this->assertStringNotContainsString('Privacyverklaring', $data['html']);
+        $this->assertSame(2, $quote->fresh()->viewed_count);
+
+        // Afgewezen: de balk erboven zegt het.
+        $quote->update(['status' => QuoteStatus::Afgewezen, 'rejected_at' => now()]);
+        $this->withToken($token)->getJson(route('api.app.quotes.document', $quote))->assertOk()
+            ->assertJsonPath('banner.tone', 'off');
+
+        $this->app['auth']->forgetGuards();
+        $executor = User::factory()->create(['role' => UserRole::Uitvoerder])->createToken('test')->plainTextToken;
+        $this->withToken($executor)->getJson(route('api.app.quotes.document', $quote))->assertForbidden();
+    }
+
     public function test_the_document_shows_what_the_customer_sees_without_signing_or_counting_as_a_view(): void
     {
         $quote = $this->quote([], 'viewed');

@@ -39,7 +39,7 @@
                 </div>
 
                 <div class="mb-3 grid grid-cols-2 gap-2" x-show="data">
-                    <button type="button" @click="$store.os.openWeb(data.links.document)" class="app-btn pri col-span-2 justify-center"><span x-icon="'document-text'" class="h-4 w-4"></span> Offerte bekijken en PDF</button>
+                    <button type="button" @click="$store.os.go(data.links.document)" class="app-btn pri col-span-2 justify-center"><span x-icon="'document-text'" class="h-4 w-4"></span> Offerte bekijken en PDF</button>
                     <a x-show="data?.customer.phone" :href="'tel:' + data?.customer.phone" class="app-btn justify-center"><span x-icon="'phone'" class="h-4 w-4"></span> Bellen</a>
                     <a x-show="data?.mail" :href="data?.mail" class="app-btn justify-center"><span x-icon="'envelope'" class="h-4 w-4"></span> Mailen</a>
                     <button type="button" x-show="data?.links.builder" @click="$store.os.openWeb(data.links.builder)" class="app-btn justify-center"><span x-icon="'sparkles'" class="h-4 w-4"></span> Offerte bouwen</button>

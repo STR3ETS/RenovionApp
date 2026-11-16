@@ -84,3 +84,7 @@
 }
 @source '../../app/Models';
 @source '../../app/Support/App';
+/* Het offertedocument komt als HTML uit deze Blade-weergaven (screens/offertedocument.*). */
+@source '../../resources/views/quotes/blocks';
+@source '../../resources/views/quotes/partials';
+@source '../../resources/views/components/icon.blade.php';

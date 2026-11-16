@@ -1,0 +1,60 @@
+<!-- ===== Offertedocument (zoals de klant het ziet, met PDF): screens/offertedocument.js ===== -->
+<template x-if="$store.os.route === 'offertedocument'">
+    <div>
+        <template x-for="id in [$store.os.param]" :key="id">
+            <div x-data="quoteDocument(id)">
+                <nav class="app-crumbs mb-2 !text-gray-500">
+                    <template x-if="data?.project">
+                        <span class="contents">
+                            <button type="button" @click="$store.os.go(data.project.path)" class="tap inline-flex min-w-0 items-center gap-1 font-semibold !text-brand-700"><span x-icon="'folder'" class="h-3.5 w-3.5 shrink-0"></span><span class="truncate" x-text="data.project.name"></span></button>
+                            <span x-icon="'chevron-right'" class="h-3 w-3 shrink-0"></span>
+                        </span>
+                    </template>
+                    <a :href="'#/offerte/' + id" class="tap inline-flex min-w-0 items-center gap-1"><span x-icon="'document-text'" class="h-3.5 w-3.5 shrink-0"></span><span class="truncate" x-text="data ? 'Offerte ' + data.number : 'Offerte'"></span></a>
+                    <span x-icon="'chevron-right'" class="h-3 w-3 shrink-0"></span>
+                    <span>Document</span>
+                </nav>
+
+                <div data-enter class="app-ph">
+                    <p class="sec-eye"><span x-icon="'document-text'"></span> Zo ziet de klant het</p>
+                    <h1><span x-text="data?.title ?? ''"></span><span x-show="!data" class="skeleton inline-block h-7 w-2/3 align-middle"></span></h1>
+                    <p class="sub" x-text="data ? data.number + ', v' + data.version + ' · ' + data.customer : ''"></p>
+                    <div class="app-ph-acts" x-show="data">
+                        <button type="button" @click="pdf()" :disabled="printing" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white active:bg-brand-600 disabled:opacity-60">
+                            <span class="inline-flex items-center gap-1.5"><span x-icon="'arrow-down-tray'" class="h-4 w-4"></span> PDF</span>
+                        </button>
+                    </div>
+                </div>
+
+                <template x-if="failed">
+                    <div class="app-card p-5 text-center">
+                        <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                        <button type="button" @click="load()" class="app-btn mt-3">Opnieuw proberen</button>
+                    </div>
+                </template>
+
+                <p x-show="data?.concept" class="mb-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900">
+                    Concept: de klant ziet dit pas na het versturen.
+                </p>
+
+                <template x-if="!data && !failed">
+                    <div class="space-y-3">
+                        <div class="skeleton h-48 rounded-2xl"></div>
+                        <div class="skeleton h-32 rounded-2xl"></div>
+                        <div class="skeleton h-32 rounded-2xl"></div>
+                    </div>
+                </template>
+
+                <!-- Het document zelf; precies dit gaat op papier of in de PDF (printPart). -->
+                <div x-ref="doc" x-show="data" class="space-y-4 pb-6">
+                    <div x-show="data?.banner" class="flex items-center gap-2 rounded-2xl px-6 py-3 text-sm font-semibold"
+                         :class="{ ok: 'bg-green-700 text-white', off: 'bg-gray-200 text-gray-600', late: 'bg-amber-100 text-amber-800' }[data?.banner?.tone]">
+                        <span x-show="data?.banner?.tone === 'ok'" x-icon="'check'" class="h-4 w-4"></span>
+                        <span x-text="data?.banner?.text"></span>
+                    </div>
+                    <div x-html="data?.html ?? ''"></div>
+                </div>
+            </div>
+        </template>
+    </div>
+</template>

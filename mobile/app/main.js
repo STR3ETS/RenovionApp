@@ -50,6 +50,8 @@ const screenTemplates = import.meta.glob('./screens/*.html', { query: '?raw', im
 // paden die op een ander scherm uitkomen (bijv. /projecten/5?tab=fotos).
 const QUERY_SCREENS = new Set(['werkpakket']);
 const REWRITES = [];
+// Schermen die altijd licht zijn, ook in de donkere weergave (een document zoals de klant het ziet).
+const LIGHT_SCREENS = new Set();
 for (const { routes = {} } of Object.values(screenModules)) {
     SCREENS.push(...(routes.screens ?? []));
     Object.assign(DETAILS, routes.details);
@@ -58,6 +60,7 @@ for (const { routes = {} } of Object.values(screenModules)) {
     Object.assign(SCREEN_PATHS, routes.paths);
     (routes.query ?? []).forEach((name) => QUERY_SCREENS.add(name));
     REWRITES.push(...(routes.rewrites ?? []));
+    (routes.light ?? []).forEach((name) => LIGHT_SCREENS.add(name));
 }
 
 // Laadscherm voor een serverpagina in de vorm van die pagina (index.html, "Naar een serverpagina"):
@@ -296,6 +299,7 @@ Alpine.store('os', {
             return;
         }
         document.documentElement.dataset.sec = SECTIONS[route] ?? route;
+        this.applyTheme();
         window.scrollTo(0, 0);
         setTimeout(() => window.dispatchEvent(new Event('renovion-top-changed')), 50);
     },
@@ -361,7 +365,7 @@ Alpine.store('os', {
     },
 
     applyTheme() {
-        const dark = this.theme === 'donker' || (this.theme === 'telefoon' && darkQuery.matches);
+        const dark = !LIGHT_SCREENS.has(this.route) && (this.theme === 'donker' || (this.theme === 'telefoon' && darkQuery.matches));
         document.documentElement.classList.toggle('os-dark', dark);
         // De statusbalk volgt de kleur bovenaan (native.js).
         setTimeout(() => window.dispatchEvent(new Event('renovion-top-changed')), 50);
@@ -899,6 +903,62 @@ Alpine.data('leads', () => ({
     },
 }));
 
+// Statusknoppen die meteen reageren: de gekozen status staat direct op het scherm, en gaat pas naar de server
+// als er even niet meer getikt is (één verzoek, ook als je een paar keer wisselt; terug naar de oude status =
+// niets versturen). Mislukt het, dan springt hij terug. Scherm verlaten of de app naar de achtergrond: meteen.
+// read() = de status op het scherm, show(waarde) = die tonen, send(waarde) = opslaan (gooit bij een fout).
+const STATUS_SAVE_DELAY = 1200;
+function deferredStatus({ read, show, send }) {
+    return {
+        statusSaved: null,
+        statusLatest: null,
+        statusTimer: null,
+        statusSaving: false,
+        statusHidden: null,
+        pickStatus(value) {
+            if (this.statusSaved === null) this.statusSaved = read.call(this);
+            this.statusLatest = value;
+            show.call(this, value);
+            clearTimeout(this.statusTimer);
+            this.statusTimer = setTimeout(() => this.flushStatus(), STATUS_SAVE_DELAY);
+            if (!this.statusHidden) {
+                this.statusHidden = () => document.visibilityState === 'hidden' && this.flushStatus();
+                document.addEventListener('visibilitychange', this.statusHidden);
+            }
+        },
+        async flushStatus() {
+            clearTimeout(this.statusTimer);
+            this.statusTimer = null;
+            const value = this.statusLatest;
+            if (value === null) return;
+            if (this.statusSaving) {
+                this.statusTimer = setTimeout(() => this.flushStatus(), 400);
+                return;
+            }
+            if (value === this.statusSaved) {
+                this.statusSaved = this.statusLatest = null;
+                return;
+            }
+            this.statusSaving = true;
+            try {
+                await send.call(this, value);
+                this.statusSaved = value;
+            } catch (error) {
+                Alpine.store('os').toast(errorText(error, 'Status opslaan lukte niet. Controleer de verbinding.'));
+                if (this.statusLatest === value) this.statusLatest = this.statusSaved;
+            }
+            this.statusSaving = false;
+            // Na het herladen staat de serverstatus er; is er intussen opnieuw gekozen, dan die weer tonen.
+            if (this.statusLatest !== null && this.statusLatest !== read.call(this)) show.call(this, this.statusLatest);
+            if (this.statusLatest === this.statusSaved && !this.statusTimer) this.statusSaved = this.statusLatest = null;
+        },
+        destroy() {
+            if (this.statusHidden) document.removeEventListener('visibilitychange', this.statusHidden);
+            if (this.statusTimer) this.flushStatus();
+        },
+    };
+}
+
 // Aanvraag: signalen, bellen/mailen, contactmoment vastleggen, status, en wat erbij hoort.
 const CONTACT_TYPES = [['telefoon', 'Telefoon', 'phone'], ['email', 'E-mail', 'envelope'], ['whatsapp', 'WhatsApp', 'chat-bubble'], ['bezoek', 'Bezoek', 'calendar']];
 
@@ -912,18 +972,21 @@ Alpine.data('lead', (id) => ({
         fetchedAt.aanvragen = fetchedAt.inbox = fetchedAt.vandaag = 0;
         await this.load({ force: true });
     },
-    async setStatus(status) {
-        if (status.value === this.data.status.value || this.busy) return;
-        if (['verloren', 'on_hold'].includes(status.value) && !(await Alpine.store('os').ask(`Aanvraag op "${status.label}" zetten?`, status.label))) return;
-        this.busy = 'status';
-        try {
-            await api(`aanvragen/${id}/status`, { method: 'PATCH', body: { status: status.value } });
+    ...deferredStatus({
+        read() { return this.data.status.value; },
+        show(value) {
+            const status = this.data.statuses.find((option) => option.value === value);
+            if (status) this.data.status = { ...this.data.status, value: status.value, label: status.label, classes: status.classes };
+        },
+        async send(value) {
+            await api(`aanvragen/${id}/status`, { method: 'PATCH', body: { status: value } });
             await this.changed();
-            Alpine.store('os').toast(`Status: ${status.label}.`);
-        } catch (error) {
-            Alpine.store('os').toast(errorText(error, 'Status wijzigen lukte niet. Controleer de verbinding.'));
-        }
-        this.busy = null;
+        },
+    }),
+    async setStatus(status) {
+        if (!this.data || status.value === this.data.status.value) return;
+        if (['verloren', 'on_hold'].includes(status.value) && !(await Alpine.store('os').ask(`Aanvraag op "${status.label}" zetten?`, status.label))) return;
+        this.pickStatus(status.value);
     },
     async logContact() {
         if (this.busy) return;
@@ -1199,21 +1262,25 @@ Alpine.data('projects', () => ({
 Alpine.data('project', (id) => ({
     ...screen(`project:${id}`, `projecten/${id}`),
     ...finishing,
-    statusBusy: false,
     // Projectstatus (kantoor): zelfde regels als de website (ProjectStatusController); afgerond zet de opleverdatum.
-    async setStatus(status) {
-        if (status.value === this.data.status_value || this.statusBusy) return;
-        if (status.value === 'afgerond' && !(await Alpine.store('os').ask('Project afronden? De voortgang gaat naar 100% en de opleverdatum wordt vandaag.', 'Afronden'))) return;
-        this.statusBusy = true;
-        try {
-            const result = await api(`projecten/${id}/status`, { method: 'PATCH', body: { status: status.value } });
+    ...deferredStatus({
+        read() { return this.data.status_value; },
+        show(value) {
+            const status = this.data.statuses.find((option) => option.value === value);
+            if (!status) return;
+            this.data.status_value = status.value;
+            this.data.status = { ...this.data.status, label: status.label, classes: status.classes };
+        },
+        async send(value) {
+            await api(`projecten/${id}/status`, { method: 'PATCH', body: { status: value } });
             fetchedAt.projecten = fetchedAt.vandaag = 0;
             await this.load({ force: true });
-            Alpine.store('os').toast(result.message ?? `Status: ${result.label}.`);
-        } catch (error) {
-            Alpine.store('os').toast(errorText(error, 'Status wijzigen lukte niet. Controleer de verbinding.'));
-        }
-        this.statusBusy = false;
+        },
+    }),
+    async setStatus(status) {
+        if (!this.data || status.value === this.data.status_value) return;
+        if (status.value === 'afgerond' && !(await Alpine.store('os').ask('Project afronden? De voortgang gaat naar 100% en de opleverdatum wordt vandaag.', 'Afronden'))) return;
+        this.pickStatus(status.value);
     },
 }));
 
@@ -1544,9 +1611,42 @@ Alpine.directive('icon', (el, { expression }, { evaluateLater, effect }) => {
     effect(() => name((value) => { el.innerHTML = iconSvg(value); }));
 });
 
+// Eén deel van het scherm op papier (of als PDF): een kopie komt als #os-print-sheet direct in <body>, en
+// native-app.css laat bij afdrukken alleen die zien. Printdialoog van de telefoon (RenovionPrint, "Opslaan als
+// PDF"), in de browser window.print().
+async function printPart(element, title) {
+    const root = document.documentElement;
+    const previous = document.title;
+    document.getElementById('os-print-sheet')?.remove();
+    const sheet = document.createElement('div');
+    sheet.id = 'os-print-sheet';
+    // Een kopie zoals hij nu op het scherm staat; Alpine mag hem niet opnieuw opbouwen (zonder data wordt hij leeg).
+    sheet.setAttribute('x-ignore', '');
+    sheet.append(element.cloneNode(true));
+    document.body.append(sheet);
+    root.classList.add('os-print');
+    document.title = title;
+    // De printdialoog leest de pagina zolang hij openstaat (ook bij een ander papierformaat). os-print werkt
+    // alleen bij afdrukken, dus het blijft staan tot de gebruiker weer in de app tikt of het scherm verlaat.
+    const done = () => {
+        root.classList.remove('os-print');
+        sheet.remove();
+        document.title = previous;
+        window.removeEventListener('pointerdown', done, true);
+        window.removeEventListener('hashchange', done);
+    };
+    setTimeout(() => {
+        window.addEventListener('pointerdown', done, true);
+        window.addEventListener('hashchange', done);
+    }, 300);
+    const printer = capacitor().RenovionPrint;
+    if (printer) await printer.printPage({ title });
+    else window.print();
+}
+
 // De schermen uit screens/: hun Alpine-componenten registreren met de gedeelde hulpjes, en hun templates in
 // <main> zetten (binnen de <template> van de ingelogde app, dus vóór Alpine die kloont).
-const screenContext = { Alpine, api, screen, fetchScreen, fetchedAt, cache, errorText, animateIn, shrinkPhoto, format, novaUrl };
+const screenContext = { Alpine, api, screen, fetchScreen, fetchedAt, cache, errorText, animateIn, shrinkPhoto, format, novaUrl, printPart };
 Object.values(screenModules).forEach((module) => module.default?.(screenContext));
 const screenSlot = document.querySelector('template[x-if="$store.os.signedIn"]')?.content.getElementById('os-screens');
 if (screenSlot) {
