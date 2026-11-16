@@ -14,12 +14,16 @@ use Illuminate\Validation\ValidationException;
 class NovaController extends Controller
 {
     /**
-     * Herken de intentie en geef een antwoord of een actievoorstel terug.
+     * Herken de intentie en geef een antwoord of een actievoorstel terug. history = de berichten ervoor in
+     * hetzelfde gesprek (website en app sturen ze mee), zodat Nova het vorige bericht kan lezen.
      */
     public function propose(Request $request, NovaAssistant $nova): JsonResponse
     {
         $validated = $request->validate([
             'message' => ['required', 'string', 'max:2000'],
+            'history' => ['sometimes', 'array', 'max:'.(NovaAssistant::HISTORY_LIMIT * 2)],
+            'history.*.role' => ['required', Rule::in(['user', 'nova'])],
+            'history.*.text' => ['required', 'string', 'max:2000'],
         ]);
 
         if (! $nova->isConfigured()) {
@@ -30,7 +34,7 @@ class NovaController extends Controller
         }
 
         try {
-            return response()->json($nova->propose($validated['message'], $request->user()));
+            return response()->json($nova->propose($validated['message'], $request->user(), $validated['history'] ?? []));
         } catch (APIStatusException $exception) {
             report($exception);
 

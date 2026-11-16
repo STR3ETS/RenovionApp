@@ -181,7 +181,7 @@ class ChatMessageController extends Controller
                 $prompt = 'Context: dit gaat over project "'.$channel->project->name.'" (id '.$channel->project->id.'). '.$prompt;
             }
 
-            $result = $assistant->propose($prompt, $request->user());
+            $result = $assistant->propose($prompt, $request->user(), $this->novaHistory($channel, $message));
 
             return $channel->messages()->create([
                 'user_id' => null,
@@ -200,5 +200,28 @@ class ChatMessageController extends Controller
                 'body' => 'Ik kon dit even niet verwerken - probeer het zo nog eens.',
             ]);
         }
+    }
+
+    /**
+     * De berichten vóór de @Nova-vraag in dit kanaal (oudste eerst), zodat Nova leest waar het over gaat.
+     * Met de naam erbij, want in een kanaal praten meerdere mensen.
+     *
+     * @return list<array{role: string, text: string}>
+     */
+    private function novaHistory(ChatChannel $channel, ChatMessage $message): array
+    {
+        return $channel->messages()->with('user:id,name')
+            ->where('id', '<', $message->id)
+            ->latest('id')
+            ->limit(NovaAssistant::HISTORY_LIMIT)
+            ->get()
+            ->reverse()
+            ->map(fn (ChatMessage $previous) => $previous->user_id === null
+                ? ['role' => 'nova', 'text' => trim($previous->body.(isset($previous->nova['preview'])
+                    ? ' Voorstel: '.$previous->nova['preview'].(($previous->nova['executed'] ?? false) ? ' (uitgevoerd)' : '')
+                    : ''))]
+                : ['role' => 'user', 'text' => ($previous->user?->name ?? 'Iemand').': '.($previous->body ?: '[foto]')])
+            ->values()
+            ->all();
     }
 }

@@ -251,4 +251,28 @@ class ChatTest extends TestCase
             ->assertOk()
             ->assertJsonCount(1, 'messages');
     }
+
+    public function test_nova_reads_the_earlier_messages_in_the_channel(): void
+    {
+        config(['renovion.ai.api_key' => 'test-key']);
+        $peter = User::factory()->create(['name' => 'Peter Jansen']);
+        $imad = User::factory()->create(['name' => 'Imad']);
+        $kanaal = ChatChannel::create(['type' => 'team', 'name' => 'Algemeen']);
+        $kanaal->messages()->create(['user_id' => $peter->id, 'body' => 'De tegels voor de badkamer van Smit komen pas vrijdag']);
+        $kanaal->messages()->create(['user_id' => null, 'body' => 'Zal ik dit klaarzetten?', 'nova' => ['preview' => 'Taak: "Tegels Smit nabellen"', 'executed' => true]]);
+
+        $this->mock(NovaAssistant::class, function ($mock) {
+            $mock->shouldReceive('isConfigured')->andReturn(true);
+            $mock->shouldReceive('propose')->once()
+                ->withArgs(fn (string $prompt, User $user, array $history) => $prompt === 'zet daar een taak voor' && $history === [
+                    ['role' => 'user', 'text' => 'Peter Jansen: De tegels voor de badkamer van Smit komen pas vrijdag'],
+                    ['role' => 'nova', 'text' => 'Zal ik dit klaarzetten? Voorstel: Taak: "Tegels Smit nabellen" (uitgevoerd)'],
+                ])
+                ->andReturn(['type' => 'answer', 'text' => 'Die staat er al.']);
+        });
+
+        $this->actingAs($imad)->postJson('/chat/'.$kanaal->id.'/berichten', ['body' => '@Nova zet daar een taak voor'])
+            ->assertOk()
+            ->assertJsonPath('messages.1.body', 'Die staat er al.');
+    }
 }

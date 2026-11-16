@@ -31,17 +31,22 @@ class NovaAssistant
      */
     public const ACTIONS = ['create_task', 'create_appointment', 'create_note', 'log_contact'];
 
+    /** Zoveel eerdere berichten leest Nova mee: genoeg voor "en zet hem op 11 uur", niet het hele gesprek. */
+    public const HISTORY_LIMIT = 12;
+
     public function isConfigured(): bool
     {
         return filled(config('renovion.ai.api_key'));
     }
 
     /**
-     * Herken de intentie en stel een actie voor (zonder uit te voeren).
+     * Herken de intentie en stel een actie voor (zonder uit te voeren). $history = de berichten ervoor in
+     * hetzelfde gesprek (oudste eerst), zodat Nova weet waar "dat", "hem" of "die klant" op slaat.
      *
+     * @param  list<array{role: string, text: string}>  $history  role: user of nova
      * @return array{type: 'answer', text: string}|array{type: 'proposal', action: array{type: string, params: array<string, mixed>}, preview: string}
      */
-    public function propose(string $message, User $user): array
+    public function propose(string $message, User $user, array $history = []): array
     {
         $client = new Client(apiKey: (string) config('renovion.ai.api_key'));
 
@@ -54,7 +59,7 @@ class NovaAssistant
                 'text' => $this->systemPrompt($user),
             ]],
             tools: $this->tools(),
-            messages: [['role' => 'user', 'content' => $message]],
+            messages: $this->conversation($message, $history),
         );
 
         foreach ($response->content as $block) {
@@ -85,6 +90,44 @@ class NovaAssistant
         }
 
         return ['type' => 'answer', 'text' => 'Dat heb ik niet goed begrepen. Kun je het anders formuleren?'];
+    }
+
+    /**
+     * Het gesprek voor Claude: de laatste berichten (oudste eerst) en dan het nieuwe bericht. Claude wil
+     * om en om gebruiker en assistent, beginnend met de gebruiker: een begroeting van Nova vooraan valt weg
+     * en twee berichten achter elkaar van dezelfde kant worden één.
+     *
+     * @param  list<array{role: string, text: string}>  $history
+     * @return list<array{role: 'user'|'assistant', content: string}>
+     */
+    public function conversation(string $message, array $history = []): array
+    {
+        $turns = [];
+
+        foreach (array_slice($history, -self::HISTORY_LIMIT) as $item) {
+            $role = ($item['role'] ?? null) === 'user' ? 'user' : 'assistant';
+            $text = trim((string) ($item['text'] ?? ''));
+
+            if ($text === '' || ($turns === [] && $role === 'assistant')) {
+                continue;
+            }
+
+            $last = array_key_last($turns);
+            if ($last !== null && $turns[$last]['role'] === $role) {
+                $turns[$last]['content'] .= "\n\n".$text;
+            } else {
+                $turns[] = ['role' => $role, 'content' => $text];
+            }
+        }
+
+        $last = array_key_last($turns);
+        if ($last !== null && $turns[$last]['role'] === 'user') {
+            $turns[$last]['content'] .= "\n\n".$message;
+        } else {
+            $turns[] = ['role' => 'user', 'content' => $message];
+        }
+
+        return $turns;
     }
 
     /**
@@ -369,6 +412,7 @@ class NovaAssistant
             - Gebruik de juiste id's uit de onderstaande context. Verzin nooit id's. Id's zijn alleen voor de tool: noem ze nooit in je tekst aan de gebruiker, gebruik daar namen.
             - Herken relatieve datums ("morgen", "vrijdag", "volgende week dinsdag") en reken ze om naar YYYY-MM-DD op basis van vandaag.
             - Een "terugbelafspraak" is type "terugbel"; een intake is type "intake"; overleg of bezoek is "afspraak".
+            - Eerdere berichten in dit gesprek staan boven het laatste bericht. Gebruik ze om te begrijpen waar "dat", "hem", "die klant" of "doe maar 11 uur" op slaat, en vraag niet opnieuw wat al gezegd is. Een voorstel dat al is uitgevoerd, zet je niet nog eens klaar, tenzij de gebruiker daar om vraagt; een aanpassing op een voorstel ("liever donderdag") wordt een nieuw voorstel met de aanpassing.
             - Bij onduidelijkheid (welke klant, welke datum) vraag je kort terug in plaats van te gokken. Stel dan een gewone vraag in één of twee zinnen, zonder opsomming en zonder vraagtekens als invulplek (dus niet "10:00-??", wel "Tot hoe laat duurt de afspraak?").
             - Een afspraak zonder eindtijd duurt een uur; vraag alleen naar de eindtijd als de duur echt onduidelijk is. Plan je voor iemand anders dan de gebruiker, dan staat dat in de opdracht; anders plan je voor de gebruiker zelf.
             - Informatieve vragen over klanten, projecten of planning beantwoord je direct op basis van de context hieronder.

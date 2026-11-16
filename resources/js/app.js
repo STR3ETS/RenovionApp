@@ -5,6 +5,7 @@ import './motion.js';
 import swipeDismiss from './swipe-dismiss.js';
 import fitViewport from './fit-viewport.js';
 import meetingRecorder from './meeting-recorder.js';
+import novaHistory from './nova-history.js';
 
 window.Alpine = Alpine;
 
@@ -662,6 +663,8 @@ Alpine.data('nova', (proposeUrl, executeUrl) => ({
         if (!text || this.busy) return;
 
         const viaVoice = this.viaVoice;
+        // Wat er al gezegd is, gaat mee: Nova leest het vorige bericht ("en zet hem op 11 uur").
+        const history = novaHistory(this.messages);
         this.input = '';
         this.viaVoice = false;
         this.messages.push({ role: 'user', text });
@@ -669,7 +672,7 @@ Alpine.data('nova', (proposeUrl, executeUrl) => ({
         this.scrollDown();
 
         try {
-            const data = await postJson(proposeUrl, { message: text });
+            const data = await postJson(proposeUrl, { message: text, history });
             if (data.type === 'proposal') {
                 this.messages.push({
                     role: 'nova',

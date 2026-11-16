@@ -6,6 +6,7 @@ import '../../resources/js/native.js';
 import '../../resources/js/keyboard.js';
 import swipeDismiss from '../../resources/js/swipe-dismiss.js';
 import fitViewport from '../../resources/js/fit-viewport.js';
+import novaHistory from '../../resources/js/nova-history.js';
 import { iconSvg } from './icons.js';
 import heroUrl from '../../public/images/os-hero.jpg';
 import novaUrl from '../../public/nova.jpg';
@@ -1719,13 +1720,15 @@ Alpine.data('nova', () => ({
         const text = this.input.trim();
         if (!text || this.busy) return;
         const viaVoice = this.viaVoice;
+        // Wat er al gezegd is, gaat mee: Nova leest het vorige bericht ("en zet hem op 11 uur").
+        const history = novaHistory(this.messages);
         this.input = '';
         this.viaVoice = false;
         this.messages.push({ role: 'user', text });
         this.busy = true;
         this.scrollDown();
         try {
-            const data = await api('nova', { method: 'POST', body: { message: text } });
+            const data = await api('nova', { method: 'POST', body: { message: text, history } });
             this.messages.push(data.type === 'proposal'
                 ? { role: 'nova', text: 'Dit zet ik voor je klaar. Akkoord?', proposal: { action: data.action, preview: data.preview, viaVoice, state: 'open' } }
                 : { role: 'nova', text: data.text });
