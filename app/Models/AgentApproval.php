@@ -117,6 +117,17 @@ class AgentApproval extends Model
         };
     }
 
+    /** Lichte badge voor de app (api/app). */
+    public function appBadgeClasses(): string
+    {
+        return match ($this->status) {
+            self::STATUS_APPROVED => 'bg-green-100 text-green-800',
+            self::STATUS_DECLINED => 'bg-red-100 text-red-800',
+            self::STATUS_STALE => 'bg-gray-200 text-gray-700',
+            default => 'bg-amber-100 text-amber-800',
+        };
+    }
+
     /**
      * @return array{name: string, field: string, owner: string, task: string, colour: string}
      */

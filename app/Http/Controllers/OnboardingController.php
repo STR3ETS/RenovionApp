@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Automations\AutomationRegistry;
 use App\Services\OnboardingGuide;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -33,16 +34,25 @@ class OnboardingController extends Controller
         ]);
     }
 
-    public function dismiss(Request $request): RedirectResponse
+    public function dismiss(Request $request): RedirectResponse|JsonResponse
     {
         $this->guide->dismiss($request->user());
+
+        // De app (api/app/aan-de-slag) toont de melding en gaat zelf naar Vandaag.
+        if ($request->expectsJson()) {
+            return response()->json(['dismissed' => true, 'message' => 'Aan de slag staat niet meer in het menu. Je vindt het terug via het sterretje naast je naam.']);
+        }
 
         return redirect()->route('dashboard')->with('success', 'Aan de slag staat niet meer in het menu. Je vindt het terug via het sterretje naast je naam.');
     }
 
-    public function restore(Request $request): RedirectResponse
+    public function restore(Request $request): RedirectResponse|JsonResponse
     {
         $this->guide->restore($request->user());
+
+        if ($request->expectsJson()) {
+            return response()->json(['dismissed' => false, 'message' => 'Aan de slag staat weer in het menu.']);
+        }
 
         return redirect()->route('onboarding')->with('success', 'Aan de slag staat weer in het menu.');
     }

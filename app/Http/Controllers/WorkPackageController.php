@@ -8,6 +8,7 @@ use App\Models\AuditLog;
 use App\Models\Project;
 use App\Models\User;
 use App\Models\WorkPackage;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -16,7 +17,7 @@ use Illuminate\View\View;
 
 class WorkPackageController extends Controller
 {
-    public function store(Request $request, Project $project): RedirectResponse
+    public function store(Request $request, Project $project): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'project_phase_id' => ['required', Rule::exists('project_phases', 'id')->where('project_id', $project->id)],
@@ -33,6 +34,11 @@ class WorkPackageController extends Controller
 
         AuditLog::record($package, 'aangemaakt', [], ['name' => $package->name]);
         $project->syncProgress();
+
+        // De app gaat zelf naar het nieuwe werkpakket (#/werkpakket/{id}).
+        if ($request->expectsJson()) {
+            return response()->json(['id' => $package->id, 'path' => route('work-packages.show', $package, false)], 201);
+        }
 
         return redirect()
             ->route('work-packages.show', $package)

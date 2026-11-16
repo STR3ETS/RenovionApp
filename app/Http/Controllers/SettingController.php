@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AuditLog;
 use App\Models\AutomationRun;
 use App\Models\Setting;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -22,15 +23,12 @@ class SettingController extends Controller
             'fields' => Setting::FIELDS,
             'values' => Setting::allValues(),
             'groups' => Setting::groups(),
-            'environment' => $this->environment(),
-            'modules' => [
-                'Offertes' => (bool) config('renovion.modules.quotes'),
-                'Automations' => (bool) config('renovion.modules.automations'),
-            ],
+            'environment' => self::environment(),
+            'modules' => self::modules(),
         ]);
     }
 
-    public function update(Request $request): RedirectResponse
+    public function update(Request $request): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'settings' => ['required', 'array'],
@@ -63,9 +61,29 @@ class SettingController extends Controller
             );
         }
 
-        return back()->with('success', $changed === []
+        $message = $changed === []
             ? 'Niets gewijzigd.'
-            : count($changed).' '.(count($changed) === 1 ? 'instelling' : 'instellingen').' opgeslagen.');
+            : count($changed).' '.(count($changed) === 1 ? 'instelling' : 'instellingen').' opgeslagen.';
+
+        // De app (api/app/organisatie) toont de melding zelf en laadt de waarden opnieuw.
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $message, 'changed' => count($changed)]);
+        }
+
+        return back()->with('success', $message);
+    }
+
+    /**
+     * Welke modules aan staan (via .env).
+     *
+     * @return array<string, bool>
+     */
+    public static function modules(): array
+    {
+        return [
+            'Offertes' => (bool) config('renovion.modules.quotes'),
+            'Automations' => (bool) config('renovion.modules.automations'),
+        ];
     }
 
     /**
@@ -74,7 +92,7 @@ class SettingController extends Controller
      *
      * @return list<array{label: string, ready: bool, about: string}>
      */
-    private function environment(): array
+    public static function environment(): array
     {
         return [
             [

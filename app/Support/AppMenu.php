@@ -24,6 +24,58 @@ class AppMenu
         'customers.index' => 'klanten',
         'chat.index' => 'chat',
         'notification-settings.edit' => 'instellingen',
+        // Build 7: alle overige schermen (mobile/app/screens/*)
+        'jobs.index' => 'klussen',
+        'work-orders.index' => 'werkbonnen',
+        'quality.index' => 'kwaliteit',
+        'service.index' => 'nazorg',
+        'meetings.index' => 'verslagen',
+        'meetings.create' => 'opnemen',
+        'documents.index' => 'documenten',
+        'quotes.index' => 'offertes',
+        'quote-dashboard' => 'offertedashboard',
+        'follow-ups.index' => 'opvolging',
+        'intakes.index' => 'intakes',
+        'calculations.index' => 'calculaties',
+        'budgets.index' => 'begrotingen',
+        'rfqs.index' => 'prijsaanvragen',
+        'price-items.index' => 'prijslijst',
+        'leads.create' => 'nieuweaanvraag',
+        'projects.create' => 'nieuwproject',
+        'quotes.create' => 'nieuweofferte',
+        'calculations.create' => 'nieuwecalculatie',
+        'budgets.create' => 'nieuwebegroting',
+        'rfqs.create' => 'nieuweprijsaanvraag',
+        'team.create' => 'nieuwteamlid',
+        'invoices.index' => 'facturen',
+        'finance.index' => 'financieel',
+        'cost-reviews.index' => 'nacalculatie',
+        'purchase-orders.index' => 'inkoop',
+        'subcontractors.index' => 'onderaannemers',
+        'workforce.index' => 'mensen',
+        'team.index' => 'team',
+        'reports.index' => 'rapportages',
+        'marketing.index' => 'marketing',
+        'approvals.index' => 'goedkeuringen',
+        'agents.index' => 'agents',
+        'skills.index' => 'skills',
+        'nova.briefing' => 'briefing',
+        'academy.index' => 'academy',
+        'onboarding' => 'aandeslag',
+        'settings.index' => 'organisatie',
+        'portal-preview.index' => 'klantportaal',
+        'portfolio' => 'portfolio',
+    ];
+
+    /** De schermen die vanaf build 7 in de app zitten (iOS-build 6 ging zonder deze schermen naar TestFlight) (zie SINCE_BUILD). */
+    private const BUILD_7 = [
+        'jobs.index', 'work-orders.index', 'quality.index', 'service.index', 'meetings.index', 'meetings.create',
+        'documents.index', 'quotes.index', 'quote-dashboard', 'follow-ups.index', 'intakes.index', 'calculations.index',
+        'budgets.index', 'rfqs.index', 'price-items.index', 'leads.create', 'projects.create', 'quotes.create',
+        'calculations.create', 'budgets.create', 'rfqs.create', 'team.create', 'invoices.index', 'finance.index',
+        'cost-reviews.index', 'purchase-orders.index', 'subcontractors.index', 'workforce.index', 'team.index',
+        'reports.index', 'marketing.index', 'approvals.index', 'agents.index', 'skills.index', 'nova.briefing',
+        'academy.index', 'onboarding', 'settings.index', 'portal-preview.index', 'portfolio',
     ];
 
     /**
@@ -43,12 +95,13 @@ class AppMenu
     public static function screen(string $route): ?string
     {
         $screen = self::SCREENS[$route] ?? null;
+        $since = self::SINCE_BUILD[$route] ?? (in_array($route, self::BUILD_7, true) ? 7 : null);
 
-        if ($screen === null || ! isset(self::SINCE_BUILD[$route])) {
+        if ($screen === null || $since === null) {
             return $screen;
         }
 
-        return (AppRelease::buildOf(request()) ?? 0) >= self::SINCE_BUILD[$route] ? $screen : null;
+        return (AppRelease::buildOf(request()) ?? 0) >= $since ? $screen : null;
     }
 
     /**
@@ -67,6 +120,9 @@ class AppMenu
     }
 
     /**
+     * Zijmenu: de werkdag en de hoofdonderdelen. De schermen die in build 7 in de app kwamen, staan er bewust
+     * niet in (keuze Dylan): ze zijn bereikbaar via links in de app (project, aanvraag, klant, offerte).
+     *
      * @return array<string, list<array<string, mixed>>>
      */
     public static function groups(User $user): array
@@ -150,7 +206,7 @@ class AppMenu
 
         return [
             'tabs' => array_map($map, self::tabs($user)),
-            'groups' => array_map(fn (string $name, array $items) => ['name' => $name, 'items' => array_map($map, $items)], array_keys(self::groups($user)), self::groups($user)),
+            'groups' => array_map(fn (string $name, array $items) => ['name' => $name, 'open' => true, 'items' => array_map($map, $items)], array_keys(self::groups($user)), self::groups($user)),
             'plus' => array_map($map, self::plus($user)),
         ];
     }

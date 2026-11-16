@@ -1,0 +1,303 @@
+<!-- ===== Inkoop ===== -->
+<template x-if="$store.os.route === 'inkoop'">
+    <div x-data="purchasing">
+        <nav class="app-sectabs" aria-label="Onderdelen van Geld">
+            <a href="#/financieel">Financieel</a>
+            <a href="#/facturen">Facturatie</a>
+            <a href="#/inkoop" class="on" aria-current="page">Inkoop</a>
+            <a href="#/nacalculatie">Nacalculatie</a>
+        </nav>
+
+        <div data-enter class="app-ph">
+            <p class="sec-eye"><span x-icon="'truck'"></span> Geld</p>
+            <h1><em>Inkoop</em></h1>
+            <p class="sub">Bestellingen bij leveranciers en de facturen die erop volgen.</p>
+            <div class="app-ph-acts" x-show="data">
+                <button type="button" @click="newOrder()" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white active:bg-brand-600">
+                    <span x-icon="'plus'" class="mr-1.5 h-4 w-4"></span>Bestelling
+                </button>
+                <button type="button" @click="newInvoice()" class="app-btn min-h-11"><span x-icon="'receipt'" class="h-4 w-4"></span> Factuur boeken</button>
+            </div>
+        </div>
+
+        <template x-if="failed">
+            <div class="app-card mb-3 p-5 text-center">
+                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                <button type="button" @click="load()" class="app-btn mt-3 min-h-11">Opnieuw proberen</button>
+            </div>
+        </template>
+
+        <div x-show="project || status" class="mb-3 flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm">
+            <span x-icon="'funnel'" class="h-4 w-4 text-gray-500"></span>
+            <span class="min-w-0 flex-1 truncate text-gray-700" x-text="'Gefilterd: ' + [project ? projectName : null, status].filter(Boolean).join(', ')"></span>
+            <button type="button" @click="clearFilter()" class="tap shrink-0 text-xs font-semibold text-brand-700">Alles tonen</button>
+        </div>
+
+        <section class="app-kpis mb-3" x-show="!failed">
+            <div data-enter class="app-kpi dark">
+                <span class="lbl">Openstaande bestellingen</span>
+                <span class="v"><i>€</i> <span x-text="data ? osFormat.euro(data.kpis.open).slice(2) : ''"></span><span x-show="!data" class="skeleton skeleton-dark inline-block h-6 w-32 align-middle"></span></span>
+                <span class="s">nog niet gefactureerd</span>
+            </div>
+            <div data-enter class="app-kpi" :style="data?.kpis.to_approve > 0 ? '--kc: #e5484d' : ''">
+                <span class="lbl">Ter goedkeuring</span>
+                <span class="v"><span x-text="data?.kpis.to_approve"></span><span x-show="!data" class="skeleton inline-block h-6 w-10 align-middle"></span></span>
+                <span class="s" x-text="data ? (data.kpis.to_approve > 0 ? 'wachten op controle' : 'alles beoordeeld') : ' '"></span>
+            </div>
+            <div data-enter class="app-kpi" style="--kc: #3e6ba8">
+                <span class="lbl">Bestellingen</span>
+                <span class="v"><span x-text="data?.kpis.orders"></span><span x-show="!data" class="skeleton inline-block h-6 w-10 align-middle"></span></span>
+                <span class="s">in de lijst</span>
+            </div>
+        </section>
+
+        <!-- Bestellingen -->
+        <section data-enter class="app-card mb-3" x-show="!failed">
+            <div class="app-card-h"><h3>Bestel<em>lingen</em></h3></div>
+            <div class="app-card-b">
+                <template x-for="i in (data ? 0 : 4)" :key="i">
+                    <div class="flex items-center gap-3.5 py-3.5"><span class="skeleton h-9 w-9 shrink-0 !rounded-[11px]"></span><span class="flex-1"><span class="skeleton mb-2 block h-3.5 w-2/3"></span><span class="skeleton block h-3 w-1/2"></span></span></div>
+                </template>
+                <div x-show="data && data.orders.length === 0" class="py-5 text-center">
+                    <p class="text-sm font-semibold text-navy-900">Nog geen bestellingen</p>
+                    <p class="mt-0.5 text-xs text-gray-500">Een bestelling houdt bij wat er onderweg is naar de bouwplaats.</p>
+                </div>
+                <template x-for="order in data?.orders ?? []" :key="order.id">
+                    <button type="button" @click="$store.os.go(order.path)" class="app-li ibx w-full text-left" :style="`--st: ${order.late ? '#e5484d' : 'transparent'}`">
+                        <span class="app-ic" :class="order.late ? 'bad' : 'blue'"><span x-icon="'truck'" class="h-[18px] w-[18px]"></span></span>
+                        <span class="min-w-0 flex-1">
+                            <b class="truncate" x-text="order.supplier"></b>
+                            <span class="mt-1 flex flex-wrap gap-1">
+                                <span class="rounded-full px-2 py-0.5 text-[10px] font-bold" :class="order.status.classes" x-text="order.status.label"></span>
+                                <span x-show="order.late" class="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-800">Te laat</span>
+                            </span>
+                            <small class="truncate" x-text="order.sub"></small>
+                        </span>
+                        <b class="shrink-0 whitespace-nowrap" x-text="osFormat.euro(order.total)"></b>
+                    </button>
+                </template>
+            </div>
+        </section>
+        <div class="mb-3 flex items-center justify-between gap-2" x-show="data && data.last_page > 1">
+            <button type="button" @click="goPage(data.page - 1)" :disabled="data?.page <= 1" class="app-btn min-h-11 disabled:opacity-40"><span x-icon="'chevron-left'" class="h-4 w-4"></span> Vorige</button>
+            <span class="text-xs text-gray-500" x-text="data ? 'Pagina ' + data.page + ' van ' + data.last_page : ''"></span>
+            <button type="button" @click="goPage(data.page + 1)" :disabled="data?.page >= data?.last_page" class="app-btn min-h-11 disabled:opacity-40">Volgende <span x-icon="'chevron-right'" class="h-4 w-4"></span></button>
+        </div>
+
+        <!-- Inkoopfacturen -->
+        <section data-enter class="app-card mb-3" x-show="!failed">
+            <div class="app-card-h">
+                <h3>Inkoop<em>facturen</em></h3>
+                <button type="button" x-show="data" @click="newInvoice()" class="tap text-xs font-semibold text-brand-700">+ Boeken</button>
+            </div>
+            <div class="app-card-b">
+                <template x-for="i in (data ? 0 : 3)" :key="i"><div class="py-3"><span class="skeleton mb-2 block h-3.5 w-2/3"></span><span class="skeleton block h-3 w-1/2"></span></div></template>
+                <div x-show="data && data.invoices.length === 0" class="py-5 text-center">
+                    <p class="text-sm font-semibold text-navy-900">Nog geen inkoopfacturen</p>
+                    <p class="mt-0.5 text-xs text-gray-500">Na goedkeuring tellen ze mee als werkelijke kosten in de nacalculatie.</p>
+                </div>
+                <template x-for="invoice in data?.invoices ?? []" :key="invoice.id">
+                    <div class="app-li">
+                        <span class="min-w-0 flex-1">
+                            <span class="flex items-start gap-2">
+                                <span class="min-w-0 flex-1">
+                                    <b class="truncate" x-text="invoice.supplier"></b>
+                                    <span class="mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold" :class="invoice.status.classes" x-text="invoice.status.label"></span>
+                                </span>
+                                <b class="shrink-0 whitespace-nowrap" x-text="osFormat.euro(invoice.total)"></b>
+                            </span>
+                            <small :class="invoice.overdue && '!text-red-600'" x-text="invoice.sub"></small>
+                            <span class="mt-2 flex gap-2" x-show="invoice.actions.length">
+                                <template x-for="action in invoice.actions" :key="action.value">
+                                    <button type="button" @click="setInvoiceStatus(invoice, action)" :disabled="busy !== null"
+                                            class="min-h-11 flex-1 rounded-xl px-3 text-sm font-bold disabled:opacity-60"
+                                            :class="action.primary ? 'bg-brand-500 text-white active:bg-brand-600' : 'border border-gray-200 bg-white text-navy-900'"
+                                            x-text="busy === invoice.id + ':' + action.value ? 'Bezig' : action.label"></button>
+                                </template>
+                            </span>
+                        </span>
+                    </div>
+                </template>
+            </div>
+        </section>
+
+        <!-- Bestelling aanmaken / factuur boeken -->
+        <div data-popup x-show="sheet" x-cloak @click.self="sheet = null" @renovion-back.window="if (sheet) { sheet = null; $event.preventDefault(); }"
+             class="fixed inset-0 z-[60] flex items-end bg-navy-950/60 backdrop-blur-sm">
+            <template x-if="sheet === 'order'">
+                <form @submit.prevent="storeOrder()" x-swipe-dismiss="sheet = null" class="max-h-[90dvh] w-full space-y-3 overflow-y-auto rounded-t-[20px] bg-white p-5 pb-[calc(1.25rem_+_env(safe-area-inset-bottom))]">
+                    <div class="mx-auto -mt-2 mb-1 h-1.5 w-10 rounded-full bg-gray-300"></div>
+                    <h2 class="text-base font-bold text-navy-900">Nieuwe bestelling</h2>
+                    <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Project</span>
+                        <select x-model="orderForm.project_id" required class="w-full">
+                            <template x-for="option in data.form.projects" :key="option.id"><option :value="option.id" x-text="option.name" :selected="String(option.id) === String(orderForm.project_id)"></option></template>
+                        </select>
+                    </label>
+                    <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Leverancier</span><input type="text" x-model="orderForm.supplier" required maxlength="160" class="w-full"></label>
+                    <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Soort</span>
+                        <select x-model="orderForm.category" class="w-full">
+                            <template x-for="option in data.form.categories" :key="option.value"><option :value="option.value" x-text="option.label" :selected="option.value === orderForm.category"></option></template>
+                        </select>
+                    </label>
+                    <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Verwachte levering</span><input type="date" x-model="orderForm.expected_on" class="w-full"></label>
+                    <p x-show="formError" x-text="formError" class="rounded-xl bg-red-100 px-3 py-2 text-sm font-medium text-red-800"></p>
+                    <div class="flex gap-2 pt-1">
+                        <button type="submit" :disabled="busy !== null" class="min-h-11 flex-1 rounded-xl bg-brand-500 text-sm font-bold text-white active:bg-brand-600 disabled:opacity-60" x-text="busy === 'order' ? 'Bezig' : 'Aanmaken'"></button>
+                        <button type="button" @click="sheet = null" class="min-h-11 rounded-xl border border-gray-300 px-5 text-sm font-semibold text-gray-600">Annuleren</button>
+                    </div>
+                </form>
+            </template>
+            <template x-if="sheet === 'invoice'">
+                <form @submit.prevent="storeInvoice()" x-swipe-dismiss="sheet = null" class="max-h-[90dvh] w-full space-y-3 overflow-y-auto rounded-t-[20px] bg-white p-5 pb-[calc(1.25rem_+_env(safe-area-inset-bottom))]">
+                    <div class="mx-auto -mt-2 mb-1 h-1.5 w-10 rounded-full bg-gray-300"></div>
+                    <h2 class="text-base font-bold text-navy-900">Inkoopfactuur boeken</h2>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Leverancier</span><input type="text" x-model="invoiceForm.supplier" required maxlength="160" class="w-full"></label>
+                        <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Factuurnummer</span><input type="text" x-model="invoiceForm.number" required maxlength="80" class="w-full"></label>
+                    </div>
+                    <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Project</span>
+                        <select x-model="invoiceForm.project_id" class="w-full"><option value="">Geen project</option>
+                            <template x-for="option in data.form.projects" :key="option.id"><option :value="option.id" x-text="option.name" :selected="String(option.id) === String(invoiceForm.project_id)"></option></template>
+                        </select>
+                    </label>
+                    <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Kostensoort</span>
+                        <select x-model="invoiceForm.category" class="w-full">
+                            <template x-for="option in data.form.categories" :key="option.value"><option :value="option.value" x-text="option.label" :selected="option.value === invoiceForm.category"></option></template>
+                        </select>
+                    </label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Factuurdatum</span><input type="date" x-model="invoiceForm.date" required class="w-full"></label>
+                        <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Bedrag excl. btw</span><input type="number" step="0.01" min="0" inputmode="decimal" x-model="invoiceForm.amount" required class="w-full"></label>
+                    </div>
+                    <p class="text-xs text-gray-500">Na goedkeuring telt de factuur mee als werkelijke kosten in de nacalculatie.</p>
+                    <p x-show="formError" x-text="formError" class="rounded-xl bg-red-100 px-3 py-2 text-sm font-medium text-red-800"></p>
+                    <div class="flex gap-2 pt-1">
+                        <button type="submit" :disabled="busy !== null" class="min-h-11 flex-1 rounded-xl bg-brand-500 text-sm font-bold text-white active:bg-brand-600 disabled:opacity-60" x-text="busy === 'invoice' ? 'Bezig' : 'Boeken'"></button>
+                        <button type="button" @click="sheet = null" class="min-h-11 rounded-xl border border-gray-300 px-5 text-sm font-semibold text-gray-600">Annuleren</button>
+                    </div>
+                </form>
+            </template>
+        </div>
+    </div>
+</template>
+
+<!-- ===== Bestelling ===== -->
+<template x-if="$store.os.route === 'inkooporder'">
+    <div>
+        <template x-for="id in [$store.os.param]" :key="id">
+            <div x-data="purchaseOrder(id)">
+                <nav class="app-crumbs mb-2 !text-gray-500">
+                    <template x-if="data?.project">
+                        <span class="contents">
+                            <button type="button" @click="$store.os.go(data.project.path)" class="tap inline-flex min-w-0 items-center gap-1 font-semibold !text-brand-700"><span x-icon="'folder'" class="h-3.5 w-3.5 shrink-0"></span><span class="truncate" x-text="data.project.name"></span></button>
+                            <span x-icon="'chevron-right'" class="h-3 w-3 shrink-0"></span>
+                        </span>
+                    </template>
+                    <a x-show="!data?.project" href="#/inkoop" class="tap">Inkoop</a>
+                    <span x-show="!data?.project" x-icon="'chevron-right'" class="h-3 w-3"></span>
+                    <span x-text="data?.number ?? ''"></span>
+                </nav>
+                <div data-enter class="app-ph">
+                    <p class="sec-eye"><span x-icon="'truck'"></span> <span x-text="data?.number ?? 'Bestelling'"></span></p>
+                    <h1><span x-text="data?.supplier ?? ''"></span><span x-show="!data" class="skeleton inline-block h-7 w-2/3 align-middle"></span></h1>
+                    <p class="sub" x-text="data?.subtitle ?? ''"></p>
+                    <div class="app-ph-acts" x-show="data">
+                        <span class="rounded-full px-3 py-1 text-sm font-semibold" :class="data?.status.classes" x-text="data?.status.label"></span>
+                    </div>
+                </div>
+
+                <template x-if="failed">
+                    <div class="app-card mb-3 p-5 text-center">
+                        <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                        <button type="button" @click="load()" class="app-btn mt-3 min-h-11">Opnieuw proberen</button>
+                    </div>
+                </template>
+
+                <template x-if="!data && !failed">
+                    <div class="app-card mb-3 p-4"><template x-for="i in 4" :key="i"><div class="flex justify-between gap-4 py-2.5"><span class="skeleton block h-3.5 w-2/3"></span><span class="skeleton block h-3.5 w-16"></span></div></template></div>
+                </template>
+
+                <!-- Status -->
+                <section data-enter class="app-card mb-3 p-4" x-show="data">
+                    <h2 class="mb-2 text-sm font-bold text-navy-900">Status wijzigen</h2>
+                    <div class="grid grid-cols-3 gap-2">
+                        <template x-for="option in data?.statuses ?? []" :key="option.value">
+                            <button type="button" @click="setStatus(option)" :disabled="busy !== null"
+                                    class="min-h-11 rounded-xl border border-gray-200 bg-white px-2 text-sm font-semibold text-navy-900 active:bg-gray-50 disabled:opacity-60"
+                                    x-text="busy === option.value ? 'Bezig' : option.label"></button>
+                        </template>
+                    </div>
+                </section>
+
+                <!-- Levering -->
+                <section data-enter class="app-card mb-3 p-4" x-show="data">
+                    <h2 class="mb-2 text-sm font-bold text-navy-900">Levering</h2>
+                    <div class="app-fields !mt-0">
+                        <template x-for="row in data?.delivery ?? []" :key="row.label">
+                            <div><span class="app-lbl" x-text="row.label"></span><b :class="{ 'text-red-600': row.late, 'text-green-700': row.done }" x-text="row.value"></b></div>
+                        </template>
+                    </div>
+                </section>
+
+                <!-- Regels -->
+                <section data-enter class="app-card mb-3 p-4" x-show="data">
+                    <h2 class="mb-1 text-sm font-bold text-navy-900">Bestelde <span class="text-brand-600">regels</span></h2>
+                    <p x-show="data && data.lines.length === 0" class="py-2 text-sm text-gray-500">Nog geen regels op deze bestelling.</p>
+                    <ul class="divide-y divide-gray-100">
+                        <template x-for="line in data?.lines ?? []" :key="line.id">
+                            <li class="flex items-center gap-2 py-2">
+                                <span class="min-w-0 flex-1">
+                                    <span class="block text-sm font-medium text-navy-900" x-text="line.description"></span>
+                                    <span class="text-xs text-gray-500" x-text="line.quantity + ' × ' + osFormat.euro(line.price, 2)"></span>
+                                </span>
+                                <span class="shrink-0 text-sm font-semibold whitespace-nowrap text-navy-900" x-text="osFormat.euro(line.total, 2)"></span>
+                                <button type="button" @click="removeLine(line)" :disabled="busy !== null" class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-gray-400 active:bg-red-50 active:text-red-600 disabled:opacity-60" aria-label="Regel verwijderen">
+                                    <span x-icon="'trash'" class="h-4 w-4"></span>
+                                </button>
+                            </li>
+                        </template>
+                    </ul>
+                    <div x-show="data?.lines.length" class="mt-1 flex justify-between border-t border-gray-200 pt-2 text-sm">
+                        <span class="font-bold text-navy-900">Totaal excl. btw</span>
+                        <span class="font-bold text-navy-900" x-text="osFormat.euro(data?.total, 2)"></span>
+                    </div>
+                    <form @submit.prevent="addLine()" class="mt-3 space-y-2 border-t border-gray-100 pt-3">
+                        <input type="text" x-model="line.description" required maxlength="255" placeholder="Wat bestel je?" aria-label="Omschrijving" class="w-full">
+                        <div class="grid grid-cols-3 gap-2">
+                            <input type="text" x-model="line.quantity" inputmode="decimal" maxlength="24" aria-label="Aantal" placeholder="Aantal" class="w-full text-right">
+                            <input type="text" x-model="line.unit" maxlength="12" aria-label="Eenheid" placeholder="Eenheid" class="w-full">
+                            <input type="text" x-model="line.unit_price" inputmode="decimal" maxlength="24" aria-label="Prijs per eenheid" placeholder="Prijs" class="w-full text-right">
+                        </div>
+                        <button type="submit" :disabled="busy !== null || !line.description.trim()" class="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-brand-500 text-sm font-bold text-white active:bg-brand-600 disabled:opacity-60">
+                            <span x-icon="'plus'" class="h-4 w-4"></span> <span x-text="busy === 'line' ? 'Bezig' : 'Regel toevoegen'"></span>
+                        </button>
+                    </form>
+                </section>
+
+                <!-- Facturen -->
+                <section data-enter class="app-card mb-3 p-4" x-show="data?.invoices.length">
+                    <h2 class="mb-2 text-sm font-bold text-navy-900">Facturen hierop</h2>
+                    <div class="space-y-2">
+                        <template x-for="invoice in data?.invoices ?? []" :key="invoice.id">
+                            <div class="flex items-center gap-2 text-sm">
+                                <span class="min-w-0 flex-1 truncate text-gray-700" x-text="invoice.number"></span>
+                                <span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold" :class="invoice.status.classes" x-text="invoice.status.label"></span>
+                                <span class="shrink-0 font-semibold text-navy-900" x-text="osFormat.euro(invoice.total, 2)"></span>
+                            </div>
+                        </template>
+                    </div>
+                </section>
+                <section data-enter class="mb-3 rounded-2xl border border-amber-200 bg-amber-50 p-4" x-show="data && data.invoices.length === 0">
+                    <p class="text-sm text-amber-900"><b>Nog geen factuur.</b> Deze bestelling telt als verplichting mee in de nacalculatie.</p>
+                </section>
+
+                <section data-enter class="app-card mb-3 p-4" x-show="data?.notes">
+                    <h2 class="mb-1 text-sm font-bold text-navy-900">Notities</h2>
+                    <p class="text-sm whitespace-pre-line text-gray-700" x-text="data?.notes"></p>
+                </section>
+
+                <button type="button" x-show="data" @click="$store.os.go(data.links.project)" class="app-btn min-h-11"><span x-icon="'folder'" class="h-4 w-4"></span> Project</button>
+            </div>
+        </template>
+    </div>
+</template>

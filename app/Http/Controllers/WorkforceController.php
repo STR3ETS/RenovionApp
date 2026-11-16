@@ -9,6 +9,7 @@ use App\Models\Certificate;
 use App\Models\ScheduleEntry;
 use App\Models\User;
 use App\Support\CertificateCatalogue;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -24,6 +25,23 @@ class WorkforceController extends Controller
     public function index(Request $request): View
     {
         $week = $request->date('week')?->startOfWeek() ?? today()->startOfWeek();
+
+        return view('workforce.index', [
+            ...self::overview($week),
+            'certificateTypes' => CertificateCatalogue::TYPES,
+            'trades' => CertificateCatalogue::TRADES,
+            'expiringTotal' => self::expiringTotal(),
+        ]);
+    }
+
+    /**
+     * De mensen met hun planning, bezetting en afwezigheid in één werkweek (maandag tot en met vrijdag).
+     * Ook voor de app (Api\App\WorkforceController).
+     *
+     * @return array{week: Carbon, weekEnd: Carbon, rows: Collection<int, array<string, mixed>>}
+     */
+    public static function overview(Carbon $week): array
+    {
         $weekEnd = $week->copy()->addDays(4);
 
         $people = User::query()
@@ -52,23 +70,26 @@ class WorkforceController extends Controller
             ->get()
             ->groupBy('user_id');
 
-        return view('workforce.index', [
+        return [
             'week' => $week,
             'weekEnd' => $weekEnd,
             'rows' => $people->map(fn (User $person) => [
                 'person' => $person,
                 'entries' => $entries->get($person->id, collect()),
-                'load' => $this->load($person, $entries->get($person->id, collect()), $week, $weekEnd),
+                'load' => self::load($person, $entries->get($person->id, collect()), $week, $weekEnd),
                 'expiring' => $person->certificates->filter(
                     fn (Certificate $c) => in_array($c->state(), ['verlopen', 'binnenkort'], true),
                 ),
             ]),
-            'certificateTypes' => CertificateCatalogue::TYPES,
-            'trades' => CertificateCatalogue::TRADES,
-            'expiringTotal' => Certificate::whereNotNull('valid_until')
-                ->whereDate('valid_until', '<=', today()->addDays(CertificateCatalogue::WARN_DAYS))
-                ->count(),
-        ]);
+        ];
+    }
+
+    /** Certificaten die binnen dertig dagen verlopen of al verlopen zijn. */
+    public static function expiringTotal(): int
+    {
+        return Certificate::whereNotNull('valid_until')
+            ->whereDate('valid_until', '<=', today()->addDays(CertificateCatalogue::WARN_DAYS))
+            ->count();
     }
 
     /**
@@ -78,7 +99,7 @@ class WorkforceController extends Controller
      * @param  Collection<int, ScheduleEntry>  $entries
      * @return array{planned: int, available: int, percentage: int, absent: int}
      */
-    private function load(User $person, Collection $entries, Carbon $week, Carbon $weekEnd): array
+    private static function load(User $person, Collection $entries, Carbon $week, Carbon $weekEnd): array
     {
         // Acht uur per werkdag die het blok binnen deze week beslaat.
         $planned = $entries->sum(function (ScheduleEntry $entry) use ($week, $weekEnd) {
@@ -101,7 +122,7 @@ class WorkforceController extends Controller
         ];
     }
 
-    public function update(Request $request, User $user): RedirectResponse
+    public function update(Request $request, User $user): RedirectResponse|JsonResponse
     {
         abort_unless($request->user()->can('manage-team'), 403);
 
@@ -122,10 +143,10 @@ class WorkforceController extends Controller
 
         AuditLog::record($user, 'personeelsgegevens bijgewerkt', $old, $validated);
 
-        return back()->with('success', "Gegevens van {$user->name} bijgewerkt.");
+        return $this->done($request, "Gegevens van {$user->name} bijgewerkt.");
     }
 
-    public function storeCertificate(Request $request, User $user): RedirectResponse
+    public function storeCertificate(Request $request, User $user): RedirectResponse|JsonResponse
     {
         abort_unless($request->user()->can('manage-team'), 403);
 
@@ -144,19 +165,19 @@ class WorkforceController extends Controller
 
         $user->certificates()->create($validated);
 
-        return back()->with('success', "Certificaat toegevoegd aan {$user->name}.");
+        return $this->done($request, "Certificaat toegevoegd aan {$user->name}.");
     }
 
-    public function destroyCertificate(Request $request, Certificate $certificate): RedirectResponse
+    public function destroyCertificate(Request $request, Certificate $certificate): RedirectResponse|JsonResponse
     {
         abort_unless($request->user()->can('manage-team'), 403);
 
         $certificate->delete();
 
-        return back()->with('success', 'Certificaat verwijderd.');
+        return $this->done($request, 'Certificaat verwijderd.');
     }
 
-    public function storeAbsence(Request $request, User $user): RedirectResponse
+    public function storeAbsence(Request $request, User $user): RedirectResponse|JsonResponse
     {
         abort_unless($request->user()->can('manage-crm'), 403);
 
@@ -169,15 +190,23 @@ class WorkforceController extends Controller
 
         $user->absences()->create($validated);
 
-        return back()->with('success', "Afwezigheid vastgelegd voor {$user->name}.");
+        return $this->done($request, "Afwezigheid vastgelegd voor {$user->name}.");
     }
 
-    public function destroyAbsence(Request $request, Absence $absence): RedirectResponse
+    public function destroyAbsence(Request $request, Absence $absence): RedirectResponse|JsonResponse
     {
         abort_unless($request->user()->can('manage-crm'), 403);
 
         $absence->delete();
 
-        return back()->with('success', 'Afwezigheid verwijderd.');
+        return $this->done($request, 'Afwezigheid verwijderd.');
+    }
+
+    /** Website: terug met een melding. App: dezelfde melding als JSON. */
+    private function done(Request $request, string $message): RedirectResponse|JsonResponse
+    {
+        return $request->expectsJson()
+            ? response()->json(['message' => $message])
+            : back()->with('success', $message);
     }
 }

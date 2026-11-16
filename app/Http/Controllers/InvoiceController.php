@@ -11,6 +11,7 @@ use App\Models\Budget;
 use App\Models\BudgetTerm;
 use App\Models\Invoice;
 use App\Models\Project;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -45,7 +46,7 @@ class InvoiceController extends Controller
             'outstanding' => round($outstanding->sum(fn (Invoice $i) => $i->openAmount()), 2),
             'overdue' => round($outstanding->filter->isOverdue()->sum(fn (Invoice $i) => $i->openAmount()), 2),
             // Termijnen die klaarstaan om te factureren.
-            'ready' => $this->readyTerms(),
+            'ready' => self::readyTerms(),
         ]);
     }
 
@@ -60,7 +61,7 @@ class InvoiceController extends Controller
      * Een termijnfactuur maken. Het bedrag komt uit de termijn in de begroting,
      * zodat de aanneemsom en de facturen nooit uit elkaar lopen.
      */
-    public function storeTerm(Request $request, BudgetTerm $term): RedirectResponse
+    public function storeTerm(Request $request, BudgetTerm $term): RedirectResponse|JsonResponse
     {
         $budget = $term->budget;
         $project = $budget->project;
@@ -68,7 +69,9 @@ class InvoiceController extends Controller
         abort_if($project === null, 422, 'Deze begroting hangt nog niet aan een project.');
 
         if (Invoice::where('budget_term_id', $term->id)->exists()) {
-            return back()->with('error', 'Deze termijn is al gefactureerd.');
+            return $request->expectsJson()
+                ? response()->json(['message' => 'Deze termijn is al gefactureerd.'], 422)
+                : back()->with('error', 'Deze termijn is al gefactureerd.');
         }
 
         $totals = $budget->totals();
@@ -105,6 +108,14 @@ class InvoiceController extends Controller
             'termijn' => $term->description,
             'bedrag' => $amount,
         ]);
+
+        // De app gaat zelf naar de nieuwe factuur.
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => "Factuur {$invoice->number} staat klaar als concept.",
+                'path' => route('invoices.show', $invoice, false),
+            ]);
+        }
 
         return redirect()
             ->route('invoices.show', $invoice)
@@ -197,7 +208,7 @@ class InvoiceController extends Controller
             ->with('success', "Eindafrekening {$invoice->number} opgesteld.");
     }
 
-    public function update(Request $request, Invoice $invoice): RedirectResponse
+    public function update(Request $request, Invoice $invoice): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'status' => ['sometimes', new Enum(InvoiceStatus::class)],
@@ -238,10 +249,14 @@ class InvoiceController extends Controller
             );
         }
 
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Factuur bijgewerkt.', 'status' => $invoice->status->value, 'label' => $invoice->status->label()]);
+        }
+
         return back()->with('success', 'Factuur bijgewerkt.');
     }
 
-    public function destroy(Invoice $invoice): RedirectResponse
+    public function destroy(Request $request, Invoice $invoice): RedirectResponse|JsonResponse
     {
         abort_if($invoice->status !== InvoiceStatus::Concept, 422, 'Alleen een concept kan weg.');
 
@@ -249,15 +264,19 @@ class InvoiceController extends Controller
         $number = $invoice->number;
         $invoice->delete();
 
+        if ($request->expectsJson()) {
+            return response()->json(['message' => "Concept {$number} verwijderd."]);
+        }
+
         return redirect()->route('invoices.index')->with('success', "Concept {$number} verwijderd.");
     }
 
     /**
-     * Termijnen uit definitieve begrotingen die nog niet gefactureerd zijn.
+     * Termijnen uit definitieve begrotingen die nog niet gefactureerd zijn (ook voor de app).
      *
      * @return Collection<int, array<string, mixed>>
      */
-    private function readyTerms(): Collection
+    public static function readyTerms(): Collection
     {
         $invoiced = Invoice::whereNotNull('budget_term_id')->pluck('budget_term_id');
 

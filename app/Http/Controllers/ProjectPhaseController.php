@@ -6,13 +6,14 @@ use App\Enums\PhaseStatus;
 use App\Enums\TimelineEventType;
 use App\Models\AuditLog;
 use App\Models\ProjectPhase;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class ProjectPhaseController extends Controller
 {
-    public function update(Request $request, ProjectPhase $phase): RedirectResponse
+    public function update(Request $request, ProjectPhase $phase): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'status' => ['sometimes', Rule::enum(PhaseStatus::class)],
@@ -41,6 +42,11 @@ class ProjectPhaseController extends Controller
 
         $phase->project->syncProgress();
 
+        // De app (uitvoering van een project) krijgt de melding als JSON.
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Fase "'.$phase->name.'" bijgewerkt.']);
+        }
+
         return back()->with('success', 'Fase "'.$phase->name.'" bijgewerkt.');
     }
 
@@ -49,7 +55,7 @@ class ProjectPhaseController extends Controller
      * werkpakketten in de fase gereed zijn. De vrijgave wordt vastgelegd
      * (wie, wanneer, notitie) en de volgende fase start automatisch.
      */
-    public function approve(Request $request, ProjectPhase $phase): RedirectResponse
+    public function approve(Request $request, ProjectPhase $phase): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'gate_note' => ['nullable', 'string', 'max:255'],
@@ -60,7 +66,9 @@ class ProjectPhaseController extends Controller
         $open = $phase->workPackages->reject(fn ($package) => $package->isDone());
 
         if ($open->isNotEmpty()) {
-            return back()->with('error', 'Fase kan nog niet worden vrijgegeven: '.$open->count().' '.($open->count() === 1 ? 'werkpakket is' : 'werkpakketten zijn').' nog niet gereed ('.$open->pluck('name')->take(3)->implode(', ').').');
+            $message = 'Fase kan nog niet worden vrijgegeven: '.$open->count().' '.($open->count() === 1 ? 'werkpakket is' : 'werkpakketten zijn').' nog niet gereed ('.$open->pluck('name')->take(3)->implode(', ').').';
+
+            return $request->expectsJson() ? response()->json(['message' => $message], 422) : back()->with('error', $message);
         }
 
         $phase->update([
@@ -93,6 +101,8 @@ class ProjectPhaseController extends Controller
 
         $phase->project->syncProgress();
 
-        return back()->with('success', 'Fase "'.$phase->name.'" vrijgegeven.'.($next ? ' Fase "'.$next->name.'" is gestart.' : ''));
+        $message = 'Fase "'.$phase->name.'" vrijgegeven.'.($next ? ' Fase "'.$next->name.'" is gestart.' : '');
+
+        return $request->expectsJson() ? response()->json(['message' => $message]) : back()->with('success', $message);
     }
 }

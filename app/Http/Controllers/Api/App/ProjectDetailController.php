@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\App;
 
 use App\Enums\PhaseStatus;
+use App\Enums\ProjectStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\Task;
@@ -78,6 +79,9 @@ class ProjectDetailController extends Controller
             'photos' => $project->photos_count,
             'tasks' => $project->tasks->map(fn (Task $task) => AppPayload::task($task))->values(),
             'planning' => $project->scheduleEntries->map(fn ($entry) => AppPayload::scheduleEntry($entry))->values(),
+            // Kantoor zet de projectstatus in het dossier (zoals op het overzicht van de website).
+            'status_value' => $project->status->value,
+            'statuses' => $crm ? array_map(fn (ProjectStatus $status) => ['value' => $status->value, 'label' => $status->label(), 'classes' => $status->appBadgeClasses()], ProjectStatus::cases()) : [],
             'links' => [
                 'execution' => $path.'?tab=uitvoering',
                 'photos' => $path.'?tab=fotos',

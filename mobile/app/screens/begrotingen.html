@@ -1,0 +1,508 @@
+<!-- ===== Begrotingen ===== -->
+<template x-if="$store.os.route === 'begrotingen'">
+    <div x-data="budgets">
+        <div data-enter class="app-ph">
+            <p class="sec-eye"><span x-icon="'calculator'"></span> Calculatie</p>
+            <h1><em>Begrotingen</em></h1>
+            <p class="sub">Met hoofdstukken, normuren en staartkosten. De basis voor offerte en nacalculatie.</p>
+            <div class="app-ph-acts">
+                <button type="button" @click="$store.os.go(data?.links.create ?? '/begrotingen/nieuw')" class="app-btn pri">
+                    <span x-icon="'plus'" class="h-4 w-4"></span> Nieuwe begroting
+                </button>
+            </div>
+        </div>
+
+        <div class="relative mb-3">
+            <span x-icon="'magnifying-glass'" class="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-gray-400"></span>
+            <input type="search" x-model="q" @input.debounce.400ms="filter()" enterkeyhint="search" placeholder="Zoek op naam of nummer" aria-label="Begrotingen zoeken" class="w-full !rounded-xl !pl-10" @keydown.enter="$el.blur()">
+        </div>
+
+        <div class="app-chips mb-3">
+            <template x-for="[key, label] in filters" :key="key">
+                <button type="button" @click="status = key; filter()" :class="status === key && 'on'" class="app-chip" :aria-pressed="status === key">
+                    <b class="font-semibold" x-text="label"></b> <span x-text="data?.counts?.[key] ?? ''"></span>
+                </button>
+            </template>
+        </div>
+
+        <template x-if="failed">
+            <div class="app-card p-5 text-center">
+                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                <button type="button" @click="load()" class="app-btn mt-3">Opnieuw proberen</button>
+            </div>
+        </template>
+
+        <template x-if="data && rows.length === 0">
+            <div class="app-card p-6 text-center">
+                <p class="text-sm font-semibold text-navy-900" x-text="q.trim() ? 'Geen begrotingen gevonden voor “' + q.trim() + '”.' : 'Nog geen begrotingen'"></p>
+                <p x-show="!q.trim()" class="mt-1 text-sm text-gray-500">Een begroting begint met het hoofdstukskelet dat bij het werk past.</p>
+            </div>
+        </template>
+
+        <div data-enter class="app-card" x-show="!failed && (!data || rows.length > 0)">
+            <div class="app-card-b">
+                <template x-for="i in (data ? 0 : 6)" :key="i">
+                    <div class="flex items-center gap-3.5 py-3.5"><span class="skeleton h-10 w-10 shrink-0 !rounded-xl"></span><span class="flex-1"><span class="skeleton mb-2 block h-3.5 w-2/3"></span><span class="skeleton block h-3 w-1/2"></span></span></div>
+                </template>
+                <template x-for="budget in rows" :key="budget.id">
+                    <a :href="'#/begroting/' + budget.id" class="app-li">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-calc-100 text-calc-700"><span x-icon="'calculator'" class="h-5 w-5"></span></span>
+                        <span class="min-w-0 flex-1">
+                            <b class="truncate" x-text="budget.name"></b>
+                            <small class="truncate" x-text="budget.sub"></small>
+                            <span class="mt-1 flex flex-wrap items-center gap-1.5">
+                                <span class="rounded-full px-2 py-0.5 text-[11px] font-semibold" :class="budget.status.classes" x-text="budget.status.label"></span>
+                                <span x-show="budget.incomplete > 0" class="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800" x-text="budget.incomplete + ' zonder prijs'"></span>
+                            </span>
+                        </span>
+                        <span class="shrink-0 text-right">
+                            <b class="block text-sm font-bold whitespace-nowrap text-navy-900" x-text="osFormat.euro(budget.total)"></b>
+                            <small class="block text-xs whitespace-nowrap text-gray-500" x-text="budget.meta"></small>
+                        </span>
+                    </a>
+                </template>
+            </div>
+        </div>
+        <button type="button" x-show="data && hasMore" x-cloak @click="loadMore()" :disabled="loadingMore" class="app-btn ghost mt-3 w-full justify-center disabled:opacity-60" x-text="loadingMore ? 'Bezig' : 'Meer laden'"></button>
+    </div>
+</template>
+
+<!-- ===== Begroting (calculatietafel) ===== -->
+<template x-if="$store.os.route === 'begroting'">
+    <div>
+        <template x-for="id in [$store.os.param]" :key="id">
+            <div x-data="budget(id)">
+                <nav class="app-crumbs mb-2 !text-gray-500">
+                    <template x-if="data?.project">
+                        <span class="contents">
+                            <button type="button" @click="$store.os.go(data.project.path)" class="tap inline-flex min-w-0 items-center gap-1 font-semibold !text-brand-700"><span x-icon="'folder'" class="h-3.5 w-3.5 shrink-0"></span><span class="truncate" x-text="data.project.name"></span></button>
+                            <span x-icon="'chevron-right'" class="h-3 w-3 shrink-0"></span>
+                        </span>
+                    </template>
+                    <a x-show="!data?.project" href="#/begrotingen" class="tap">Begrotingen</a>
+                    <span x-show="!data?.project" x-icon="'chevron-right'" class="h-3 w-3"></span>
+                    <span x-text="data?.number ?? ''"></span>
+                </nav>
+                <div data-enter class="app-ph">
+                    <p class="sec-eye"><span x-icon="'calculator'"></span> <span x-text="data?.eyebrow ?? 'Begroting'"></span></p>
+                    <h1><span x-text="data?.name ?? ''"></span><span x-show="!data" class="skeleton inline-block h-7 w-2/3 align-middle"></span></h1>
+                    <p class="sub" x-text="data?.subtitle ?? ''"></p>
+                    <div class="app-ph-acts" x-show="data">
+                        <span class="rounded-full px-3 py-1 text-sm font-semibold" :class="data?.status.classes" x-text="data?.status.label"></span>
+                        <button type="button" x-show="data?.draft" @click="finalise()" :disabled="busy !== null" class="app-btn pri disabled:opacity-60">
+                            <span x-icon="'lock-closed'" class="h-4 w-4"></span> <span x-text="busy === 'finalise' ? 'Bezig' : 'Definitief maken'"></span>
+                        </button>
+                        <button type="button" x-show="data && !data.draft" @click="reopen()" :disabled="busy !== null" class="app-btn disabled:opacity-60">
+                            <span x-icon="'arrow-path'" class="h-4 w-4"></span> <span x-text="busy === 'reopen' ? 'Bezig' : 'Heropenen'"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <template x-if="failed">
+                    <div class="app-card p-5 text-center">
+                        <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                        <button type="button" @click="load()" class="app-btn mt-3">Opnieuw proberen</button>
+                    </div>
+                </template>
+
+                <!-- De getallen die het gesprek bepalen -->
+                <section class="app-kpis mb-3" x-show="!failed">
+                    <div data-enter class="app-kpi dark">
+                        <span class="lbl">Aanneemsom excl. btw</span>
+                        <span class="v"><span x-text="data ? osFormat.euro(data.kpis.total_excl) : ''"></span><span x-show="!data" class="skeleton skeleton-dark inline-block h-6 w-32 align-middle"></span></span>
+                        <span class="s" x-text="data ? 'marge ' + data.kpis.margin : ' '"></span>
+                    </div>
+                    <div data-enter class="app-kpi" style="--kc: #3e6ba8">
+                        <span class="lbl">Directe kosten</span>
+                        <span class="v"><span x-text="data ? osFormat.euro(data.kpis.direct) : ''"></span><span x-show="!data" class="skeleton inline-block h-6 w-16 align-middle"></span></span>
+                        <span class="s" x-text="data?.kpis.hours ?? ' '"></span>
+                    </div>
+                    <div data-enter class="app-kpi" style="--kc: #c2710c">
+                        <span class="lbl">Staart</span>
+                        <span class="v"><span x-text="data ? osFormat.euro(data.kpis.markup_total) : ''"></span><span x-show="!data" class="skeleton inline-block h-6 w-16 align-middle"></span></span>
+                        <span class="s" x-text="data ? 'opslag ' + data.kpis.surcharge : ' '"></span>
+                    </div>
+                    <div data-enter class="app-kpi" style="--kc: #1e8a5a">
+                        <span class="lbl">Inclusief btw</span>
+                        <span class="v"><span x-text="data ? osFormat.euro(data.kpis.total_incl) : ''"></span><span x-show="!data" class="skeleton inline-block h-6 w-16 align-middle"></span></span>
+                        <span class="s" x-text="data?.kpis.vat ?? ' '"></span>
+                    </div>
+                    <div data-enter class="app-kpi" style="--kc: #7c5cd6">
+                        <span class="lbl">Per m2</span>
+                        <span class="v"><span x-text="data ? (data.kpis.per_m2 === null ? 'n.v.t.' : osFormat.euro(data.kpis.per_m2)) : ''"></span><span x-show="!data" class="skeleton inline-block h-6 w-16 align-middle"></span></span>
+                        <span class="s" x-text="data?.kpis.floor_area ?? ' '"></span>
+                    </div>
+                </section>
+
+                <div x-show="data?.incomplete > 0" class="mb-3 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                    <span x-icon="'exclamation-triangle'" class="mt-0.5 h-5 w-5 shrink-0 text-amber-600"></span>
+                    <p class="text-sm text-amber-900">
+                        <b x-text="data?.incomplete + (data?.incomplete === 1 ? ' regel heeft' : ' regels hebben') + ' een hoeveelheid zonder prijs.'"></b>
+                        Die tellen nu voor nul mee. Definitief maken lukt pas als ze gevuld zijn.
+                    </p>
+                </div>
+
+                <div x-show="data && !data.draft" class="mb-3 flex items-center gap-2 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800">
+                    <span x-icon="'lock-closed'" class="h-4 w-4 shrink-0"></span>
+                    Definitief: de regels staan op slot. Heropen de begroting om iets te wijzigen.
+                </div>
+
+                <div class="mb-3 flex flex-wrap gap-2" x-show="data?.links.project || data?.links.customer || data?.links.lead">
+                    <button type="button" x-show="data?.links.project" @click="$store.os.go(data.links.project.path)" class="app-btn"><span x-icon="'folder'" class="h-4 w-4"></span> Project</button>
+                    <button type="button" x-show="data?.links.customer" @click="$store.os.go(data.links.customer.path)" class="app-btn"><span x-icon="'user'" class="h-4 w-4"></span> <span x-text="data?.links.customer?.name"></span></button>
+                    <button type="button" x-show="data?.links.lead" @click="$store.os.go(data.links.lead)" class="app-btn"><span x-icon="'funnel'" class="h-4 w-4"></span> Aanvraag</button>
+                </div>
+
+                <!-- Hoofdstukken -->
+                <section data-enter class="app-card mb-3" x-show="!failed">
+                    <div class="border-b border-gray-100 p-4">
+                        <h2 class="text-sm font-bold text-navy-900">Hoofdstukken</h2>
+                        <p class="mt-0.5 text-xs text-gray-500" x-show="data" x-text="data ? osFormat.tally(data.line_count, 'regel', 'regels') + ', tarief ' + osFormat.euro(data.rate, 2) + ' per uur' : ''"></p>
+                        <span x-show="!data" class="skeleton mt-1 block h-3 w-1/2"></span>
+                        <form x-show="data?.draft" @submit.prevent="addChapter()" class="mt-3 flex gap-2">
+                            <select x-model="chapterCode" aria-label="Hoofdstuk uit de standaard" class="min-w-0 flex-1">
+                                <template x-for="chapter in data?.chapter_library ?? []" :key="chapter.code">
+                                    <option :value="chapter.code" x-text="chapter.code + ' ' + chapter.name"></option>
+                                </template>
+                            </select>
+                            <button type="submit" :disabled="busy !== null" class="app-btn shrink-0 disabled:opacity-60"><span x-icon="'plus'" class="h-4 w-4"></span> Hoofdstuk</button>
+                        </form>
+                    </div>
+
+                    <template x-for="i in (data ? 0 : 3)" :key="i">
+                        <div class="flex items-center gap-3 border-b border-gray-100 p-4"><span class="skeleton h-9 w-9 shrink-0 !rounded-lg"></span><span class="flex-1"><span class="skeleton mb-2 block h-3.5 w-2/3"></span><span class="skeleton block h-1.5 w-24"></span></span></div>
+                    </template>
+                    <p x-show="data && data.chapters.length === 0" class="p-4 text-sm text-gray-500">Nog geen hoofdstukken. Voeg een hoofdstuk toe om regels te kunnen begroten.</p>
+
+                    <div class="divide-y divide-gray-100">
+                        <template x-for="chapter in data?.chapters ?? []" :key="chapter.id">
+                            <div>
+                                <button type="button" @click="toggle(chapter)" class="flex min-h-[56px] w-full items-center gap-3 p-4 text-left" :aria-expanded="isOpen(chapter)">
+                                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-calc-100 text-xs font-bold text-calc-700" x-text="chapter.code"></span>
+                                    <span class="min-w-0 flex-1">
+                                        <b class="block truncate text-sm font-semibold text-navy-900" x-text="chapter.name"></b>
+                                        <span class="mt-1 flex items-center gap-2">
+                                            <span class="h-1 w-16 overflow-hidden rounded-full bg-gray-200"><span class="block h-full rounded-full bg-calc-500" :style="'width: ' + chapter.bar + '%'"></span></span>
+                                            <small class="text-xs text-gray-500" x-text="osFormat.tally(chapter.lines, 'regel', 'regels')"></small>
+                                        </span>
+                                    </span>
+                                    <span class="shrink-0 text-right">
+                                        <b class="block text-sm font-bold whitespace-nowrap text-navy-900" x-text="osFormat.euro(chapter.total)"></b>
+                                        <small class="block text-[11px] whitespace-nowrap text-gray-500" x-text="chapter.share"></small>
+                                    </span>
+                                    <span x-icon="'chevron-down'" class="h-4 w-4 shrink-0 text-gray-400 transition" :class="isOpen(chapter) && 'rotate-180'"></span>
+                                </button>
+
+                                <div x-show="isOpen(chapter)" class="space-y-3 border-t border-gray-100 bg-gray-50 p-3">
+                                    <template x-for="paragraph in chapter.paragraphs" :key="paragraph.id">
+                                        <div class="overflow-hidden rounded-xl border border-gray-200 bg-white">
+                                            <div class="flex items-center justify-between gap-3 border-b border-gray-100 px-3 py-2.5">
+                                                <p class="min-w-0 truncate text-xs font-bold tracking-wide text-gray-600 uppercase" x-text="paragraph.label"></p>
+                                                <p class="shrink-0 text-sm font-bold text-navy-900" x-text="osFormat.euro(paragraph.total)"></p>
+                                            </div>
+                                            <ul class="divide-y divide-gray-100">
+                                                <template x-for="line in paragraph.lines" :key="line.id">
+                                                    <li>
+                                                        <template x-if="line.text">
+                                                            <p class="px-3 py-2.5 text-xs text-gray-500 italic" x-text="line.description"></p>
+                                                        </template>
+                                                        <template x-if="!line.text">
+                                                            <button type="button" @click="edit(line, paragraph)" class="flex min-h-[48px] w-full items-start gap-3 px-3 py-2.5 text-left" :class="line.incomplete && 'bg-amber-50'" :disabled="!data.draft">
+                                                                <span class="min-w-0 flex-1">
+                                                                    <span class="block text-sm font-medium text-navy-900" x-text="line.description"></span>
+                                                                    <span class="block text-xs text-gray-500" x-text="[line.quantity + ' ' + (line.unit ?? ''), line.summary].filter(Boolean).join(', ')"></span>
+                                                                    <span x-show="line.incomplete" class="mt-0.5 block text-xs font-semibold text-amber-700">Nog geen prijs</span>
+                                                                    <span x-show="line.source" class="block text-[11px] text-gray-400" x-text="line.source"></span>
+                                                                </span>
+                                                                <span class="shrink-0 text-sm font-semibold whitespace-nowrap text-navy-900" x-text="osFormat.euro(line.total)"></span>
+                                                                <span x-show="data.draft" x-icon="'pencil'" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-gray-300"></span>
+                                                            </button>
+                                                        </template>
+                                                    </li>
+                                                </template>
+                                            </ul>
+                                            <!-- Regel toevoegen: met de hand of uit de prijslijst -->
+                                            <form x-show="data.draft" @submit.prevent="addLine(paragraph)" class="space-y-2 border-t border-gray-100 p-3">
+                                                <input type="text" x-model="lineForm(paragraph).description" maxlength="255" placeholder="Nieuwe regel" aria-label="Omschrijving nieuwe regel" class="w-full">
+                                                <div class="flex gap-2">
+                                                    <input type="text" inputmode="decimal" x-model="lineForm(paragraph).quantity" aria-label="Aantal" class="w-16 shrink-0 text-right">
+                                                    <input type="text" x-model="lineForm(paragraph).unit" maxlength="12" aria-label="Eenheid" class="w-16 shrink-0">
+                                                    <button type="submit" :disabled="busy !== null || !lineForm(paragraph).description.trim()" class="tap flex shrink-0 items-center justify-center rounded-xl bg-brand-500 px-3.5 text-white disabled:opacity-50" aria-label="Regel toevoegen"><span x-icon="'plus'" class="h-4 w-4"></span></button>
+                                                    <button type="button" @click="openPicker(paragraph)" class="app-btn min-w-0 flex-1 justify-center !px-2 text-xs">Uit de prijslijst</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </template>
+
+                                    <template x-if="data.draft">
+                                        <div class="space-y-2">
+                                            <form @submit.prevent="addParagraph(chapter)" class="flex gap-2">
+                                                <input type="text" x-model="paragraphName[chapter.id]" maxlength="160" placeholder="Nieuwe paragraaf" aria-label="Naam nieuwe paragraaf" class="min-w-0 flex-1">
+                                                <button type="submit" :disabled="busy !== null || !(paragraphName[chapter.id] ?? '').trim()" class="app-btn shrink-0 disabled:opacity-60">Paragraaf</button>
+                                            </form>
+                                            <div class="text-right">
+                                                <button type="button" @click="removeChapter(chapter)" :disabled="busy !== null" class="tap px-1 py-2 text-xs font-semibold text-gray-500 active:text-red-600" x-text="'Hoofdstuk ' + chapter.code + ' verwijderen'"></button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </section>
+
+                <!-- Waar het geld zit -->
+                <section data-enter class="app-card mb-3 p-4" x-show="data">
+                    <h2 class="mb-3 text-sm font-bold text-navy-900">Waar het geld zit</h2>
+                    <div class="mb-3 flex h-2 overflow-hidden rounded-full bg-gray-200">
+                        <template x-for="category in data?.categories ?? []" :key="category.key">
+                            <span x-show="category.share > 0" :class="category.color" :style="'width: ' + category.share + '%'"></span>
+                        </template>
+                    </div>
+                    <div class="space-y-2">
+                        <template x-for="category in data?.categories ?? []" :key="category.key">
+                            <div class="flex items-center gap-2.5 text-sm">
+                                <span class="h-2.5 w-2.5 shrink-0 rounded-full" :class="category.color"></span>
+                                <span class="flex-1 text-gray-600" x-text="category.label"></span>
+                                <span class="font-semibold text-navy-900" x-text="osFormat.euro(category.amount)"></span>
+                                <span class="w-10 text-right text-xs text-gray-500" x-text="Math.round(category.share) + '%'"></span>
+                            </div>
+                        </template>
+                    </div>
+                </section>
+
+                <!-- De staart -->
+                <section data-enter class="app-card mb-3 p-4" x-show="data">
+                    <h2 class="text-sm font-bold text-navy-900">De staart</h2>
+                    <p class="mb-3 text-xs text-gray-500">Elke post rekent over het bedrag inclusief de vorige.</p>
+                    <div class="space-y-2">
+                        <template x-for="markup in data?.markups ?? []" :key="markup.id">
+                            <div class="flex items-center gap-2">
+                                <template x-if="data.draft">
+                                    <div class="flex min-w-0 flex-1 items-center gap-1.5">
+                                        <input type="text" :value="markup.name" @change="updateMarkup(markup, 'name', $event.target.value)" maxlength="120" aria-label="Naam staartpost" class="min-w-0 flex-1 !px-2 text-sm">
+                                        <input type="text" inputmode="decimal" :value="markup.percentage" @change="updateMarkup(markup, 'percentage', $event.target.value)" aria-label="Percentage" class="w-16 shrink-0 !px-2 text-right">
+                                        <span class="shrink-0 text-xs text-gray-500">%</span>
+                                    </div>
+                                </template>
+                                <template x-if="!data.draft">
+                                    <span class="flex min-w-0 flex-1 items-center gap-2">
+                                        <span class="min-w-0 flex-1 truncate text-sm text-gray-700" x-text="markup.name"></span>
+                                        <span class="shrink-0 text-sm text-gray-500" x-text="markup.percentage + '%'"></span>
+                                    </span>
+                                </template>
+                                <span class="w-20 shrink-0 text-right text-sm font-semibold whitespace-nowrap text-navy-900" x-text="osFormat.euro(markup.amount)"></span>
+                                <button type="button" x-show="data.draft" @click="removeMarkup(markup)" :disabled="busy !== null" class="tap -mr-2 flex h-11 w-9 shrink-0 items-center justify-center text-gray-400 active:text-red-600" aria-label="Staartpost verwijderen"><span x-icon="'trash'" class="h-4 w-4"></span></button>
+                            </div>
+                        </template>
+                    </div>
+                    <div class="mt-3 flex items-center justify-between border-t border-gray-100 pt-3">
+                        <span class="text-sm font-bold text-navy-900">Totaal staart</span>
+                        <span class="text-sm font-bold text-navy-900" x-text="osFormat.euro(data?.markup_total)"></span>
+                    </div>
+                    <form x-show="data?.draft" @submit.prevent="addMarkup()" class="mt-3 flex gap-2">
+                        <input type="text" x-model="newMarkup.name" maxlength="120" placeholder="Nieuwe post" aria-label="Naam nieuwe staartpost" class="min-w-0 flex-1">
+                        <input type="text" inputmode="decimal" x-model="newMarkup.percentage" aria-label="Percentage" class="w-16 shrink-0 text-right">
+                        <button type="submit" :disabled="busy !== null || !newMarkup.name.trim()" class="app-btn shrink-0 !px-3 disabled:opacity-60" aria-label="Staartpost toevoegen"><span x-icon="'plus'" class="h-4 w-4"></span></button>
+                    </form>
+                    <div class="mt-4 grid grid-cols-2 gap-3 border-t border-gray-100 pt-3">
+                        <div>
+                            <p class="app-lbl">Marge</p>
+                            <p class="text-lg font-bold text-navy-900" x-text="data?.margin"></p>
+                            <p class="text-xs text-gray-500">van de aanneemsom</p>
+                        </div>
+                        <div>
+                            <p class="app-lbl">Opslag</p>
+                            <p class="text-lg font-bold text-navy-900" x-text="data?.surcharge"></p>
+                            <p class="text-xs text-gray-500">op de kosten</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Opties en meerwerk -->
+                <section data-enter class="app-card mb-3 p-4" x-show="data">
+                    <h2 class="text-sm font-bold text-navy-900">Opties en meerwerk</h2>
+                    <p class="mb-3 text-xs text-gray-500" x-text="data?.options_summary"></p>
+                    <p x-show="data && data.options.length === 0" class="text-sm text-gray-500">Geen opties. Alles wat de klant kan kiezen, zet je hier apart.</p>
+                    <div class="space-y-2">
+                        <template x-for="option in data?.options ?? []" :key="option.id">
+                            <div class="rounded-xl border border-gray-200 bg-gray-50 p-3">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-sm font-semibold text-navy-900" x-text="option.description"></p>
+                                        <p x-show="option.note" class="mt-0.5 text-xs text-gray-500" x-text="option.note"></p>
+                                        <p class="mt-1 text-xs text-gray-500">
+                                            <span x-text="option.quantity"></span><span x-show="option.needs_pricing" class="font-semibold text-amber-700">, prijs nog invullen</span><span x-show="!option.needs_pricing" x-text="', ' + osFormat.euro(option.amount) + ' inclusief staart'"></span>
+                                        </p>
+                                    </div>
+                                    <span class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold" :class="option.status.classes" x-text="option.status.label"></span>
+                                </div>
+                                <template x-if="data.draft">
+                                    <div class="mt-2 flex flex-wrap items-center gap-2 border-t border-gray-200 pt-2">
+                                        <input type="text" inputmode="decimal" :value="option.price" @change="priceOption(option, $event.target.value)" placeholder="Prijs" aria-label="Prijs per eenheid" class="w-24 !px-2 text-right">
+                                        <template x-for="action in option.actions" :key="action.value">
+                                            <button type="button" @click="decideOption(option, action)" :disabled="busy !== null" class="app-btn !px-3 text-xs disabled:opacity-60" x-text="action.label"></button>
+                                        </template>
+                                        <button type="button" @click="removeOption(option)" :disabled="busy !== null" class="tap ml-auto flex h-11 w-9 items-center justify-center text-gray-400 active:text-red-600" aria-label="Optie verwijderen"><span x-icon="'trash'" class="h-4 w-4"></span></button>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                    <form x-show="data?.draft" @submit.prevent="addOption()" class="mt-3 space-y-2">
+                        <input type="text" x-model="newOption.description" maxlength="255" placeholder="Nieuwe optie" aria-label="Omschrijving nieuwe optie" class="w-full">
+                        <div class="flex gap-2">
+                            <input type="text" inputmode="decimal" x-model="newOption.quantity" aria-label="Aantal" class="w-16 shrink-0 text-right">
+                            <input type="text" x-model="newOption.unit" maxlength="12" aria-label="Eenheid" class="w-16 shrink-0">
+                            <input type="text" inputmode="decimal" x-model="newOption.price" placeholder="Prijs per eenheid" aria-label="Prijs per eenheid" class="min-w-0 flex-1">
+                            <button type="submit" :disabled="busy !== null || !newOption.description.trim()" class="app-btn shrink-0 !px-3 disabled:opacity-60" aria-label="Optie toevoegen"><span x-icon="'plus'" class="h-4 w-4"></span></button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- Betaalschema -->
+                <section data-enter class="app-card mb-3 p-4" x-show="data">
+                    <h2 class="text-sm font-bold text-navy-900">Betaalschema</h2>
+                    <p class="mb-3 text-xs" :class="data?.terms_summary.ok ? 'text-gray-500' : 'font-semibold text-amber-700'" x-text="data?.terms_summary.text"></p>
+                    <div class="space-y-2">
+                        <template x-for="term in data?.terms ?? []" :key="term.id">
+                            <div class="rounded-xl border border-gray-100 p-2">
+                                <template x-if="data.draft">
+                                    <div class="flex items-center gap-1.5">
+                                        <input type="text" :value="term.description" @change="updateTerm(term, 'description', $event.target.value)" maxlength="255" aria-label="Omschrijving termijn" class="min-w-0 flex-1 !px-2 text-sm">
+                                        <input type="text" inputmode="decimal" :value="term.percentage" @change="updateTerm(term, 'percentage', $event.target.value)" aria-label="Percentage" class="w-14 shrink-0 !px-2 text-right">
+                                        <span class="shrink-0 text-xs text-gray-500">%</span>
+                                        <button type="button" @click="removeTerm(term)" :disabled="busy !== null" class="tap -mr-1 flex h-11 w-9 shrink-0 items-center justify-center text-gray-400 active:text-red-600" aria-label="Termijn verwijderen"><span x-icon="'trash'" class="h-4 w-4"></span></button>
+                                    </div>
+                                </template>
+                                <template x-if="!data.draft">
+                                    <div class="flex items-center gap-2">
+                                        <span class="min-w-0 flex-1 truncate text-sm text-gray-700" x-text="term.description"></span>
+                                        <span class="shrink-0 text-xs text-gray-500" x-text="term.percentage + '%'"></span>
+                                    </div>
+                                </template>
+                                <div class="mt-1 flex items-center justify-end gap-2 px-1">
+                                    <span class="rounded-full px-2 py-0.5 text-[11px] font-semibold" :class="term.status.classes" x-text="term.status.label"></span>
+                                    <span class="text-sm font-semibold whitespace-nowrap text-navy-900" x-text="osFormat.euro(term.amount)"></span>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                    <div class="mt-3 flex items-center justify-between border-t border-gray-100 pt-3">
+                        <span class="text-sm font-bold text-navy-900">Aanneemsom</span>
+                        <span class="text-sm font-bold text-navy-900" x-text="osFormat.euro(data?.contract_sum)"></span>
+                    </div>
+                    <form x-show="data?.draft" @submit.prevent="addTerm()" class="mt-3 flex gap-2">
+                        <input type="text" x-model="newTerm.description" maxlength="255" placeholder="Nieuwe termijn" aria-label="Omschrijving nieuwe termijn" class="min-w-0 flex-1">
+                        <input type="text" inputmode="decimal" x-model="newTerm.percentage" aria-label="Percentage" class="w-16 shrink-0 text-right">
+                        <button type="submit" :disabled="busy !== null || !newTerm.description.trim()" class="app-btn shrink-0 !px-3 disabled:opacity-60" aria-label="Termijn toevoegen"><span x-icon="'plus'" class="h-4 w-4"></span></button>
+                    </form>
+                </section>
+
+                <!-- Uitgangspunten: gaan ongewijzigd mee naar de offerte -->
+                <section data-enter class="app-card mb-3 p-4" x-show="data">
+                    <div class="mb-3 flex items-center justify-between gap-2">
+                        <h2 class="text-sm font-bold text-navy-900">Uitgangspunten</h2>
+                        <button type="button" x-show="data?.draft" @click="scopeForm ? scopeForm = null : editScope()" class="tap px-1 py-2 text-xs font-semibold text-brand-700" x-text="scopeForm ? 'Sluiten' : 'Bewerken'"></button>
+                    </div>
+                    <div x-show="!scopeForm" class="space-y-4">
+                        <template x-for="[key, label] in scopeBlocks" :key="key">
+                            <div>
+                                <p class="app-lbl" x-text="label"></p>
+                                <p x-show="(data?.scope[key] ?? []).length === 0" class="mt-1 text-xs text-gray-400">Nog niets vastgelegd.</p>
+                                <ul class="mt-1.5 space-y-1">
+                                    <template x-for="(point, index) in data?.scope[key] ?? []" :key="index">
+                                        <li class="flex items-start gap-2 text-sm text-gray-700">
+                                            <span class="mt-2 h-1 w-1 shrink-0 rounded-full" :class="key === 'excl' ? 'bg-red-500' : 'bg-green-500'"></span>
+                                            <span x-text="point"></span>
+                                        </li>
+                                    </template>
+                                </ul>
+                            </div>
+                        </template>
+                    </div>
+                    <template x-if="scopeForm">
+                        <form @submit.prevent="saveScope()" class="space-y-3">
+                            <template x-for="[key, label, hint] in scopeBlocks" :key="key">
+                                <label class="block">
+                                    <span class="mb-1 block text-sm font-semibold text-gray-700" x-text="label"></span>
+                                    <textarea x-model="scopeForm[key]" rows="3" maxlength="5000" :placeholder="hint + ', een regel per punt'" class="w-full"></textarea>
+                                </label>
+                            </template>
+                            <button type="submit" :disabled="busy !== null" class="app-btn pri w-full justify-center disabled:opacity-60" x-text="busy === 'scope' ? 'Bezig' : 'Opslaan'"></button>
+                        </form>
+                    </template>
+                </section>
+
+                <!-- Regel bewerken -->
+                <div data-popup x-show="editing" x-cloak @click.self="editing = null" @renovion-back.window="if (editing) { editing = null; $event.preventDefault(); }"
+                     class="fixed inset-0 z-[60] flex items-end bg-navy-950/60 backdrop-blur-sm">
+                    <template x-if="editing">
+                        <form @submit.prevent="saveLine()" x-swipe-dismiss="editing = null" class="max-h-[90dvh] w-full space-y-3 overflow-y-auto rounded-t-[20px] bg-white p-5 pb-[calc(1.25rem_+_env(safe-area-inset-bottom))]">
+                            <div class="mx-auto -mt-2 mb-1 h-1.5 w-10 rounded-full bg-gray-300"></div>
+                            <div>
+                                <h2 class="text-base font-bold text-navy-900">Regel bewerken</h2>
+                                <p class="text-xs text-gray-500" x-text="editing.label"></p>
+                                <p x-show="editing.source" class="text-xs text-gray-400" x-text="editing.source"></p>
+                            </div>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Omschrijving</span><input type="text" x-model="editing.description" required maxlength="255" class="w-full"></label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Aantal</span><input type="text" inputmode="decimal" x-model="editing.quantity" class="w-full text-right"></label>
+                                <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Eenheid</span><input type="text" x-model="editing.unit" maxlength="12" class="w-full"></label>
+                            </div>
+                            <p class="text-xs font-semibold text-gray-500">Per eenheid</p>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Normuren</span><input type="text" inputmode="decimal" x-model="editing.norm_hours" placeholder="0" class="w-full text-right"></label>
+                                <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Materiaal €</span><input type="text" inputmode="decimal" x-model="editing.material" placeholder="0" class="w-full text-right"></label>
+                                <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Materieel €</span><input type="text" inputmode="decimal" x-model="editing.equipment" placeholder="0" class="w-full text-right"></label>
+                                <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Onderaanneming €</span><input type="text" inputmode="decimal" x-model="editing.subcontracting" placeholder="0" class="w-full text-right"></label>
+                                <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Overig €</span><input type="text" inputmode="decimal" x-model="editing.other" placeholder="0" class="w-full text-right"></label>
+                            </div>
+                            <div class="flex gap-2 pt-1">
+                                <button type="submit" :disabled="busy !== null || !editing.description.trim()" class="flex-1 rounded-xl bg-brand-500 py-3 text-sm font-bold text-white active:bg-brand-600 disabled:opacity-60" x-text="busy === 'saveline' ? 'Bezig' : 'Opslaan'"></button>
+                                <button type="button" @click="removeLine()" :disabled="busy !== null" class="rounded-xl border border-red-200 px-4 py-3 text-sm font-semibold text-red-600 disabled:opacity-60" aria-label="Regel verwijderen"><span x-icon="'trash'" class="h-4 w-4"></span></button>
+                                <button type="button" @click="editing = null" class="rounded-xl border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-600">Annuleren</button>
+                            </div>
+                        </form>
+                    </template>
+                </div>
+
+                <!-- Uit de prijslijst -->
+                <div data-popup x-show="picker" x-cloak @click.self="picker = null" @renovion-back.window="if (picker) { picker = null; $event.preventDefault(); }"
+                     class="fixed inset-0 z-[60] flex items-end bg-navy-950/60 backdrop-blur-sm">
+                    <template x-if="picker">
+                        <div x-swipe-dismiss="picker = null" class="flex max-h-[85dvh] w-full flex-col rounded-t-[20px] bg-white p-5 pb-[calc(1.25rem_+_env(safe-area-inset-bottom))]">
+                            <div class="mx-auto -mt-2 mb-3 h-1.5 w-10 shrink-0 rounded-full bg-gray-300"></div>
+                            <h2 class="text-base font-bold text-navy-900">Uit de prijslijst</h2>
+                            <p class="mb-3 text-xs text-gray-500" x-text="picker.label"></p>
+                            <div class="relative mb-2 shrink-0">
+                                <span x-icon="'magnifying-glass'" class="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-gray-400"></span>
+                                <input type="search" x-ref="pickerInput" x-model="picker.term" @input.debounce.300ms="search()" enterkeyhint="search" placeholder="Zoek op naam of artikelnummer" aria-label="Zoeken in de prijslijst" class="w-full !rounded-xl !pl-10" @keydown.enter.prevent="$el.blur()">
+                            </div>
+                            <div class="min-h-[120px] flex-1 overflow-y-auto">
+                                <template x-if="picker.searching && picker.results.length === 0">
+                                    <div class="space-y-2 py-2"><span class="skeleton block h-10 w-full"></span><span class="skeleton block h-10 w-full"></span></div>
+                                </template>
+                                <p x-show="!picker.searching && picker.term.trim().length < 2" class="py-3 text-sm text-gray-500">Typ minstens twee letters.</p>
+                                <p x-show="!picker.searching && picker.searched && picker.results.length === 0" class="py-3 text-sm text-gray-500">Niets gevonden in de prijslijst.</p>
+                                <template x-for="item in picker.results" :key="item.id">
+                                    <button type="button" @click="pick(item)" :disabled="busy !== null" class="flex min-h-[52px] w-full items-center gap-3 border-b border-gray-100 py-2.5 text-left disabled:opacity-60">
+                                        <span class="shrink-0 rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[10px] text-gray-600" x-text="item.code"></span>
+                                        <span class="min-w-0 flex-1">
+                                            <span class="block truncate text-sm font-medium text-navy-900" x-text="item.name"></span>
+                                            <span class="block truncate text-xs text-gray-500" x-text="item.type_label + ', ' + item.source"></span>
+                                        </span>
+                                        <span class="shrink-0 text-right text-xs text-gray-600">
+                                            <b class="block text-sm text-navy-900" x-text="osFormat.euro(item.price, 2)"></b>
+                                            <span x-text="'per ' + item.unit"></span>
+                                        </span>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </template>
+    </div>
+</template>

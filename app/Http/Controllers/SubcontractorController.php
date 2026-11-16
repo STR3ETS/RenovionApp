@@ -8,6 +8,7 @@ use App\Models\Subcontractor;
 use App\Models\SubcontractorDocument;
 use App\Models\User;
 use App\Support\CertificateCatalogue;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -57,7 +58,7 @@ class SubcontractorController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:160'],
@@ -76,12 +77,20 @@ class SubcontractorController extends Controller
 
         AuditLog::record($subcontractor, 'onderaannemer aangemeld', [], ['naam' => $subcontractor->name]);
 
+        // De app gaat zelf naar het nieuwe dossier.
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => "{$subcontractor->name} aangemeld. Vul het dossier aan voordat je werk uitzet.",
+                'path' => route('subcontractors.show', $subcontractor, false),
+            ]);
+        }
+
         return redirect()
             ->route('subcontractors.show', $subcontractor)
             ->with('success', "{$subcontractor->name} aangemeld. Vul het dossier aan voordat je werk uitzet.");
     }
 
-    public function update(Request $request, Subcontractor $subcontractor): RedirectResponse
+    public function update(Request $request, Subcontractor $subcontractor): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'name' => ['sometimes', 'string', 'max:160'],
@@ -113,14 +122,14 @@ class SubcontractorController extends Controller
 
         AuditLog::record($subcontractor, 'onderaannemer bijgewerkt', $old, $validated);
 
-        return back()->with('success', 'Gegevens bijgewerkt.');
+        return $this->reply($request, 'success', 'Gegevens bijgewerkt.');
     }
 
     /**
      * Een dossierstuk vastleggen: een document met geldigheidsdatum, of een
      * overeenkomst die is ondertekend.
      */
-    public function storeDocument(Request $request, Subcontractor $subcontractor): RedirectResponse
+    public function storeDocument(Request $request, Subcontractor $subcontractor): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'type' => ['required', 'string', 'max:120'],
@@ -149,7 +158,7 @@ class SubcontractorController extends Controller
 
         $dossier = $subcontractor->fresh()->dossier();
 
-        return back()->with('success', $dossier['complete']
+        return $this->reply($request, 'success', $dossier['complete']
             ? "Dossier van {$subcontractor->name} is nu rond. Je kunt werk uitzetten."
             : count($dossier['open']).' '.(count($dossier['open']) === 1 ? 'punt' : 'punten').' nog open in het dossier.');
     }
@@ -168,12 +177,12 @@ class SubcontractorController extends Controller
      * Zonder mailserver verstuurt het systeem niets, dus het wachtwoord staat
      * eenmalig in de melding. Daarna is het niet meer op te vragen.
      */
-    public function storePortalAccount(Request $request, Subcontractor $subcontractor): RedirectResponse
+    public function storePortalAccount(Request $request, Subcontractor $subcontractor): RedirectResponse|JsonResponse
     {
         abort_unless($request->user()->can('manage-crm'), 403);
 
         if (blank($subcontractor->email)) {
-            return back()->with('error', 'Vul eerst een e-mailadres in bij deze partner.');
+            return $this->reply($request, 'error', 'Vul eerst een e-mailadres in bij deze partner.');
         }
 
         $password = Str::password(14);
@@ -185,11 +194,14 @@ class SubcontractorController extends Controller
                 'partner' => $subcontractor->name,
             ]);
 
-            return back()->with('success', "Nieuw wachtwoord voor {$subcontractor->name}: {$password}. Geef dit eenmalig door, het wordt niet nog eens getoond.");
+            return $this->reply($request, 'success', "Nieuw wachtwoord voor {$subcontractor->name}: {$password}. Geef dit eenmalig door, het wordt niet nog eens getoond.", [
+                'email' => $subcontractor->user->email,
+                'password' => $password,
+            ]);
         }
 
         if (User::where('email', $subcontractor->email)->exists()) {
-            return back()->with('error', 'Er bestaat al een account met dit e-mailadres.');
+            return $this->reply($request, 'error', 'Er bestaat al een account met dit e-mailadres.');
         }
 
         $user = User::create([
@@ -204,6 +216,24 @@ class SubcontractorController extends Controller
 
         AuditLog::record($user, 'partnerportaal account aangemaakt', [], ['partner' => $subcontractor->name]);
 
-        return back()->with('success', 'Account aangemaakt. Inloggen op '.config('app.url')." met {$subcontractor->email} en wachtwoord: {$password}. Geef dit eenmalig door.");
+        return $this->reply($request, 'success', 'Account aangemaakt. Inloggen op '.config('app.url')." met {$subcontractor->email} en wachtwoord: {$password}. Geef dit eenmalig door.", [
+            'email' => $subcontractor->email,
+            'password' => $password,
+        ]);
+    }
+
+    /**
+     * Website: terug met een melding. App: JSON met dezelfde melding (bij een fout 422), plus wat het
+     * scherm nodig heeft (zoals het eenmalige wachtwoord om te kopiëren).
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function reply(Request $request, string $level, string $message, array $data = []): RedirectResponse|JsonResponse
+    {
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $message, ...$data], $level === 'error' ? 422 : 200);
+        }
+
+        return back()->with($level, $message);
     }
 }

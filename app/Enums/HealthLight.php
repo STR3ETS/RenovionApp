@@ -58,6 +58,17 @@ enum HealthLight: string
         };
     }
 
+    /** Lichte badge voor de app (api/app). */
+    public function appBadgeClasses(): string
+    {
+        return match ($this) {
+            self::Groen => 'bg-green-100 text-green-800',
+            self::Oranje => 'bg-amber-100 text-amber-800',
+            self::Rood => 'bg-red-100 text-red-800',
+            self::Grijs => 'bg-gray-200 text-gray-700',
+        };
+    }
+
     public function cardClasses(): string
     {
         return match ($this) {

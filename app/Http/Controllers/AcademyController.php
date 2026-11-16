@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AcademyProgress;
 use App\Support\Academy;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -74,7 +75,7 @@ class AcademyController extends Controller
         ]);
     }
 
-    public function complete(Request $request, string $tour): RedirectResponse
+    public function complete(Request $request, string $tour): RedirectResponse|JsonResponse
     {
         $tours = Academy::toursFor($request->user()->role);
 
@@ -88,6 +89,11 @@ class AcademyController extends Controller
                 'completed_at' => now(),
             ],
         );
+
+        // De app (api/app/academy) gaat zelf terug naar het overzicht.
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Rondleiding "'.$tours[$tour]['title'].'" afgerond.']);
+        }
 
         return redirect()
             ->route('academy.index')

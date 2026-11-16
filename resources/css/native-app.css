@@ -1135,6 +1135,12 @@ form + .app-li {
     background: #fff;
 }
 
+/* Toetsenbord open: het toetsenbord ligt over de home-indicator van de iPhone, dus geen extra ruimte onder de
+   invoerbalk (anders een witte strook tussen invoer en toetsenbord). */
+.native-app.keyboard-open .chat-panel form {
+    padding-bottom: 0.6rem;
+}
+
 .native-app .chat-panel .chat-day {
     border-radius: 8px;
     background: #fff;
@@ -1249,7 +1255,8 @@ form + .app-li {
     margin-top: 10px;
 }
 
-.app-fields > * {
+/* Niet de <template> van een x-for: die zou als lege cel meetellen. */
+.app-fields > :not(template) {
     display: block;
     min-width: 0;
 }

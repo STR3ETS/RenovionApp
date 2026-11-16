@@ -4,16 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Actions\CompleteJob;
 use App\Models\JobExecution;
+use App\Support\App\FieldWork;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 /**
  * Klus afronden: uren, materiaal, opmerkingen en eventueel de naam van de klant
- * die voor gezien tekent. Dat levert direct de werkbon op.
+ * die voor gezien tekent. Dat levert direct de werkbon op. De app krijgt de
+ * melding en het pad van de nieuwe werkbon als JSON.
  */
 class JobCompletionController extends Controller
 {
-    public function __invoke(Request $request, JobExecution $job, CompleteJob $action): RedirectResponse
+    public function __invoke(Request $request, JobExecution $job, CompleteJob $action): RedirectResponse|JsonResponse
     {
         abort_unless($request->user()->id === $job->user_id, 403);
 
@@ -27,11 +30,14 @@ class JobCompletionController extends Controller
         try {
             $order = $action->handle($job, $request->user(), $validated);
         } catch (\RuntimeException $e) {
-            return back()->with('error', $e->getMessage());
+            return FieldWork::refuse($request, $e->getMessage());
         }
 
-        return redirect()
-            ->route('jobs.index')
-            ->with('success', "Werkbon {$order->number} ingediend. De projectleider krijgt hem ter controle.");
+        return FieldWork::done(
+            $request,
+            "Werkbon {$order->number} ingediend. De projectleider krijgt hem ter controle.",
+            ['work_order' => route('work-orders.show', $order, false)],
+            redirect()->route('jobs.index'),
+        );
     }
 }

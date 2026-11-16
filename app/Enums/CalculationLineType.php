@@ -31,4 +31,16 @@ enum CalculationLineType: string
             self::Stelpost => 'bg-calc-500/15 text-calc-300',
         };
     }
+
+    /** Lichte variant voor de schermen in de iOS/Android-app (api/app). */
+    public function appBadgeClasses(): string
+    {
+        return match ($this) {
+            self::Arbeid => 'bg-brand-100 text-brand-800',
+            self::Materiaal => 'bg-gray-100 text-gray-700',
+            self::Onderaannemer => 'bg-amber-100 text-amber-800',
+            self::Materieel => 'bg-gray-200 text-gray-700',
+            self::Stelpost => 'bg-calc-100 text-calc-700',
+        };
+    }
 }

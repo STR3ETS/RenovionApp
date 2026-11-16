@@ -1,0 +1,80 @@
+<!-- Nieuwe prijsaanvraag (rfqs/create) -->
+<template x-if="$store.os.route === 'nieuweprijsaanvraag'">
+    <div>
+        <template x-for="key in [JSON.stringify($store.os.query ?? {})]" :key="key">
+            <div x-data="rfqCreateForm()">
+                <nav class="app-crumbs mb-2 !text-gray-500">
+                    <button type="button" @click="cancel()" class="tap">Terug</button>
+                    <span x-icon="'chevron-right'" class="h-3 w-3"></span>
+                    <span>Nieuwe prijsaanvraag</span>
+                </nav>
+                <div data-enter class="app-ph">
+                    <p class="sec-eye"><span x-icon="'users'"></span> Mensen en partners</p>
+                    <h1>Nieuwe <em>prijsaanvraag</em></h1>
+                    <p class="sub">Kies het hoofdstuk, dan wordt het begrote bedrag het budget.</p>
+                </div>
+
+                <template x-if="unavailable">
+                    <div class="app-card p-5 text-center"><p class="text-sm font-semibold text-navy-900" x-text="unavailable"></p></div>
+                </template>
+                <template x-if="failed && !unavailable">
+                    <div class="app-card p-5 text-center">
+                        <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                        <button type="button" @click="load()" class="app-btn mt-3 !min-h-11">Opnieuw proberen</button>
+                    </div>
+                </template>
+                <div x-show="!form && !failed && !unavailable" class="app-card space-y-3 p-4">
+                    <div class="skeleton h-11 w-full"></div><div class="skeleton h-11 w-full"></div><div class="skeleton h-24 w-full"></div>
+                </div>
+
+                <template x-if="form && !unavailable">
+                    <form @submit.prevent="save()" @input="touch($event)" @change="touch($event)" novalidate class="space-y-3">
+                        <section data-enter class="app-card space-y-3 p-4">
+                            <p x-show="!data.projects.length" class="rounded-xl bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">Er is nog geen lopend project. Een prijsaanvraag hoort altijd bij een project.</p>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Project *</span>
+                                <select name="project_id" x-model="form.project_id" class="!min-h-11 w-full" :class="err('project_id') && '!border-red-400'">
+                                    <template x-for="project in data.projects" :key="project.id"><option :value="project.id" x-text="project.name" :selected="String(project.id) === String(form.project_id)"></option></template>
+                                </select>
+                                <p x-show="err('project_id')" x-text="err('project_id')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Wat zet je uit? *</span>
+                                <input type="text" name="title" x-model="form.title" enterkeyhint="next" placeholder="Bijv. Tegelwerk badkamer en toilet" class="!min-h-11 w-full" :class="err('title') && '!border-red-400'">
+                                <p x-show="err('title')" x-text="err('title')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Hoofdstuk uit de begroting</span>
+                                <select name="chapter_code" x-model="form.chapter_code" class="!min-h-11 w-full" :class="err('chapter_code') && '!border-red-400'">
+                                    <option value="">Geen hoofdstuk, budget zelf invullen</option>
+                                    <template x-for="chapter in data.chapters" :key="chapter.value"><option :value="chapter.value" x-text="chapter.label" :selected="chapter.value === form.chapter_code"></option></template>
+                                </select>
+                                <p x-show="err('chapter_code')" x-text="err('chapter_code')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Budget (€)</span>
+                                <input type="number" name="budget" x-model="form.budget" inputmode="decimal" min="0" step="0.01" placeholder="Leeg = het hoofdstuktotaal" class="!min-h-11 w-full" :class="err('budget') && '!border-red-400'">
+                                <p x-show="err('budget')" x-text="err('budget')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label class="block min-w-0"><span class="mb-1 block text-sm font-semibold text-gray-700">Deadline biedingen</span>
+                                    <input type="date" name="deadline" x-model="form.deadline" class="!min-h-11 w-full" :class="err('deadline') && '!border-red-400'">
+                                </label>
+                                <label class="block min-w-0"><span class="mb-1 block text-sm font-semibold text-gray-700">Gewenste start</span>
+                                    <input type="date" name="starts_on" x-model="form.starts_on" class="!min-h-11 w-full" :class="err('starts_on') && '!border-red-400'">
+                                </label>
+                            </div>
+                            <p x-show="err('deadline') || err('starts_on')" x-text="err('deadline') ?? err('starts_on')" data-error class="text-xs font-semibold text-red-700"></p>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Werkomschrijving</span>
+                                <textarea name="scope" x-model="form.scope" rows="6" placeholder="Wat moet er gebeuren, wat is inbegrepen en wat niet?" class="w-full" :class="err('scope') && '!border-red-400'"></textarea>
+                                <p x-show="err('scope')" x-text="err('scope')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+                        </section>
+
+                        <p x-show="formError" x-text="formError" role="alert" class="rounded-xl bg-red-100 px-3 py-2 text-sm font-medium text-red-800"></p>
+                        <div class="flex gap-2 pb-2">
+                            <button type="submit" :disabled="saving" class="min-h-11 flex-1 rounded-xl bg-brand-500 px-4 text-sm font-bold text-white hover:bg-brand-600 active:bg-brand-600 disabled:opacity-60" x-text="saving ? 'Bezig' : 'Aanmaken'"></button>
+                            <button type="button" @click="cancel()" class="min-h-11 rounded-xl border border-gray-300 bg-white px-5 text-sm font-semibold text-gray-600">Annuleren</button>
+                        </div>
+                    </form>
+                </template>
+            </div>
+        </template>
+    </div>
+</template>

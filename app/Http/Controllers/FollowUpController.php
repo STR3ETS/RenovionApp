@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Lead;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 /**
@@ -19,9 +20,37 @@ class FollowUpController extends Controller
     /** Na zoveel dagen zonder contact is een aanvraag stil gevallen. */
     private const SILENT_AFTER_DAYS = 5;
 
+    /** De vier staten, in de volgorde van de tabs. */
+    public const LABELS = [
+        'laat' => 'Te laat',
+        'niets' => 'Niets gepland',
+        'vandaag' => 'Vandaag',
+        'later' => 'Later',
+    ];
+
     public function index(Request $request): View
     {
-        $leads = Lead::open()
+        $leads = $this->rows();
+
+        $filter = $request->string('filter')->toString();
+
+        return view('follow-ups.index', [
+            'rows' => $filter !== '' ? $leads->where('key', $filter)->values() : $leads,
+            'counts' => $leads->countBy('key'),
+            'total' => $leads->count(),
+            'filter' => $filter,
+            'labels' => self::LABELS,
+        ]);
+    }
+
+    /**
+     * Alle open aanvragen met hun staat, in de volgorde van de lijst. Ook voor de app (Api\App\FollowUpController).
+     *
+     * @return Collection<int, array{lead: Lead, key: string, label: string, rank: int, silent: bool}>
+     */
+    public function rows(): Collection
+    {
+        return Lead::open()
             ->with(['customer', 'assignee', 'intake'])
             ->get()
             ->map(fn (Lead $lead) => ['lead' => $lead, ...$this->state($lead)])
@@ -31,21 +60,6 @@ class FollowUpController extends Controller
                     <=> ($b['lead']->next_action_at ?? now()->addYear()),
             ])
             ->values();
-
-        $filter = $request->string('filter')->toString();
-
-        return view('follow-ups.index', [
-            'rows' => $filter !== '' ? $leads->where('key', $filter)->values() : $leads,
-            'counts' => $leads->countBy('key'),
-            'total' => $leads->count(),
-            'filter' => $filter,
-            'labels' => [
-                'laat' => 'Te laat',
-                'niets' => 'Niets gepland',
-                'vandaag' => 'Vandaag',
-                'later' => 'Later',
-            ],
-        ]);
     }
 
     /**

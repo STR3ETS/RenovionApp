@@ -24,6 +24,7 @@ use App\Models\User;
 use App\Services\CostReviewService;
 use App\Services\ProjectHealthService;
 use App\Support\ProjectTabs;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -71,7 +72,7 @@ class ProjectController extends Controller
         ]);
     }
 
-    public function store(StoreProjectRequest $request): RedirectResponse
+    public function store(StoreProjectRequest $request): RedirectResponse|JsonResponse
     {
         $validated = $request->validated();
         $validated['cover_photo_path'] = $request->file('cover_photo')?->store('project-covers');
@@ -116,6 +117,11 @@ class ProjectController extends Controller
 
             return $project;
         });
+
+        // De app (formulier in mobile/app): naar het projectdossier in de app.
+        if ($request->expectsJson()) {
+            return response()->json(['id' => $project->id, 'path' => route('projects.show', $project, false)], 201);
+        }
 
         return redirect()->route('projects.show', $project)->with('success', 'Project "'.$project->name.'" aangemaakt.');
     }
@@ -232,7 +238,7 @@ class ProjectController extends Controller
         ]);
     }
 
-    public function update(UpdateProjectRequest $request, Project $project): RedirectResponse
+    public function update(UpdateProjectRequest $request, Project $project): RedirectResponse|JsonResponse
     {
         $validated = $request->validated();
 
@@ -291,6 +297,10 @@ class ProjectController extends Controller
 
         if (isset($validated['cover_photo_path']) && $previousCoverPath !== null && $previousCoverPath !== $project->cover_photo_path) {
             Storage::delete($previousCoverPath);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json(['id' => $project->id, 'path' => route('projects.show', $project, false)]);
         }
 
         return redirect()->route('projects.show', $project)->with('success', 'Project bijgewerkt.');

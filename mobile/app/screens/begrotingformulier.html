@@ -1,0 +1,92 @@
+<!-- Nieuwe begroting (budgets/create) -->
+<template x-if="$store.os.route === 'nieuwebegroting'">
+    <div>
+        <template x-for="key in [JSON.stringify($store.os.query ?? {})]" :key="key">
+            <div x-data="budgetCreateForm()">
+                <nav class="app-crumbs mb-2 !text-gray-500">
+                    <button type="button" @click="cancel()" class="tap">Terug</button>
+                    <span x-icon="'chevron-right'" class="h-3 w-3"></span>
+                    <span>Nieuwe begroting</span>
+                </nav>
+                <div data-enter class="app-ph">
+                    <p class="sec-eye"><span x-icon="'calculator'"></span> Calculatie</p>
+                    <h1>Nieuwe <em>begroting</em></h1>
+                    <p class="sub">Kies het dossier en het skelet. De hoofdstukken, de staart en het betaalschema staan dan al klaar.</p>
+                </div>
+
+                <template x-if="unavailable">
+                    <div class="app-card p-5 text-center"><p class="text-sm font-semibold text-navy-900" x-text="unavailable"></p></div>
+                </template>
+                <template x-if="failed && !unavailable">
+                    <div class="app-card p-5 text-center">
+                        <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                        <button type="button" @click="load()" class="app-btn mt-3 !min-h-11">Opnieuw proberen</button>
+                    </div>
+                </template>
+                <div x-show="!form && !failed && !unavailable" class="app-card space-y-3 p-4">
+                    <div class="skeleton h-11 w-full"></div><div class="skeleton h-11 w-full"></div><div class="skeleton h-11 w-2/3"></div>
+                </div>
+
+                <template x-if="form && !unavailable">
+                    <form @submit.prevent="save()" @input="touch($event)" @change="touch($event)" novalidate class="space-y-3">
+                        <section data-enter class="app-card space-y-3 p-4">
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Naam van de begroting *</span>
+                                <input type="text" name="name" x-model="form.name" enterkeyhint="next" placeholder="Bijv. Badkamerrenovatie Familie de Groot" class="!min-h-11 w-full" :class="err('name') && '!border-red-400'">
+                                <p x-show="err('name')" x-text="err('name')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Project</span>
+                                <select name="project_id" x-model="form.project_id" class="!min-h-11 w-full" :class="err('project_id') && '!border-red-400'">
+                                    <option value="">Nog geen project</option>
+                                    <template x-for="project in data.projects" :key="project.id"><option :value="project.id" x-text="project.name" :selected="String(project.id) === String(form.project_id)"></option></template>
+                                </select>
+                                <p x-show="err('project_id')" x-text="err('project_id')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Of een aanvraag</span>
+                                <select name="lead_id" x-model="form.lead_id" class="!min-h-11 w-full" :class="err('lead_id') && '!border-red-400'">
+                                    <option value="">Geen aanvraag</option>
+                                    <template x-for="lead in data.leads" :key="lead.id"><option :value="lead.id" x-text="lead.name" :selected="String(lead.id) === String(form.lead_id)"></option></template>
+                                </select>
+                                <p x-show="err('lead_id')" x-text="err('lead_id')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+                        </section>
+
+                        <section data-enter class="app-card space-y-3 p-4">
+                            <h2 class="text-sm font-bold text-navy-900">Reken<em class="text-brand-600 not-italic">instellingen</em></h2>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label class="block min-w-0"><span class="mb-1 block text-sm font-semibold text-gray-700">Uurtarief (€)</span>
+                                    <input type="number" name="hourly_rate" x-model="form.hourly_rate" inputmode="decimal" min="1" step="0.01" class="!min-h-11 w-full" :class="err('hourly_rate') && '!border-red-400'">
+                                </label>
+                                <label class="block min-w-0"><span class="mb-1 block text-sm font-semibold text-gray-700">Btw (%)</span>
+                                    <input type="number" name="vat_pct" x-model="form.vat_pct" inputmode="decimal" min="0" max="50" step="0.01" class="!min-h-11 w-full" :class="err('vat_pct') && '!border-red-400'">
+                                </label>
+                            </div>
+                            <p x-show="err('hourly_rate') || err('vat_pct')" x-text="err('hourly_rate') ?? err('vat_pct')" data-error class="text-xs font-semibold text-red-700"></p>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label class="block min-w-0"><span class="mb-1 block text-sm font-semibold text-gray-700">Oppervlak (m2)</span>
+                                    <input type="number" name="floor_area" x-model="form.floor_area" inputmode="decimal" min="0" step="0.01" placeholder="Prijs per m2" class="!min-h-11 w-full" :class="err('floor_area') && '!border-red-400'">
+                                </label>
+                                <label class="block min-w-0"><span class="mb-1 block text-sm font-semibold text-gray-700">Skelet</span>
+                                    <select name="template" x-model="form.template" class="!min-h-11 w-full" :class="err('template') && '!border-red-400'">
+                                        <option value="">Kies automatisch</option>
+                                        <template x-for="template in data.templates" :key="template.value"><option :value="template.value" x-text="template.label" :selected="template.value === form.template"></option></template>
+                                    </select>
+                                </label>
+                            </div>
+                            <p x-show="err('floor_area') || err('template')" x-text="err('floor_area') ?? err('template')" data-error class="text-xs font-semibold text-red-700"></p>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Locatie</span>
+                                <input type="text" name="location" x-model="form.location" autocomplete="street-address" placeholder="Leeg = het adres van het project" class="!min-h-11 w-full" :class="err('location') && '!border-red-400'">
+                                <p x-show="err('location')" x-text="err('location')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+                        </section>
+
+                        <p x-show="formError" x-text="formError" role="alert" class="rounded-xl bg-red-100 px-3 py-2 text-sm font-medium text-red-800"></p>
+                        <div class="flex gap-2 pb-2">
+                            <button type="submit" :disabled="saving" class="min-h-11 flex-1 rounded-xl bg-brand-500 px-4 text-sm font-bold text-white hover:bg-brand-600 active:bg-brand-600 disabled:opacity-60" x-text="saving ? 'Bezig' : 'Begroting openen'"></button>
+                            <button type="button" @click="cancel()" class="min-h-11 rounded-xl border border-gray-300 bg-white px-5 text-sm font-semibold text-gray-600">Annuleren</button>
+                        </div>
+                    </form>
+                </template>
+            </div>
+        </template>
+    </div>
+</template>

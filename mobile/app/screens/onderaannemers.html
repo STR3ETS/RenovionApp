@@ -1,0 +1,245 @@
+<!-- ===== Onderaannemers ===== -->
+<template x-if="$store.os.route === 'onderaannemers'">
+    <div x-data="partners">
+        <nav class="app-sectabs" aria-label="Onderdelen van Mensen en partners">
+            <a href="#/team" x-show="$store.os.profile.can.team">Team</a>
+            <a href="#/mensen">Eigen mensen</a>
+            <a href="#/onderaannemers" class="on" aria-current="page">Onderaannemers</a>
+            <a href="#" @click.prevent="$store.os.go('/prijsaanvragen')">Prijsaanvragen</a>
+        </nav>
+
+        <div data-enter class="app-ph">
+            <p class="sec-eye"><span x-icon="'briefcase'"></span> Mensen en partners</p>
+            <h1>Onder<em>aannemers</em></h1>
+            <p class="sub">Zolang het dossier niet rond is, krijgt een partij geen uitnodiging en geen opdracht.</p>
+            <div class="app-ph-acts">
+                <button type="button" @click="open()" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white active:bg-brand-600">
+                    <span x-icon="'plus'" class="mr-1.5 h-4 w-4"></span>Partner aanmelden
+                </button>
+            </div>
+        </div>
+
+        <div class="mb-3 grid grid-cols-[minmax(0,1fr)_auto] gap-2">
+            <div class="relative">
+                <span x-icon="'magnifying-glass'" class="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-gray-400"></span>
+                <input type="search" x-model="q" enterkeyhint="search" placeholder="Zoek op naam of plaats" aria-label="Onderaannemers zoeken" class="w-full !rounded-xl !pl-10" @keydown.enter="$el.blur()">
+            </div>
+            <select x-model="trade" aria-label="Vak" class="max-w-[9.5rem] !rounded-xl">
+                <option value="">Alle vakken</option>
+                <template x-for="option in data?.trades ?? []" :key="option"><option :value="option" x-text="option.charAt(0).toUpperCase() + option.slice(1)"></option></template>
+            </select>
+        </div>
+
+        <div class="-mx-4 mb-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]" x-show="data?.subcontractors.length">
+            <button type="button" @click="status = ''" class="app-chip tap shrink-0" :class="status === '' && 'on'">Alles <span x-text="matching.length"></span></button>
+            <template x-for="option in data?.statuses ?? []" :key="option.value">
+                <button type="button" x-show="count(option.value) > 0 || status === option.value" @click="status = option.value" class="app-chip tap shrink-0" :class="status === option.value && 'on'">
+                    <b class="font-semibold" x-text="option.label"></b> <span x-text="count(option.value)"></span>
+                </button>
+            </template>
+        </div>
+
+        <template x-if="failed">
+            <div class="app-card mb-3 p-5 text-center">
+                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                <button type="button" @click="load()" class="app-btn mt-3 min-h-11">Opnieuw proberen</button>
+            </div>
+        </template>
+
+        <template x-if="data && shown.length === 0">
+            <div class="app-card p-6 text-center">
+                <span class="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-500"><span x-icon="'briefcase'" class="h-5 w-5"></span></span>
+                <p class="text-sm font-semibold text-navy-900" x-text="data.subcontractors.length ? 'Geen onderaannemers in deze weergave' : 'Nog geen onderaannemers'"></p>
+                <p class="mt-0.5 text-xs text-gray-500">Meld een partner aan en vul het dossier aan voordat je werk uitzet.</p>
+            </div>
+        </template>
+
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <template x-for="i in (!data && !failed ? 4 : 0)" :key="i">
+                <div class="app-card p-4"><span class="skeleton mb-2 block h-4 w-2/3"></span><span class="skeleton mb-3 block h-3 w-1/2"></span><span class="skeleton block h-3 w-full"></span></div>
+            </template>
+            <template x-for="sub in shown" :key="sub.id">
+                <button type="button" data-enter @click="$store.os.go(sub.path)" class="app-card block w-full text-left">
+                    <span class="block h-[3px] w-full" :class="{ goedgekeurd: 'bg-green-500', dossier_incompleet: 'bg-amber-500' }[sub.status.value] ?? 'bg-red-500'"></span>
+                    <span class="block p-4">
+                        <span class="mb-1 flex items-start justify-between gap-2">
+                            <b class="min-w-0 truncate text-[15px] font-bold text-navy-900" x-text="sub.name"></b>
+                            <span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold" :class="sub.status.classes" x-text="sub.status.label"></span>
+                        </span>
+                        <span class="block truncate text-xs text-gray-500" x-text="sub.contact"></span>
+                        <span class="mt-2 flex flex-wrap gap-1" x-show="sub.trades.length">
+                            <template x-for="t in sub.trades.slice(0, 4)" :key="t"><span class="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold text-gray-600" x-text="t"></span></template>
+                        </span>
+                        <span class="mt-3 flex items-center justify-between gap-2 border-t border-gray-100 pt-3 text-xs">
+                            <span class="font-semibold" :class="sub.complete ? 'text-green-700' : 'text-amber-700'" x-text="sub.dossier"></span>
+                            <span class="text-gray-500" x-text="sub.meta"></span>
+                        </span>
+                    </span>
+                </button>
+            </template>
+        </div>
+
+        <!-- Partner aanmelden -->
+        <div data-popup x-show="sheet" x-cloak @click.self="sheet = false" @renovion-back.window="if (sheet) { sheet = false; $event.preventDefault(); }"
+             class="fixed inset-0 z-[60] flex items-end bg-navy-950/60 backdrop-blur-sm">
+            <form x-show="sheet" @submit.prevent="store()" x-swipe-dismiss="sheet = false" class="max-h-[90dvh] w-full space-y-3 overflow-y-auto rounded-t-[20px] bg-white p-5 pb-[calc(1.25rem_+_env(safe-area-inset-bottom))]">
+                <div class="mx-auto -mt-2 mb-1 h-1.5 w-10 rounded-full bg-gray-300"></div>
+                <h2 class="text-base font-bold text-navy-900">Partner aanmelden</h2>
+                <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Bedrijfsnaam</span><input type="text" x-model="form.name" required maxlength="160" class="w-full"></label>
+                <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Contactpersoon</span><input type="text" x-model="form.contact_name" maxlength="120" class="w-full"></label>
+                <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">E-mailadres</span><input type="email" x-model="form.email" maxlength="160" class="w-full"></label>
+                <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Plaats</span><input type="text" x-model="form.city" maxlength="120" class="w-full"></label>
+                <p x-show="formError" x-text="formError" class="rounded-xl bg-red-100 px-3 py-2 text-sm font-medium text-red-800"></p>
+                <div class="flex gap-2 pt-1">
+                    <button type="submit" :disabled="busy" class="min-h-11 flex-1 rounded-xl bg-brand-500 text-sm font-bold text-white active:bg-brand-600 disabled:opacity-60" x-text="busy ? 'Bezig' : 'Aanmelden'"></button>
+                    <button type="button" @click="sheet = false" class="min-h-11 rounded-xl border border-gray-300 px-5 text-sm font-semibold text-gray-600">Annuleren</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</template>
+
+<!-- ===== Partnerdossier ===== -->
+<template x-if="$store.os.route === 'onderaannemer'">
+    <div>
+        <template x-for="id in [$store.os.param]" :key="id">
+            <div x-data="partner(id)">
+                <nav class="app-crumbs mb-2 !text-gray-500">
+                    <a href="#/onderaannemers" class="tap">Onderaannemers</a>
+                    <span x-icon="'chevron-right'" class="h-3 w-3"></span>
+                    <span x-text="data?.name ?? ''"></span>
+                </nav>
+                <div data-enter class="app-ph">
+                    <p class="sec-eye"><span x-icon="'briefcase'"></span> Partnerdossier</p>
+                    <h1><span x-text="data?.name ?? ''"></span><span x-show="!data" class="skeleton inline-block h-7 w-2/3 align-middle"></span></h1>
+                    <p class="sub" x-text="data?.subtitle ?? ''"></p>
+                    <div class="app-ph-acts" x-show="data">
+                        <span class="rounded-full px-3 py-1 text-sm font-semibold" :class="data?.status.classes" x-text="data?.status.label"></span>
+                        <a x-show="data?.phone" :href="'tel:' + data?.phone" class="app-btn min-h-11"><span x-icon="'phone'" class="h-4 w-4"></span> Bellen</a>
+                        <a x-show="data?.email" :href="'mailto:' + data?.email" class="app-btn min-h-11"><span x-icon="'envelope'" class="h-4 w-4"></span> Mailen</a>
+                    </div>
+                </div>
+
+                <template x-if="failed">
+                    <div class="app-card mb-3 p-5 text-center">
+                        <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                        <button type="button" @click="load()" class="app-btn mt-3 min-h-11">Opnieuw proberen</button>
+                    </div>
+                </template>
+
+                <template x-if="!data && !failed">
+                    <div class="app-card mb-3 p-4"><template x-for="i in 5" :key="i"><div class="flex items-center gap-3 py-2"><span class="skeleton h-7 w-7 shrink-0 !rounded-full"></span><span class="flex-1"><span class="skeleton mb-1.5 block h-3.5 w-2/3"></span><span class="skeleton block h-3 w-1/3"></span></span></div></template></div>
+                </template>
+
+                <div x-show="data?.blocked" class="mb-3 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4">
+                    <span x-icon="'lock-closed'" class="h-5 w-5 shrink-0 text-red-600"></span>
+                    <div><p class="text-sm font-bold text-red-800">Geblokkeerd</p><p class="mt-0.5 text-sm text-red-700" x-text="data?.blocked"></p></div>
+                </div>
+                <div x-show="data && !data.blocked && !data.dossier.complete" class="mb-3 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                    <span x-icon="'exclamation-triangle'" class="h-5 w-5 shrink-0 text-amber-600"></span>
+                    <p class="text-sm text-amber-900"><b x-text="data ? data.dossier.open + (data.dossier.open === 1 ? ' punt staat' : ' punten staan') + ' nog open.' : ''"></b> Deze partij kan nog geen uitnodiging of opdracht krijgen.</p>
+                </div>
+
+                <!-- Portaalwachtwoord: eenmalig te zien -->
+                <section x-show="secret" x-cloak class="mb-3 rounded-2xl border border-green-200 bg-green-50 p-4">
+                    <h2 class="text-sm font-bold text-green-800">Inlog voor het partnerportaal</h2>
+                    <p class="mt-1 text-sm text-green-800" x-text="secret ? 'Inloggen met ' + secret.email + ' en dit wachtwoord. Geef het eenmalig door, het wordt niet nog eens getoond.' : ''"></p>
+                    <div class="mt-3 flex items-center gap-2">
+                        <code class="min-w-0 flex-1 truncate rounded-xl border border-green-200 bg-white px-3 py-2.5 text-sm font-semibold text-navy-900" x-text="secret?.password"></code>
+                        <button type="button" @click="copySecret()" class="app-btn min-h-11 shrink-0" x-text="copied ? 'Gekopieerd' : 'Kopiëren'"></button>
+                    </div>
+                    <button type="button" @click="secret = null" class="tap mt-2 text-xs font-semibold text-green-800">Verbergen</button>
+                </section>
+
+                <!-- Dossiereisen -->
+                <section data-enter class="app-card mb-3 p-4" x-show="data">
+                    <h2 class="text-sm font-bold text-navy-900">Dossier<span class="text-brand-600">eisen</span></h2>
+                    <p class="mb-3 text-xs text-gray-500">Alles moet in orde zijn voordat iemand van deze partij de bouwplaats op gaat.</p>
+                    <div class="space-y-2">
+                        <template x-for="item in data?.dossier.items ?? []" :key="item.key">
+                            <div class="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
+                                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full" :class="item.classes"><span x-icon="item.ok ? 'check' : 'x-mark'" class="h-3.5 w-3.5"></span></span>
+                                <span class="min-w-0 flex-1">
+                                    <b class="block text-sm font-semibold text-navy-900" x-text="item.label"></b>
+                                    <small class="block text-xs text-gray-500" x-text="item.sub"></small>
+                                </span>
+                            </div>
+                        </template>
+                    </div>
+
+                    <form @submit.prevent="storeDocument()" class="mt-4 space-y-2 border-t border-gray-100 pt-4">
+                        <h3 class="text-sm font-bold text-navy-900">Dossierstuk <span class="text-brand-600">vastleggen</span></h3>
+                        <select x-model="doc.type" required aria-label="Soort stuk" class="w-full">
+                            <optgroup label="Documenten"><template x-for="type in data?.document_types ?? []" :key="type"><option :value="type" x-text="type" :selected="type === doc.type"></option></template></optgroup>
+                            <optgroup label="Overeenkomsten"><template x-for="type in data?.agreement_types ?? []" :key="type"><option :value="type" x-text="type" :selected="type === doc.type"></option></template></optgroup>
+                        </select>
+                        <label class="block"><span class="mb-1 block text-xs font-semibold text-gray-600">Geldig tot (optioneel)</span><input type="date" x-model="doc.valid_until" class="w-full"></label>
+                        <div class="flex gap-2">
+                            <label class="flex min-h-11 min-w-0 flex-1 cursor-pointer items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 text-sm font-semibold text-navy-900">
+                                <span x-icon="'paper-clip'" class="h-4 w-4 shrink-0"></span>
+                                <span class="truncate" x-text="doc.file ? doc.file.name : 'Bestand (pdf of foto)'"></span>
+                                <input type="file" x-ref="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" class="hidden" @change="pick($event)">
+                            </label>
+                            <button type="submit" :disabled="busy !== null || !doc.type" class="min-h-11 shrink-0 rounded-xl bg-brand-500 px-4 text-sm font-bold text-white active:bg-brand-600 disabled:opacity-60" x-text="busy === 'doc' ? 'Bezig' : 'Vastleggen'"></button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- Gegunde opdrachten -->
+                <section data-enter class="app-card mb-3" x-show="data?.awarded.length">
+                    <div class="app-card-h"><h3>Gegunde <em>opdrachten</em></h3></div>
+                    <div class="app-card-b">
+                        <template x-for="rfq in data?.awarded ?? []" :key="rfq.id">
+                            <button type="button" @click="$store.os.go(rfq.path)" class="app-li w-full text-left">
+                                <span class="min-w-0 flex-1"><b class="truncate" x-text="rfq.title"></b><small class="truncate" x-text="rfq.sub"></small></span>
+                                <b class="shrink-0 whitespace-nowrap" x-text="osFormat.euro(rfq.price)"></b>
+                            </button>
+                        </template>
+                    </div>
+                </section>
+
+                <!-- Gegevens -->
+                <template x-if="form">
+                    <form data-enter @submit.prevent="save()" @input="dirty = true" @change="dirty = true" class="app-card mb-3 space-y-3 p-4">
+                        <h2 class="text-sm font-bold text-navy-900">Gegevens</h2>
+                        <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Contactpersoon</span><input type="text" x-model="form.contact_name" maxlength="120" class="w-full"></label>
+                        <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">E-mailadres</span><input type="email" x-model="form.email" maxlength="160" class="w-full"></label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Telefoon</span><input type="tel" x-model="form.phone" maxlength="40" class="w-full"></label>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">KvK-nummer</span><input type="text" x-model="form.coc_number" maxlength="40" class="w-full"></label>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Uurtarief</span><input type="number" step="0.01" min="0" inputmode="decimal" x-model="form.hourly_rate" class="w-full"></label>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Beoordeling</span>
+                                <select x-model="form.rating" class="w-full">
+                                    <option value="">Nog niet beoordeeld</option>
+                                    <template x-for="score in [1, 2, 3, 4, 5]" :key="score"><option :value="score" x-text="score + ' van 5'" :selected="Number(form.rating) === score"></option></template>
+                                </select>
+                            </label>
+                        </div>
+                        <div>
+                            <p class="mb-1.5 text-sm font-semibold text-gray-700">Vakken</p>
+                            <div class="flex flex-wrap gap-1.5">
+                                <template x-for="t in data?.trades ?? []" :key="t">
+                                    <button type="button" @click="toggleTrade(t)" class="tap rounded-full border px-3 py-1.5 text-xs font-semibold"
+                                            :class="form.trades.includes(t) ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-gray-200 bg-white text-gray-600'"
+                                            :aria-pressed="form.trades.includes(t)" x-text="t"></button>
+                                </template>
+                            </div>
+                        </div>
+                        <label class="flex min-h-11 items-center gap-3 text-sm text-gray-700"><input type="checkbox" x-model="form.id_checked" class="h-5 w-5 rounded border-gray-300 text-brand-500"> Legitimatie gecontroleerd</label>
+                        <label class="flex min-h-11 items-center gap-3 text-sm text-gray-700"><input type="checkbox" x-model="form.blocked" class="h-5 w-5 rounded border-gray-300 text-red-500"> Blokkeren voor nieuw werk</label>
+                        <input type="text" x-model="form.blocked_reason" maxlength="255" placeholder="Reden van blokkade" aria-label="Reden van blokkade" class="w-full">
+                        <button type="submit" :disabled="busy !== null" class="min-h-11 w-full rounded-xl bg-brand-500 text-sm font-bold text-white active:bg-brand-600 disabled:opacity-60" x-text="busy === 'save' ? 'Bezig' : 'Opslaan'"></button>
+                    </form>
+                </template>
+
+                <!-- Partnerportaal -->
+                <section data-enter class="app-card mb-3 p-4" x-show="data">
+                    <h2 class="text-sm font-bold text-navy-900">Partner<span class="text-brand-600">portaal</span></h2>
+                    <p class="mt-1 mb-3 text-xs text-gray-500" x-text="data?.portal ? 'Inlog op ' + data.portal + '. De partner komt alleen bij zijn eigen gegevens.' : 'Nog geen inlog. Met een account levert de partner zijn eigen dossierstukken aan en dient hij zelf biedingen in.'"></p>
+                    <button type="button" @click="portal()" :disabled="busy !== null" class="min-h-11 w-full rounded-xl border border-gray-200 bg-white text-sm font-semibold text-navy-900 active:bg-gray-50 disabled:opacity-60"
+                            x-text="busy === 'portal' ? 'Bezig' : (data?.portal ? 'Nieuw wachtwoord instellen' : 'Account aanmaken')"></button>
+                </section>
+            </div>
+        </template>
+    </div>
+</template>

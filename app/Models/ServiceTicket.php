@@ -137,6 +137,18 @@ class ServiceTicket extends Model
         };
     }
 
+    /** Lichte variant voor de schermen in de iOS/Android-app (api/app). */
+    public function appBadgeClasses(): string
+    {
+        return match ($this->status) {
+            self::STATUS_NEW => 'bg-amber-100 text-amber-800',
+            self::STATUS_PLANNED => 'bg-steel-100 text-steel-800',
+            self::STATUS_IN_PROGRESS => 'bg-brand-100 text-brand-800',
+            self::STATUS_RESOLVED => 'bg-green-100 text-green-800',
+            default => 'bg-gray-200 text-gray-700',
+        };
+    }
+
     public function priorityLabel(): string
     {
         return self::PRIORITIES[$this->priority] ?? $this->priority;

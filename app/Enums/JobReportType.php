@@ -49,6 +49,17 @@ enum JobReportType: string
         };
     }
 
+    /** Lichte variant voor de schermen in de iOS/Android-app (api/app). */
+    public function appBadgeClasses(): string
+    {
+        return match ($this) {
+            self::Probleem, self::Schade, self::Onveilig => 'bg-red-100 text-red-800',
+            self::Meerwerk => 'bg-brand-100 text-brand-800',
+            self::Materiaal => 'bg-amber-100 text-amber-800',
+            self::Vraag => 'bg-steel-100 text-steel-800',
+        };
+    }
+
     /** Een melding die het werk stillegt of geld kost, wil het MT direct zien. */
     public function isSevere(): bool
     {

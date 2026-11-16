@@ -7,6 +7,7 @@ use App\Models\Budget;
 use App\Models\Lead;
 use App\Models\Project;
 use App\Support\BudgetChapterLibrary;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -58,7 +59,7 @@ class BudgetController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:160'],
@@ -131,6 +132,11 @@ class BudgetController extends Controller
             'hoofdstukken' => $budget->chapters()->count(),
         ]);
 
+        // De app (formulier in mobile/app): naar de begroting.
+        if ($request->expectsJson()) {
+            return response()->json(['id' => $budget->id, 'path' => route('budgets.show', $budget, false)], 201);
+        }
+
         return redirect()
             ->route('budgets.show', $budget)
             ->with('success', "Begroting {$budget->number} aangemaakt met {$budget->chapters()->count()} hoofdstukken.");
@@ -194,20 +200,25 @@ class BudgetController extends Controller
      * Definitief maken zet de regels op slot. Vanaf dat moment verwijzen de
      * offerte en de nacalculatie naar hetzelfde document.
      */
-    public function finalise(Request $request, Budget $budget): RedirectResponse
+    public function finalise(Request $request, Budget $budget): RedirectResponse|JsonResponse
     {
         $totals = $budget->totals();
 
-        if ($totals->lineCount === 0) {
-            return back()->with('error', 'Een begroting zonder regels kan niet definitief worden.');
-        }
-
-        if ($totals->incompleteLines > 0) {
-            return back()->with('error', sprintf(
+        $error = match (true) {
+            $totals->lineCount === 0 => 'Een begroting zonder regels kan niet definitief worden.',
+            $totals->incompleteLines > 0 => sprintf(
                 '%d %s nog een hoeveelheid zonder prijs. Vul die eerst in.',
                 $totals->incompleteLines,
                 $totals->incompleteLines === 1 ? 'regel heeft' : 'regels hebben',
-            ));
+            ),
+            default => null,
+        };
+
+        // De app (api/app/begrotingen) krijgt de fout als JSON, de website als melding.
+        if ($error !== null) {
+            return $request->expectsJson()
+                ? response()->json(['message' => $error], 422)
+                : back()->with('error', $error);
         }
 
         $budget->update([

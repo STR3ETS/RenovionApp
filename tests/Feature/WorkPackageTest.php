@@ -95,8 +95,8 @@ class WorkPackageTest extends TestCase
         $this->assertSame(PhaseStatus::Gereed, $package->status);
         $this->assertNotNull($package->completed_at);
 
-        // 1 fase (Uitvoering) volledig aan werkpakketten gereed = 1/9 fasen ≈ 11%.
-        $this->assertSame(11, $package->project->refresh()->progress);
+        // 1 fase (Uitvoering) volledig aan werkpakketten gereed = 1/8 fasen ≈ 13% (de nazorg telt niet mee).
+        $this->assertSame(13, $package->project->refresh()->progress);
         $this->assertDatabaseHas('timeline_events', [
             'subject_type' => 'work_package',
             'subject_id' => $package->id,

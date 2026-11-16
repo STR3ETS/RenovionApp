@@ -7,24 +7,34 @@ use App\Models\AuditLog;
 use App\Models\DeliveryReport;
 use App\Models\Photo;
 use App\Models\Project;
+use App\Support\App\FieldWork;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class DeliveryReportController extends Controller
 {
-    public function store(Request $request, Project $project, GenerateDeliveryReport $action): RedirectResponse
+    public function store(Request $request, Project $project, GenerateDeliveryReport $action): RedirectResponse|JsonResponse
     {
         if ($project->deliveryReport?->isSignedByClient()) {
-            return redirect()->route('delivery-reports.show', $project->deliveryReport)
-                ->with('error', 'De klant heeft dit rapport al ondertekend - het kan niet meer worden hergenereerd.');
+            return FieldWork::refuse(
+                $request,
+                'De klant heeft dit rapport al ondertekend - het kan niet meer worden hergenereerd.',
+                redirect()->route('delivery-reports.show', $project->deliveryReport),
+            );
         }
 
         $report = $action->handle($project, $request->user());
 
-        return redirect()->route('delivery-reports.show', $report)
-            ->with('success', 'Opleverrapport '.($report->wasRecentlyCreated ? 'aangemaakt' : 'bijgewerkt').' op basis van de actuele projectdata.');
+        // De app opent daarna het rapport zelf (path).
+        return FieldWork::done(
+            $request,
+            'Opleverrapport '.($report->wasRecentlyCreated ? 'aangemaakt' : 'bijgewerkt').' op basis van de actuele projectdata.',
+            ['path' => route('delivery-reports.show', $report, false)],
+            redirect()->route('delivery-reports.show', $report),
+        );
     }
 
     public function show(Request $request, DeliveryReport $deliveryReport): View
@@ -42,10 +52,10 @@ class DeliveryReportController extends Controller
     /**
      * Handtekening namens Renovion (briefing §13).
      */
-    public function sign(Request $request, DeliveryReport $deliveryReport): RedirectResponse
+    public function sign(Request $request, DeliveryReport $deliveryReport): RedirectResponse|JsonResponse
     {
         if ($deliveryReport->company_signed_at !== null) {
-            return back()->with('error', 'Dit rapport is al namens Renovion ondertekend.');
+            return FieldWork::refuse($request, 'Dit rapport is al namens Renovion ondertekend.');
         }
 
         $deliveryReport->update([
@@ -55,7 +65,7 @@ class DeliveryReportController extends Controller
 
         AuditLog::record($deliveryReport, 'ondertekend_renovion', [], ['door' => $request->user()->name]);
 
-        return back()->with('success', 'Rapport ondertekend namens Renovion.');
+        return FieldWork::done($request, 'Rapport ondertekend namens Renovion.');
     }
 
     /**

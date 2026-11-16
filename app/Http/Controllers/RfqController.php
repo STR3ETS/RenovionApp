@@ -10,6 +10,7 @@ use App\Models\Rfq;
 use App\Models\RfqBid;
 use App\Models\Subcontractor;
 use App\Support\BudgetChapterLibrary;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -51,7 +52,7 @@ class RfqController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'project_id' => ['required', 'exists:projects,id'],
@@ -81,6 +82,11 @@ class RfqController extends Controller
             'titel' => $rfq->title,
             'budget' => (float) $rfq->budget,
         ]);
+
+        // De app (formulier in mobile/app): naar de prijsaanvraag.
+        if ($request->expectsJson()) {
+            return response()->json(['id' => $rfq->id, 'path' => route('rfqs.show', $rfq, false)], 201);
+        }
 
         return redirect()->route('rfqs.show', $rfq)->with('success', "Prijsaanvraag {$rfq->number} aangemaakt.");
     }
@@ -126,7 +132,7 @@ class RfqController extends Controller
      * Partijen uitnodigen en de aanvraag uitzetten. Een partij met een
      * onvolledig dossier weigeren we hier, niet pas bij het gunnen.
      */
-    public function invite(Request $request, Rfq $rfq): RedirectResponse
+    public function invite(Request $request, Rfq $rfq): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'subcontractor_ids' => ['required', 'array', 'min:1'],
@@ -158,10 +164,14 @@ class RfqController extends Controller
             $message .= ' Niet uitgenodigd omdat het dossier niet rond is: '.$refused->pluck('name')->join(', ').'.';
         }
 
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $message, 'refused' => $refused->pluck('name')->values()]);
+        }
+
         return back()->with($refused->isNotEmpty() ? 'error' : 'success', $message);
     }
 
-    public function storeBid(Request $request, Rfq $rfq): RedirectResponse
+    public function storeBid(Request $request, Rfq $rfq): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'subcontractor_id' => ['required', 'exists:subcontractors,id'],
@@ -178,20 +188,28 @@ class RfqController extends Controller
             [...$validated, 'completeness' => $validated['completeness'] ?? 100, 'received_on' => today()],
         );
 
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Bieding vastgelegd.']);
+        }
+
         return back()->with('success', 'Bieding vastgelegd.');
     }
 
-    public function award(Request $request, Rfq $rfq, RfqBid $bid, AwardRfq $action): RedirectResponse
+    public function award(Request $request, Rfq $rfq, RfqBid $bid, AwardRfq $action): RedirectResponse|JsonResponse
     {
         abort_unless($bid->rfq_id === $rfq->id, 404);
 
         try {
             $message = $action->handle($rfq, $bid, $request->user());
         } catch (\RuntimeException $e) {
-            return back()->with('error', $e->getMessage());
+            return $request->expectsJson()
+                ? response()->json(['message' => $e->getMessage()], 422)
+                : back()->with('error', $e->getMessage());
         }
 
-        return back()->with('success', $message);
+        return $request->expectsJson()
+            ? response()->json(['message' => $message])
+            : back()->with('success', $message);
     }
 
     /**

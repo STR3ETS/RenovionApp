@@ -18,7 +18,7 @@
 
         {{-- ===== Tab: Overzicht ===== --}}
         <div x-show="tab === 'overzicht'">
-            <div class="grid gap-4 lg:grid-cols-3">
+            <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
                 <div class="space-y-4 lg:col-span-2">
 
                     @if ($quote->change_request)
@@ -48,7 +48,7 @@
                             <h2 class="mb-2 text-sm font-bold text-white">Klantlink</h2>
                             <p class="mb-3 text-xs text-slate-500">Via deze privélink bekijkt en ondertekent de klant de offerte. Elke keer dat de klant kijkt, zie je dat hier terug.</p>
                             <div class="flex gap-2">
-                                <input type="text" readonly value="{{ $quote->publicUrl() }}" class="flex-1 rounded-xl border-surface-700 bg-surface-850 text-xs text-slate-300">
+                                <input type="text" readonly value="{{ $quote->publicUrl() }}" class="min-w-0 flex-1 rounded-xl border-surface-700 bg-surface-850 text-xs text-slate-300">
                                 <button type="button"
                                         @click="navigator.clipboard.writeText(@js($quote->publicUrl())).then(() => { copied = true; setTimeout(() => copied = false, 2000) })"
                                         class="rounded-xl bg-navy-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-navy-900">

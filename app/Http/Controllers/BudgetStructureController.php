@@ -27,7 +27,7 @@ class BudgetStructureController extends Controller
         $chapter = $budget->chapters()->create([
             'code' => $validated['code'],
             // Staat het nummer in de bibliotheek, dan pakken we die naam.
-            'name' => $validated['name'] ?: (BudgetChapterLibrary::CHAPTERS[$validated['code']] ?? $validated['code']),
+            'name' => ($validated['name'] ?? null) ?: (BudgetChapterLibrary::CHAPTERS[$validated['code']] ?? $validated['code']),
             'position' => (int) $budget->chapters()->max('position') + 1,
         ]);
 

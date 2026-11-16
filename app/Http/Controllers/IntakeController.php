@@ -11,6 +11,8 @@ use App\Models\Intake;
 use App\Models\Lead;
 use App\Models\ScheduleEntry;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -43,7 +45,7 @@ class IntakeController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'lead_id' => ['required', 'exists:leads,id'],
@@ -65,6 +67,11 @@ class IntakeController extends Controller
             $lead->update(['status' => LeadStatus::Contact]);
         }
 
+        // De app: naar het intakescherm.
+        if ($request->expectsJson()) {
+            return response()->json(['id' => $intake->id, 'path' => route('intakes.show', $intake, false)]);
+        }
+
         return redirect()->route('intakes.show', $intake)
             ->with('success', 'Intake geopend. Loop de stappen langs.');
     }
@@ -81,24 +88,34 @@ class IntakeController extends Controller
             'fields' => Intake::fieldsForStep($step),
             'completeness' => $intake->completeness(),
             'questions' => $intake->suggestedQuestions(),
-            'surveyors' => User::query()
-                ->where('active', true)
-                ->whereIn('role', [
-                    UserRole::Projectleider->value,
-                    UserRole::Werkvoorbereider->value,
-                    UserRole::Calculator->value,
-                    UserRole::Sales->value,
-                ])
-                ->orderBy('name')
-                ->get(),
+            'surveyors' => self::surveyors(),
         ]);
+    }
+
+    /**
+     * Wie een opname kan doen. Ook voor de app (Api\App\IntakeController).
+     *
+     * @return Collection<int, User>
+     */
+    public static function surveyors(): Collection
+    {
+        return User::query()
+            ->where('active', true)
+            ->whereIn('role', [
+                UserRole::Projectleider->value,
+                UserRole::Werkvoorbereider->value,
+                UserRole::Calculator->value,
+                UserRole::Sales->value,
+            ])
+            ->orderBy('name')
+            ->get();
     }
 
     /**
      * Antwoorden opslaan. Alles komt per stap binnen, zodat je nooit een heel
      * formulier hoeft af te maken voordat je iets kwijt kunt.
      */
-    public function update(Request $request, Intake $intake): RedirectResponse
+    public function update(Request $request, Intake $intake): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'answers' => ['nullable', 'array'],
@@ -133,6 +150,15 @@ class IntakeController extends Controller
 
         $next = ($validated['step'] ?? $intake->step) + 1;
 
+        // De app: blijft op het scherm en gaat zelf naar de volgende stap.
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => "Opgeslagen. De intake is nu {$after} procent compleet.",
+                'percentage' => $after,
+                'step' => min(count(Intake::STEPS) - 1, $next),
+            ]);
+        }
+
         return redirect()
             ->route('intakes.show', [$intake, 'stap' => min(count(Intake::STEPS) - 1, $next)])
             ->with('success', "Opgeslagen. De intake is nu {$after} procent compleet.");
@@ -142,7 +168,7 @@ class IntakeController extends Controller
      * De opname inplannen: dat zet meteen een afspraak in de planning, zodat de
      * opnemer hem op zijn eigen scherm ziet staan.
      */
-    public function planSurvey(Request $request, Intake $intake): RedirectResponse
+    public function planSurvey(Request $request, Intake $intake): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'surveyor_id' => ['required', 'exists:users,id'],
@@ -184,6 +210,10 @@ class IntakeController extends Controller
             'opnemer' => User::find($validated['surveyor_id'])?->name,
         ]);
 
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Opname gepland en in de planning gezet.']);
+        }
+
         return back()->with('success', 'Opname gepland en in de planning gezet.');
     }
 
@@ -191,12 +221,16 @@ class IntakeController extends Controller
      * De intake afronden. Dat lukt niet met ontbrekende kernvragen: dan ga je met
      * een half beeld rekenen en klopt de calculatie later niet.
      */
-    public function complete(Request $request, Intake $intake): RedirectResponse
+    public function complete(Request $request, Intake $intake): RedirectResponse|JsonResponse
     {
         $completeness = $intake->completeness();
 
         if ($completeness['missing'] !== []) {
-            return back()->with('error', 'Nog niet compleet. Dit mist: '.implode(', ', $completeness['missing']).'.');
+            $message = 'Nog niet compleet. Dit mist: '.implode(', ', $completeness['missing']).'.';
+
+            return $request->expectsJson()
+                ? response()->json(['message' => $message], 422)
+                : back()->with('error', $message);
         }
 
         $intake->update(['completed_at' => now(), 'step' => 4]);
@@ -206,6 +240,10 @@ class IntakeController extends Controller
         }
 
         AuditLog::record($intake, 'intake afgerond', [], ['volledigheid' => $completeness['percentage']]);
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Intake afgerond. De calculator kan aan de slag.']);
+        }
 
         return back()->with('success', 'Intake afgerond. De calculator kan aan de slag.');
     }

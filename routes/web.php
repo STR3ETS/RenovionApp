@@ -238,6 +238,7 @@ Route::middleware('auth')->group(function () {
                     ->names('quotes');
                 Route::patch('offertes/{quote}/status', [QuoteStatusController::class, 'update'])->name('quotes.status');
                 Route::post('offertes/{quote}/nieuwe-versie', [QuoteController::class, 'newVersion'])->name('quotes.version');
+                Route::get('offertes/{quote}/document', [QuoteController::class, 'document'])->name('quotes.document');
 
                 // Offerte-builder (briefing §6, EasyDash-concept)
                 Route::get('offertes/{quote}/builder', [QuoteBuilderController::class, 'edit'])->name('quotes.builder');

@@ -1,0 +1,263 @@
+<!-- ===== Intakes ===== -->
+<template x-if="$store.os.route === 'intakes'">
+    <div x-data="intakes">
+        <div data-enter class="app-ph">
+            <p class="sec-eye"><span x-icon="'clipboard-document-list'"></span> Verkoop</p>
+            <h1>Intakes en <em>opnames</em></h1>
+            <p class="sub">Vijf stappen van aanvraag tot opname. Wat je hier mist, mis je straks in de calculatie.</p>
+        </div>
+
+        <template x-if="failed">
+            <div class="app-card mb-3 p-5 text-center">
+                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                <button type="button" @click="load()" class="app-btn mt-3 min-h-11">Opnieuw proberen</button>
+            </div>
+        </template>
+
+        <!-- Nog geen intake -->
+        <section data-enter class="mb-4 rounded-2xl border border-lead-200 bg-lead-50 p-4" x-show="data?.without.count">
+            <h2 class="text-sm font-bold text-navy-900">Nog geen <span class="text-lead-700">intake</span></h2>
+            <p class="mb-3 text-xs text-gray-600" x-text="data ? data.without.count + ' ' + (data.without.count === 1 ? 'aanvraag wacht' : 'aanvragen wachten') + ' op een intake.' : ''"></p>
+            <div class="space-y-2">
+                <template x-for="lead in data?.without.leads ?? []" :key="lead.id">
+                    <div class="rounded-xl border border-gray-200 bg-white p-3">
+                        <b class="block truncate text-sm font-semibold text-navy-900" x-text="lead.name"></b>
+                        <small class="block truncate text-xs text-gray-500" x-text="lead.sub"></small>
+                        <button type="button" @click="start(lead)" :disabled="busy !== null" class="app-btn pri mt-2 min-h-11 w-full justify-center disabled:opacity-60" x-text="busy === lead.id ? 'Bezig' : 'Intake starten'"></button>
+                    </div>
+                </template>
+            </div>
+        </section>
+
+        <h2 class="mb-2 text-sm font-bold text-navy-900">Lopende intakes</h2>
+        <div class="space-y-2.5" x-show="!failed">
+            <template x-for="i in (data ? 0 : 3)" :key="i">
+                <div class="app-card p-4"><span class="skeleton mb-2 block h-4 w-2/3"></span><span class="skeleton mb-3 block h-3 w-1/2"></span><span class="skeleton block h-1.5 w-full"></span></div>
+            </template>
+            <template x-if="data && data.open.length === 0">
+                <div class="app-card p-6 text-center">
+                    <p class="text-sm font-semibold text-navy-900">Geen lopende intakes</p>
+                    <p class="mt-1 text-sm text-gray-500">Start een intake vanaf een aanvraag, dan loop je de vijf stappen langs.</p>
+                </div>
+            </template>
+            <template x-for="intake in data?.open ?? []" :key="intake.id">
+                <a data-enter :href="'#/intake/' + intake.id" class="app-card block p-4">
+                    <span class="flex items-start gap-3">
+                        <span class="app-ic vio"><span x-icon="'clipboard-document-list'" class="h-[18px] w-[18px]"></span></span>
+                        <span class="min-w-0 flex-1">
+                            <b class="block truncate text-sm font-bold text-navy-900" x-text="intake.name"></b>
+                            <small class="block text-xs text-gray-500" x-text="intake.sub"></small>
+                        </span>
+                        <span class="shrink-0 text-right">
+                            <b class="block text-sm font-bold" :class="intake.percentage === 100 ? 'text-green-700' : 'text-navy-900'" x-text="intake.percentage + '%'"></b>
+                            <small class="block text-xs text-gray-500">compleet</small>
+                        </span>
+                    </span>
+                    <span class="mt-3 flex gap-1">
+                        <template x-for="(label, index) in data.steps" :key="index">
+                            <span class="h-1.5 flex-1 rounded-full" :class="index <= intake.step ? 'bg-lead-500' : 'bg-gray-200'" :title="label"></span>
+                        </template>
+                    </span>
+                    <span x-show="intake.missing" class="mt-2 block text-xs font-medium text-amber-700" x-text="intake.missing"></span>
+                </a>
+            </template>
+        </div>
+
+        <template x-if="data?.done.length">
+            <div>
+                <h2 class="mt-5 mb-2 text-sm font-bold text-navy-900">Afgerond</h2>
+                <div data-enter class="app-card">
+                    <div class="app-card-b">
+                        <template x-for="intake in data.done" :key="intake.id">
+                            <a :href="'#/intake/' + intake.id" class="app-li">
+                                <span class="app-ic ok"><span x-icon="'check'" class="h-[18px] w-[18px]"></span></span>
+                                <span class="min-w-0 flex-1"><b class="truncate" x-text="intake.name"></b><small x-text="intake.sub"></small></span>
+                                <span x-icon="'chevron-right'" class="mt-2.5 h-4 w-4 text-gray-300"></span>
+                            </a>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </div>
+</template>
+
+<!-- ===== Intake ===== -->
+<template x-if="$store.os.route === 'intake'">
+    <div>
+        <template x-for="id in [$store.os.param]" :key="id">
+            <div x-data="intake(id)" x-effect="data && sync()">
+                <nav class="app-crumbs mb-2 !text-gray-500">
+                    <a href="#/intakes" class="tap">Intakes</a>
+                    <span x-icon="'chevron-right'" class="h-3 w-3"></span>
+                    <span x-text="data?.name ?? ''"></span>
+                </nav>
+                <div data-enter class="app-ph">
+                    <p class="sec-eye"><span x-icon="'clipboard-document-list'"></span> Intake</p>
+                    <h1><span x-text="data?.name ?? ''"></span><span x-show="!data" class="skeleton inline-block h-7 w-2/3 align-middle"></span></h1>
+                    <p class="sub" x-text="data?.subtitle ?? ''"></p>
+                    <div class="app-ph-acts" x-show="data">
+                        <span class="rounded-full px-3 py-1 text-sm font-semibold" :class="data?.percentage === 100 ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'" x-text="(data?.percentage ?? 0) + '% compleet'"></span>
+                        <button type="button" x-show="data && !data.complete" @click="complete()" :disabled="busy !== null" class="app-btn pri min-h-11 disabled:opacity-60">
+                            <span x-icon="'check'" class="h-4 w-4"></span><span x-text="busy === 'complete' ? 'Bezig' : 'Intake afronden'"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <template x-if="failed">
+                    <div class="app-card p-5 text-center">
+                        <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                        <button type="button" @click="load()" class="app-btn mt-3 min-h-11">Opnieuw proberen</button>
+                    </div>
+                </template>
+
+                <template x-if="!data && !failed">
+                    <div class="space-y-3">
+                        <div class="flex gap-2"><span class="skeleton h-14 w-40 shrink-0 !rounded-xl"></span><span class="skeleton h-14 w-40 shrink-0 !rounded-xl"></span></div>
+                        <div class="app-card p-4"><span class="skeleton mb-3 block h-4 w-1/2"></span><span class="skeleton mb-2 block h-10 w-full"></span><span class="skeleton block h-10 w-full"></span></div>
+                    </div>
+                </template>
+
+                <!-- De vijf stappen -->
+                <nav class="-mx-4 mb-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]" x-show="data" aria-label="Stappen">
+                    <template x-for="(step, index) in data?.steps ?? []" :key="index">
+                        <button type="button" @click="open(index); $el.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })" class="tap flex min-h-11 shrink-0 items-center gap-2.5 rounded-xl border px-3.5 py-2.5 text-left"
+                                :class="index === tab ? 'border-brand-500 bg-brand-50' : 'border-gray-200 bg-white'" :aria-current="index === tab ? 'step' : null">
+                            <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold" :class="index < data.step ? 'bg-green-100 text-green-700' : (index === tab ? 'bg-brand-500 text-white' : 'bg-gray-100 text-gray-500')">
+                                <span x-show="index < data.step" x-icon="'check'" class="h-3.5 w-3.5"></span>
+                                <span x-show="index >= data.step" x-text="index + 1"></span>
+                            </span>
+                            <span>
+                                <span class="block text-sm font-bold" :class="index === tab ? 'text-navy-900' : 'text-gray-700'" x-text="step.label"></span>
+                                <span class="block text-[11px] text-gray-500" x-text="step.hint"></span>
+                            </span>
+                        </button>
+                    </template>
+                </nav>
+
+                <!-- Stap 1: klant en adres -->
+                <section data-enter class="app-card mb-3 p-4" x-show="data && tab === 0">
+                    <h2 class="mb-2 text-sm font-bold text-navy-900">Klant <span class="text-brand-600">en adres</span></h2>
+                    <template x-if="data?.customer">
+                        <div>
+                            <div class="app-fields !mt-0">
+                                <div class="col-span-2"><span class="app-lbl">Naam</span><b x-text="data.customer.name"></b></div>
+                                <div class="col-span-2"><span class="app-lbl">Adres</span><b x-text="data.customer.address ?? 'niet bekend'"></b></div>
+                                <div><span class="app-lbl">Telefoon</span><b :class="!data.customer.phone && 'text-red-600'" x-text="data.customer.phone ?? 'ontbreekt'"></b></div>
+                                <div><span class="app-lbl">E-mailadres</span><b class="break-all" x-text="data.customer.email ?? 'ontbreekt'"></b></div>
+                            </div>
+                            <div class="mt-3 flex flex-wrap gap-2">
+                                <a x-show="data.customer.phone" :href="'tel:' + data.customer.phone" class="app-btn min-h-11"><span x-icon="'phone'" class="h-4 w-4"></span> Bellen</a>
+                                <button type="button" @click="$store.os.go(data.customer.path)" class="app-btn min-h-11"><span x-icon="'folder'" class="h-4 w-4"></span> Klantdossier</button>
+                                <button type="button" x-show="data.links.lead" @click="$store.os.go(data.links.lead)" class="app-btn min-h-11"><span x-icon="'funnel'" class="h-4 w-4"></span> Aanvraag</button>
+                            </div>
+                        </div>
+                    </template>
+                    <p x-show="data && !data.customer" class="text-sm text-gray-500">Nog geen klantdossier gekoppeld.</p>
+                    <button type="button" @click="save()" :disabled="busy !== null" class="app-btn pri mt-4 min-h-11 w-full justify-center disabled:opacity-60" x-text="busy === 'save' ? 'Bezig' : 'Naar het belgesprek'"></button>
+                </section>
+
+                <!-- Stap 2 en 4: de velden van die stap -->
+                <form data-enter @submit.prevent="save()" class="app-card mb-3 space-y-3 p-4" x-show="data && (tab === 1 || tab === 3)">
+                    <h2 class="text-sm font-bold text-navy-900" x-text="data?.steps[tab]?.label"></h2>
+                    <template x-for="field in fields" :key="field.key">
+                        <label class="block">
+                            <span class="mb-1 block text-sm font-semibold text-gray-700" x-text="field.label"></span>
+                            <textarea x-model="form.answers[field.key]" @input="dirty = true" rows="2" maxlength="5000" :placeholder="field.hint" class="w-full !rounded-xl"></textarea>
+                        </label>
+                    </template>
+                    <button type="submit" :disabled="busy !== null" class="app-btn pri min-h-11 w-full justify-center disabled:opacity-60" x-text="busy === 'save' ? 'Bezig' : 'Opslaan en verder'"></button>
+                </form>
+
+                <!-- Stap 3: opname inplannen -->
+                <form data-enter @submit.prevent="planSurvey()" class="app-card mb-3 space-y-3 p-4" x-show="data && tab === 2">
+                    <h2 class="text-sm font-bold text-navy-900">Opname <span class="text-brand-600">inplannen</span></h2>
+                    <p class="text-xs text-gray-500">Dit zet de afspraak meteen in de planning van wie gaat.</p>
+                    <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Wie gaat</span>
+                        <select x-model="survey.surveyor_id" @change="dirty = true" required class="min-h-11 w-full !rounded-xl">
+                            <template x-for="person in data?.surveyors ?? []" :key="person.id">
+                                <option :value="String(person.id)" :selected="String(person.id) === survey.surveyor_id" x-text="person.label"></option>
+                            </template>
+                        </select>
+                    </label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Datum</span><input type="date" x-model="survey.survey_on" @input="dirty = true" required class="min-h-11 w-full !rounded-xl"></label>
+                        <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Tijd</span><input type="time" x-model="survey.survey_at" @input="dirty = true" class="min-h-11 w-full !rounded-xl"></label>
+                    </div>
+                    <button type="submit" :disabled="busy !== null || !survey.surveyor_id || !survey.survey_on" class="app-btn pri min-h-11 w-full justify-center disabled:opacity-60" x-text="busy === 'survey' ? 'Bezig' : 'Opname plannen'"></button>
+                </form>
+
+                <!-- Stap 5: samenvatting -->
+                <template x-if="data && tab === 4">
+                    <div>
+                        <form data-enter @submit.prevent="save()" class="app-card mb-3 space-y-3 p-4">
+                            <h2 class="text-sm font-bold text-navy-900">Samen<span class="text-brand-600">vatting</span></h2>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Hoe kansrijk is dit?</span>
+                                <input type="text" x-model="form.answers.kwalificatie" @input="dirty = true" maxlength="5000" placeholder="Koud, warm of heet, en waarom" class="min-h-11 w-full !rounded-xl">
+                            </label>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Samenvatting voor de calculator</span>
+                                <textarea x-model="form.summary" @input="dirty = true" rows="6" maxlength="5000" placeholder="Wat moet de calculator weten dat niet in de losse velden past?" class="w-full !rounded-xl"></textarea>
+                            </label>
+                            <button type="submit" :disabled="busy !== null" class="app-btn pri min-h-11 w-full justify-center disabled:opacity-60" x-text="busy === 'save' ? 'Bezig' : 'Opslaan'"></button>
+                        </form>
+
+                        <section data-enter class="app-card mb-3 p-4">
+                            <h2 class="mb-3 text-sm font-bold text-navy-900">Alle <span class="text-brand-600">antwoorden</span></h2>
+                            <dl class="space-y-3">
+                                <template x-for="field in data.fields" :key="field.key">
+                                    <div>
+                                        <dt class="text-[11px] font-bold tracking-widest text-gray-500 uppercase" x-text="field.label"></dt>
+                                        <dd class="mt-0.5 text-sm" :class="data.answers[field.key] ? 'whitespace-pre-line text-navy-900' : 'text-gray-400 italic'" x-text="data.answers[field.key] || 'niet ingevuld'"></dd>
+                                    </div>
+                                </template>
+                            </dl>
+                        </section>
+                    </div>
+                </template>
+
+                <!-- Nova vraagt -->
+                <section data-enter class="mb-3 rounded-2xl border border-brand-200 bg-brand-50 p-4" x-show="data?.questions.length">
+                    <div class="mb-2 flex items-center gap-2.5">
+                        <img :src="$store.os.novaUrl" alt="Nova" class="h-8 w-8 shrink-0 rounded-full object-cover ring-2 ring-brand-500">
+                        <h2 class="text-sm font-bold text-navy-900">Nova <span class="text-brand-600">vraagt</span></h2>
+                    </div>
+                    <ul class="space-y-2">
+                        <template x-for="question in data?.questions ?? []" :key="question">
+                            <li class="flex items-start gap-2 text-sm text-navy-900"><span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-brand-500"></span><span x-text="question"></span></li>
+                        </template>
+                    </ul>
+                </section>
+
+                <!-- Volledigheid -->
+                <section data-enter class="app-card mb-3 p-4" x-show="data">
+                    <h2 class="mb-1 text-sm font-bold text-navy-900">Volledig<span class="text-brand-600">heid</span></h2>
+                    <p class="mb-3 text-xs text-gray-500">Deze antwoorden heeft een calculator nodig om te kunnen rekenen.</p>
+                    <div class="mb-3 flex items-center gap-3">
+                        <span class="h-2 flex-1 overflow-hidden rounded-full bg-gray-100">
+                            <span class="block h-full rounded-full" :class="data?.percentage === 100 ? 'bg-green-500' : 'bg-amber-500'" :style="'width: ' + (data?.percentage ?? 0) + '%'"></span>
+                        </span>
+                        <span class="text-sm font-bold text-navy-900" x-text="(data?.percentage ?? 0) + '%'"></span>
+                    </div>
+                    <p x-show="data && data.missing.length === 0" class="text-sm font-medium text-green-700">Alles wat nodig is, staat erin.</p>
+                    <template x-if="data?.missing.length">
+                        <div>
+                            <p class="mb-1.5 text-xs font-bold tracking-widest text-gray-500 uppercase">Nog nodig</p>
+                            <ul class="space-y-1">
+                                <template x-for="item in data.missing" :key="item">
+                                    <li class="flex items-start gap-2 text-sm text-amber-800"><span x-icon="'x-mark'" class="mt-0.5 h-3.5 w-3.5 shrink-0"></span><span x-text="item"></span></li>
+                                </template>
+                            </ul>
+                        </div>
+                    </template>
+                </section>
+
+                <!-- Opname -->
+                <section data-enter class="app-card mb-3 p-4" x-show="data?.survey.text">
+                    <h2 class="mb-1 text-sm font-bold text-navy-900">Opname</h2>
+                    <p class="text-sm text-navy-900" x-text="data?.survey.text"></p>
+                    <p class="mt-0.5 text-xs text-gray-500" x-text="data?.survey.who"></p>
+                </section>
+            </div>
+        </template>
+    </div>
+</template>

@@ -1,0 +1,227 @@
+<!-- Nieuwe offerte (quotes/create) -->
+<template x-if="$store.os.route === 'nieuweofferte'">
+    <div>
+        <template x-for="key in [JSON.stringify($store.os.query ?? {})]" :key="key">
+            <div x-data="quoteCreateForm()">
+                <nav class="app-crumbs mb-2 !text-gray-500">
+                    <button type="button" @click="cancel()" class="tap" x-text="data?.lead ? data.lead.name : 'Terug'"></button>
+                    <span x-icon="'chevron-right'" class="h-3 w-3"></span>
+                    <span>Nieuwe offerte</span>
+                </nav>
+                <div data-enter class="app-ph">
+                    <p class="sec-eye"><span x-icon="'document-text'"></span> Offertes</p>
+                    <h1>Nieuwe <em>offerte</em></h1>
+                    <p class="sub" x-text="data?.lead ? 'Voor de aanvraag van ' + data.lead.name : 'Daarna bouw je het document op in de offerte-builder'"></p>
+                </div>
+
+                <template x-if="unavailable">
+                    <div class="app-card p-5 text-center"><p class="text-sm font-semibold text-navy-900" x-text="unavailable"></p></div>
+                </template>
+                <template x-if="failed && !unavailable">
+                    <div class="app-card p-5 text-center">
+                        <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                        <button type="button" @click="load()" class="app-btn mt-3 !min-h-11">Opnieuw proberen</button>
+                    </div>
+                </template>
+                <div x-show="!form && !failed && !unavailable" class="app-card space-y-3 p-4">
+                    <div class="skeleton h-11 w-full"></div><div class="skeleton h-11 w-full"></div>
+                </div>
+
+                <template x-if="form && !unavailable">
+                    <form @submit.prevent="save()" @input="touch($event)" @change="touch($event)" novalidate class="space-y-3">
+                        <section data-enter class="app-card space-y-3 p-4">
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Klant *</span>
+                                <select name="customer_id" x-model="form.customer_id" class="!min-h-11 w-full" :class="err('customer_id') && '!border-red-400'">
+                                    <option value="">- Kies klant -</option>
+                                    <template x-for="customer in data.customers" :key="customer.id">
+                                        <option :value="customer.id" x-text="customer.name" :selected="String(customer.id) === String(form.customer_id)"></option>
+                                    </template>
+                                </select>
+                                <p x-show="err('customer_id')" x-text="err('customer_id')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Geldig tot</span>
+                                <input type="date" name="valid_until" x-model="form.valid_until" class="!min-h-11 w-full" :class="err('valid_until') && '!border-red-400'">
+                                <p x-show="err('valid_until')" x-text="err('valid_until')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Opmerkingen (intern)</span>
+                                <textarea name="notes" x-model="form.notes" rows="2" class="w-full" :class="err('notes') && '!border-red-400'"></textarea>
+                                <p x-show="err('notes')" x-text="err('notes')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+                            <p x-show="err('lead_id')" x-text="err('lead_id')" data-error class="text-xs font-semibold text-red-700"></p>
+                        </section>
+
+                        <section data-enter class="rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600">
+                            <p class="font-semibold text-navy-900">Zo werkt het</p>
+                            <p class="mt-1">De offerte begint als concept. Het document bouw je uit blokken in de offerte-builder ("Offerte bouwen"); de posten en bedragen komen uit de calculatie, of voeg je toe via "Posten bewerken".</p>
+                        </section>
+
+                        <p x-show="formError" x-text="formError" role="alert" class="rounded-xl bg-red-100 px-3 py-2 text-sm font-medium text-red-800"></p>
+                        <div class="flex gap-2 pb-2">
+                            <button type="submit" :disabled="saving" class="min-h-11 flex-1 rounded-xl bg-brand-500 px-4 text-sm font-bold text-white hover:bg-brand-600 active:bg-brand-600 disabled:opacity-60" x-text="saving ? 'Bezig' : 'Offerte aanmaken'"></button>
+                            <button type="button" @click="cancel()" class="min-h-11 rounded-xl border border-gray-300 bg-white px-5 text-sm font-semibold text-gray-600">Annuleren</button>
+                        </div>
+                    </form>
+                </template>
+            </div>
+        </template>
+    </div>
+</template>
+
+<!-- Posten bewerken (quotes/edit met de line-editor) -->
+<template x-if="$store.os.route === 'offerteposten'">
+    <div>
+        <template x-for="id in [$store.os.param]" :key="id">
+            <div x-data="quoteLinesForm(id)">
+                <nav class="app-crumbs mb-2 !text-gray-500">
+                    <button type="button" @click="$store.os.go('/offertes/' + id)" class="tap">Offerte</button>
+                    <span x-icon="'chevron-right'" class="h-3 w-3"></span>
+                    <span>Posten bewerken</span>
+                </nav>
+                <div data-enter class="app-ph">
+                    <p class="sec-eye"><span x-icon="'document-text'"></span> Posten bewerken</p>
+                    <h1><span x-text="data?.title ?? ''"></span><span x-show="!data && !unavailable" class="skeleton inline-block h-7 w-2/3 align-middle"></span></h1>
+                    <p class="sub" x-text="data?.subtitle ?? ''"></p>
+                </div>
+
+                <template x-if="unavailable">
+                    <div class="app-card p-5 text-center">
+                        <p class="text-sm font-semibold text-navy-900" x-text="unavailable"></p>
+                        <button type="button" @click="$store.os.go('/offertes/' + id)" class="app-btn mt-3 !min-h-11">Naar de offerte</button>
+                    </div>
+                </template>
+                <template x-if="failed && !unavailable">
+                    <div class="app-card p-5 text-center">
+                        <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                        <button type="button" @click="load()" class="app-btn mt-3 !min-h-11">Opnieuw proberen</button>
+                    </div>
+                </template>
+                <div x-show="!form && !failed && !unavailable" class="app-card space-y-3 p-4">
+                    <div class="skeleton h-11 w-full"></div><div class="skeleton h-24 w-full"></div><div class="skeleton h-24 w-full"></div>
+                </div>
+
+                <template x-if="form && !unavailable">
+                    <form @submit.prevent="save()" @input="touch($event)" @change="touch($event)" novalidate class="space-y-3">
+                        <section data-enter class="app-card p-4">
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Geldig tot</span>
+                                <input type="date" name="valid_until" x-model="form.valid_until" class="!min-h-11 w-full" :class="err('valid_until') && '!border-red-400'">
+                                <p x-show="err('valid_until')" x-text="err('valid_until')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+                        </section>
+
+                        <!-- Nova zoekt de artikelen uit de prijslijst; jij controleert de regels -->
+                        <section data-enter class="rounded-2xl border border-violet-200 bg-violet-50 p-4" x-show="data.can_propose">
+                            <div class="flex items-center gap-3">
+                                <img :src="$store.os.novaUrl" alt="Nova" class="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-brand-500">
+                                <div class="min-w-0">
+                                    <p class="text-sm font-bold text-navy-900">Nova stelt de posten voor</p>
+                                    <p class="text-xs text-gray-600">Beschrijf het werk; Nova zoekt passende artikelen in de prijslijst. Jij controleert de regels.</p>
+                                </div>
+                            </div>
+                            <div class="relative mt-3">
+                                <textarea x-model="nova.prompt" rows="3" aria-label="Omschrijving voor Nova" placeholder="Bijv. badkamer 6 m2 strippen, wanden en vloer tegelen, sanitair als stelpost" class="w-full pr-12"></textarea>
+                                <button type="button" x-show="speechSupported" @click="dictate(() => nova.prompt, (text) => nova.prompt = text)" :aria-label="listening ? 'Stop met inspreken' : 'Inspreken'"
+                                        class="absolute right-1.5 bottom-2 flex h-11 w-11 items-center justify-center rounded-full" :class="listening ? 'animate-pulse bg-red-500 text-white' : 'text-gray-500'">
+                                    <span x-icon="'microphone'" class="h-5 w-5"></span>
+                                </button>
+                            </div>
+                            <button type="button" @click="propose()" :disabled="nova.loading || !nova.prompt.trim()" class="mt-2 min-h-11 w-full rounded-xl bg-navy-900 text-sm font-bold text-white disabled:opacity-50" x-text="nova.loading ? 'Nova zoekt' : 'Stel posten voor'"></button>
+                            <div x-show="nova.loading" class="mt-3 space-y-2"><div class="skeleton h-4 w-full"></div><div class="skeleton h-4 w-2/3"></div></div>
+                            <p x-show="nova.error" x-text="nova.error" class="mt-2 text-xs font-semibold text-red-700"></p>
+                            <p x-show="nova.note" class="mt-2 text-xs text-gray-700"><span class="font-semibold text-navy-900">Aannames van Nova:</span> <span x-text="nova.note"></span></p>
+                        </section>
+
+                        <section data-enter class="app-card space-y-3 p-4">
+                            <h2 class="text-sm font-bold text-navy-900">Werkzaamheden</h2>
+                            <p x-show="err('lines')" x-text="err('lines')" data-error class="text-xs font-semibold text-red-700"></p>
+                            <template x-for="(line, index) in form.lines" :key="line.key">
+                                <div class="space-y-2 rounded-xl border border-gray-200 p-3" :data-line="line.key">
+                                    <input type="text" :name="'lines.' + index + '.description'" x-model="line.description" enterkeyhint="next" placeholder="Bijv. stucwerk wanden" aria-label="Werkzaamheid"
+                                           class="!min-h-11 w-full" :class="err('lines.' + index + '.description') && '!border-red-400'">
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <label class="block min-w-0"><span class="mb-0.5 block text-xs font-semibold text-gray-600">Hoeveelheid</span>
+                                            <input type="number" :name="'lines.' + index + '.quantity'" x-model="line.quantity" inputmode="decimal" min="0.01" step="0.01" class="!min-h-11 w-full" :class="err('lines.' + index + '.quantity') && '!border-red-400'">
+                                        </label>
+                                        <label class="block min-w-0"><span class="mb-0.5 block text-xs font-semibold text-gray-600">Eenheid</span>
+                                            <select :name="'lines.' + index + '.unit'" x-model="line.unit" class="!min-h-11 w-full">
+                                                <template x-for="unit in units" :key="unit"><option :value="unit" x-text="unit" :selected="unit === line.unit"></option></template>
+                                            </select>
+                                        </label>
+                                        <label class="block min-w-0"><span class="mb-0.5 block text-xs font-semibold text-gray-600">Prijs per eenheid (€)</span>
+                                            <input type="number" :name="'lines.' + index + '.unit_price'" x-model="line.unit_price" inputmode="decimal" min="0" step="0.01" placeholder="0,00" class="!min-h-11 w-full" :class="err('lines.' + index + '.unit_price') && '!border-red-400'">
+                                        </label>
+                                        <label class="block min-w-0"><span class="mb-0.5 block text-xs font-semibold text-gray-600">Btw</span>
+                                            <select :name="'lines.' + index + '.vat_rate'" x-model="line.vat_rate" class="!min-h-11 w-full">
+                                                <template x-for="rate in [21, 9, 0]" :key="rate"><option :value="rate" x-text="rate + '%'" :selected="Number(line.vat_rate) === rate"></option></template>
+                                            </select>
+                                        </label>
+                                    </div>
+                                    <p x-show="err('lines.' + index + '.description') || err('lines.' + index + '.quantity') || err('lines.' + index + '.unit_price') || err('lines.' + index + '.unit') || err('lines.' + index + '.vat_rate')"
+                                       x-text="err('lines.' + index + '.description') ?? err('lines.' + index + '.quantity') ?? err('lines.' + index + '.unit_price') ?? err('lines.' + index + '.unit') ?? err('lines.' + index + '.vat_rate')"
+                                       data-error class="text-xs font-semibold text-red-700"></p>
+                                    <div class="flex items-center justify-between gap-2">
+                                        <label class="tap flex min-h-11 items-center gap-2 text-sm text-gray-700">
+                                            <input type="checkbox" x-model="line.is_estimate" class="h-5 w-5 rounded border-gray-300 text-amber-500 focus:ring-amber-400">
+                                            Stelpost <span class="text-xs text-gray-500">(achteraf verrekend)</span>
+                                        </label>
+                                        <span class="text-sm font-bold whitespace-nowrap text-navy-900" x-text="osFormat.euro(lineTotal(line), 2)"></span>
+                                    </div>
+                                    <button type="button" x-show="form.lines.length > 1" @click="remove(index)" class="tap flex min-h-11 items-center gap-1 text-sm font-semibold text-red-600">
+                                        <span x-icon="'trash'" class="h-4 w-4"></span> Regel verwijderen
+                                    </button>
+                                </div>
+                            </template>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <button type="button" @click="add()" class="min-h-11 rounded-xl border border-dashed border-gray-300 text-sm font-semibold text-gray-700">+ Regel</button>
+                                <button type="button" @click="openPicker()" class="min-h-11 rounded-xl border border-dashed border-violet-300 text-sm font-semibold text-violet-700">+ Uit de prijslijst</button>
+                            </div>
+
+                            <dl class="space-y-1 border-t border-gray-200 pt-3 text-sm">
+                                <div class="flex justify-between"><dt class="text-gray-500">Subtotaal</dt><dd class="font-semibold text-navy-900" x-text="osFormat.euro(subtotal(), 2)"></dd></div>
+                                <div class="flex justify-between"><dt class="text-gray-500">Btw</dt><dd class="font-semibold text-navy-900" x-text="osFormat.euro(vat(), 2)"></dd></div>
+                                <div class="flex justify-between text-base"><dt class="font-bold text-navy-900">Totaal</dt><dd class="font-bold text-navy-900" x-text="osFormat.euro(subtotal() + vat(), 2)"></dd></div>
+                            </dl>
+                        </section>
+
+                        <section data-enter class="app-card p-4">
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Opmerkingen (intern)</span>
+                                <textarea name="notes" x-model="form.notes" rows="2" class="w-full" :class="err('notes') && '!border-red-400'"></textarea>
+                                <p x-show="err('notes')" x-text="err('notes')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+                        </section>
+
+                        <p x-show="formError" x-text="formError" role="alert" class="rounded-xl bg-red-100 px-3 py-2 text-sm font-medium text-red-800"></p>
+                        <div class="flex gap-2 pb-2">
+                            <button type="submit" :disabled="saving" class="min-h-11 flex-1 rounded-xl bg-brand-500 px-4 text-sm font-bold text-white hover:bg-brand-600 active:bg-brand-600 disabled:opacity-60" x-text="saving ? 'Bezig' : 'Opslaan'"></button>
+                            <button type="button" @click="cancel()" class="min-h-11 rounded-xl border border-gray-300 bg-white px-5 text-sm font-semibold text-gray-600">Annuleren</button>
+                        </div>
+                    </form>
+                </template>
+
+                <!-- Prijslijst kiezen -->
+                <div data-popup x-show="picker" x-cloak @click.self="picker = false" @renovion-back.window="if (picker) { picker = false; $event.preventDefault(); }"
+                     class="fixed inset-0 z-[60] flex items-end bg-navy-950/60 backdrop-blur-sm">
+                    <div x-swipe-dismiss="picker = false" class="flex max-h-[85dvh] w-full flex-col rounded-t-[20px] bg-white p-5 pb-[calc(1.25rem_+_env(safe-area-inset-bottom))]">
+                        <div class="mx-auto -mt-2 mb-3 h-1.5 w-10 shrink-0 rounded-full bg-gray-300"></div>
+                        <h2 class="mb-2 text-base font-bold text-navy-900">Uit de prijslijst</h2>
+                        <input type="search" x-ref="pickerInput" x-model="pickerQ" @input="searchSoon()" enterkeyhint="search" placeholder="Zoek op naam of artikelnummer" aria-label="Zoeken in de prijslijst" class="!min-h-11 mb-2 w-full">
+                        <div class="-mx-1 min-h-0 flex-1 overflow-y-auto">
+                            <template x-for="item in pickerItems" :key="item.id">
+                                <button type="button" @click="choose(item)" class="flex min-h-11 w-full items-center gap-2 rounded-lg px-1 py-2 text-left active:bg-violet-50">
+                                    <span class="w-16 shrink-0 rounded bg-violet-100 py-0.5 text-center font-mono text-[10px] font-bold text-violet-800" x-text="item.code"></span>
+                                    <span class="min-w-0 flex-1">
+                                        <span class="block truncate text-sm font-medium text-navy-900" x-text="item.name"></span>
+                                        <span class="block text-xs text-gray-500" x-text="item.type_label + ', per ' + item.unit"></span>
+                                    </span>
+                                    <span class="shrink-0 text-sm font-semibold whitespace-nowrap text-navy-900" x-text="osFormat.euro(item.price, 2)"></span>
+                                </button>
+                            </template>
+                            <p x-show="!pickerLoading && pickerItems.length === 0" class="py-4 text-center text-sm text-gray-500">Niets gevonden in de prijslijst.</p>
+                            <div x-show="pickerLoading && pickerItems.length === 0" class="space-y-2 py-2"><div class="skeleton h-10 w-full"></div><div class="skeleton h-10 w-full"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </div>
+</template>

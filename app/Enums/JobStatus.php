@@ -36,6 +36,18 @@ enum JobStatus: string
         };
     }
 
+    /** Lichte variant voor de schermen in de iOS/Android-app (api/app). */
+    public function appBadgeClasses(): string
+    {
+        return match ($this) {
+            self::Gepland => 'bg-gray-200 text-gray-700',
+            self::Onderweg => 'bg-steel-100 text-steel-800',
+            self::Bezig => 'bg-brand-100 text-brand-800',
+            self::Pauze => 'bg-amber-100 text-amber-800',
+            self::Klaar => 'bg-green-100 text-green-800',
+        };
+    }
+
     public function dotColor(): string
     {
         return match ($this) {

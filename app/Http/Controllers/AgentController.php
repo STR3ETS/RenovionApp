@@ -9,6 +9,7 @@ use App\Models\AgentSkillSetting;
 use App\Models\Project;
 use App\Services\AgentOrchestrator;
 use App\Support\AgentRegistry;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -69,7 +70,7 @@ class AgentController extends Controller
         ]);
     }
 
-    public function decide(Request $request, AgentApproval $approval, AgentOrchestrator $orchestrator): RedirectResponse
+    public function decide(Request $request, AgentApproval $approval, AgentOrchestrator $orchestrator): RedirectResponse|JsonResponse
     {
         abort_unless($request->user()->can('manage-crm'), 403);
 
@@ -84,6 +85,11 @@ class AgentController extends Controller
             $request->user(),
             reason: $validated['reden'] ?? null,
         );
+
+        // De app (api/app/goedkeuringen) toont de melding zelf en laadt de lijst opnieuw.
+        if ($request->expectsJson()) {
+            return response()->json(['status' => $result['status'], 'message' => $result['message']]);
+        }
 
         return back()->with(
             $result['status'] === AgentApproval::STATUS_STALE ? 'error' : 'success',
@@ -133,7 +139,7 @@ class AgentController extends Controller
         ]);
     }
 
-    public function updateSkill(Request $request, string $skill): RedirectResponse
+    public function updateSkill(Request $request, string $skill): RedirectResponse|JsonResponse
     {
         abort_unless($request->user()->can('manage-team'), 403);
         abort_if(AgentRegistry::skill($skill) === null, 404);
@@ -162,6 +168,10 @@ class AgentController extends Controller
             ],
             subject: $setting,
         );
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => AgentRegistry::skill($skill)['name'].' bijgewerkt.']);
+        }
 
         return back()->with('success', AgentRegistry::skill($skill)['name'].' bijgewerkt.');
     }

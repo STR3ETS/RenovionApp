@@ -1,0 +1,260 @@
+<!-- ===== Eigen mensen ===== -->
+<template x-if="$store.os.route === 'mensen'">
+    <div x-data="workforce">
+        <nav class="app-sectabs" aria-label="Onderdelen van Mensen en partners">
+            <a href="#/team" x-show="$store.os.profile.can.team">Team</a>
+            <a href="#/mensen" class="on" aria-current="page">Eigen mensen</a>
+            <a href="#/onderaannemers">Onderaannemers</a>
+            <a href="#" @click.prevent="$store.os.go('/prijsaanvragen')">Prijsaanvragen</a>
+        </nav>
+
+        <div data-enter class="app-ph">
+            <p class="sec-eye"><span x-icon="'identification'"></span> Mensen en partners</p>
+            <h1>Eigen <em>mensen</em></h1>
+            <p class="sub">Wie we hebben, met welke certificaten, hoe druk ze zijn en wanneer ze er niet zijn.</p>
+        </div>
+
+        <!-- Week kiezen -->
+        <div class="mb-3 flex items-center gap-2">
+            <button type="button" @click="setWeek(data.week.previous)" :disabled="!data" class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 disabled:opacity-40" aria-label="Vorige week"><span x-icon="'chevron-left'" class="h-4 w-4"></span></button>
+            <span class="min-w-0 flex-1 text-center text-sm font-semibold text-navy-900">
+                <span x-text="data?.week.label ?? ''"></span><span x-show="!data" class="skeleton inline-block h-4 w-40 align-middle"></span>
+            </span>
+            <button type="button" @click="setWeek(data.week.next)" :disabled="!data" class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 disabled:opacity-40" aria-label="Volgende week"><span x-icon="'chevron-right'" class="h-4 w-4"></span></button>
+        </div>
+        <div class="-mt-1 mb-3 text-center" x-show="data && !data.week.current">
+            <button type="button" @click="setWeek(null)" class="tap text-xs font-semibold text-brand-700">Naar deze week</button>
+        </div>
+
+        <template x-if="failed">
+            <div class="app-card mb-3 p-5 text-center">
+                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                <button type="button" @click="load()" class="app-btn mt-3 min-h-11">Opnieuw proberen</button>
+            </div>
+        </template>
+
+        <div x-show="data?.expiring > 0" class="mb-3 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+            <span x-icon="'shield-check'" class="h-5 w-5 shrink-0 text-amber-600"></span>
+            <p class="text-sm text-amber-900"><b x-text="data ? data.expiring + (data.expiring === 1 ? ' certificaat verloopt' : ' certificaten verlopen') + ' binnen dertig dagen of is al verlopen.' : ''"></b> Wie zonder geldig certificaat de bouwplaats op gaat, is een risico.</p>
+        </div>
+
+        <template x-if="data && data.people.length === 0">
+            <div class="app-card p-6 text-center">
+                <span class="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-500"><span x-icon="'identification'" class="h-5 w-5"></span></span>
+                <p class="text-sm font-semibold text-navy-900">Nog geen mensen</p>
+                <p class="mt-0.5 text-xs text-gray-500">Voeg je team toe via Organisatie, dan verschijnen ze hier met capaciteit en certificaten.</p>
+            </div>
+        </template>
+
+        <div class="space-y-3">
+            <template x-for="i in (!data && !failed ? 4 : 0)" :key="i">
+                <div class="app-card flex items-center gap-3 p-4"><span class="skeleton h-11 w-11 shrink-0 !rounded-xl"></span><span class="flex-1"><span class="skeleton mb-2 block h-3.5 w-1/2"></span><span class="skeleton block h-3 w-3/4"></span></span></div>
+            </template>
+            <template x-for="person in data?.people ?? []" :key="person.id">
+                <section data-enter class="app-card">
+                    <button type="button" @click="toggle(person)" class="block w-full p-4 text-left" :aria-expanded="open === person.id">
+                        <span class="flex items-start gap-3">
+                            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-klant-100 text-sm font-bold text-klant-700" x-text="person.initial"></span>
+                            <span class="min-w-0 flex-1">
+                                <b class="block truncate text-[15px] font-bold text-navy-900" x-text="person.name"></b>
+                                <span class="mt-1 flex flex-wrap gap-1">
+                                    <span class="rounded-full px-2 py-0.5 text-[10px] font-bold" :class="person.role.classes" x-text="person.role.label"></span>
+                                    <span x-show="!person.plannable" class="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-600">Niet planbaar</span>
+                                </span>
+                            </span>
+                            <span x-icon="'chevron-down'" class="mt-1 h-4 w-4 shrink-0 text-gray-400 transition-transform" :class="open === person.id && 'rotate-180'"></span>
+                        </span>
+                        <span class="mt-2 flex flex-wrap gap-1">
+                            <template x-for="cert in person.certificates" :key="cert.id">
+                                <span class="rounded px-1.5 py-0.5 text-[10px] font-bold" :class="cert.chip" x-text="cert.short"></span>
+                            </template>
+                            <span x-show="person.certificates.length === 0" class="text-xs text-gray-500">Geen certificaten vastgelegd</span>
+                        </span>
+                        <span class="mt-3 block">
+                            <span class="mb-1 flex items-center justify-between text-xs">
+                                <span class="font-semibold" :class="person.load.percentage > 100 ? 'text-red-600' : 'text-navy-900'" x-text="person.load.planned + ' van ' + person.load.available + ' uur'"></span>
+                                <span class="text-gray-500" x-text="person.load.percentage + '% bezet' + (person.load.absent > 0 ? ', ' + person.load.absent + ' dagen weg' : '')"></span>
+                            </span>
+                            <span class="block h-2 overflow-hidden rounded-full bg-gray-100">
+                                <span class="block h-full rounded-full" :class="{ red: 'bg-red-500', green: 'bg-green-500', brand: 'bg-brand-500' }[person.load.tone]" :style="`width: ${Math.min(100, person.load.percentage)}%`"></span>
+                            </span>
+                        </span>
+                    </button>
+
+                    <div x-show="open === person.id" x-cloak class="space-y-4 border-t border-gray-100 bg-gray-50 p-4">
+                        <!-- Deze week -->
+                        <div>
+                            <p class="app-lbl mb-2">Deze week</p>
+                            <p x-show="person.entries.length === 0" class="text-sm text-gray-500">Niets ingepland.</p>
+                            <div class="space-y-1.5">
+                                <template x-for="entry in person.entries" :key="entry.id">
+                                    <div class="text-sm"><span class="block text-navy-900" x-text="entry.title"></span><span class="block text-xs text-gray-500" x-text="entry.sub"></span></div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Certificaten -->
+                        <div>
+                            <p class="app-lbl mb-2">Certificaten</p>
+                            <div class="space-y-1">
+                                <template x-for="cert in person.certificates" :key="cert.id">
+                                    <div class="flex min-h-11 items-center gap-2 text-sm">
+                                        <span class="min-w-0 flex-1 text-navy-900" x-text="cert.type"></span>
+                                        <span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold" :class="cert.state" x-text="cert.until"></span>
+                                        <button type="button" x-show="data.can_team" @click="removeCertificate(cert)" :disabled="busy !== null" class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-gray-400 active:bg-red-50 active:text-red-600 disabled:opacity-60" aria-label="Certificaat verwijderen"><span x-icon="'trash'" class="h-4 w-4"></span></button>
+                                    </div>
+                                </template>
+                            </div>
+                            <template x-if="data.can_team && forms[person.id]">
+                                <form @submit.prevent="addCertificate(person)" class="mt-2 space-y-2">
+                                    <select x-model="forms[person.id].cert.type" required aria-label="Soort certificaat" class="w-full">
+                                        <template x-for="option in data.certificate_types" :key="option.value"><option :value="option.value" x-text="option.label" :selected="option.value === forms[person.id].cert.type"></option></template>
+                                    </select>
+                                    <div class="flex gap-2">
+                                        <label class="min-w-0 flex-1"><span class="sr-only">Afgegeven op</span><input type="date" x-model="forms[person.id].cert.issued_on" class="w-full" aria-label="Afgegeven op"></label>
+                                        <button type="submit" :disabled="busy !== null" class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-500 text-white active:bg-brand-600 disabled:opacity-60" aria-label="Certificaat toevoegen"><span x-icon="'plus'" class="h-4 w-4"></span></button>
+                                    </div>
+                                    <p class="text-[11px] text-gray-500">Afgegeven op: de geldigheid volgt uit de gebruikelijke duur van het certificaat.</p>
+                                </form>
+                            </template>
+                        </div>
+
+                        <!-- Afwezig -->
+                        <div>
+                            <p class="app-lbl mb-2">Afwezig</p>
+                            <p x-show="person.absences.length === 0" class="text-sm text-gray-500">Geen afwezigheid gepland.</p>
+                            <div class="space-y-1">
+                                <template x-for="absence in person.absences" :key="absence.id">
+                                    <div class="flex min-h-11 items-center gap-2 text-sm">
+                                        <span class="min-w-0 flex-1 text-navy-900" x-text="absence.label"></span>
+                                        <button type="button" @click="removeAbsence(absence)" :disabled="busy !== null" class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-gray-400 active:bg-red-50 active:text-red-600 disabled:opacity-60" aria-label="Afwezigheid verwijderen"><span x-icon="'trash'" class="h-4 w-4"></span></button>
+                                    </div>
+                                </template>
+                            </div>
+                            <template x-if="forms[person.id]">
+                                <form @submit.prevent="addAbsence(person)" class="mt-2 space-y-2">
+                                    <select x-model="forms[person.id].absence.type" required aria-label="Soort afwezigheid" class="w-full">
+                                        <template x-for="option in data.absence_types" :key="option.value"><option :value="option.value" x-text="option.label" :selected="option.value === forms[person.id].absence.type"></option></template>
+                                    </select>
+                                    <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-end gap-2">
+                                        <label class="block min-w-0"><span class="mb-1 block text-xs font-semibold text-gray-600">Van</span><input type="date" x-model="forms[person.id].absence.from" required class="w-full"></label>
+                                        <label class="block min-w-0"><span class="mb-1 block text-xs font-semibold text-gray-600">Tot en met</span><input type="date" x-model="forms[person.id].absence.until" :min="forms[person.id].absence.from" required class="w-full"></label>
+                                        <button type="submit" :disabled="busy !== null" class="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-500 text-white active:bg-brand-600 disabled:opacity-60" aria-label="Afwezigheid vastleggen"><span x-icon="'plus'" class="h-4 w-4"></span></button>
+                                    </div>
+                                </form>
+                            </template>
+                        </div>
+
+                        <!-- Gegevens (alleen directie) -->
+                        <template x-if="data.can_team && forms[person.id]">
+                            <form @submit.prevent="saveDetails(person)" class="space-y-3 border-t border-gray-200 pt-4">
+                                <p class="app-lbl">Gegevens</p>
+                                <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Functie</span><input type="text" x-model="forms[person.id].details.job_title" maxlength="120" class="w-full"></label>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Uurtarief</span><input type="number" step="0.01" min="0" max="500" inputmode="decimal" x-model="forms[person.id].details.hourly_rate" class="w-full"></label>
+                                    <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Uren per week</span><input type="number" min="0" max="80" inputmode="numeric" x-model="forms[person.id].details.weekly_capacity" class="w-full"></label>
+                                </div>
+                                <label class="flex min-h-11 items-center gap-3 text-sm text-gray-700"><input type="checkbox" x-model="forms[person.id].details.plannable" class="h-5 w-5 rounded border-gray-300 text-brand-500"> Planbaar</label>
+                                <button type="submit" :disabled="busy !== null" class="min-h-11 w-full rounded-xl bg-brand-500 text-sm font-bold text-white active:bg-brand-600 disabled:opacity-60" x-text="busy === 'details:' + person.id ? 'Bezig' : 'Opslaan'"></button>
+                            </form>
+                        </template>
+                    </div>
+                </section>
+            </template>
+        </div>
+    </div>
+</template>
+
+<!-- ===== Team ===== -->
+<template x-if="$store.os.route === 'team'">
+    <div x-data="teamOverview">
+        <nav class="app-sectabs" aria-label="Onderdelen van Mensen en partners">
+            <a href="#/team" class="on" aria-current="page">Team</a>
+            <a href="#/mensen">Eigen mensen</a>
+            <a href="#/onderaannemers">Onderaannemers</a>
+            <a href="#" @click.prevent="$store.os.go('/prijsaanvragen')">Prijsaanvragen</a>
+        </nav>
+
+        <div data-enter class="app-ph">
+            <p class="sec-eye"><span x-icon="'users'"></span> Teambeheer</p>
+            <h1><em>Team</em></h1>
+            <p class="sub">
+                <span x-show="data" x-text="data ? osFormat.tally(data.count, 'teamlid', 'teamleden') : ''"></span>
+                <span x-show="!data" class="skeleton block h-3.5 w-1/3"></span>
+            </p>
+            <div class="app-ph-acts">
+                <button type="button" @click="$store.os.go('/team/aanmaken')" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white active:bg-brand-600">
+                    <span x-icon="'plus'" class="mr-1.5 h-4 w-4"></span>Teamlid
+                </button>
+            </div>
+        </div>
+
+        <template x-if="failed">
+            <div class="app-card mb-3 p-5 text-center">
+                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                <button type="button" @click="load()" class="app-btn mt-3 min-h-11">Opnieuw proberen</button>
+            </div>
+        </template>
+
+        <div data-enter class="app-card mb-3" x-show="!failed">
+            <div class="app-card-b">
+                <template x-for="i in (data ? 0 : 6)" :key="i">
+                    <div class="flex items-center gap-3.5 py-3.5"><span class="skeleton h-10 w-10 shrink-0 !rounded-full"></span><span class="flex-1"><span class="skeleton mb-2 block h-3.5 w-2/3"></span><span class="skeleton block h-3 w-1/2"></span></span></div>
+                </template>
+                <template x-for="user in data?.users ?? []" :key="user.id">
+                    <button type="button" @click="$store.os.go(user.edit)" class="app-li w-full text-left">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-sm font-bold text-gray-700" x-text="user.initial"></span>
+                        <span class="min-w-0 flex-1">
+                            <span class="flex items-center gap-2">
+                                <b class="truncate" x-text="user.name"></b>
+                                <span x-show="user.me" class="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-600">jij</span>
+                            </span>
+                            <small class="truncate" x-text="user.email"></small>
+                            <small x-text="user.sub"></small>
+                            <span class="mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold" :class="user.role.classes" x-text="user.role.label"></span>
+                        </span>
+                        <span class="mt-2 flex shrink-0 items-center gap-1 text-xs font-semibold text-brand-700">Bewerken <span x-icon="'chevron-right'" class="h-3.5 w-3.5"></span></span>
+                    </button>
+                </template>
+            </div>
+        </div>
+
+        <!-- Rechtenmatrix: per rol de schermen die hij ziet -->
+        <section data-enter class="app-card mb-3" x-show="data">
+            <div class="app-card-h">
+                <div>
+                    <h3>Rechten<em>matrix</em></h3>
+                    <p class="mt-0.5 text-xs text-gray-500" x-text="data ? data.matrix.roles.length + ' rollen tegenover ' + data.matrix.screens + ' schermen.' : ''"></p>
+                </div>
+                <button type="button" @click="matrix = !matrix" class="app-btn min-h-11 shrink-0" x-text="matrix ? 'Verberg' : 'Toon'"></button>
+            </div>
+            <div x-show="matrix" x-cloak class="p-4">
+                <p class="mb-2 text-xs text-gray-500">Kies een rol: zo zie je waarom een collega iets niet ziet, in plaats van dat het op een fout lijkt.</p>
+                <div class="-mx-4 mb-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+                    <template x-for="option in data?.matrix.roles ?? []" :key="option.value">
+                        <button type="button" @click="role = option.value" class="app-chip tap shrink-0" :class="currentRole === option.value && 'on'" x-text="option.label"></button>
+                    </template>
+                </div>
+                <div class="space-y-3">
+                    <template x-for="section in data?.matrix.sections ?? []" :key="section.label">
+                        <div>
+                            <p class="app-lbl mb-1" x-text="section.label"></p>
+                            <ul class="divide-y divide-gray-100 rounded-xl border border-gray-200 bg-white">
+                                <template x-for="item in section.items" :key="item.module">
+                                    <li class="flex items-center gap-2 px-3 py-2 text-sm">
+                                        <span class="min-w-0 flex-1">
+                                            <span class="block" :class="item.roles.includes(currentRole) ? 'text-navy-900' : 'text-gray-400'" x-text="item.label"></span>
+                                            <span x-show="item.management_only" class="block text-[10px] text-gray-500">alleen directie</span>
+                                        </span>
+                                        <span x-show="item.roles.includes(currentRole)" x-icon="'check'" class="h-4 w-4 shrink-0 text-green-600" aria-label="Ziet dit scherm"></span>
+                                        <span x-show="!item.roles.includes(currentRole)" class="mx-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-gray-300" aria-label="Ziet dit scherm niet"></span>
+                                    </li>
+                                </template>
+                            </ul>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </section>
+    </div>
+</template>

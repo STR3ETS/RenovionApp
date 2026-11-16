@@ -103,6 +103,17 @@ class SnagItem extends Model
         };
     }
 
+    /** Lichte variant voor de schermen in de iOS/Android-app (api/app). */
+    public function appBadgeClasses(): string
+    {
+        return match ($this->status) {
+            self::STATUS_RESOLVED => 'bg-steel-100 text-steel-800',
+            self::STATUS_ACCEPTED => 'bg-green-100 text-green-800',
+            self::STATUS_IN_PROGRESS => 'bg-amber-100 text-amber-800',
+            default => 'bg-red-100 text-red-800',
+        };
+    }
+
     /** Wie het oplost: een eigen mens, of de partij die het werk deed. */
     public function ownerName(): string
     {

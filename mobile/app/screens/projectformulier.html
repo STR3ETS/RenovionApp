@@ -1,0 +1,313 @@
+<!-- Nieuw project (projects/create) -->
+<template x-if="$store.os.route === 'nieuwproject'">
+    <div x-data="projectCreateForm()">
+        <nav class="app-crumbs mb-2 !text-gray-500">
+            <button type="button" @click="$store.os.go('/projecten')" class="tap">Projecten</button>
+            <span x-icon="'chevron-right'" class="h-3 w-3"></span>
+            <span>Nieuw</span>
+        </nav>
+        <div data-enter class="app-ph">
+            <p class="sec-eye"><span x-icon="'folder'"></span> Projecten</p>
+            <h1>Nieuw <em>project</em></h1>
+        </div>
+
+        <template x-if="unavailable">
+            <div class="app-card p-5 text-center"><p class="text-sm font-semibold text-navy-900" x-text="unavailable"></p></div>
+        </template>
+        <template x-if="failed && !unavailable">
+            <div class="app-card p-5 text-center">
+                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                <button type="button" @click="load()" class="app-btn mt-3 !min-h-11">Opnieuw proberen</button>
+            </div>
+        </template>
+        <div x-show="!form && !failed && !unavailable" class="app-card space-y-3 p-4">
+            <div class="skeleton h-11 w-full"></div><div class="skeleton h-11 w-full"></div><div class="skeleton h-11 w-2/3"></div>
+        </div>
+
+        <template x-if="form && !unavailable">
+            <form @submit.prevent="save()" @input="touch($event)" @change="touch($event)" novalidate class="space-y-3">
+                <section data-enter class="app-card space-y-3 p-4">
+                    <h2 class="text-sm font-bold text-navy-900">Klant</h2>
+                    <div class="grid grid-cols-2 gap-2" role="group" aria-label="Soort klant">
+                        <button type="button" @click="form.existing = true; dirty = true" :aria-pressed="form.existing"
+                                class="tap min-h-11 rounded-xl border px-3 text-sm font-semibold" :class="form.existing ? 'border-brand-400 bg-brand-50 text-brand-800' : 'border-gray-200 text-gray-600'">Bestaande klant</button>
+                        <button type="button" @click="form.existing = false; dirty = true" :aria-pressed="!form.existing"
+                                class="tap min-h-11 rounded-xl border px-3 text-sm font-semibold" :class="!form.existing ? 'border-brand-400 bg-brand-50 text-brand-800' : 'border-gray-200 text-gray-600'">Nieuwe klant</button>
+                    </div>
+
+                    <label x-show="form.existing" class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Klant *</span>
+                        <select name="customer_id" x-model="form.customer_id" class="!min-h-11 w-full" :class="err('customer_id') && '!border-red-400'">
+                            <option value="">- Kies klant -</option>
+                            <template x-for="customer in data.customers" :key="customer.id">
+                                <option :value="customer.id" x-text="customer.name" :selected="String(customer.id) === String(form.customer_id)"></option>
+                            </template>
+                        </select>
+                        <p x-show="err('customer_id')" x-text="err('customer_id')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                    </label>
+
+                    <div x-show="!form.existing" class="space-y-3">
+                        <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Naam *</span>
+                            <input type="text" name="customer_name" x-model="form.customer_name" autocomplete="name" autocapitalize="words" enterkeyhint="next" placeholder="Familie Jansen" class="!min-h-11 w-full" :class="err('customer_name') && '!border-red-400'">
+                            <p x-show="err('customer_name')" x-text="err('customer_name')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                        </label>
+                        <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">E-mailadres</span>
+                            <input type="email" name="customer_email" x-model="form.customer_email" inputmode="email" autocomplete="email" autocapitalize="off" enterkeyhint="next" class="!min-h-11 w-full" :class="err('customer_email') && '!border-red-400'">
+                            <p x-show="err('customer_email')" x-text="err('customer_email')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                        </label>
+                        <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Telefoon</span>
+                            <input type="tel" name="customer_phone" x-model="form.customer_phone" inputmode="tel" autocomplete="tel" enterkeyhint="next" class="!min-h-11 w-full" :class="err('customer_phone') && '!border-red-400'">
+                            <p x-show="err('customer_phone')" x-text="err('customer_phone')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                        </label>
+                        <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Adres</span>
+                            <input type="text" name="customer_address" x-model="form.customer_address" autocomplete="street-address" enterkeyhint="next" class="!min-h-11 w-full" :class="err('customer_address') && '!border-red-400'">
+                            <p x-show="err('customer_address')" x-text="err('customer_address')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                        </label>
+                        <div class="grid grid-cols-[2fr_3fr] gap-3">
+                            <label class="block min-w-0"><span class="mb-1 block text-sm font-semibold text-gray-700">Postcode</span>
+                                <input type="text" name="customer_postal_code" x-model="form.customer_postal_code" autocomplete="postal-code" autocapitalize="characters" enterkeyhint="next" class="!min-h-11 w-full" :class="err('customer_postal_code') && '!border-red-400'">
+                            </label>
+                            <label class="block min-w-0"><span class="mb-1 block text-sm font-semibold text-gray-700">Plaats</span>
+                                <input type="text" name="customer_city" x-model="form.customer_city" autocomplete="address-level2" enterkeyhint="next" class="!min-h-11 w-full" :class="err('customer_city') && '!border-red-400'">
+                            </label>
+                        </div>
+                        <p x-show="err('customer_postal_code') || err('customer_city')" x-text="err('customer_postal_code') ?? err('customer_city')" data-error class="text-xs font-semibold text-red-700"></p>
+                    </div>
+                </section>
+
+                <section data-enter class="app-card space-y-3 p-4">
+                    <h2 class="text-sm font-bold text-navy-900">Project</h2>
+                    <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Projectnaam *</span>
+                        <input type="text" name="name" x-model="form.name" enterkeyhint="next" placeholder="Badkamer Jansen" class="!min-h-11 w-full" :class="err('name') && '!border-red-400'">
+                        <p x-show="err('name')" x-text="err('name')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                    </label>
+                    <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Adres (indien anders dan klant)</span>
+                        <input type="text" name="address" x-model="form.address" autocomplete="street-address" enterkeyhint="next" class="!min-h-11 w-full" :class="err('address') && '!border-red-400'">
+                        <p x-show="err('address')" x-text="err('address')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                    </label>
+                    <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Plaats</span>
+                        <input type="text" name="city" x-model="form.city" autocomplete="address-level2" enterkeyhint="next" class="!min-h-11 w-full" :class="err('city') && '!border-red-400'">
+                        <p x-show="err('city')" x-text="err('city')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                    </label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="block min-w-0"><span class="mb-1 block text-sm font-semibold text-gray-700">Status</span>
+                            <select name="status" x-model="form.status" class="!min-h-11 w-full" :class="err('status') && '!border-red-400'">
+                                <template x-for="option in data.statuses" :key="option.value"><option :value="option.value" x-text="option.label" :selected="option.value === form.status"></option></template>
+                            </select>
+                        </label>
+                        <label class="block min-w-0"><span class="mb-1 block text-sm font-semibold text-gray-700">Projectleider</span>
+                            <select name="project_leader_id" x-model="form.project_leader_id" class="!min-h-11 w-full" :class="err('project_leader_id') && '!border-red-400'">
+                                <option value="">- Geen -</option>
+                                <template x-for="user in data.leaders" :key="user.id"><option :value="user.id" x-text="user.name" :selected="String(user.id) === String(form.project_leader_id)"></option></template>
+                            </select>
+                        </label>
+                    </div>
+                    <p x-show="err('status') || err('project_leader_id')" x-text="err('status') ?? err('project_leader_id')" data-error class="text-xs font-semibold text-red-700"></p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="block min-w-0"><span class="mb-1 block text-sm font-semibold text-gray-700">Startdatum</span>
+                            <input type="date" name="start_date" x-model="form.start_date" class="!min-h-11 w-full" :class="err('start_date') && '!border-red-400'">
+                        </label>
+                        <label class="block min-w-0"><span class="mb-1 block text-sm font-semibold text-gray-700">Oplevering</span>
+                            <input type="date" name="end_date_expected" x-model="form.end_date_expected" :min="form.start_date || null" class="!min-h-11 w-full" :class="err('end_date_expected') && '!border-red-400'">
+                        </label>
+                    </div>
+                    <p x-show="err('start_date') || err('end_date_expected')" x-text="err('start_date') ?? err('end_date_expected')" data-error class="text-xs font-semibold text-red-700"></p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="block min-w-0"><span class="mb-1 block text-sm font-semibold text-gray-700">Waarde (€)</span>
+                            <input type="number" name="value" x-model="form.value" inputmode="decimal" min="0" step="0.01" class="!min-h-11 w-full" :class="err('value') && '!border-red-400'">
+                        </label>
+                        <label class="block min-w-0"><span class="mb-1 block text-sm font-semibold text-gray-700">Aanbetaling (€)</span>
+                            <input type="number" name="deposit_amount" x-model="form.deposit_amount" inputmode="decimal" min="0" step="0.01" class="!min-h-11 w-full" :class="err('deposit_amount') && '!border-red-400'">
+                        </label>
+                    </div>
+                    <p x-show="err('value') || err('deposit_amount')" x-text="err('value') ?? err('deposit_amount')" data-error class="text-xs font-semibold text-red-700"></p>
+                    <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Notities</span>
+                        <textarea name="notes" x-model="form.notes" rows="3" class="w-full" :class="err('notes') && '!border-red-400'"></textarea>
+                        <p x-show="err('notes')" x-text="err('notes')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                    </label>
+                    <div>
+                        <span class="mb-1 block text-sm font-semibold text-gray-700">Omslagfoto</span>
+                        <div class="flex items-center gap-3">
+                            <img x-show="coverPreview" :src="coverPreview" alt="Gekozen omslagfoto" class="h-14 w-20 shrink-0 rounded-lg object-cover">
+                            <label class="app-btn !min-h-11 cursor-pointer"><span x-icon="'camera'" class="h-4 w-4"></span> <span x-text="cover ? 'Andere foto' : 'Foto kiezen'"></span>
+                                <input type="file" accept="image/*" class="sr-only" @change.stop="pickCover($event)">
+                            </label>
+                            <button type="button" x-show="cover" @click="clearCover()" class="app-btn ghost !min-h-11">Weghalen</button>
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500">Deze foto verschijnt op de projectkaarten (jpg/png, max 5 MB).</p>
+                        <p x-show="err('cover_photo')" x-text="err('cover_photo')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                    </div>
+                </section>
+
+                <section data-enter class="app-card space-y-2 p-4">
+                    <h2 class="text-sm font-bold text-navy-900">Uitvoerders op dit project</h2>
+                    <template x-for="user in data.uitvoerders" :key="user.id">
+                        <button type="button" @click="toggleCraftsman(user.id)" :aria-pressed="form.craftsmen.includes(user.id)"
+                                class="tap flex min-h-11 w-full items-center gap-3 rounded-xl border px-3 text-left text-sm font-medium"
+                                :class="form.craftsmen.includes(user.id) ? 'border-brand-400 bg-brand-50 text-brand-800' : 'border-gray-200 text-navy-900'">
+                            <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border" :class="form.craftsmen.includes(user.id) ? 'border-brand-500 bg-brand-500 text-white' : 'border-gray-300'">
+                                <span x-show="form.craftsmen.includes(user.id)" x-icon="'check'" class="h-3.5 w-3.5"></span>
+                            </span>
+                            <span x-text="user.name"></span>
+                        </button>
+                    </template>
+                    <p x-show="!data.uitvoerders.length" class="text-sm text-gray-500">Nog geen uitvoerders. Voeg ze toe via Team.</p>
+                    <p x-show="err('craftsmen')" x-text="err('craftsmen')" data-error class="text-xs font-semibold text-red-700"></p>
+                </section>
+
+                <p x-show="formError" x-text="formError" role="alert" class="rounded-xl bg-red-100 px-3 py-2 text-sm font-medium text-red-800"></p>
+                <div class="flex gap-2 pb-2">
+                    <button type="submit" :disabled="saving" class="min-h-11 flex-1 rounded-xl bg-brand-500 px-4 text-sm font-bold text-white hover:bg-brand-600 active:bg-brand-600 disabled:opacity-60" x-text="saving ? 'Bezig' : 'Project aanmaken'"></button>
+                    <button type="button" @click="cancel()" class="min-h-11 rounded-xl border border-gray-300 bg-white px-5 text-sm font-semibold text-gray-600">Annuleren</button>
+                </div>
+            </form>
+        </template>
+    </div>
+</template>
+
+<!-- Project bewerken (projects/edit) -->
+<template x-if="$store.os.route === 'projectbewerken'">
+    <div>
+        <template x-for="id in [$store.os.param]" :key="id">
+            <div x-data="projectEditForm(id)">
+                <nav class="app-crumbs mb-2 !text-gray-500">
+                    <button type="button" @click="$store.os.go('/projecten/' + id)" class="tap">Project</button>
+                    <span x-icon="'chevron-right'" class="h-3 w-3"></span>
+                    <span>Bewerken</span>
+                </nav>
+                <div data-enter class="app-ph">
+                    <p class="sec-eye"><span x-icon="'folder'"></span> Projecten</p>
+                    <h1><span x-text="data?.title ?? ''"></span><span x-show="!data" class="skeleton inline-block h-7 w-2/3 align-middle"></span></h1>
+                    <p class="sub" x-text="data?.subtitle ?? ''"></p>
+                </div>
+
+                <template x-if="unavailable">
+                    <div class="app-card p-5 text-center"><p class="text-sm font-semibold text-navy-900" x-text="unavailable"></p></div>
+                </template>
+                <template x-if="failed && !unavailable">
+                    <div class="app-card p-5 text-center">
+                        <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                        <button type="button" @click="load()" class="app-btn mt-3 !min-h-11">Opnieuw proberen</button>
+                    </div>
+                </template>
+                <div x-show="!form && !failed && !unavailable" class="app-card space-y-3 p-4">
+                    <div class="skeleton h-11 w-full"></div><div class="skeleton h-11 w-full"></div><div class="skeleton h-11 w-2/3"></div>
+                </div>
+
+                <template x-if="form && !unavailable">
+                    <form @submit.prevent="save()" @input="touch($event)" @change="touch($event)" novalidate class="space-y-3">
+                        <section data-enter class="app-card space-y-3 p-4">
+                            <h2 class="text-sm font-bold text-navy-900">Project</h2>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Klant</span>
+                                <select name="customer_id" x-model="form.customer_id" class="!min-h-11 w-full" :class="err('customer_id') && '!border-red-400'">
+                                    <template x-for="customer in data.customers" :key="customer.id">
+                                        <option :value="customer.id" x-text="customer.name" :selected="String(customer.id) === String(form.customer_id)"></option>
+                                    </template>
+                                </select>
+                                <p x-show="err('customer_id')" x-text="err('customer_id')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Naam</span>
+                                <input type="text" name="name" x-model="form.name" enterkeyhint="next" class="!min-h-11 w-full" :class="err('name') && '!border-red-400'">
+                                <p x-show="err('name')" x-text="err('name')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Adres</span>
+                                <input type="text" name="address" x-model="form.address" autocomplete="street-address" enterkeyhint="next" class="!min-h-11 w-full" :class="err('address') && '!border-red-400'">
+                                <p x-show="err('address')" x-text="err('address')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Plaats</span>
+                                <input type="text" name="city" x-model="form.city" autocomplete="address-level2" enterkeyhint="next" class="!min-h-11 w-full" :class="err('city') && '!border-red-400'">
+                                <p x-show="err('city')" x-text="err('city')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label class="block min-w-0"><span class="mb-1 block text-sm font-semibold text-gray-700">Startdatum</span>
+                                    <input type="date" name="start_date" x-model="form.start_date" class="!min-h-11 w-full" :class="err('start_date') && '!border-red-400'">
+                                </label>
+                                <label class="block min-w-0"><span class="mb-1 block text-sm font-semibold text-gray-700">Oplevering</span>
+                                    <input type="date" name="end_date_expected" x-model="form.end_date_expected" class="!min-h-11 w-full" :class="err('end_date_expected') && '!border-red-400'">
+                                </label>
+                            </div>
+                            <p x-show="err('start_date') || err('end_date_expected')" x-text="err('start_date') ?? err('end_date_expected')" data-error class="text-xs font-semibold text-red-700"></p>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Projectleider</span>
+                                <select name="project_leader_id" x-model="form.project_leader_id" class="!min-h-11 w-full" :class="err('project_leader_id') && '!border-red-400'">
+                                    <option value="">- Geen -</option>
+                                    <template x-for="user in data.leaders" :key="user.id"><option :value="user.id" x-text="user.name" :selected="String(user.id) === String(form.project_leader_id)"></option></template>
+                                </select>
+                                <p x-show="err('project_leader_id')" x-text="err('project_leader_id')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+                            <label class="block" x-show="data.phases.length"><span class="mb-1 block text-sm font-semibold text-gray-700">Huidige fase</span>
+                                <select name="current_phase" x-model="form.current_phase" class="!min-h-11 w-full" :class="err('current_phase') && '!border-red-400'">
+                                    <template x-for="phase in data.phases" :key="phase.value"><option :value="phase.value" x-text="phase.label" :selected="String(phase.value) === String(form.current_phase)"></option></template>
+                                </select>
+                                <span class="mt-1 block text-xs text-gray-500">Eerdere fasen worden gereed, latere fasen gaan terug naar "niet gestart". De voortgang rekent zichzelf uit.</span>
+                                <p x-show="err('current_phase')" x-text="err('current_phase')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Notities</span>
+                                <textarea name="notes" x-model="form.notes" rows="3" class="w-full" :class="err('notes') && '!border-red-400'"></textarea>
+                                <p x-show="err('notes')" x-text="err('notes')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+                            <div>
+                                <span class="mb-1 block text-sm font-semibold text-gray-700">Omslagfoto</span>
+                                <div class="flex flex-wrap items-center gap-3">
+                                    <img x-show="coverPreview" :src="coverPreview" alt="Nieuwe omslagfoto" class="h-14 w-20 shrink-0 rounded-lg object-cover">
+                                    <label class="app-btn !min-h-11 cursor-pointer"><span x-icon="'camera'" class="h-4 w-4"></span> <span x-text="cover || data.has_cover ? 'Andere foto' : 'Foto kiezen'"></span>
+                                        <input type="file" accept="image/*" class="sr-only" @change.stop="pickCover($event)">
+                                    </label>
+                                    <button type="button" x-show="cover" @click="clearCover()" class="app-btn ghost !min-h-11">Weghalen</button>
+                                </div>
+                                <p class="mt-1 text-xs text-gray-500" x-text="data.has_cover && !cover ? 'Er staat al een omslagfoto. Kies een andere om hem te vervangen (max 5 MB).' : 'Deze foto verschijnt op de projectkaarten (jpg/png, max 5 MB).'"></p>
+                                <p x-show="err('cover_photo')" x-text="err('cover_photo')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </div>
+                        </section>
+
+                        <section data-enter class="app-card space-y-2 p-4">
+                            <h2 class="text-sm font-bold text-navy-900">Uitvoerders op dit project</h2>
+                            <template x-for="user in data.uitvoerders" :key="user.id">
+                                <button type="button" @click="toggleCraftsman(user.id)" :aria-pressed="form.craftsmen.includes(user.id)"
+                                        class="tap flex min-h-11 w-full items-center gap-3 rounded-xl border px-3 text-left text-sm font-medium"
+                                        :class="form.craftsmen.includes(user.id) ? 'border-brand-400 bg-brand-50 text-brand-800' : 'border-gray-200 text-navy-900'">
+                                    <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border" :class="form.craftsmen.includes(user.id) ? 'border-brand-500 bg-brand-500 text-white' : 'border-gray-300'">
+                                        <span x-show="form.craftsmen.includes(user.id)" x-icon="'check'" class="h-3.5 w-3.5"></span>
+                                    </span>
+                                    <span x-text="user.name"></span>
+                                </button>
+                            </template>
+                            <p x-show="!data.uitvoerders.length" class="text-sm text-gray-500">Nog geen uitvoerders aangemaakt (gebruikers met rol "Uitvoerder").</p>
+                            <p x-show="err('craftsmen')" x-text="err('craftsmen')" data-error class="text-xs font-semibold text-red-700"></p>
+                        </section>
+
+                        <section data-enter class="app-card space-y-3 p-4">
+                            <h2 class="text-sm font-bold text-navy-900">Betalingen</h2>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label class="block min-w-0"><span class="mb-1 block text-sm font-semibold text-gray-700">Waarde (€)</span>
+                                    <input type="number" name="value" x-model="form.value" inputmode="decimal" min="0" step="0.01" class="!min-h-11 w-full" :class="err('value') && '!border-red-400'">
+                                </label>
+                                <label class="block min-w-0"><span class="mb-1 block text-sm font-semibold text-gray-700">Aanbetaling (€)</span>
+                                    <input type="number" name="deposit_amount" x-model="form.deposit_amount" inputmode="decimal" min="0" step="0.01" class="!min-h-11 w-full" :class="err('deposit_amount') && '!border-red-400'">
+                                </label>
+                            </div>
+                            <p x-show="err('value') || err('deposit_amount')" x-text="err('value') ?? err('deposit_amount')" data-error class="text-xs font-semibold text-red-700"></p>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label class="block min-w-0"><span class="mb-1 block text-sm font-semibold text-gray-700">Reeds betaald (€)</span>
+                                    <input type="number" name="paid_amount" x-model="form.paid_amount" inputmode="decimal" min="0" step="0.01" class="!min-h-11 w-full" :class="err('paid_amount') && '!border-red-400'">
+                                </label>
+                                <label class="block min-w-0"><span class="mb-1 block text-sm font-semibold text-gray-700">Volgende termijn</span>
+                                    <input type="date" name="next_payment_due_at" x-model="form.next_payment_due_at" class="!min-h-11 w-full" :class="err('next_payment_due_at') && '!border-red-400'">
+                                </label>
+                            </div>
+                            <p x-show="err('paid_amount') || err('next_payment_due_at')" x-text="err('paid_amount') ?? err('next_payment_due_at')" data-error class="text-xs font-semibold text-red-700"></p>
+                            <label class="tap flex min-h-11 items-center gap-3 text-sm font-medium text-navy-900">
+                                <input type="checkbox" name="deposit_received" x-model="form.deposit_received" class="h-5 w-5 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+                                Aanbetaling ontvangen
+                            </label>
+                        </section>
+
+                        <p x-show="formError" x-text="formError" role="alert" class="rounded-xl bg-red-100 px-3 py-2 text-sm font-medium text-red-800"></p>
+                        <div class="flex gap-2 pb-2">
+                            <button type="submit" :disabled="saving" class="min-h-11 flex-1 rounded-xl bg-brand-500 px-4 text-sm font-bold text-white hover:bg-brand-600 active:bg-brand-600 disabled:opacity-60" x-text="saving ? 'Bezig' : 'Opslaan'"></button>
+                            <button type="button" @click="cancel()" class="min-h-11 rounded-xl border border-gray-300 bg-white px-5 text-sm font-semibold text-gray-600">Annuleren</button>
+                        </div>
+                    </form>
+                </template>
+            </div>
+        </template>
+    </div>
+</template>

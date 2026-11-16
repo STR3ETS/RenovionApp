@@ -1,0 +1,51 @@
+<!-- ===== Dagbriefing van Nova ===== -->
+<template x-if="$store.os.route === 'briefing'">
+    <div x-data="briefing">
+        <div data-enter class="app-ph">
+            <p class="sec-eye"><span x-icon="'sparkles'"></span> Nova</p>
+            <h1>Dag<em>briefing</em></h1>
+            <p class="sub" x-text="osFormat.today()"></p>
+        </div>
+
+        <template x-if="failed">
+            <div class="app-card mb-3 p-5 text-center">
+                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                <button type="button" @click="load()" class="app-btn mt-3 min-h-11">Opnieuw proberen</button>
+            </div>
+        </template>
+
+        <section data-enter class="app-card mb-3 p-4" x-show="!failed">
+            <div class="mb-3 flex items-center gap-3">
+                <img :src="$store.os.novaUrl" alt="" class="h-11 w-11 shrink-0 rounded-full object-cover ring-2 ring-brand-500">
+                <div class="min-w-0">
+                    <p class="text-sm font-bold text-navy-900" x-text="osFormat.greeting() + ($store.os.profile?.user?.first_name ? ', ' + $store.os.profile.user.first_name : '')"></p>
+                    <p class="text-xs text-gray-500">Nova vat samen wat er speelt en wat als eerste aandacht vraagt.</p>
+                </div>
+            </div>
+
+            <!-- Laden (of opnieuw laten schrijven): grijze regels in de vorm van de tekst -->
+            <div x-show="!data || refreshing" class="space-y-2 py-1">
+                <span class="skeleton block h-3.5 w-full"></span>
+                <span class="skeleton block h-3.5 w-11/12"></span>
+                <span class="skeleton block h-3.5 w-4/5"></span>
+                <span class="skeleton block h-3.5 w-2/3"></span>
+            </div>
+
+            <p x-show="data?.text && !refreshing" class="text-[15px] leading-relaxed whitespace-pre-line text-gray-800" x-text="data?.text"></p>
+            <div x-show="data && !data.text && !refreshing" class="rounded-xl bg-gray-50 p-3 text-sm text-gray-600">
+                <p class="font-semibold text-navy-900">Geen briefing beschikbaar</p>
+                <p class="mt-0.5">Nova is niet gekoppeld of nu niet bereikbaar. Probeer het later opnieuw.</p>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-2 gap-2" x-show="!failed">
+            <button type="button" @click="refresh()" :disabled="refreshing || !data" class="app-btn min-h-11 justify-center disabled:opacity-60">
+                <span x-icon="'arrow-path'" class="h-4 w-4"></span>
+                <span x-text="refreshing ? 'Bezig' : 'Vernieuwen'"></span>
+            </button>
+            <button type="button" @click="$store.os.nova = true" class="app-btn pri min-h-11 justify-center">
+                <span x-icon="'sparkles'" class="h-4 w-4"></span> Vraag Nova
+            </button>
+        </div>
+    </div>
+</template>

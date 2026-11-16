@@ -5,17 +5,20 @@ namespace App\Http\Controllers;
 use App\Models\AuditLog;
 use App\Models\JobExecution;
 use App\Models\JobStep;
+use App\Support\App\FieldWork;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 /**
  * Stappen afvinken op het klusscherm, met de notitie en het foto-bewijs dat
  * erbij hoort. Een stap met verplichte foto gaat niet af zonder foto: dat is
- * precies het bewijsmoment dat je achteraf niet meer kunt maken.
+ * precies het bewijsmoment dat je achteraf niet meer kunt maken. De app
+ * (api/app/klussen) krijgt dezelfde meldingen als JSON.
  */
 class JobStepController extends Controller
 {
-    public function toggle(Request $request, JobExecution $job, JobStep $step): RedirectResponse
+    public function toggle(Request $request, JobExecution $job, JobStep $step): RedirectResponse|JsonResponse
     {
         abort_unless($request->user()->id === $job->user_id, 403);
         abort_unless($step->job_execution_id === $job->id, 404);
@@ -23,13 +26,13 @@ class JobStepController extends Controller
         if ($step->isDone()) {
             $step->update(['completed_at' => null, 'completed_by' => null]);
 
-            return back()->with('success', 'Stap weer open gezet.');
+            return FieldWork::done($request, 'Stap weer open gezet.');
         }
 
         $step->load('photos');
 
         if ($step->needsPhoto()) {
-            return back()->with('error', 'Bij deze stap hoort een foto. Maak die eerst.');
+            return FieldWork::refuse($request, 'Bij deze stap hoort een foto. Maak die eerst.');
         }
 
         $step->update(['completed_at' => now(), 'completed_by' => $request->user()->id]);
@@ -38,10 +41,10 @@ class JobStepController extends Controller
             AuditLog::record($job, 'alle stappen afgevinkt');
         }
 
-        return back()->with('success', 'Stap afgevinkt.');
+        return FieldWork::done($request, 'Stap afgevinkt.');
     }
 
-    public function note(Request $request, JobExecution $job, JobStep $step): RedirectResponse
+    public function note(Request $request, JobExecution $job, JobStep $step): RedirectResponse|JsonResponse
     {
         abort_unless($request->user()->id === $job->user_id, 403);
         abort_unless($step->job_execution_id === $job->id, 404);
@@ -50,14 +53,14 @@ class JobStepController extends Controller
             'note' => ['nullable', 'string', 'max:2000'],
         ]));
 
-        return back()->with('success', 'Notitie opgeslagen.');
+        return FieldWork::done($request, 'Notitie opgeslagen.');
     }
 
     /**
      * Foto bij een stap. De foto landt ook in het projectdossier, want
      * foto-bewijs hoort nooit in een losse galerij te staan.
      */
-    public function photo(Request $request, JobExecution $job, JobStep $step): RedirectResponse
+    public function photo(Request $request, JobExecution $job, JobStep $step): RedirectResponse|JsonResponse
     {
         abort_unless($request->user()->id === $job->user_id, 403);
         abort_unless($step->job_execution_id === $job->id, 404);
@@ -79,6 +82,6 @@ class JobStepController extends Controller
 
         $count = count($validated['photos']);
 
-        return back()->with('success', $count === 1 ? 'Foto opgeslagen.' : "{$count} foto's opgeslagen.");
+        return FieldWork::done($request, $count === 1 ? 'Foto opgeslagen.' : "{$count} foto's opgeslagen.");
     }
 }

@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateUserRequest;
 use App\Models\AuditLog;
 use App\Models\User;
 use App\Support\Navigation;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -47,11 +48,16 @@ class TeamController extends Controller
         return view('team.create');
     }
 
-    public function store(StoreUserRequest $request): RedirectResponse
+    public function store(StoreUserRequest $request): RedirectResponse|JsonResponse
     {
         $user = User::create($request->validated());
 
         AuditLog::record($user, 'aangemaakt', [], ['role' => $user->role->value]);
+
+        // De app (formulier in mobile/app): terug naar het team, zoals de website.
+        if ($request->expectsJson()) {
+            return response()->json(['id' => $user->id, 'path' => route('team.index', absolute: false)], 201);
+        }
 
         return redirect()->route('team.index')->with('success', $user->name.' is toegevoegd aan het team.');
     }
@@ -61,7 +67,7 @@ class TeamController extends Controller
         return view('team.edit', ['user' => $user]);
     }
 
-    public function update(UpdateUserRequest $request, User $user): RedirectResponse
+    public function update(UpdateUserRequest $request, User $user): RedirectResponse|JsonResponse
     {
         $validated = $request->validated();
 
@@ -79,6 +85,10 @@ class TeamController extends Controller
 
         if ($user->wasChanged('role')) {
             AuditLog::record($user, 'rol_gewijzigd', ['role' => $oldRole], ['role' => $user->role->value]);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json(['id' => $user->id, 'path' => route('team.index', absolute: false)]);
         }
 
         return redirect()->route('team.index')->with('success', $user->name.' is bijgewerkt.');

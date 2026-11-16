@@ -1,0 +1,218 @@
+<!-- ===== Facturatie ===== -->
+<template x-if="$store.os.route === 'facturen'">
+    <div x-data="invoices">
+        <nav class="app-sectabs" aria-label="Onderdelen van Geld">
+            <a href="#/financieel">Financieel</a>
+            <a href="#/facturen" class="on" aria-current="page">Facturatie</a>
+            <a href="#/inkoop">Inkoop</a>
+            <a href="#/nacalculatie">Nacalculatie</a>
+        </nav>
+
+        <div data-enter class="app-ph">
+            <p class="sec-eye"><span x-icon="'receipt'"></span> Geld</p>
+            <h1><em>Facturatie</em></h1>
+            <p class="sub">Termijnen uit de begroting, meerwerk en de eindafrekening.</p>
+        </div>
+
+        <template x-if="failed">
+            <div class="app-card mb-3 p-5 text-center">
+                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                <button type="button" @click="load()" class="app-btn mt-3 min-h-11">Opnieuw proberen</button>
+            </div>
+        </template>
+
+        <section class="app-kpis mb-3" x-show="!failed">
+            <div data-enter class="app-kpi dark">
+                <span class="lbl">Openstaand bij klanten</span>
+                <span class="v"><i>€</i> <span x-text="data ? osFormat.euro(data.kpis.outstanding).slice(2) : ''"></span><span x-show="!data" class="skeleton skeleton-dark inline-block h-6 w-32 align-middle"></span></span>
+                <span class="s" x-text="data ? osFormat.tally(data.kpis.total, 'factuur', 'facturen') + ' in totaal' : ' '"></span>
+            </div>
+            <div data-enter class="app-kpi" :style="data?.kpis.overdue > 0 ? '--kc: #e5484d' : ''">
+                <span class="lbl">Waarvan te laat</span>
+                <span class="v" :class="data?.kpis.overdue > 0 && '!text-red-600'"><span x-text="data ? osFormat.euro(data.kpis.overdue) : ''"></span><span x-show="!data" class="skeleton inline-block h-6 w-20 align-middle"></span></span>
+                <span class="s" x-text="data ? (data.kpis.overdue > 0 ? 'direct opvolgen' : 'niets te laat') : ' '"></span>
+            </div>
+            <div data-enter class="app-kpi" style="--kc: #1e8a5a">
+                <span class="lbl">Klaar om te factureren</span>
+                <span class="v"><span x-text="data ? osFormat.euro(data.kpis.ready) : ''"></span><span x-show="!data" class="skeleton inline-block h-6 w-20 align-middle"></span></span>
+                <span class="s" x-text="data ? osFormat.tally(data.kpis.ready_count, 'termijn', 'termijnen') : ' '"></span>
+            </div>
+            <div data-enter class="app-kpi wide" style="--kc: #3e6ba8">
+                <span class="lbl">Betaald</span>
+                <span class="v"><span x-text="data?.kpis.paid"></span><span x-show="!data" class="skeleton inline-block h-6 w-10 align-middle"></span></span>
+                <span class="s">facturen voldaan</span>
+            </div>
+        </section>
+
+        <!-- Klaar om te factureren -->
+        <section data-enter class="mb-3 rounded-2xl border border-green-200 bg-green-50 p-4" x-show="data?.ready.length">
+            <h2 class="text-sm font-bold text-navy-900">Klaar om te <span class="text-brand-600">factureren</span></h2>
+            <p class="mb-3 text-xs text-gray-600">Termijnen uit definitieve begrotingen waarvoor nog geen factuur is.</p>
+            <div class="space-y-2">
+                <template x-for="row in data?.ready ?? []" :key="row.term">
+                    <div class="rounded-xl border border-gray-200 bg-white p-3">
+                        <div class="flex items-start gap-3">
+                            <span class="min-w-0 flex-1">
+                                <b class="block text-sm font-semibold text-navy-900" x-text="row.title"></b>
+                                <small class="block text-xs text-gray-500" x-text="row.sub"></small>
+                            </span>
+                            <b class="shrink-0 text-sm text-navy-900" x-text="osFormat.euro(row.amount)"></b>
+                        </div>
+                        <button type="button" @click="invoiceTerm(row)" :disabled="busy !== null"
+                                class="mt-2 flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-brand-500 text-sm font-bold text-white active:bg-brand-600 disabled:opacity-60">
+                            <span x-icon="'receipt'" class="h-4 w-4"></span>
+                            <span x-text="busy === row.term ? 'Bezig' : 'Factuur maken'"></span>
+                        </button>
+                    </div>
+                </template>
+            </div>
+        </section>
+
+        <!-- Tabs per status -->
+        <div class="-mx-4 mb-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]" x-show="data">
+            <template x-for="option in data?.filters ?? []" :key="option.value">
+                <button type="button" @click="filter(option.value)" class="app-chip tap shrink-0" :class="status === option.value && 'on'">
+                    <b class="font-semibold" x-text="option.label"></b> <span x-text="option.count"></span>
+                </button>
+            </template>
+        </div>
+
+        <template x-if="data && data.invoices.length === 0">
+            <div class="app-card p-6 text-center">
+                <span class="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-500"><span x-icon="'currency-euro'" class="h-5 w-5"></span></span>
+                <p class="text-sm font-semibold text-navy-900">Nog geen facturen</p>
+                <p class="mt-0.5 text-xs text-gray-500">Zodra een begroting definitief is, kun je de termijnen hier factureren.</p>
+            </div>
+        </template>
+
+        <div data-enter class="app-card" x-show="!failed && (!data || data.invoices.length > 0)">
+            <div class="app-card-b">
+                <template x-for="i in (data ? 0 : 6)" :key="i">
+                    <div class="flex items-center gap-3.5 py-3.5"><span class="skeleton h-9 w-9 shrink-0 !rounded-[11px]"></span><span class="flex-1"><span class="skeleton mb-2 block h-3.5 w-2/3"></span><span class="skeleton block h-3 w-1/2"></span></span></div>
+                </template>
+                <template x-for="invoice in data?.invoices ?? []" :key="invoice.id">
+                    <button type="button" @click="$store.os.go(invoice.path)" class="app-li ibx w-full text-left" :style="`--st: ${invoice.overdue ? '#e5484d' : 'transparent'}`">
+                        <span class="app-ic" :class="invoice.overdue ? 'bad' : 'blue'"><span x-icon="'receipt'" class="h-[18px] w-[18px]"></span></span>
+                        <span class="min-w-0 flex-1">
+                            <b x-text="invoice.title"></b>
+                            <span class="mt-1 flex flex-wrap gap-1">
+                                <span class="rounded-full px-2 py-0.5 text-[10px] font-bold" :class="invoice.status.classes" x-text="invoice.status.label"></span>
+                                <span class="rounded-full px-2 py-0.5 text-[10px] font-bold" :class="invoice.type.classes" x-text="invoice.type.label"></span>
+                            </span>
+                            <small class="truncate">
+                                <span x-text="invoice.number + ', ' + invoice.customer + ', '"></span><span :class="invoice.overdue && 'font-semibold text-red-600'" x-text="invoice.due"></span>
+                            </small>
+                        </span>
+                        <span class="shrink-0 text-right">
+                            <b class="whitespace-nowrap" x-text="osFormat.euro(invoice.total)"></b>
+                            <small>incl. btw</small>
+                        </span>
+                    </button>
+                </template>
+            </div>
+        </div>
+
+        <div class="mt-3 flex items-center justify-between gap-2" x-show="data && data.last_page > 1">
+            <button type="button" @click="goPage(data.page - 1)" :disabled="data?.page <= 1" class="app-btn min-h-11 disabled:opacity-40"><span x-icon="'chevron-left'" class="h-4 w-4"></span> Vorige</button>
+            <span class="text-xs text-gray-500" x-text="data ? 'Pagina ' + data.page + ' van ' + data.last_page : ''"></span>
+            <button type="button" @click="goPage(data.page + 1)" :disabled="data?.page >= data?.last_page" class="app-btn min-h-11 disabled:opacity-40">Volgende <span x-icon="'chevron-right'" class="h-4 w-4"></span></button>
+        </div>
+    </div>
+</template>
+
+<!-- ===== Factuur ===== -->
+<template x-if="$store.os.route === 'factuur'">
+    <div>
+        <template x-for="id in [$store.os.param]" :key="id">
+            <div x-data="invoice(id)">
+                <nav class="app-crumbs mb-2 !text-gray-500">
+                    <template x-if="data?.project">
+                        <span class="contents">
+                            <button type="button" @click="$store.os.go(data.project.path)" class="tap inline-flex min-w-0 items-center gap-1 font-semibold !text-brand-700"><span x-icon="'folder'" class="h-3.5 w-3.5 shrink-0"></span><span class="truncate" x-text="data.project.name"></span></button>
+                            <span x-icon="'chevron-right'" class="h-3 w-3 shrink-0"></span>
+                        </span>
+                    </template>
+                    <a x-show="!data?.project" href="#/facturen" class="tap">Facturatie</a>
+                    <span x-show="!data?.project" x-icon="'chevron-right'" class="h-3 w-3"></span>
+                    <span x-text="data?.number ?? ''"></span>
+                </nav>
+                <div data-enter class="app-ph">
+                    <p class="sec-eye"><span x-icon="'receipt'"></span> <span x-text="data?.number ?? 'Factuur'"></span></p>
+                    <h1><span x-text="data?.title ?? ''"></span><span x-show="!data" class="skeleton inline-block h-7 w-2/3 align-middle"></span></h1>
+                    <p class="sub" x-text="data?.subtitle ?? ''"></p>
+                    <div class="app-ph-acts" x-show="data">
+                        <span class="rounded-full px-3 py-1 text-sm font-semibold" :class="data?.status.classes" x-text="data?.status.label"></span>
+                        <span class="rounded-full px-3 py-1 text-sm font-semibold" :class="data?.type.classes" x-text="data?.type.label"></span>
+                    </div>
+                </div>
+
+                <template x-if="failed">
+                    <div class="app-card mb-3 p-5 text-center">
+                        <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                        <button type="button" @click="load()" class="app-btn mt-3 min-h-11">Opnieuw proberen</button>
+                    </div>
+                </template>
+
+                <template x-if="!data && !failed">
+                    <div class="app-card mb-3 p-4"><template x-for="i in 4" :key="i"><div class="flex justify-between gap-4 py-2.5"><span class="skeleton block h-3.5 w-2/3"></span><span class="skeleton block h-3.5 w-16"></span></div></template></div>
+                </template>
+
+                <!-- Status en acties -->
+                <section data-enter class="app-card mb-3 p-4" x-show="data">
+                    <h2 class="mb-2 text-sm font-bold text-navy-900">Status</h2>
+                    <div class="app-fields !mt-0">
+                        <template x-for="row in data?.dates ?? []" :key="row.label">
+                            <div><span class="app-lbl" x-text="row.label"></span><b :class="{ 'text-red-600': row.late, 'text-green-700': row.paid }" x-text="row.value"></b></div>
+                        </template>
+                    </div>
+                    <div class="mt-3 space-y-2">
+                        <button type="button" x-show="data?.can.send" @click="setStatus('verzonden')" :disabled="busy !== null"
+                                class="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-brand-500 text-sm font-bold text-white active:bg-brand-600 disabled:opacity-60">
+                            <span x-icon="'paper-airplane'" class="h-4 w-4"></span> <span x-text="busy === 'verzonden' ? 'Bezig' : 'Markeren als verstuurd'"></span>
+                        </button>
+                        <button type="button" x-show="data?.can.paid" @click="setStatus('betaald')" :disabled="busy !== null"
+                                class="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-brand-500 text-sm font-bold text-white active:bg-brand-600 disabled:opacity-60">
+                            <span x-icon="'check'" class="h-4 w-4"></span> <span x-text="busy === 'betaald' ? 'Bezig' : 'Betaling ontvangen'"></span>
+                        </button>
+                        <button type="button" x-show="data?.can.delete" @click="remove()" :disabled="busy !== null"
+                                class="flex min-h-11 w-full items-center justify-center rounded-xl border border-gray-200 bg-white text-sm font-semibold text-red-600 disabled:opacity-60"
+                                x-text="busy === 'delete' ? 'Bezig' : 'Concept verwijderen'"></button>
+                    </div>
+                </section>
+
+                <!-- Regels en totalen -->
+                <section data-enter class="app-card mb-3 p-4" x-show="data">
+                    <h2 class="mb-1 text-sm font-bold text-navy-900">Factuur<span class="text-brand-600">regels</span></h2>
+                    <ul class="divide-y divide-gray-100">
+                        <template x-for="line in data?.lines ?? []" :key="line.id">
+                            <li class="flex items-start gap-3 py-2.5">
+                                <span class="min-w-0 flex-1">
+                                    <span class="block text-sm font-medium text-navy-900" x-text="line.description"></span>
+                                    <span class="text-xs text-gray-500" x-text="line.quantity + ' × ' + osFormat.euro(line.price, 2)"></span>
+                                </span>
+                                <span class="shrink-0 text-sm font-semibold whitespace-nowrap" :class="line.total < 0 ? 'text-amber-700' : 'text-navy-900'" x-text="osFormat.euro(line.total, 2)"></span>
+                            </li>
+                        </template>
+                    </ul>
+                    <dl class="mt-2 space-y-1 border-t border-gray-200 pt-2 text-sm">
+                        <div class="flex justify-between gap-3"><dt class="text-gray-500">Subtotaal</dt><dd class="font-semibold text-navy-900" x-text="osFormat.euro(data?.subtotal, 2)"></dd></div>
+                        <div class="flex justify-between gap-3"><dt class="text-gray-500" x-text="data?.vat_label"></dt><dd class="font-semibold text-navy-900" x-text="osFormat.euro(data?.vat, 2)"></dd></div>
+                        <div class="flex justify-between gap-3" x-show="data?.retention > 0"><dt class="text-amber-700">Ingehouden, opschortingsrecht vijf procent</dt><dd class="shrink-0 font-semibold text-amber-700" x-text="'-' + osFormat.euro(data?.retention, 2)"></dd></div>
+                        <div class="flex justify-between gap-3 border-t border-gray-200 pt-2 text-base"><dt class="font-bold text-navy-900">Te voldoen</dt><dd class="font-bold text-navy-900" x-text="osFormat.euro(data?.total, 2)"></dd></div>
+                    </dl>
+                </section>
+
+                <section data-enter class="app-card mb-3 p-4" x-show="data?.term">
+                    <h2 class="mb-1 text-sm font-bold text-navy-900">Uit de begroting</h2>
+                    <p class="text-sm text-gray-700" x-text="data?.term?.description"></p>
+                    <button type="button" @click="$store.os.go(data.term.path)" class="app-btn mt-3 min-h-11"><span x-icon="'calculator'" class="h-4 w-4"></span> <span x-text="data?.term?.budget"></span></button>
+                </section>
+
+                <div class="flex flex-wrap gap-2" x-show="data">
+                    <button type="button" @click="$store.os.go(data.links.customer)" class="app-btn min-h-11"><span x-icon="'user'" class="h-4 w-4"></span> Klantdossier</button>
+                    <button type="button" x-show="data?.links.project" @click="$store.os.go(data.links.project)" class="app-btn min-h-11"><span x-icon="'folder'" class="h-4 w-4"></span> Project</button>
+                </div>
+            </div>
+        </template>
+    </div>
+</template>

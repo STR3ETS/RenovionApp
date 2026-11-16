@@ -1,0 +1,351 @@
+<!-- ===== Goedkeuringen: wat op een menselijk besluit wacht ===== -->
+<template x-if="$store.os.route === 'goedkeuringen'">
+    <div x-data="approvals">
+        <nav class="app-sectabs" aria-label="Onderdelen van Nova en agents">
+            <a href="#/goedkeuringen" class="on" aria-current="page">Goedkeuringen</a>
+            <a href="#/agents">Uitvoeringen</a>
+            <a href="#/skills" x-show="$store.os.profile?.can?.team">Skills</a>
+        </nav>
+
+        <div data-enter class="app-ph">
+            <p class="sec-eye"><span x-icon="'hand-thumb-up'"></span> Nova en agents</p>
+            <h1><em>Goedkeuringen</em></h1>
+            <p class="sub">Een agent stelt voor, een mens beslist. Verandert het voorstel na het verzoek, dan vervalt de goedkeuring.</p>
+        </div>
+
+        <template x-if="failed">
+            <div class="app-card mb-3 p-5 text-center">
+                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                <button type="button" @click="load()" class="app-btn mt-3 min-h-11">Opnieuw proberen</button>
+            </div>
+        </template>
+
+        <!-- Laden: de vorm van een voorstel -->
+        <template x-for="i in (data || failed ? 0 : 2)" :key="i">
+            <div class="app-card mb-3 p-4">
+                <div class="flex gap-3"><span class="skeleton h-10 w-10 shrink-0 !rounded-full"></span><span class="flex-1"><span class="skeleton mb-2 block h-4 w-2/3"></span><span class="skeleton mb-2 block h-3 w-full"></span><span class="skeleton block h-3 w-1/2"></span></span></div>
+                <span class="skeleton mt-4 block h-11 w-full"></span>
+            </div>
+        </template>
+
+        <template x-if="data && data.open.length === 0">
+            <div data-enter class="app-card mb-4 p-6 text-center">
+                <span class="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-500"><span x-icon="'hand-thumb-up'" class="h-5 w-5"></span></span>
+                <p class="text-sm font-semibold text-navy-900">Niets te besluiten</p>
+                <p class="mt-0.5 text-xs text-gray-500">Er liggen geen voorstellen die op jou wachten.</p>
+            </div>
+        </template>
+
+        <template x-for="approval in data?.open ?? []" :key="approval.id">
+            <section data-enter class="mb-3 overflow-hidden rounded-2xl border border-amber-200 bg-amber-50">
+                <div class="p-4">
+                    <div class="flex items-start gap-3">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold" :class="approval.agent.classes" x-text="approval.agent.initial"></span>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-bold text-navy-900" x-text="approval.action"></p>
+                            <div class="mt-1 flex flex-wrap gap-1.5">
+                                <span class="rounded-full px-2 py-0.5 text-[11px] font-bold" :class="approval.agent.classes" x-text="approval.agent.name"></span>
+                                <span x-show="approval.waiting_days >= 2" class="rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-bold text-red-800" x-text="approval.waiting_days + ' dagen onbesloten'"></span>
+                            </div>
+                            <p class="mt-1.5 text-sm text-gray-700" x-text="approval.summary"></p>
+                            <p class="mt-1 text-xs text-gray-600" x-text="approval.meta"></p>
+                        </div>
+                    </div>
+
+                    <dl x-show="approval.payload.length" class="mt-3 space-y-1 rounded-xl bg-white p-3 text-xs">
+                        <template x-for="row in approval.payload" :key="row.label">
+                            <div class="flex justify-between gap-3">
+                                <dt class="text-gray-500" x-text="row.label"></dt>
+                                <dd class="min-w-0 text-right font-medium break-words text-navy-900" x-text="row.value"></dd>
+                            </div>
+                        </template>
+                    </dl>
+
+                    <button type="button" x-show="approval.project" @click="$store.os.go(approval.project)" class="app-btn mt-3 min-h-11"><span x-icon="'folder'" class="h-4 w-4"></span> Naar het project</button>
+
+                    <div x-show="data.can_decide" class="mt-3 space-y-2 border-t border-amber-200 pt-3">
+                        <input type="text" x-model="reasons[approval.id]" maxlength="1000" placeholder="Reden, als je afwijst" class="w-full min-w-0">
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" @click="decide(approval, 'afwijzen')" :disabled="busy !== null"
+                                    class="flex min-h-11 items-center justify-center rounded-xl border border-gray-300 bg-white px-3 text-sm font-semibold text-navy-900 disabled:opacity-60"
+                                    x-text="busy === approval.id + ':afwijzen' ? 'Bezig' : 'Eerst aanpassen'"></button>
+                            <button type="button" @click="decide(approval, 'goedkeuren')" :disabled="busy !== null"
+                                    class="flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-brand-500 px-3 text-sm font-bold text-white active:bg-brand-600 disabled:opacity-60">
+                                <span x-icon="'check'" class="h-4 w-4"></span>
+                                <span x-text="busy === approval.id + ':goedkeuren' ? 'Bezig' : 'Ja, doe maar'"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </template>
+
+        <template x-if="data?.decided.length">
+            <div>
+                <p class="mt-4 mb-2 px-1 text-xs font-bold tracking-wide text-gray-500 uppercase">Eerder besloten</p>
+                <div data-enter class="app-card mb-4">
+                    <div class="app-card-b">
+                        <template x-for="approval in data.decided" :key="approval.id">
+                            <div class="app-li">
+                                <span class="min-w-0 flex-1">
+                                    <b x-text="approval.action"></b>
+                                    <small class="line-clamp-2" x-text="approval.summary"></small>
+                                    <small x-text="approval.sub"></small>
+                                </span>
+                                <span class="mt-0.5 max-w-[45%] shrink-0 rounded-full px-2.5 py-1 text-center text-[11px] leading-tight font-bold" :class="approval.status.classes" x-text="approval.status.label"></span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </div>
+</template>
+
+<!-- ===== Uitvoeringen: wat de agents doen, waar ze op wachten en wat het kost ===== -->
+<template x-if="$store.os.route === 'agents'">
+    <div x-data="agentRuns">
+        <nav class="app-sectabs" aria-label="Onderdelen van Nova en agents">
+            <a href="#/goedkeuringen">Goedkeuringen</a>
+            <a href="#/agents" class="on" aria-current="page">Uitvoeringen</a>
+            <a href="#/skills" x-show="$store.os.profile?.can?.team">Skills</a>
+        </nav>
+
+        <div data-enter class="app-ph">
+            <p class="sec-eye"><span x-icon="'sparkles'"></span> Nova en agents</p>
+            <h1><em>Uitvoeringen</em></h1>
+            <p class="sub">Wat de agents doen, waar ze op wachten en wat het kost.</p>
+            <div class="app-ph-acts">
+                <a x-show="data?.open_approvals > 0" href="#/goedkeuringen" class="flex min-h-11 items-center gap-1.5 rounded-full bg-brand-500 px-4 text-sm font-bold text-white active:bg-brand-600">
+                    <span x-icon="'hand-thumb-up'" class="h-4 w-4"></span>
+                    <span x-text="data ? osFormat.tally(data.open_approvals, 'besluit', 'besluiten') + ' nodig' : ''"></span>
+                </a>
+                <button type="button" @click="$store.os.openWeb('/audit')" class="app-btn min-h-11"><span x-icon="'clipboard-document-list'" class="h-4 w-4"></span> Audit</button>
+            </div>
+        </div>
+
+        <!-- De acht agents: tik om op die agent te filteren -->
+        <div class="-mx-4 mb-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+            <template x-for="i in (data ? 0 : 4)" :key="i">
+                <span class="skeleton h-[88px] w-40 shrink-0 !rounded-2xl"></span>
+            </template>
+            <template x-for="agent in data?.agents ?? []" :key="agent.id">
+                <button type="button" @click="pickAgent(agent.id)" :aria-pressed="agent.id === (data?.agent ?? '')"
+                        class="w-40 shrink-0 rounded-2xl border bg-white p-3 text-left"
+                        :class="agent.id === data?.agent ? 'border-brand-500 ring-1 ring-brand-500' : 'border-gray-200'">
+                    <span class="mb-1.5 flex items-center gap-2">
+                        <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold" :class="agent.classes" x-text="agent.initial"></span>
+                        <b class="truncate text-sm font-bold text-navy-900" x-text="agent.name"></b>
+                    </span>
+                    <span class="block truncate text-xs font-semibold text-gray-700" x-text="agent.field"></span>
+                    <span class="mt-0.5 line-clamp-2 block text-[11px] leading-snug text-gray-500" x-text="agent.task"></span>
+                </button>
+            </template>
+        </div>
+
+        <div class="app-chips -mx-4 !flex-nowrap overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+            <template x-for="tab in data?.tabs ?? []" :key="tab.key">
+                <button type="button" @click="filter(tab.key)" class="app-chip shrink-0" :class="status === tab.key && 'on'" :aria-pressed="status === tab.key">
+                    <b class="font-semibold" x-text="tab.label"></b> <span x-text="tab.count"></span>
+                </button>
+            </template>
+        </div>
+
+        <p x-show="data" class="mb-3 px-1 text-sm text-gray-600">Modelkosten <b class="text-navy-900" x-text="data ? osFormat.euro(data.cost, 2) : ''"></b></p>
+
+        <template x-if="failed">
+            <div class="app-card mb-3 p-5 text-center">
+                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                <button type="button" @click="load()" class="app-btn mt-3 min-h-11">Opnieuw proberen</button>
+            </div>
+        </template>
+
+        <template x-if="data && data.runs.length === 0">
+            <div class="app-card mb-4 p-6 text-center">
+                <span class="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-500"><span x-icon="'sparkles'" class="h-5 w-5"></span></span>
+                <p class="text-sm font-semibold text-navy-900">Nog geen uitvoeringen</p>
+                <p class="mt-0.5 text-xs text-gray-500">Zodra een gebeurtenis een skill in gang zet, staat de uitvoering hier met het hele verloop.</p>
+            </div>
+        </template>
+
+        <div class="space-y-2" x-show="!failed">
+            <template x-for="i in (data ? 0 : 4)" :key="i">
+                <div class="app-card flex gap-3 p-4"><span class="skeleton h-9 w-9 shrink-0 !rounded-full"></span><span class="flex-1"><span class="skeleton mb-2 block h-3.5 w-2/3"></span><span class="skeleton block h-3 w-full"></span></span></div>
+            </template>
+            <template x-for="run in data?.runs ?? []" :key="run.id">
+                <div data-enter class="app-card">
+                    <button type="button" @click="toggle(run)" :aria-expanded="open === run.id" class="flex min-h-11 w-full items-start gap-3 p-4 text-left">
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold" :class="run.agent.classes" x-text="run.agent.initial"></span>
+                        <span class="min-w-0 flex-1">
+                            <b class="block text-sm font-semibold text-navy-900" x-text="run.skill"></b>
+                            <span class="mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-bold" :class="run.status.classes" x-text="run.status.label"></span>
+                            <small class="mt-1 block text-xs text-gray-500" x-text="run.sub"></small>
+                            <small x-show="run.duration !== null || run.cost" class="block text-xs text-gray-500" x-text="[run.duration !== null ? run.duration + ' seconden' : null, run.cost ? osFormat.euro(run.cost, 2) : null].filter(Boolean).join(', ')"></small>
+                        </span>
+                        <span x-icon="'chevron-down'" class="mt-2 h-4 w-4 shrink-0 text-gray-500 transition" :class="open === run.id && 'rotate-180'"></span>
+                    </button>
+
+                    <div x-show="open === run.id" x-cloak class="space-y-4 border-t border-gray-100 bg-gray-50 p-4">
+                        <div>
+                            <p class="mb-2 text-[11px] font-bold tracking-widest text-gray-500 uppercase">Verloop</p>
+                            <p x-show="run.steps.length === 0" class="text-sm text-gray-500">Nog geen stappen vastgelegd.</p>
+                            <ol class="space-y-1.5">
+                                <template x-for="(step, index) in run.steps" :key="index">
+                                    <li class="flex items-start gap-2 text-sm">
+                                        <span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-brand-500"></span>
+                                        <span class="min-w-0">
+                                            <span class="block text-gray-800" x-text="step.description"></span>
+                                            <span class="block text-xs text-gray-500" x-text="step.at"></span>
+                                        </span>
+                                    </li>
+                                </template>
+                            </ol>
+                        </div>
+
+                        <div x-show="run.about">
+                            <p class="mb-2 text-[11px] font-bold tracking-widest text-gray-500 uppercase">Over deze skill</p>
+                            <dl class="space-y-1 text-sm">
+                                <div><dt class="inline text-gray-500">Niveau:</dt> <dd class="inline text-gray-800" x-text="run.about?.level"></dd></div>
+                                <div><dt class="inline text-gray-500">Beslist:</dt> <dd class="inline text-gray-800" x-text="run.about?.approver"></dd></div>
+                                <div><dt class="inline text-gray-500">Invoer:</dt> <dd class="inline text-gray-800" x-text="run.about?.input"></dd></div>
+                                <div><dt class="inline text-gray-500">Uitkomst:</dt> <dd class="inline text-gray-800" x-text="run.about?.output"></dd></div>
+                            </dl>
+                        </div>
+
+                        <p x-show="run.note" class="rounded-lg bg-white p-3 text-xs text-gray-700" x-text="run.note"></p>
+
+                        <div x-show="run.approvals.length">
+                            <p class="mb-1.5 text-[11px] font-bold tracking-widest text-gray-500 uppercase">Besluiten</p>
+                            <template x-for="approval in run.approvals" :key="approval.id">
+                                <div class="flex items-center gap-2 py-1 text-sm">
+                                    <span class="min-w-0 flex-1 text-gray-800" x-text="approval.summary"></span>
+                                    <span class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold" :class="approval.status.classes" x-text="approval.status.label"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <!-- Bladeren: 25 per pagina, zoals op de website -->
+        <div x-show="data?.last_page > 1" class="mt-4 mb-2 flex items-center justify-between gap-2">
+            <button type="button" @click="goPage(page - 1)" :disabled="page <= 1" class="app-btn min-h-11 disabled:opacity-40"><span x-icon="'chevron-left'" class="h-4 w-4"></span> Vorige</button>
+            <span class="text-xs text-gray-500" x-text="data ? 'Pagina ' + data.page + ' van ' + data.last_page : ''"></span>
+            <button type="button" @click="goPage(page + 1)" :disabled="!data || page >= data.last_page" class="app-btn min-h-11 disabled:opacity-40">Volgende <span x-icon="'chevron-right'" class="h-4 w-4"></span></button>
+        </div>
+    </div>
+</template>
+
+<!-- ===== Skills en SOPs: wat mag welke agent, en wie beslist (alleen directie) ===== -->
+<template x-if="$store.os.route === 'skills'">
+    <div x-data="agentSkills">
+        <nav class="app-sectabs" aria-label="Onderdelen van Nova en agents">
+            <a href="#/goedkeuringen">Goedkeuringen</a>
+            <a href="#/agents">Uitvoeringen</a>
+            <a href="#/skills" class="on" aria-current="page">Skills</a>
+        </nav>
+
+        <div data-enter class="app-ph">
+            <p class="sec-eye"><span x-icon="'shield-check'"></span> Nova en agents</p>
+            <h1>Skills en <em>SOPs</em></h1>
+            <p class="sub">Wat mag welke agent, op welk niveau, en wie beslist erover.</p>
+        </div>
+
+        <template x-if="failed">
+            <div class="app-card mb-3 p-5 text-center">
+                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                <button type="button" @click="load()" class="app-btn mt-3 min-h-11">Opnieuw proberen</button>
+            </div>
+        </template>
+
+        <!-- De vier niveaus -->
+        <section class="mb-4 grid grid-cols-2 gap-2" x-show="!failed">
+            <template x-for="i in (data ? 0 : 4)" :key="i">
+                <div class="app-card p-3"><span class="skeleton mb-2 block h-3 w-2/3"></span><span class="skeleton mb-2 block h-3 w-full"></span><span class="skeleton block h-3 w-1/3"></span></div>
+            </template>
+            <template x-for="level in data?.levels ?? []" :key="level.value">
+                <div data-enter class="app-card p-3">
+                    <p class="text-[11px] font-bold tracking-widest text-calc-700 uppercase" x-text="level.label"></p>
+                    <p class="mt-1 text-xs text-gray-700" x-text="level.about"></p>
+                    <p class="mt-1.5 text-xs text-gray-500" x-text="level.count + ' van ' + data.total + ' skills'"></p>
+                </div>
+            </template>
+        </section>
+
+        <!-- Standaardprocedures -->
+        <section data-enter class="app-card mb-4 p-4" x-show="data">
+            <h2 class="text-sm font-bold text-navy-900">Standaard<span class="text-brand-600">procedures</span></h2>
+            <p class="mb-3 text-xs text-gray-500">Welke gebeurtenis welke skills in gang zet.</p>
+            <div class="space-y-2">
+                <template x-for="sop in data?.sops ?? []" :key="sop.event">
+                    <div class="rounded-xl border border-gray-200 bg-gray-50 p-3">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="rounded bg-gray-200 px-1.5 py-0.5 font-mono text-[10px] text-gray-600" x-text="sop.event"></span>
+                            <b class="text-sm font-semibold text-navy-900" x-text="sop.label"></b>
+                        </div>
+                        <div class="mt-2 flex flex-wrap gap-1.5">
+                            <template x-for="skill in sop.skills" :key="skill.label">
+                                <span class="rounded-full px-2 py-0.5 text-[11px] font-semibold" :class="skill.classes" x-text="skill.label"></span>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </section>
+
+        <!-- Skills per agent -->
+        <template x-for="agent in data?.agents ?? []" :key="agent.id">
+            <section data-enter class="app-card mb-4">
+                <div class="flex items-start gap-3 border-b border-gray-100 p-4">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold" :class="agent.classes" x-text="agent.initial"></span>
+                    <div class="min-w-0 flex-1">
+                        <h2 class="text-sm font-bold text-navy-900"><span x-text="agent.name"></span>, <span class="text-brand-600" x-text="agent.field"></span></h2>
+                        <p class="mt-0.5 text-xs text-gray-600" x-text="agent.task"></p>
+                        <p class="mt-0.5 text-xs text-gray-500" x-text="'Menselijke eigenaar: ' + agent.owner"></p>
+                    </div>
+                </div>
+                <div class="divide-y divide-gray-100">
+                    <template x-for="skill in agent.skills" :key="skill.id">
+                        <div class="p-4" x-data="{ form: { level: skill.level, limit: skill.limit ?? '', paused: skill.paused } }">
+                            <div class="flex flex-wrap items-center gap-1.5">
+                                <b class="mr-1 text-sm font-semibold text-navy-900" x-text="skill.name"></b>
+                                <span class="rounded-full px-2 py-0.5 text-[11px] font-bold" :class="skill.paused ? 'bg-gray-100 text-gray-600' : 'bg-calc-100 text-calc-700'" x-text="skill.level_label"></span>
+                                <span x-show="skill.paused" class="rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-bold text-red-800">Op pauze</span>
+                                <span x-show="skill.overridden" class="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">Aangepast</span>
+                            </div>
+                            <p class="mt-1 text-xs text-gray-500" x-text="skill.about"></p>
+                            <p class="mt-0.5 text-xs text-gray-500" x-text="skill.decides"></p>
+
+                            <form x-show="data.can_edit" @submit.prevent="save(skill, form)" class="mt-3 space-y-2 border-t border-gray-100 pt-3">
+                                <div class="grid grid-cols-2 gap-2">
+                                    <label class="min-w-0">
+                                        <span class="mb-1 block text-xs font-semibold text-gray-600">Niveau</span>
+                                        <select x-model="form.level" class="w-full min-w-0">
+                                            <template x-for="level in data.levels" :key="level.value">
+                                                <option :value="level.value" x-text="level.label" :selected="form.level === level.value"></option>
+                                            </template>
+                                        </select>
+                                    </label>
+                                    <label class="min-w-0">
+                                        <span class="mb-1 block text-xs font-semibold text-gray-600">Bedragsgrens</span>
+                                        <input type="text" inputmode="decimal" x-model="form.limit" placeholder="Geen" class="w-full min-w-0">
+                                    </label>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" role="switch" :aria-checked="form.paused" @click="form.paused = !form.paused" class="flex min-h-11 flex-1 items-center gap-3 text-left text-sm text-gray-700">
+                                        <span class="relative h-6 w-11 shrink-0 rounded-full transition" :class="form.paused ? 'bg-red-500' : 'bg-gray-300'">
+                                            <span class="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition" :class="form.paused && 'translate-x-5'"></span>
+                                        </span>
+                                        Pauze
+                                    </button>
+                                    <button type="submit" :disabled="busy !== null || !changed(skill, form)" class="min-h-11 shrink-0 rounded-xl bg-brand-500 px-5 text-sm font-bold text-white active:bg-brand-600 disabled:opacity-50" x-text="busy === skill.id ? 'Bezig' : 'Opslaan'"></button>
+                                </div>
+                            </form>
+                        </div>
+                    </template>
+                </div>
+            </section>
+        </template>
+    </div>
+</template>

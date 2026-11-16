@@ -34,6 +34,17 @@ enum InvoiceType: string
         };
     }
 
+    /** Lichte badges voor de app (api/app). */
+    public function appBadgeClasses(): string
+    {
+        return match ($this) {
+            self::Termijn => 'bg-steel-100 text-steel-800',
+            self::Meerwerk => 'bg-brand-100 text-brand-800',
+            self::Eindafrekening => 'bg-green-100 text-green-800',
+            self::Credit => 'bg-amber-100 text-amber-800',
+        };
+    }
+
     /** Een creditnota gaat van de omzet af in plaats van erbij. */
     public function sign(): int
     {

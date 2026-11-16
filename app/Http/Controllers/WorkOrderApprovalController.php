@@ -5,27 +5,29 @@ namespace App\Http\Controllers;
 use App\Actions\ApproveWorkOrder;
 use App\Enums\WorkOrderStatus;
 use App\Models\WorkOrder;
+use App\Support\App\FieldWork;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 /**
  * Goedkeuren of terugsturen van een werkbon. Goedkeuren is het moment waarop
  * uren kosten worden en de voortgang opschuift, dus dat mag alleen de
- * projectleiding doen.
+ * projectleiding doen. De app (api/app/werkbonnen) krijgt de melding als JSON.
  */
 class WorkOrderApprovalController extends Controller
 {
-    public function approve(Request $request, WorkOrder $workOrder, ApproveWorkOrder $action): RedirectResponse
+    public function approve(Request $request, WorkOrder $workOrder, ApproveWorkOrder $action): RedirectResponse|JsonResponse
     {
         abort_unless($request->user()->can('manage-crm'), 403);
 
         if ($workOrder->status !== WorkOrderStatus::Controle) {
-            return back()->with('error', 'Deze werkbon staat niet ter controle.');
+            return FieldWork::refuse($request, 'Deze werkbon staat niet ter controle.');
         }
 
         $result = $action->handle($workOrder, $request->user());
 
-        return back()->with('success', sprintf(
+        return FieldWork::done($request, sprintf(
             '%s uur geboekt (%s), voortgang %d naar %d procent.',
             rtrim(rtrim(number_format($result['hours'], 2, ',', '.'), '0'), ','),
             'EUR '.number_format($result['cost'], 2, ',', '.'),
@@ -34,7 +36,7 @@ class WorkOrderApprovalController extends Controller
         ));
     }
 
-    public function reject(Request $request, WorkOrder $workOrder, ApproveWorkOrder $action): RedirectResponse
+    public function reject(Request $request, WorkOrder $workOrder, ApproveWorkOrder $action): RedirectResponse|JsonResponse
     {
         abort_unless($request->user()->can('manage-crm'), 403);
 
@@ -44,6 +46,6 @@ class WorkOrderApprovalController extends Controller
 
         $action->reject($workOrder, $request->user(), $validated['reason']);
 
-        return back()->with('success', 'Werkbon teruggestuurd naar de uitvoerder.');
+        return FieldWork::done($request, 'Werkbon teruggestuurd naar de uitvoerder.');
     }
 }

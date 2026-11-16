@@ -8,7 +8,22 @@ const TYPES = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/ogg;codecs=opus', '
 const csrf = () => document.querySelector('meta[name="csrf-token"]').content;
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export default (Alpine) => Alpine.data('meetingRecorder', ({ storeUrl, project = '', kind = 'intern' }) => {
+// Hoe de recorder met de server praat. Standaard de website (sessie en CSRF, adressen uit het antwoord van
+// meetings.store). De app geeft een eigen transport mee (api/app met token, mobile/app/screens/verslagen.js).
+// chunk() geeft { ok, status, result, retryAfter } terug en gooit alleen als er geen verbinding is.
+const webTransport = (storeUrl) => ({
+    start: (body) => window.postJson(storeUrl, body),
+    async chunk(meeting, body) {
+        const response = await fetch(meeting.chunk_url, { method: 'POST', body, headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrf() }, credentials: 'same-origin' });
+        const result = await response.json().catch(() => ({}));
+        return { ok: response.ok, status: response.status, result, retryAfter: Number(response.headers.get('Retry-After')) };
+    },
+    stop: (meeting, duration) => window.postJson(meeting.stop_url, { duration }),
+    done: ({ url }) => { location.href = url; },
+    errors: (error) => error.body?.errors,
+});
+
+export function meetingRecorder({ storeUrl, project = '', kind = 'intern', transport = webTransport(storeUrl) }) {
     // Niet reactief: Alpine hoeft de recorder, de stream en de wachtrij niet te volgen.
     let recorder = null;
     let stream = null;
@@ -93,11 +108,12 @@ export default (Alpine) => Alpine.data('meetingRecorder', ({ storeUrl, project =
 
             const mimeType = TYPES.find((type) => MediaRecorder.isTypeSupported(type)) ?? '';
             try {
-                urls = await window.postJson(storeUrl, { title: this.title.trim(), kind: this.kind, project_id: this.projectId || null, consent: 1, mime: mimeType });
+                urls = await transport.start({ title: this.title.trim(), kind: this.kind, project_id: this.projectId || null, consent: 1, mime: mimeType });
             } catch (error) {
                 this.release();
                 this.busy = false;
-                this.error = error.body?.errors ? Object.values(error.body.errors)[0][0] : 'Starten lukte niet. Controleer de verbinding.';
+                const errors = transport.errors(error);
+                this.error = errors ? Object.values(errors)[0][0] : 'Starten lukte niet. Controleer de verbinding.';
                 return;
             }
 
@@ -146,9 +162,9 @@ export default (Alpine) => Alpine.data('meetingRecorder', ({ storeUrl, project =
             while (queue.length || sending) await wait(300);
             for (let attempt = 0; ; attempt++) {
                 try {
-                    const { url } = await window.postJson(urls.stop_url, { duration });
+                    const result = await transport.stop(urls, duration);
                     this.step = 'done';
-                    location.href = url;
+                    transport.done(result, urls);
                     return;
                 } catch {
                     this.offline = true;
@@ -172,8 +188,8 @@ export default (Alpine) => Alpine.data('meetingRecorder', ({ storeUrl, project =
                 body.append('chunk', chunk.blob, `stuk-${chunk.seq}`);
                 let retry = false;
                 try {
-                    const response = await fetch(urls.chunk_url, { method: 'POST', body, headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrf() }, credentials: 'same-origin' });
-                    const result = await response.json().catch(() => ({}));
+                    const response = await transport.chunk(urls, body);
+                    const result = response.result ?? {};
                     if (response.ok) {
                         queue.shift();
                         attempt = 0;
@@ -189,7 +205,7 @@ export default (Alpine) => Alpine.data('meetingRecorder', ({ storeUrl, project =
                         // 429, 419, 5xx: tijdelijk. Even wachten (bij 429 zo lang als de server vraagt) en opnieuw.
                         retry = true;
                         if (response.status === 419) this.error = 'Je sessie is verlopen. De opname loopt door; log in een ander tabblad opnieuw in, dan gaat het geluid vanzelf mee.';
-                        const after = Number(response.headers.get('Retry-After')) * 1000;
+                        const after = (response.retryAfter || 0) * 1000;
                         await wait(after > 0 ? Math.min(after, 60000) : Math.min(15000, 1500 * ++attempt));
                     }
                     this.offline = false;
@@ -234,4 +250,6 @@ export default (Alpine) => Alpine.data('meetingRecorder', ({ storeUrl, project =
             stream = audio = wakeLock = null;
         },
     };
-});
+}
+
+export default (Alpine) => Alpine.data('meetingRecorder', meetingRecorder);

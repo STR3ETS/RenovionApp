@@ -6,13 +6,14 @@ use App\Enums\ProjectStatus;
 use App\Enums\TimelineEventType;
 use App\Models\AuditLog;
 use App\Models\Project;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class ProjectStatusController extends Controller
 {
-    public function update(Request $request, Project $project): RedirectResponse
+    public function update(Request $request, Project $project): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'status' => ['required', Rule::enum(ProjectStatus::class)],
@@ -22,7 +23,7 @@ class ProjectStatusController extends Controller
         $new = ProjectStatus::from($validated['status']);
 
         if ($old === $new) {
-            return back();
+            return $request->expectsJson() ? response()->json(['status' => $new->value, 'label' => $new->label()]) : back();
         }
 
         $project->update([
@@ -39,6 +40,11 @@ class ProjectStatusController extends Controller
             null,
             $project,
         );
+
+        // De app (projectdossier) krijgt de nieuwe status als JSON.
+        if ($request->expectsJson()) {
+            return response()->json(['status' => $new->value, 'label' => $new->label(), 'message' => "Projectstatus gewijzigd naar {$new->label()}."]);
+        }
 
         return back()->with('success', "Projectstatus gewijzigd naar {$new->label()}.");
     }

@@ -1,0 +1,136 @@
+<!-- Nieuw teamlid (team/create) -->
+<template x-if="$store.os.route === 'nieuwteamlid'">
+    <div x-data="teamCreateForm()">
+        <nav class="app-crumbs mb-2 !text-gray-500">
+            <button type="button" @click="$store.os.go('/team')" class="tap">Teambeheer</button>
+            <span x-icon="'chevron-right'" class="h-3 w-3"></span>
+            <span>Nieuw</span>
+        </nav>
+        <div data-enter class="app-ph">
+            <p class="sec-eye"><span x-icon="'users'"></span> Teambeheer</p>
+            <h1>Nieuw <em>teamlid</em></h1>
+        </div>
+
+        <template x-if="unavailable">
+            <div class="app-card p-5 text-center"><p class="text-sm font-semibold text-navy-900" x-text="unavailable"></p></div>
+        </template>
+        <template x-if="failed && !unavailable">
+            <div class="app-card p-5 text-center">
+                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                <button type="button" @click="load()" class="app-btn mt-3 !min-h-11">Opnieuw proberen</button>
+            </div>
+        </template>
+        <div x-show="!form && !failed && !unavailable" class="app-card space-y-3 p-4">
+            <div class="skeleton h-11 w-full"></div><div class="skeleton h-11 w-full"></div><div class="skeleton h-11 w-2/3"></div>
+        </div>
+
+        <template x-if="form && !unavailable">
+            <form @submit.prevent="save()" @input="touch($event)" @change="touch($event)" novalidate class="space-y-3">
+                <section data-enter class="app-card space-y-3 p-4">
+                    <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Naam *</span>
+                        <input type="text" name="name" x-model="form.name" autocomplete="off" autocapitalize="words" enterkeyhint="next" class="!min-h-11 w-full" :class="err('name') && '!border-red-400'">
+                        <p x-show="err('name')" x-text="err('name')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                    </label>
+                    <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">E-mailadres *</span>
+                        <input type="email" name="email" x-model="form.email" inputmode="email" autocomplete="off" autocapitalize="off" enterkeyhint="next" class="!min-h-11 w-full" :class="err('email') && '!border-red-400'">
+                        <p x-show="err('email')" x-text="err('email')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                    </label>
+                    <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Telefoon</span>
+                        <input type="tel" name="phone" x-model="form.phone" inputmode="tel" autocomplete="off" enterkeyhint="next" class="!min-h-11 w-full" :class="err('phone') && '!border-red-400'">
+                        <p x-show="err('phone')" x-text="err('phone')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                    </label>
+                    <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Rol *</span>
+                        <select name="role" x-model="form.role" class="!min-h-11 w-full" :class="err('role') && '!border-red-400'">
+                            <template x-for="role in data.roles" :key="role.value"><option :value="role.value" x-text="role.label" :selected="role.value === form.role"></option></template>
+                        </select>
+                        <p x-show="err('role')" x-text="err('role')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                    </label>
+                    <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Wachtwoord * (min. 8 tekens)</span>
+                        <span class="flex gap-2">
+                            <input :type="showPassword ? 'text' : 'password'" name="password" x-model="form.password" autocomplete="new-password" autocapitalize="off" minlength="8" class="!min-h-11 w-full min-w-0 flex-1" :class="err('password') && '!border-red-400'">
+                            <button type="button" @click.prevent="showPassword = !showPassword" class="app-btn !min-h-11 shrink-0" :aria-pressed="showPassword" x-text="showPassword ? 'Verbergen' : 'Tonen'"></button>
+                        </span>
+                        <p x-show="err('password')" x-text="err('password')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                    </label>
+                </section>
+
+                <p x-show="formError" x-text="formError" role="alert" class="rounded-xl bg-red-100 px-3 py-2 text-sm font-medium text-red-800"></p>
+                <div class="flex gap-2 pb-2">
+                    <button type="submit" :disabled="saving" class="min-h-11 flex-1 rounded-xl bg-brand-500 px-4 text-sm font-bold text-white hover:bg-brand-600 active:bg-brand-600 disabled:opacity-60" x-text="saving ? 'Bezig' : 'Teamlid toevoegen'"></button>
+                    <button type="button" @click="cancel()" class="min-h-11 rounded-xl border border-gray-300 bg-white px-5 text-sm font-semibold text-gray-600">Annuleren</button>
+                </div>
+            </form>
+        </template>
+    </div>
+</template>
+
+<!-- Teamlid bewerken (team/edit) -->
+<template x-if="$store.os.route === 'teamlidbewerken'">
+    <div>
+        <template x-for="id in [$store.os.param]" :key="id">
+            <div x-data="teamEditForm(id)">
+                <nav class="app-crumbs mb-2 !text-gray-500">
+                    <button type="button" @click="$store.os.go('/team')" class="tap">Teambeheer</button>
+                    <span x-icon="'chevron-right'" class="h-3 w-3"></span>
+                    <span>Bewerken</span>
+                </nav>
+                <div data-enter class="app-ph">
+                    <p class="sec-eye"><span x-icon="'users'"></span> Teambeheer</p>
+                    <h1><span x-text="data?.title ?? ''"></span><span x-show="!data && !unavailable" class="skeleton inline-block h-7 w-2/3 align-middle"></span></h1>
+                </div>
+
+                <template x-if="unavailable">
+                    <div class="app-card p-5 text-center"><p class="text-sm font-semibold text-navy-900" x-text="unavailable"></p></div>
+                </template>
+                <template x-if="failed && !unavailable">
+                    <div class="app-card p-5 text-center">
+                        <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                        <button type="button" @click="load()" class="app-btn mt-3 !min-h-11">Opnieuw proberen</button>
+                    </div>
+                </template>
+                <div x-show="!form && !failed && !unavailable" class="app-card space-y-3 p-4">
+                    <div class="skeleton h-11 w-full"></div><div class="skeleton h-11 w-full"></div><div class="skeleton h-11 w-2/3"></div>
+                </div>
+
+                <template x-if="form && !unavailable">
+                    <form @submit.prevent="save()" @input="touch($event)" @change="touch($event)" novalidate class="space-y-3">
+                        <section data-enter class="app-card space-y-3 p-4">
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Naam *</span>
+                                <input type="text" name="name" x-model="form.name" autocomplete="off" autocapitalize="words" enterkeyhint="next" class="!min-h-11 w-full" :class="err('name') && '!border-red-400'">
+                                <p x-show="err('name')" x-text="err('name')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">E-mailadres *</span>
+                                <input type="email" name="email" x-model="form.email" inputmode="email" autocomplete="off" autocapitalize="off" enterkeyhint="next" class="!min-h-11 w-full" :class="err('email') && '!border-red-400'">
+                                <p x-show="err('email')" x-text="err('email')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Telefoon</span>
+                                <input type="tel" name="phone" x-model="form.phone" inputmode="tel" autocomplete="off" enterkeyhint="next" class="!min-h-11 w-full" :class="err('phone') && '!border-red-400'">
+                                <p x-show="err('phone')" x-text="err('phone')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Rol *</span>
+                                <select name="role" x-model="form.role" :disabled="data.self" class="!min-h-11 w-full disabled:bg-gray-100 disabled:text-gray-500" :class="err('role') && '!border-red-400'">
+                                    <template x-for="role in data.roles" :key="role.value"><option :value="role.value" x-text="role.label" :selected="role.value === form.role"></option></template>
+                                </select>
+                                <span x-show="data.self" class="mt-1 block text-xs text-gray-500">Je kunt je eigen rol niet wijzigen.</span>
+                                <p x-show="err('role')" x-text="err('role')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Nieuw wachtwoord (leeg = ongewijzigd)</span>
+                                <span class="flex gap-2">
+                                    <input :type="showPassword ? 'text' : 'password'" name="password" x-model="form.password" autocomplete="new-password" autocapitalize="off" minlength="8" class="!min-h-11 w-full min-w-0 flex-1" :class="err('password') && '!border-red-400'">
+                                    <button type="button" @click.prevent="showPassword = !showPassword" class="app-btn !min-h-11 shrink-0" :aria-pressed="showPassword" x-text="showPassword ? 'Verbergen' : 'Tonen'"></button>
+                                </span>
+                                <p x-show="err('password')" x-text="err('password')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+                        </section>
+
+                        <p x-show="formError" x-text="formError" role="alert" class="rounded-xl bg-red-100 px-3 py-2 text-sm font-medium text-red-800"></p>
+                        <div class="flex gap-2 pb-2">
+                            <button type="submit" :disabled="saving" class="min-h-11 flex-1 rounded-xl bg-brand-500 px-4 text-sm font-bold text-white hover:bg-brand-600 active:bg-brand-600 disabled:opacity-60" x-text="saving ? 'Bezig' : 'Opslaan'"></button>
+                            <button type="button" @click="cancel()" class="min-h-11 rounded-xl border border-gray-300 bg-white px-5 text-sm font-semibold text-gray-600">Annuleren</button>
+                        </div>
+                    </form>
+                </template>
+            </div>
+        </template>
+    </div>
+</template>

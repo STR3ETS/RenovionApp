@@ -1,0 +1,229 @@
+<!-- ===== Calculaties ===== -->
+<template x-if="$store.os.route === 'calculaties'">
+    <div x-data="calculations">
+        <nav class="app-sectabs" aria-label="Onderdelen van deze sectie">
+            <a href="#/offertes">Offertes</a>
+            <a href="#/calculaties" class="on" aria-current="page">Calculaties</a>
+            <a href="#/prijslijst">Prijslijst</a>
+        </nav>
+
+        <div data-enter class="app-ph">
+            <p class="sec-eye"><span x-icon="'calculator'"></span> Calculeren</p>
+            <h1><em>Calculaties</em></h1>
+            <p class="sub">
+                <span x-show="data" x-text="data ? osFormat.tally(data.total, 'calculatie', 'calculaties') : ''"></span>
+                <span x-show="!data" class="skeleton block h-3.5 w-1/3"></span>
+            </p>
+            <div class="app-ph-acts">
+                <button type="button" @click="$store.os.go(data?.links.create ?? '/calculaties/nieuw')" class="tap min-h-11 rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white active:bg-brand-600">
+                    <span x-icon="'plus'" class="mr-1.5 h-4 w-4"></span>Calculatie
+                </button>
+            </div>
+        </div>
+
+        <template x-if="failed">
+            <div class="app-card p-5 text-center">
+                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                <button type="button" @click="load()" class="app-btn mt-3 min-h-11">Opnieuw proberen</button>
+            </div>
+        </template>
+
+        <template x-if="data && list.length === 0">
+            <div class="app-card p-6 text-center">
+                <p class="text-sm font-semibold text-navy-900">Nog geen calculaties</p>
+                <p class="mt-1 text-sm text-gray-500">Maak een calculatie op basis van een opname, omschrijving of AI-voorstel.</p>
+                <button type="button" @click="$store.os.go(data.links.create)" class="app-btn pri mt-3 min-h-11">+ Eerste calculatie</button>
+            </div>
+        </template>
+
+        <div data-enter class="app-card" x-show="!failed && (!data || list.length > 0)">
+            <div class="app-card-b">
+                <template x-for="i in (data ? 0 : 6)" :key="i">
+                    <div class="flex items-center gap-3.5 py-3.5"><span class="skeleton h-9 w-9 shrink-0 !rounded-xl"></span><span class="flex-1"><span class="skeleton mb-2 block h-3.5 w-2/3"></span><span class="skeleton block h-3 w-1/2"></span></span></div>
+                </template>
+                <template x-for="item in data ? list : []" :key="item.id">
+                    <a :href="'#/calculatie/' + item.id" class="app-li">
+                        <span class="app-ic blue"><span x-icon="'calculator'" class="h-[18px] w-[18px]"></span></span>
+                        <span class="min-w-0 flex-1">
+                            <b class="truncate" x-text="item.title"></b>
+                            <small x-text="item.sub"></small>
+                            <small><b class="!inline text-[13px] text-navy-900" x-text="osFormat.euro(item.total)"></b> excl.</small>
+                        </span>
+                        <span class="mt-0.5 shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap" :class="item.status.classes" x-text="item.status.label"></span>
+                    </a>
+                </template>
+            </div>
+        </div>
+
+        <button type="button" x-show="data && hasMore" x-cloak @click="more()" :disabled="loadingMore" class="app-btn mt-3 min-h-11 w-full justify-center disabled:opacity-60" x-text="loadingMore ? 'Bezig' : 'Meer laden'"></button>
+    </div>
+</template>
+
+<!-- ===== Calculatie ===== -->
+<template x-if="$store.os.route === 'calculatie'">
+    <div>
+        <template x-for="id in [$store.os.param]" :key="id">
+            <div x-data="calculation(id)">
+                <nav class="app-crumbs mb-2 !text-gray-500">
+                    <a href="#/calculaties" class="tap">Calculaties</a>
+                    <span x-icon="'chevron-right'" class="h-3 w-3"></span>
+                    <span class="truncate" x-text="data?.title ?? ''"></span>
+                </nav>
+                <div data-enter class="app-ph">
+                    <p class="sec-eye"><span x-icon="'calculator'"></span> Calculatie</p>
+                    <h1><span x-text="data?.title ?? ''"></span><span x-show="!data" class="skeleton inline-block h-7 w-2/3 align-middle"></span></h1>
+                    <p class="sub" x-text="data?.subtitle ?? ''"></p>
+                    <div class="app-ph-acts" x-show="data">
+                        <span class="rounded-full px-3 py-1 text-sm font-semibold" :class="data?.status.classes" x-text="data?.status.label"></span>
+                        <button type="button" x-show="data?.links.lead" @click="$store.os.go(data.links.lead)" class="app-btn min-h-11"><span x-icon="'funnel'" class="h-4 w-4"></span> Naar aanvraag</button>
+                    </div>
+                </div>
+
+                <template x-if="failed">
+                    <div class="app-card p-5 text-center">
+                        <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                        <button type="button" @click="load()" class="app-btn mt-3 min-h-11">Opnieuw proberen</button>
+                    </div>
+                </template>
+
+                <div x-show="data?.locked" class="mb-3 flex items-start gap-2 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800">
+                    <span x-icon="'check'" class="mt-0.5 h-4 w-4 shrink-0"></span>
+                    <span>Deze calculatie is definitief. De regels en prijzen liggen vast: heropen de calculatie om iets te wijzigen.</span>
+                </div>
+
+                <!-- Regels -->
+                <section data-enter class="app-card mb-3" x-show="!failed">
+                    <div class="app-card-h"><h3>Calculatie<em>regels</em></h3></div>
+                    <div class="app-card-b">
+                        <template x-for="i in (data ? 0 : 4)" :key="i">
+                            <div class="py-3.5"><span class="skeleton mb-2 block h-3.5 w-2/3"></span><span class="skeleton block h-3 w-1/2"></span></div>
+                        </template>
+                        <p x-show="data && data.lines.length === 0" class="py-4 text-sm text-gray-500">Nog geen regels: voeg ze hieronder toe of gebruik de AI-invoer bij een nieuwe calculatie.</p>
+                        <template x-for="row in data?.lines ?? []" :key="row.id">
+                            <div class="app-li">
+                                <span class="min-w-0 flex-1">
+                                    <b x-text="row.description"></b>
+                                    <small class="flex flex-wrap items-center gap-1.5">
+                                        <span class="rounded-full px-1.5 py-0.5 text-[10px] font-semibold" :class="row.type.classes" x-text="row.type.label"></span>
+                                        <span x-show="row.source" x-text="row.source"></span>
+                                    </small>
+                                    <span class="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-600">
+                                        <template x-if="!data.locked">
+                                            <input type="number" inputmode="decimal" min="0" step="0.01" :value="row.quantity" @change="setQuantity(row, $event.target.value)" :disabled="busy !== null"
+                                                   :aria-label="'Aantal voor ' + row.description" class="min-h-11 w-24 !rounded-xl text-right">
+                                        </template>
+                                        <span x-show="data.locked" class="font-semibold text-navy-900" x-text="row.quantity_label"></span>
+                                        <span x-text="(row.unit ?? '-') + ' × ' + osFormat.euro(row.unit_price, 2)"></span>
+                                        <span x-show="row.surcharge" x-text="'+ ' + row.surcharge"></span>
+                                    </span>
+                                </span>
+                                <span class="flex shrink-0 flex-col items-end gap-1">
+                                    <b class="whitespace-nowrap" x-text="osFormat.euro(row.total, 2)"></b>
+                                    <button type="button" x-show="!data.locked" @click="removeLine(row)" :disabled="busy !== null" class="tap flex h-11 w-11 items-center justify-center rounded-xl text-gray-400 active:bg-red-50 active:text-red-600" :aria-label="'Regel verwijderen: ' + row.description">
+                                        <span x-icon="'trash'" class="h-4 w-4"></span>
+                                    </button>
+                                </span>
+                            </div>
+                        </template>
+                    </div>
+                </section>
+
+                <!-- Regel toevoegen met de prijsbibliotheek -->
+                <form data-enter @submit.prevent="addLine()" class="app-card mb-3 space-y-2.5 p-4" x-show="data && !data.locked">
+                    <h2 class="text-sm font-bold text-navy-900">Regel toevoegen</h2>
+                    <div class="relative">
+                        <span x-icon="'magnifying-glass'" class="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-gray-400"></span>
+                        <input type="search" x-model="q" @input="search()" enterkeyhint="search" @keydown.enter.prevent="$el.blur()" placeholder="Zoek in de prijsbibliotheek (stucwerk, tegels)" aria-label="Zoek in de prijsbibliotheek" class="min-h-11 w-full !rounded-xl !pl-10">
+                    </div>
+                    <div x-show="results.length" class="max-h-64 overflow-y-auto rounded-xl border border-gray-200">
+                        <template x-for="item in results" :key="item.id">
+                            <button type="button" @click="pick(item)" class="tap flex min-h-11 w-full items-center justify-between gap-3 border-b border-gray-100 px-3.5 py-2.5 text-left last:border-b-0 active:bg-brand-50">
+                                <span class="min-w-0">
+                                    <span class="block truncate text-sm font-medium text-navy-900" x-text="item.name"></span>
+                                    <span class="block text-xs text-gray-500" x-text="item.type_label + ', ' + item.source"></span>
+                                </span>
+                                <span class="shrink-0 text-sm font-semibold text-navy-900"><span x-text="osFormat.euro(item.price, 2)"></span><span class="text-xs font-normal text-gray-500" x-text="' / ' + item.unit"></span></span>
+                            </button>
+                        </template>
+                    </div>
+                    <p x-show="searching" class="text-xs text-gray-500">Zoeken…</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <select x-model="line.type" @change="line.price_item_id = ''" aria-label="Soort" class="min-h-11 w-full !rounded-xl">
+                            <template x-for="option in data?.types ?? []" :key="option.value">
+                                <option :value="option.value" :selected="option.value === line.type" x-text="option.label"></option>
+                            </template>
+                        </select>
+                        <input type="text" x-model="line.unit" maxlength="20" placeholder="Eenheid (m2)" aria-label="Eenheid" class="min-h-11 w-full !rounded-xl">
+                    </div>
+                    <input type="text" x-model="line.description" required maxlength="255" placeholder="Omschrijving" aria-label="Omschrijving" class="min-h-11 w-full !rounded-xl">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="number" inputmode="decimal" x-model="line.quantity" required min="0" step="0.01" placeholder="Aantal" aria-label="Aantal" class="min-h-11 w-full !rounded-xl">
+                        <input type="number" inputmode="decimal" x-model="line.unit_price" required min="0" step="0.01" placeholder="Prijs €" aria-label="Prijs in euro" class="min-h-11 w-full !rounded-xl">
+                    </div>
+                    <button type="submit" :disabled="busy !== null || !line.description.trim() || line.unit_price === ''" class="app-btn pri min-h-11 w-full justify-center disabled:opacity-60" x-text="busy === 'line' ? 'Bezig' : '+ Toevoegen'"></button>
+                </form>
+
+                <section data-enter class="app-card mb-3 p-4" x-show="data?.description">
+                    <h2 class="mb-1 text-sm font-bold text-navy-900">Opname / omschrijving</h2>
+                    <p class="text-sm whitespace-pre-line text-gray-700" x-text="data?.description"></p>
+                </section>
+
+                <!-- Totalen -->
+                <section data-enter class="mb-3 rounded-2xl bg-navy-950 p-4 text-white" x-show="data">
+                    <h2 class="mb-2 text-sm font-bold">Totalen</h2>
+                    <dl class="space-y-1.5 text-sm">
+                        <template x-for="row in data?.totals ?? []" :key="row.label">
+                            <div class="flex justify-between gap-3" :class="row.strong && 'border-t border-white/10 pt-1.5'">
+                                <dt :class="row.strong ? 'font-semibold' : 'text-navy-300'" x-text="row.label"></dt>
+                                <dd class="whitespace-nowrap" :class="row.big ? 'text-base font-bold text-brand-300' : (row.strong ? 'font-bold' : 'font-medium')" x-text="osFormat.euro(row.value, 2)"></dd>
+                            </div>
+                        </template>
+                    </dl>
+                </section>
+
+                <!-- Opslagen en btw -->
+                <form data-enter @submit.prevent="saveSettings()" class="app-card mb-3 p-4" x-show="data && !data.locked">
+                    <h2 class="mb-3 text-sm font-bold text-navy-900">Opslagen &amp; btw</h2>
+                    <div class="grid grid-cols-3 gap-2">
+                        <template x-for="[key, label] in [['risk_pct', 'Onvoorzien %'], ['margin_pct', 'Marge %'], ['vat_pct', 'Btw %']]" :key="key">
+                            <label class="block min-w-0"><span class="mb-1 block text-xs font-semibold text-gray-700" x-text="label"></span>
+                                <input type="number" inputmode="decimal" min="0" max="100" step="0.5" :value="form[key]" @input="settings = { ...form, [key]: $event.target.value }" class="min-h-11 w-full !rounded-xl">
+                            </label>
+                        </template>
+                    </div>
+                    <button type="submit" :disabled="busy !== null || !settings" class="app-btn mt-3 min-h-11 w-full justify-center disabled:opacity-60" x-text="busy === 'settings' ? 'Bezig' : 'Opslaan'"></button>
+                    <p class="mt-2 text-xs text-gray-500">Tip: voor stuc- en schilderwerk aan woningen ouder dan 2 jaar geldt 9% btw op arbeid.</p>
+                </form>
+
+                <!-- Acties -->
+                <section data-enter class="app-card mb-3 p-4" x-show="data">
+                    <h2 class="mb-3 text-sm font-bold text-navy-900">Acties</h2>
+                    <div class="space-y-2">
+                        <template x-if="data?.locked">
+                            <div class="space-y-2">
+                                <template x-if="data.quotes">
+                                    <div>
+                                        <button type="button" @click="makeQuote()" :disabled="busy !== null" class="app-btn pri min-h-11 w-full justify-center disabled:opacity-60">
+                                            <span x-icon="'document-text'" class="h-4 w-4"></span><span x-text="busy === 'quote' ? 'Bezig' : 'Offerte maken van deze calculatie'"></span>
+                                        </button>
+                                        <p class="mt-1.5 text-xs text-gray-500">De klant ziet commerciële posten: onvoorzien en marge worden verdeeld, stelposten blijven apart zichtbaar.</p>
+                                    </div>
+                                </template>
+                                <button type="button" @click="setStatus('concept')" :disabled="busy !== null" class="app-btn min-h-11 w-full justify-center disabled:opacity-60" x-text="busy === 'status' ? 'Bezig' : 'Heropenen (terug naar concept)'"></button>
+                            </div>
+                        </template>
+                        <template x-if="data && !data.locked">
+                            <div class="space-y-2">
+                                <button type="button" @click="setStatus('definitief')" :disabled="busy !== null" class="min-h-11 w-full rounded-xl bg-navy-950 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60" x-text="busy === 'status' ? 'Bezig' : 'Definitief maken'"></button>
+                                <button type="button" @click="remove()" :disabled="busy !== null" class="min-h-11 w-full rounded-xl border border-red-200 bg-white px-4 py-2.5 text-sm font-semibold text-red-600 disabled:opacity-60" x-text="busy === 'delete' ? 'Bezig' : 'Verwijderen'"></button>
+                                <p class="text-xs text-gray-500">Definitief maken zet de regels vast; daarna maak je er met één actie een offerte van.</p>
+                            </div>
+                        </template>
+                    </div>
+                </section>
+
+                <button type="button" x-show="data?.links.customer" @click="$store.os.go(data.links.customer)" class="app-btn ghost min-h-11 w-full justify-center"><span x-icon="'folder'" class="h-4 w-4"></span> Klantdossier</button>
+            </div>
+        </template>
+    </div>
+</template>

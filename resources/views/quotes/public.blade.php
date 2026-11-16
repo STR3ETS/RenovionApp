@@ -12,13 +12,29 @@
 
     @include('partials.load-guard')
 
-    @vite(['resources/css/app.css'])
+    {{-- Intern voorbeeld (QuoteController@document): met de app-JS, zodat "PDF" in de app de printdialoog
+         van de telefoon opent (native.js). De klant krijgt de pagina zonder JavaScript. --}}
+    @vite(($preview ?? false) ? ['resources/css/app.css', 'resources/js/app.js'] : ['resources/css/app.css'])
 </head>
 <body class="min-h-screen bg-gray-100 font-sans text-gray-900 antialiased">
-    {{-- In de app schuift de pagina anders onder de klok door. --}}
-    <div class="fixed inset-x-0 top-0 z-40 h-[env(safe-area-inset-top)] bg-gray-100"></div>
+    @if ($preview ?? false)
+        <div class="sticky top-0 z-40 border-b border-gray-200 bg-white/95 pt-[env(safe-area-inset-top)] backdrop-blur print:hidden">
+            <div class="mx-auto flex max-w-3xl items-center gap-2 px-3 py-2">
+                <a href="{{ $back }}" class="tap flex items-center gap-1 rounded-xl px-2 py-2 text-sm font-semibold text-navy-900">
+                    <x-icon name="chevron-left" class="h-5 w-5" /> Terug
+                </a>
+                <p class="min-w-0 flex-1 truncate text-center text-sm text-gray-500">Zo ziet de klant het</p>
+                <button type="button" onclick="window.print()" class="tap flex items-center gap-1.5 rounded-xl bg-brand-500 px-3.5 py-2 text-sm font-bold text-white active:bg-brand-600">
+                    <x-icon name="arrow-down-tray" class="h-4 w-4" /> PDF
+                </button>
+            </div>
+        </div>
+    @else
+        {{-- In de app schuift de pagina anders onder de klok door. --}}
+        <div class="fixed inset-x-0 top-0 z-40 h-[env(safe-area-inset-top)] bg-gray-100"></div>
+    @endif
 
-    <div class="mx-auto max-w-3xl px-4 py-6 lg:py-10">
+    <div class="mx-auto max-w-3xl px-4 py-6 pb-[calc(1.5rem_+_env(safe-area-inset-bottom))] lg:py-10">
 
         @if (session('success'))
             <div class="mb-4 rounded-xl bg-green-100 px-4 py-3 text-sm font-medium text-green-800 print:hidden">{{ session('success') }}</div>
@@ -44,7 +60,7 @@
             @include('quotes.partials.document', ['quote' => $quote])
 
             {{-- Acties --}}
-            @if ($quote->status->isOpen() && ! $quote->isExpired())
+            @if (! ($preview ?? false) && $quote->status->isOpen() && ! $quote->isExpired())
                 <div class="rounded-2xl border border-gray-200 bg-white px-6 py-8 lg:px-8 print:hidden" id="ondertekenen">
                     <h2 class="text-lg font-bold text-navy-950">Akkoord?</h2>
                     <p class="mt-1 mb-5 text-sm text-gray-500">Onderteken de offerte digitaal - wij nemen daarna direct contact met u op over de planning.</p>

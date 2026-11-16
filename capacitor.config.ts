@@ -25,7 +25,9 @@ const config: CapacitorConfig = {
         cleartext: insecure,
         // Alleen de hostnaam: Capacitor vergelijkt zonder poort. Met poort ("127.0.0.1:8000") herkent hij
         // de server niet en beantwoordt hij elk verzoek zelf met index.html.
-        allowNavigation: [new URL(serverUrl).hostname],
+        // Bij een lokale testserver over http ook het volledige adres: Capacitor zet de brug (printen, spraak,
+        // terugknop) anders alleen op https://<host>, en dan werkt native.js niet op de serverpagina's.
+        allowNavigation: [new URL(serverUrl).hostname, ...(insecure ? [new URL(serverUrl).origin] : [])],
         errorPath: 'offline.html',
     },
     ios: {

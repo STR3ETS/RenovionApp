@@ -33,6 +33,22 @@ class AppApiTest extends TestCase
         $this->assertSame('/aanvragen', $sales['path']);
     }
 
+    public function test_the_menu_keeps_its_items_and_build_7_opens_them_in_the_app(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin]);
+
+        $menu = $this->withToken($this->tokenFor($admin))->withHeader('X-App-Build', '7')->getJson(route('api.app.me'))->assertOk()->json('menu');
+        $items = collect($menu['groups'])->flatMap(fn ($group) => $group['items']);
+
+        // Het zijmenu blijft zoals het was; de nieuwe schermen van build 7 staan er niet in (alleen via links).
+        $this->assertSame(['Werkdag', 'Werk', 'Bedrijf'], array_column($menu['groups'], 'name'));
+        $this->assertNull($items->firstWhere('label', 'Mijn klussen'));
+        $this->assertNull($items->firstWhere('label', 'Facturatie'));
+        $this->assertSame('offertes', $items->firstWhere('label', 'Calculatie & offertes')['screen']);
+        $this->assertSame('verslagen', $items->firstWhere('label', 'Gespreksverslagen')['screen']);
+        $this->assertSame('team', $items->firstWhere('label', 'Mensen & partners')['screen']);
+    }
+
     public function test_a_phone_registers_for_push_and_logging_out_removes_it(): void
     {
         $user = User::factory()->create(['role' => UserRole::Uitvoerder]);

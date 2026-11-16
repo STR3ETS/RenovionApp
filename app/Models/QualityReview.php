@@ -62,6 +62,8 @@ class QualityReview extends Model
 
         if ($review->wasRecentlyCreated) {
             $review->seedChecks();
+            // Kolommen met een standaardwaarde (step = 0) staan na create nog niet op het model.
+            $review->refresh();
         }
 
         return $review;

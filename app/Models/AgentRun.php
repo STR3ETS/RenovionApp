@@ -136,6 +136,19 @@ class AgentRun extends Model
         };
     }
 
+    /** Lichte badge voor de app (api/app). */
+    public function appBadgeClasses(): string
+    {
+        return match ($this->status) {
+            self::STATUS_DONE => 'bg-green-100 text-green-800',
+            self::STATUS_RUNNING => 'bg-lead-100 text-lead-700',
+            self::STATUS_FAILED => 'bg-red-100 text-red-800',
+            self::STATUS_WAITING_APPROVAL => 'bg-amber-100 text-amber-800',
+            self::STATUS_CANCELLED => 'bg-gray-200 text-gray-700',
+            default => $this->isWaiting() ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-700',
+        };
+    }
+
     /**
      * @return array{name: string, field: string, owner: string, task: string, colour: string}
      */

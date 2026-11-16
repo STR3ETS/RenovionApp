@@ -1,0 +1,205 @@
+<!-- ===== Academy: leerpad, rondleidingen per onderwerp, afspraken en vragen ===== -->
+<template x-if="$store.os.route === 'academy'">
+    <div x-data="academy">
+        <div data-enter class="app-ph">
+            <p class="sec-eye"><span x-icon="'academic-cap'"></span> Bedrijf</p>
+            <h1><em>Academy</em></h1>
+            <p class="sub">Rondleidingen per onderwerp, een leerpad voor jouw rol, en de afspraken van het bedrijf.</p>
+            <div class="app-ph-acts" x-show="data">
+                <span class="rounded-full bg-calc-100 px-3 py-1.5 text-xs font-bold text-calc-700" x-text="data ? data.done + ' van ' + data.total + ' afgerond' : ''"></span>
+            </div>
+        </div>
+
+        <template x-if="failed">
+            <div class="app-card mb-3 p-5 text-center">
+                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                <button type="button" @click="load()" class="app-btn mt-3 min-h-11">Opnieuw proberen</button>
+            </div>
+        </template>
+
+        <!-- Laden -->
+        <div x-show="!data && !failed">
+            <div class="app-card mb-4 p-4"><div class="flex gap-3"><span class="skeleton h-12 w-12 shrink-0 !rounded-xl"></span><span class="flex-1"><span class="skeleton mb-2 block h-3 w-1/3"></span><span class="skeleton mb-2 block h-4 w-2/3"></span><span class="skeleton block h-3 w-1/2"></span></span></div><span class="skeleton mt-4 block h-11 w-full"></span></div>
+            <template x-for="i in 3" :key="i">
+                <div class="app-card mb-2 p-4"><span class="skeleton mb-2 block h-4 w-1/2"></span><span class="skeleton mb-2 block h-3 w-full"></span><span class="skeleton block h-3 w-1/3"></span></div>
+            </template>
+        </div>
+
+        <!-- Jouw leerpad eerst -->
+        <template x-if="data?.own">
+            <section data-enter class="mb-4 rounded-2xl border border-brand-200 bg-brand-50 p-4">
+                <div class="flex items-center gap-3">
+                    <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl" :class="data.own.classes"><span x-icon="data.own.icon" class="h-6 w-6"></span></span>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-[11px] font-bold tracking-widest text-brand-700 uppercase">Jouw leerpad</p>
+                        <h2 class="text-base font-bold text-navy-900" x-text="data.own.title"></h2>
+                        <p class="text-xs text-gray-600" x-text="'Voor ' + data.own.for + ', ' + osFormat.tally(data.own.tours.length, 'rondleiding', 'rondleidingen')"></p>
+                    </div>
+                    <p class="shrink-0 text-xl font-bold text-navy-900" x-text="data.own.percentage + '%'"></p>
+                </div>
+                <span class="app-bar mt-3"><i :style="`width: ${data.own.percentage}%`"></i></span>
+                <div class="mt-3 flex flex-wrap gap-2 border-t border-brand-200 pt-3">
+                    <template x-for="tour in data.own.tours" :key="tour.id">
+                        <button type="button" @click="$store.os.go(tour.path)"
+                                class="flex min-h-11 items-center gap-1.5 rounded-xl border px-3 text-sm font-semibold"
+                                :class="tour.done ? 'border-green-200 bg-green-50 text-green-800' : 'border-gray-200 bg-white text-navy-900'">
+                            <span x-show="tour.done" x-icon="'check'" class="h-3.5 w-3.5"></span>
+                            <span x-show="!tour.done && tour.started" x-icon="'arrow-path'" class="h-3.5 w-3.5"></span>
+                            <span x-text="tour.title"></span>
+                        </button>
+                    </template>
+                </div>
+            </section>
+        </template>
+
+        <!-- Alle rondleidingen per categorie -->
+        <template x-for="category in data?.categories ?? []" :key="category.key">
+            <section class="mb-4">
+                <h2 class="mb-2 flex items-center gap-2 px-1 text-sm font-bold text-navy-900">
+                    <span class="flex h-7 w-7 items-center justify-center rounded-lg" :class="category.classes"><span x-icon="category.icon" class="h-4 w-4"></span></span>
+                    <span x-text="category.label"></span>
+                </h2>
+                <div class="space-y-2">
+                    <template x-for="tour in category.tours" :key="tour.id">
+                        <button type="button" data-enter @click="$store.os.go(tour.path)" class="app-card block w-full text-left">
+                            <span class="block h-[3px] w-full" :class="tour.done ? 'bg-green-500' : (tour.started ? 'bg-amber-500' : 'bg-gray-200')"></span>
+                            <span class="block p-4">
+                                <span class="mb-1.5 flex items-start justify-between gap-2">
+                                    <b class="min-w-0 text-sm font-bold text-navy-900" x-text="tour.title"></b>
+                                    <span x-show="tour.done" class="shrink-0 rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-bold text-green-800">Afgerond</span>
+                                    <span x-show="!tour.done && tour.started" class="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800" x-text="'Stap ' + tour.step"></span>
+                                </span>
+                                <span class="block text-xs leading-relaxed text-gray-600" x-text="tour.summary"></span>
+                                <span class="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+                                    <span class="flex items-center gap-1"><span x-icon="'clock'" class="h-3.5 w-3.5"></span> <span x-text="tour.minutes + ' minuten'"></span></span>
+                                    <span x-text="tour.steps + ' stappen'"></span>
+                                    <span x-text="tour.level"></span>
+                                </span>
+                            </span>
+                        </button>
+                    </template>
+                </div>
+            </section>
+        </template>
+
+        <!-- De afspraken -->
+        <section data-enter class="app-card mb-4 p-4" x-show="data">
+            <h2 class="text-sm font-bold text-navy-900">Zo doen we het <span class="text-brand-600">hier</span></h2>
+            <p class="mb-3 text-xs text-gray-500">De afspraken waar Renovion zich aan houdt.</p>
+            <div class="space-y-2.5">
+                <template x-for="rule in data?.rules ?? []" :key="rule.text">
+                    <div class="flex items-start gap-3">
+                        <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-100 text-brand-700"><span x-icon="rule.icon" class="h-4 w-4"></span></span>
+                        <span class="pt-1 text-sm text-gray-800" x-text="rule.text"></span>
+                    </div>
+                </template>
+            </div>
+        </section>
+
+        <!-- Veelgestelde vragen -->
+        <section data-enter class="app-card mb-4 px-4 pt-4 pb-1" x-show="data">
+            <h2 class="mb-1 text-sm font-bold text-navy-900">Veelgestelde <span class="text-brand-600">vragen</span></h2>
+            <template x-for="(item, index) in data?.faq ?? []" :key="index">
+                <div class="border-b border-gray-100 last:border-b-0">
+                    <button type="button" @click="faqOpen = faqOpen === index ? null : index" :aria-expanded="faqOpen === index" class="flex min-h-11 w-full items-center justify-between gap-3 py-2.5 text-left">
+                        <span class="text-sm font-semibold text-navy-900" x-text="item.question"></span>
+                        <span x-icon="'chevron-down'" class="h-4 w-4 shrink-0 text-gray-500 transition" :class="faqOpen === index && 'rotate-180'"></span>
+                    </button>
+                    <p x-show="faqOpen === index" x-cloak class="pb-3 text-sm text-gray-600" x-text="item.answer"></p>
+                </div>
+            </template>
+        </section>
+    </div>
+</template>
+
+<!-- ===== Rondleiding: stap voor stap, met het scherm erbij ===== -->
+<template x-if="$store.os.route === 'rondleiding'">
+    <div>
+        <template x-for="id in [$store.os.query.tour]" :key="id">
+            <div x-data="academyTour(id, Math.max(0, parseInt($store.os.query.stap ?? '0', 10) || 0))">
+                <nav class="app-crumbs mb-2 !text-gray-500">
+                    <a href="#/academy" class="tap">Academy</a>
+                    <span x-icon="'chevron-right'" class="h-3 w-3"></span>
+                    <span x-text="data?.title ?? ''"></span>
+                </nav>
+
+                <div data-enter class="app-ph">
+                    <p class="sec-eye"><span x-icon="'academic-cap'"></span> <span x-text="data?.category ?? 'Academy'"></span></p>
+                    <h1><span x-text="data?.title ?? ''"></span><span x-show="!data" class="skeleton inline-block h-7 w-2/3 align-middle"></span></h1>
+                    <p class="sub" x-text="data?.summary ?? ''"></p>
+                    <div class="app-ph-acts" x-show="data">
+                        <span class="rounded-full bg-calc-100 px-3 py-1.5 text-xs font-bold text-calc-700" x-text="data ? 'Stap ' + (data.step + 1) + ' van ' + data.count : ''"></span>
+                    </div>
+                </div>
+
+                <template x-if="failed">
+                    <div class="app-card mb-3 p-5 text-center">
+                        <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                        <button type="button" @click="load()" class="app-btn mt-3 min-h-11">Opnieuw proberen</button>
+                    </div>
+                </template>
+
+                <!-- De stappen als balkjes: tik om ernaar te gaan -->
+                <nav class="mb-3 flex gap-1" x-show="data" aria-label="Stappen">
+                    <template x-for="(item, index) in data?.steps ?? []" :key="index">
+                        <button type="button" @click="goto(index)" class="flex h-11 flex-1 items-center" :aria-label="'Stap ' + (index + 1) + ': ' + item.title" :aria-current="index === data.step ? 'step' : null">
+                            <span class="block h-1.5 w-full rounded-full" :class="index <= data.step ? 'bg-calc-500' : 'bg-gray-200'"></span>
+                        </button>
+                    </template>
+                </nav>
+
+                <article data-enter class="app-card mb-3 p-5" x-show="!failed">
+                    <template x-if="!data">
+                        <div><span class="skeleton mb-3 block h-3 w-16"></span><span class="skeleton mb-4 block h-6 w-3/4"></span><span class="skeleton mb-2 block h-3.5 w-full"></span><span class="skeleton mb-2 block h-3.5 w-11/12"></span><span class="skeleton block h-3.5 w-2/3"></span></div>
+                    </template>
+                    <template x-if="data">
+                        <div>
+                            <p class="text-[11px] font-bold tracking-widest text-calc-700 uppercase" x-text="'Stap ' + (data.step + 1)"></p>
+                            <h2 class="mt-1.5 text-xl font-bold text-navy-900" x-text="data.current.title"></h2>
+                            <p class="mt-3 text-[15px] leading-relaxed text-gray-700" x-text="data.current.body"></p>
+                            <template x-if="data.current.path">
+                                <div>
+                                    <button type="button" @click="$store.os.go(data.current.path)" class="mt-4 flex min-h-11 items-center gap-1.5 rounded-xl bg-brand-500 px-4 text-sm font-bold text-white active:bg-brand-600">
+                                        <span x-icon="'arrow-right'" class="h-4 w-4"></span> Open dit scherm
+                                    </button>
+                                    <p class="mt-2 text-xs text-gray-500">Met terug kom je weer bij deze uitleg.</p>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                </article>
+
+                <div class="mb-4 grid grid-cols-2 gap-2" x-show="data">
+                    <button type="button" @click="goto(data.step - 1)" :disabled="!data || data.step === 0" class="app-btn min-h-11 justify-center disabled:opacity-40">
+                        <span x-icon="'chevron-left'" class="h-4 w-4"></span> Vorige
+                    </button>
+                    <button type="button" x-show="data && !data.last" @click="goto(data.step + 1)" class="flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-brand-500 text-sm font-bold text-white active:bg-brand-600">
+                        Volgende <span x-icon="'chevron-right'" class="h-4 w-4"></span>
+                    </button>
+                    <button type="button" x-show="data?.last" @click="finish()" :disabled="busy" class="flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-brand-500 text-sm font-bold text-white active:bg-brand-600 disabled:opacity-60">
+                        <span x-icon="'check'" class="h-4 w-4"></span> <span x-text="busy ? 'Bezig' : 'Afronden'"></span>
+                    </button>
+                </div>
+
+                <!-- Alle stappen in deze rondleiding -->
+                <section data-enter class="app-card mb-4 p-4" x-show="data">
+                    <h2 class="mb-2 text-sm font-bold text-navy-900">In deze <span class="text-brand-600">rondleiding</span></h2>
+                    <ol>
+                        <template x-for="(item, index) in data?.steps ?? []" :key="index">
+                            <li>
+                                <button type="button" @click="goto(index)" class="flex min-h-11 w-full items-center gap-2.5 rounded-lg px-2 text-left" :class="index === data.step && 'bg-gray-50'">
+                                    <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold"
+                                          :class="index < data.step ? 'bg-green-100 text-green-800' : (index === data.step ? 'bg-calc-500 text-white' : 'bg-gray-100 text-gray-500')" x-text="index + 1"></span>
+                                    <span class="min-w-0 text-sm" :class="index === data.step ? 'font-semibold text-navy-900' : 'text-gray-700'" x-text="item.title"></span>
+                                </button>
+                            </li>
+                        </template>
+                    </ol>
+                    <p x-show="data?.completed_on" class="mt-3 flex items-center gap-2 border-t border-gray-100 pt-3 text-sm text-green-700">
+                        <span x-icon="'check'" class="h-4 w-4"></span> <span x-text="'Afgerond op ' + data?.completed_on"></span>
+                    </p>
+                </section>
+            </div>
+        </template>
+    </div>
+</template>

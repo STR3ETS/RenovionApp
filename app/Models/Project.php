@@ -204,18 +204,26 @@ class Project extends Model
     /**
      * Voortgang% wordt berekend uit de fasen en hun werkpakketten (briefing §7),
      * zodat het dashboard en klantportaal altijd de werkelijke stand tonen.
+     * De nazorgfase telt niet mee: die komt na de oplevering (ProjectPhase::AFTERCARE).
      */
     public function syncProgress(): void
     {
-        $phases = $this->phases()->with('workPackages')->get();
+        $progress = $this->calculatedProgress();
 
-        if ($phases->isEmpty()) {
-            return;
+        if ($progress !== null) {
+            $this->forceFill(['progress' => $progress])->save();
         }
+    }
 
-        $this->forceFill([
-            'progress' => (int) round($phases->avg(fn (ProjectPhase $phase) => $phase->completionFraction()) * 100),
-        ])->save();
+    /** De voortgang volgens de fasen (zonder nazorg), of null zonder fasen. */
+    public function calculatedProgress(): ?int
+    {
+        $phases = $this->phases()->with('workPackages')->get()
+            ->reject(fn (ProjectPhase $phase) => $phase->name === ProjectPhase::AFTERCARE);
+
+        return $phases->isEmpty()
+            ? null
+            : (int) round($phases->avg(fn (ProjectPhase $phase) => $phase->completionFraction()) * 100);
     }
 
     public function scheduleEntries(): HasMany

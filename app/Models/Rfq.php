@@ -124,6 +124,17 @@ class Rfq extends Model
         };
     }
 
+    /** Lichte badgekleuren voor de app (api/app). */
+    public function appBadgeClasses(): string
+    {
+        return match ($this->status) {
+            self::STATUS_SENT => 'bg-lead-100 text-lead-700',
+            self::STATUS_AWARDED => 'bg-brand-100 text-brand-800',
+            self::STATUS_DONE => 'bg-green-100 text-green-800',
+            default => 'bg-gray-200 text-gray-700',
+        };
+    }
+
     public function winningBid(): ?RfqBid
     {
         return $this->awarded_to === null

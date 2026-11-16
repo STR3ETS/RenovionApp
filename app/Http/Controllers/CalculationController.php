@@ -10,6 +10,7 @@ use App\Models\Calculation;
 use App\Models\Customer;
 use App\Models\Lead;
 use App\Models\PriceItem;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -44,7 +45,7 @@ class CalculationController extends Controller
         ]);
     }
 
-    public function store(StoreCalculationRequest $request): RedirectResponse
+    public function store(StoreCalculationRequest $request): RedirectResponse|JsonResponse
     {
         $validated = $request->validated();
 
@@ -74,6 +75,11 @@ class CalculationController extends Controller
 
             return $calculation;
         });
+
+        // De app (formulier in mobile/app): naar de calculatie.
+        if ($request->expectsJson()) {
+            return response()->json(['id' => $calculation->id, 'path' => route('calculations.show', $calculation, false)], 201);
+        }
 
         return redirect()
             ->route('calculations.show', $calculation)
@@ -111,12 +117,17 @@ class CalculationController extends Controller
         return redirect()->route('calculations.show', $calculation)->with('success', 'Calculatie bijgewerkt.');
     }
 
-    public function destroy(Calculation $calculation): RedirectResponse
+    public function destroy(Request $request, Calculation $calculation): RedirectResponse|JsonResponse
     {
         abort_if($calculation->isLocked(), 403, 'Een definitieve calculatie kan niet worden verwijderd.');
 
         AuditLog::record($calculation, 'verwijderd', ['title' => $calculation->title], []);
         $calculation->delete();
+
+        // De app (calculatiescherm): terug naar de lijst.
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Calculatie verwijderd.', 'path' => route('calculations.index', [], false)]);
+        }
 
         return redirect()->route('calculations.index')->with('success', 'Calculatie verwijderd.');
     }

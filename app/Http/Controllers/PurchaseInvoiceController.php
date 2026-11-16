@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
 use App\Models\PurchaseInvoice;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -14,7 +15,7 @@ use Illuminate\Support\Carbon;
  */
 class PurchaseInvoiceController extends Controller
 {
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'number' => ['required', 'string', 'max:80'],
@@ -31,7 +32,9 @@ class PurchaseInvoiceController extends Controller
 
         // Dezelfde leverancier mag niet twee keer hetzelfde factuurnummer sturen.
         if (PurchaseInvoice::where('supplier', $validated['supplier'])->where('number', $validated['number'])->exists()) {
-            return back()->with('error', 'Deze leverancier heeft dat factuurnummer al ingediend.');
+            return $request->expectsJson()
+                ? response()->json(['message' => 'Deze leverancier heeft dat factuurnummer al ingediend.'], 422)
+                : back()->with('error', 'Deze leverancier heeft dat factuurnummer al ingediend.');
         }
 
         $invoice = PurchaseInvoice::create([
@@ -46,10 +49,14 @@ class PurchaseInvoiceController extends Controller
             'bedrag' => (float) $invoice->amount,
         ]);
 
+        if ($request->expectsJson()) {
+            return response()->json(['message' => "Inkoopfactuur {$invoice->number} geboekt, wacht op goedkeuring."]);
+        }
+
         return back()->with('success', "Inkoopfactuur {$invoice->number} geboekt, wacht op goedkeuring.");
     }
 
-    public function update(Request $request, PurchaseInvoice $purchaseInvoice): RedirectResponse
+    public function update(Request $request, PurchaseInvoice $purchaseInvoice): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'status' => ['sometimes', 'string', 'in:nieuw,goedgekeurd,betaald,afgewezen'],
@@ -76,6 +83,10 @@ class PurchaseInvoiceController extends Controller
         $purchaseInvoice->update($validated);
 
         AuditLog::record($purchaseInvoice, 'inkoopfactuur bijgewerkt', $old, $validated);
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Inkoopfactuur bijgewerkt.', 'status' => $purchaseInvoice->status, 'label' => $purchaseInvoice->statusLabel()]);
+        }
 
         return back()->with('success', 'Inkoopfactuur bijgewerkt.');
     }

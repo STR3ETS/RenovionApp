@@ -1,0 +1,173 @@
+<!-- ===== Foto's van een project (projects/tabs/fotos) ===== -->
+<template x-if="$store.os.route === 'fotos'">
+    <div>
+        <template x-for="id in [$store.os.param]" :key="id">
+            <div x-data="projectPhotos(id)" class="pb-4">
+                <nav class="app-crumbs mb-2 !text-gray-500">
+                    <template x-if="data?.project">
+                        <span class="contents">
+                            <button type="button" @click="$store.os.go(data.project.path)" class="tap inline-flex min-w-0 items-center gap-1 font-semibold !text-brand-700"><span x-icon="'folder'" class="h-3.5 w-3.5 shrink-0"></span><span class="truncate" x-text="data.project.name"></span></button>
+                            <span x-icon="'chevron-right'" class="h-3 w-3 shrink-0"></span>
+                        </span>
+                    </template>
+                    <span>Foto's</span>
+                </nav>
+                <div data-enter class="app-ph">
+                    <p class="sec-eye"><span x-icon="'photo'"></span> Foto's &amp; voortgang</p>
+                    <h1>Foto<em>'s</em></h1>
+                    <p class="sub">
+                        <span x-show="data" x-text="data ? data.project.name + ', ' + osFormat.tally(data.total, 'foto', 'foto\'s') : ''"></span>
+                        <span x-show="!data" class="skeleton block h-3.5 w-1/2"></span>
+                    </p>
+                </div>
+
+                <template x-if="failed">
+                    <div class="app-card mb-3 p-5 text-center">
+                        <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                        <button type="button" @click="load()" class="app-btn mt-3">Opnieuw proberen</button>
+                    </div>
+                </template>
+
+                <!-- Filter per fase -->
+                <div class="-mx-4 mb-3 flex gap-1 overflow-x-auto px-4 pb-1 [scrollbar-width:none]" x-show="data?.phases.length">
+                    <button type="button" @click="setPhase(null)" class="tap shrink-0 rounded-full px-3.5 py-[7px] text-[13.5px] font-semibold whitespace-nowrap" :class="phase === null ? 'bg-navy-900 text-white' : 'text-gray-600'">
+                        Alle foto's <span class="ml-0.5 opacity-70" x-text="data?.total"></span>
+                    </button>
+                    <template x-for="option in data?.phases ?? []" :key="option.id">
+                        <button type="button" @click="setPhase(option.id)" class="tap shrink-0 rounded-full px-3.5 py-[7px] text-[13.5px] font-semibold whitespace-nowrap" :class="phase === option.id ? 'bg-navy-900 text-white' : 'text-gray-600'">
+                            <span x-text="option.name"></span> <span class="ml-0.5 opacity-70" x-text="option.count"></span>
+                        </button>
+                    </template>
+                </div>
+
+                <!-- Foto's toevoegen -->
+                <section data-enter class="app-card mb-3 p-4" x-show="data">
+                    <h2 class="mb-3 text-sm font-bold text-navy-900">Foto's toevoegen</h2>
+                    <div class="space-y-2">
+                        <select x-model="uploadPhase" aria-label="Fase" class="w-full">
+                            <option value="">Fase, optioneel</option>
+                            <template x-for="option in data?.upload_phases ?? []" :key="option.id">
+                                <option :value="String(option.id)" :selected="String(option.id) === uploadPhase" x-text="option.name"></option>
+                            </template>
+                        </select>
+                        <input type="text" x-model="caption" maxlength="255" placeholder="Omschrijving, bijvoorbeeld leidingwerk badkamer" aria-label="Omschrijving bij de foto" class="w-full min-w-0">
+                        <label class="flex min-h-11 cursor-pointer items-center gap-3 text-sm font-medium text-gray-700">
+                            <input type="checkbox" x-model="clientVisible" class="h-6 w-6 shrink-0 rounded border-gray-300 text-brand-500">
+                            Zichtbaar voor de klant
+                        </label>
+                        <div class="flex gap-2">
+                            <label class="flex min-h-12 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-brand-500 px-4 py-3 text-sm font-bold text-white active:bg-brand-600">
+                                <span x-icon="'camera'" class="h-5 w-5"></span> Foto maken
+                                <input type="file" accept="image/*" capture="environment" multiple class="sr-only" aria-label="Foto maken" @change="addPhotos($event)">
+                            </label>
+                            <label class="flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-navy-900 active:bg-gray-50">
+                                <span x-icon="'photo'" class="h-5 w-5"></span> Galerij
+                                <input type="file" accept="image/*" multiple class="sr-only" aria-label="Foto's uit de galerij kiezen" @change="addPhotos($event)">
+                            </label>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Raster -->
+                <template x-if="!data && !failed">
+                    <div class="grid grid-cols-2 gap-2"><template x-for="i in 6" :key="i"><span class="skeleton block aspect-square !rounded-xl"></span></template></div>
+                </template>
+
+                <div x-show="uploads.length || shown.length" class="grid grid-cols-2 gap-2 min-[400px]:grid-cols-3">
+                    <template x-for="upload in uploads" :key="upload.key">
+                        <div class="relative aspect-square overflow-hidden rounded-xl bg-gray-100">
+                            <img :src="upload.preview" alt="" class="h-full w-full object-cover opacity-60">
+                            <span x-show="upload.state === 'busy'" class="absolute inset-x-2 bottom-2 rounded-full bg-navy-950/80 px-2 py-0.5 text-center text-[10px] font-semibold text-white" x-text="upload.count > 1 ? upload.count + ' foto\'s versturen' : 'Versturen'"></span>
+                            <button type="button" x-show="upload.state === 'failed'" @click="send(upload)" class="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-navy-950/60 text-xs font-semibold text-white">
+                                Niet verstuurd <span class="rounded-full bg-white px-2 py-0.5 text-[11px] font-bold text-navy-950">Opnieuw</span>
+                            </button>
+                        </div>
+                    </template>
+                    <template x-for="photo in shown" :key="photo.id">
+                        <button type="button" @click="open(photo)" class="overflow-hidden rounded-xl border border-gray-200 bg-white text-left" :aria-label="'Foto bekijken: ' + photo.caption">
+                            <span class="relative block aspect-square bg-gray-100">
+                                <img :src="photoUrl(photo)" alt="" loading="lazy" class="h-full w-full object-cover">
+                                <span x-show="photo.internal" class="absolute top-1.5 left-1.5 rounded-full bg-navy-950/80 px-2 py-0.5 text-[10px] font-semibold text-white">Intern</span>
+                            </span>
+                            <span class="block px-2.5 py-2">
+                                <span class="block truncate text-xs font-semibold text-navy-900" x-text="photo.caption"></span>
+                                <span class="block truncate text-[11px] text-gray-500" x-text="photo.meta"></span>
+                            </span>
+                        </button>
+                    </template>
+                </div>
+
+                <template x-if="data && !shown.length && !uploads.length">
+                    <div class="app-card p-6 text-center">
+                        <span class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-project-100 text-project-700"><span x-icon="'camera'" class="h-6 w-6"></span></span>
+                        <p class="text-sm font-bold text-navy-900">Nog geen foto's</p>
+                        <p class="mt-1 text-sm text-gray-500">Upload foto's per fase of vanaf een werkpakket, zo bouw je het bewijs voor de oplevering op.</p>
+                    </div>
+                </template>
+            </div>
+        </template>
+    </div>
+</template>
+
+<!-- ===== Eén foto schermvullend (photos.show) ===== -->
+<template x-if="$store.os.route === 'foto'">
+    <div>
+        <template x-for="id in [$store.os.param]" :key="id">
+            <div x-data="photoViewer(id)" @renovion-back.window="if (editing) { editing = false; $event.preventDefault(); }" class="fixed inset-0 z-[70] flex flex-col bg-black pt-safe pb-safe text-white">
+                <div class="flex items-center gap-2 px-3 py-2">
+                    <button type="button" @click="close()" class="tap flex h-11 w-11 shrink-0 items-center justify-center rounded-lg" aria-label="Terug"><span x-icon="'chevron-left'" class="h-6 w-6"></span></button>
+                    <span class="min-w-0 flex-1">
+                        <span class="block truncate text-sm font-semibold" x-text="data?.caption ?? ''"></span>
+                        <span class="block truncate text-xs text-white/70" x-text="data ? [data.meta, data.position ? data.position + ' van ' + data.count : null].filter(Boolean).join(' · ') : ''"></span>
+                        <span x-show="!data && !failed" class="skeleton skeleton-dark block h-4 w-1/2"></span>
+                    </span>
+                    <button type="button" x-show="data?.removable" @click="remove()" :disabled="busy !== null" class="tap flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-white/80 disabled:opacity-50" aria-label="Foto verwijderen"><span x-icon="'trash'" class="h-5 w-5"></span></button>
+                </div>
+
+                <template x-if="failed">
+                    <div class="m-auto max-w-xs rounded-xl bg-white p-5 text-center">
+                        <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                        <button type="button" @click="load()" class="app-btn mt-3">Opnieuw proberen</button>
+                    </div>
+                </template>
+
+                <div class="relative flex min-h-0 flex-1 items-center justify-center" x-show="!failed" @touchstart.passive="touchStart($event)" @touchend="touchEnd($event)">
+                    <template x-if="data">
+                        <img :src="photoUrl(data)" :alt="data.caption" class="max-h-full max-w-full object-contain">
+                    </template>
+                    <span x-show="!data" class="skeleton skeleton-dark block h-2/3 w-5/6 !rounded-xl"></span>
+                    <button type="button" x-show="data?.previous" @click="step(data.previous)" class="absolute top-1/2 left-2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/40" aria-label="Vorige foto"><span x-icon="'chevron-left'" class="h-6 w-6"></span></button>
+                    <button type="button" x-show="data?.next" @click="step(data.next)" class="absolute top-1/2 right-2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/40" aria-label="Volgende foto"><span x-icon="'chevron-right'" class="h-6 w-6"></span></button>
+                </div>
+
+                <!-- Waar de foto bij hoort, en voor kantoor: omschrijving en klantzichtbaarheid -->
+                <div class="shrink-0 space-y-2 px-4 pt-2 pb-3" x-show="data">
+                    <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-white/80">
+                        <span x-show="data?.internal" class="rounded-full bg-white/15 px-2 py-0.5 font-semibold text-white">Intern</span>
+                        <span x-show="data?.phase" x-text="data?.phase"></span>
+                        <span x-show="data?.checklist_item" x-text="data?.checklist_item"></span>
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" @click="$store.os.go(data.project.path)" class="app-btn onnavy min-h-11"><span x-icon="'folder'" class="h-4 w-4"></span> <span class="max-w-[10rem] truncate" x-text="data?.project.name"></span></button>
+                        <button type="button" x-show="data?.work_package" @click="$store.os.go(data.work_package.path)" class="app-btn onnavy min-h-11"><span x-icon="'clipboard-check'" class="h-4 w-4"></span> <span class="max-w-[10rem] truncate" x-text="data?.work_package?.name"></span></button>
+                    </div>
+                    <template x-if="data?.editable">
+                        <div class="space-y-2">
+                            <div class="flex gap-2">
+                                <button type="button" @click="update({ client_visible: data.internal })" :disabled="busy !== null" class="app-btn onnavy min-h-11 flex-1 justify-center disabled:opacity-50">
+                                    <span x-icon="data.internal ? 'eye' : 'lock-closed'" class="h-4 w-4"></span>
+                                    <span x-text="data.internal ? 'Zichtbaar maken voor de klant' : 'Alleen intern'"></span>
+                                </button>
+                                <button type="button" x-show="!editing" @click="edit()" class="app-btn onnavy min-h-11 justify-center" aria-label="Omschrijving wijzigen"><span x-icon="'pencil'" class="h-4 w-4"></span></button>
+                            </div>
+                            <form x-show="editing" @submit.prevent="update({ caption: draft.trim() || null })" class="flex gap-2">
+                                <input type="text" x-model="draft" maxlength="255" placeholder="Omschrijving" aria-label="Omschrijving" class="min-w-0 flex-1">
+                                <button type="submit" :disabled="busy !== null" class="app-btn pri min-h-11 shrink-0 disabled:opacity-50" x-text="busy === 'update' ? 'Bezig' : 'Opslaan'"></button>
+                            </form>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </template>
+    </div>
+</template>

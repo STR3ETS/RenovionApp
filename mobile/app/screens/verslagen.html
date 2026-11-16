@@ -1,0 +1,334 @@
+<!-- ===== Gespreksverslagen (meetings/index) ===== -->
+<template x-if="$store.os.route === 'verslagen'">
+    <div x-data="meetings">
+        <div data-enter class="app-ph">
+            <p class="sec-eye"><span x-icon="'microphone'"></span> Nova notuleert</p>
+            <h1>Gespreks<em>verslagen</em></h1>
+            <p class="sub">
+                <span x-show="data" x-text="data ? osFormat.tally(data.total, 'verslag', 'verslagen') : ''"></span>
+                <span x-show="!data" class="skeleton block h-3.5 w-1/3"></span>
+            </p>
+            <div class="app-ph-acts">
+                <a href="#/opnemen" class="flex min-h-11 items-center gap-1.5 rounded-lg bg-brand-500 px-4 text-sm font-bold text-white active:bg-brand-600">
+                    <span x-icon="'microphone'" class="h-4 w-4"></span> Gesprek opnemen
+                </a>
+            </div>
+        </div>
+
+        <template x-if="failed">
+            <div class="app-card p-5 text-center">
+                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                <button type="button" @click="load()" class="app-btn mt-3">Opnieuw proberen</button>
+            </div>
+        </template>
+
+        <template x-if="data && list.length === 0">
+            <div class="app-card p-6 text-center">
+                <span class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-planning-100 text-planning-700"><span x-icon="'microphone'" class="h-6 w-6"></span></span>
+                <p class="text-sm font-bold text-navy-900">Nog geen gespreksverslagen</p>
+                <p class="mt-1 text-sm text-gray-500">Neem een overleg, bouwvergadering of klantgesprek op. Nova maakt er een verslag van, met besluiten, acties en open vragen.</p>
+                <a href="#/opnemen" class="mt-4 inline-flex min-h-11 items-center rounded-lg bg-brand-500 px-4 text-sm font-bold text-white active:bg-brand-600">Gesprek opnemen</a>
+            </div>
+        </template>
+
+        <div data-enter class="app-card" x-show="!failed && (!data || list.length > 0)">
+            <div class="app-card-b">
+                <template x-for="i in (data ? 0 : 6)" :key="i">
+                    <div class="flex items-center gap-3.5 py-3.5"><span class="skeleton h-10 w-10 shrink-0 !rounded-xl"></span><span class="flex-1"><span class="skeleton mb-2 block h-3.5 w-2/3"></span><span class="skeleton block h-3 w-1/2"></span></span></div>
+                </template>
+                <template x-for="meeting in list" :key="meeting.id">
+                    <a :href="'#/verslag/' + meeting.id" class="app-li !items-center">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-planning-100 text-planning-700"><span x-icon="'microphone'" class="h-5 w-5"></span></span>
+                        <span class="min-w-0 flex-1">
+                            <b class="truncate" x-text="meeting.title"></b>
+                            <small class="truncate" x-text="meeting.sub"></small>
+                        </span>
+                        <span class="shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap" :class="meeting.status.classes" x-text="meeting.status.label"></span>
+                    </a>
+                </template>
+            </div>
+        </div>
+
+        <button type="button" x-show="data && hasMore" @click="loadMore()" :disabled="loadingMore" class="app-btn mt-3 w-full justify-center disabled:opacity-60" x-text="loadingMore ? 'Bezig' : 'Meer verslagen'"></button>
+    </div>
+</template>
+
+<!-- ===== Gesprek opnemen (meetings/create) ===== -->
+<template x-if="$store.os.route === 'opnemen'">
+    <div x-data="meetingRecord" class="pb-4">
+        <!-- Stap 1: waar gaat het over, en weet iedereen het -->
+        <template x-if="step === 'form'">
+            <div>
+                <nav class="app-crumbs mb-2 !text-gray-500">
+                    <a href="#/verslagen" class="tap">Gespreksverslagen</a>
+                    <span x-icon="'chevron-right'" class="h-3 w-3"></span>
+                    <span>Opnemen</span>
+                </nav>
+                <div data-enter class="app-ph">
+                    <p class="sec-eye"><span x-icon="'microphone'"></span> Nova notuleert</p>
+                    <h1>Gesprek <em>opnemen</em></h1>
+                    <p class="sub">Nova luistert mee en maakt het verslag: samenvatting, besluiten, acties en open vragen.</p>
+                </div>
+
+                <section data-enter class="app-card space-y-4 p-4">
+                    <label class="block">
+                        <span class="mb-1 block text-sm font-semibold text-gray-700">Onderwerp</span>
+                        <input type="text" x-model="title" maxlength="255" enterkeyhint="done" placeholder="Bijv. Bouwvergadering badkamer" class="w-full">
+                    </label>
+                    <label class="block min-w-0">
+                        <span class="mb-1 block text-sm font-semibold text-gray-700">Soort gesprek</span>
+                        <select x-model="kind" class="w-full">
+                            <template x-for="option in data?.kinds ?? [{ value: 'intern', label: 'Intern overleg' }]" :key="option.value">
+                                <option :value="option.value" :selected="option.value === kind" x-text="option.label"></option>
+                            </template>
+                        </select>
+                    </label>
+                    <label class="block min-w-0">
+                        <span class="mb-1 block text-sm font-semibold text-gray-700">Project</span>
+                        <select x-model="projectId" class="w-full" :disabled="!data">
+                            <option value="">Geen project</option>
+                            <template x-for="project in data?.projects ?? []" :key="project.id">
+                                <option :value="String(project.id)" :selected="String(project.id) === String(projectId)" x-text="project.name"></option>
+                            </template>
+                        </select>
+                    </label>
+
+                    <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
+                        <input type="checkbox" x-model="consent" class="mt-0.5 h-6 w-6 shrink-0 rounded border-gray-300 text-brand-500">
+                        <span class="text-sm text-gray-700">Alle aanwezigen weten dat het gesprek wordt opgenomen en zijn akkoord.</span>
+                    </label>
+                    <p class="-mt-2 text-xs text-gray-500">Vraagt iemand wat er met de opname gebeurt? <button type="button" @click="$store.os.openWeb(data?.privacy_path ?? '/privacy#gesprekken')" class="tap font-semibold text-brand-700 underline underline-offset-2">Zo gaan we ermee om</button>.</p>
+
+                    <p x-show="error" x-cloak class="rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700" x-text="error"></p>
+
+                    <button type="button" @click="start()" :disabled="busy"
+                            class="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-500 py-3.5 text-base font-bold text-white active:bg-brand-600 disabled:opacity-60">
+                        <span class="h-3 w-3 rounded-full bg-white"></span>
+                        <span x-text="busy ? 'Microfoon openen' : 'Opname starten'"></span>
+                    </button>
+
+                    <ul class="space-y-1.5 text-xs text-gray-500">
+                        <li class="flex gap-2"><span x-icon="'sun'" class="h-4 w-4 shrink-0 text-gray-400"></span> Houd dit scherm open, het blijft aan tijdens de opname. Ga je naar een ander scherm, dan stopt de opname en maakt Nova het verslag.</li>
+                        <li class="flex gap-2"><span x-icon="'clock'" class="h-4 w-4 shrink-0 text-gray-400"></span> Na Stop maakt Nova het verslag, dat duurt een paar minuten. Jij kiest welke acties taken worden.</li>
+                        <li class="flex gap-2"><span x-icon="'eye'" class="h-4 w-4 shrink-0 text-gray-400"></span>
+                            <span x-show="data" x-text="'Het geluid wordt ' + data?.processor + ' omgezet naar tekst en na ' + data?.retention_days + ' dagen verwijderd. Het verslag blijft staan.'"></span>
+                            <span x-show="!data" class="skeleton block h-3 w-3/4"></span>
+                        </li>
+                    </ul>
+                </section>
+            </div>
+        </template>
+
+        <!-- Stap 2: opname loopt -->
+        <template x-if="step !== 'form'">
+            <section class="app-card mt-2 p-6 text-center">
+                <p class="flex items-center justify-center gap-2 text-sm font-semibold" :class="paused ? 'text-gray-500' : 'text-red-700'">
+                    <span class="h-2.5 w-2.5 rounded-full" :class="paused ? 'bg-gray-400' : 'animate-pulse bg-red-500'"></span>
+                    <span x-text="step === 'recording' ? (paused ? 'Gepauzeerd' : 'Nova luistert mee') : 'Opname gestopt'"></span>
+                </p>
+                <p class="mt-1 truncate text-base font-bold text-navy-950" x-text="title"></p>
+                <p class="mt-4 font-[family-name:var(--font-display)] text-5xl font-bold text-navy-950 tabular-nums" x-text="time"></p>
+
+                <div class="mt-5 flex h-8 items-center justify-center gap-1" aria-hidden="true">
+                    <template x-for="(level, index) in levels" :key="index">
+                        <span class="w-1.5 rounded-full bg-brand-500 transition-[height] duration-100" :style="`height: ${level}px`"></span>
+                    </template>
+                </div>
+
+                <p class="mt-4 min-h-5 text-xs" :class="offline ? 'font-semibold text-amber-700' : 'text-gray-500'"
+                   x-text="offline ? 'Geen verbinding: ' + pending + ' ' + (pending === 1 ? 'stukje wacht' : 'stukjes wachten') + ', die gaan vanzelf zodra het weer kan.' : (step === 'stopping' ? (pending ? 'Laatste stukjes versturen' : 'Verslag klaarzetten') : 'Alles is veilig verstuurd.')"></p>
+                <p x-show="error" x-cloak class="mt-2 text-xs font-medium text-red-700" x-text="error"></p>
+
+                <div class="mt-6 flex gap-2" x-show="step === 'recording'">
+                    <button type="button" @click="pause()" class="min-h-12 flex-1 rounded-xl border border-gray-300 bg-white py-3 text-sm font-semibold text-navy-900 active:bg-gray-100" x-text="paused ? 'Hervatten' : 'Pauzeren'"></button>
+                    <button type="button" @click="stop()" class="min-h-12 flex-[2] rounded-xl bg-brand-500 py-3 text-sm font-bold text-white active:bg-brand-600">Stoppen en verslag maken</button>
+                </div>
+                <div x-show="step !== 'recording'" class="mt-6 space-y-2"><span class="skeleton block h-3.5 w-full"></span><span class="skeleton block h-3.5 w-2/3"></span></div>
+            </section>
+        </template>
+    </div>
+</template>
+
+<!-- ===== Gespreksverslag (meetings/show) ===== -->
+<template x-if="$store.os.route === 'verslag'">
+    <div>
+        <template x-for="id in [$store.os.param]" :key="id">
+            <div x-data="meeting(id)" class="pb-4">
+                <nav class="app-crumbs mb-2 !text-gray-500">
+                    <template x-if="data?.project">
+                        <span class="contents">
+                            <button type="button" @click="$store.os.go(data.project.path)" class="tap inline-flex min-w-0 items-center gap-1 font-semibold !text-brand-700"><span x-icon="'folder'" class="h-3.5 w-3.5 shrink-0"></span><span class="truncate" x-text="data.project.name"></span></button>
+                            <span x-icon="'chevron-right'" class="h-3 w-3 shrink-0"></span>
+                        </span>
+                    </template>
+                    <a href="#/verslagen" class="tap">Gespreksverslagen</a>
+                </nav>
+                <div data-enter class="app-ph">
+                    <p class="sec-eye"><span x-icon="'microphone'"></span> Gespreksverslag</p>
+                    <h1><span x-text="data?.title ?? ''"></span><span x-show="!data" class="skeleton inline-block h-7 w-2/3 align-middle"></span></h1>
+                    <p class="sub" x-text="data?.sub ?? ''"></p>
+                    <div class="app-ph-acts" x-show="data">
+                        <span class="rounded-full px-3 py-1 text-sm font-semibold" :class="data?.status.classes" x-text="data?.status.label"></span>
+                    </div>
+                </div>
+
+                <template x-if="failed">
+                    <div class="app-card mb-3 p-5 text-center">
+                        <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                        <button type="button" @click="load()" class="app-btn mt-3">Opnieuw proberen</button>
+                    </div>
+                </template>
+
+                <template x-if="!data && !failed">
+                    <div class="app-card mb-3 space-y-2.5 p-4"><span class="skeleton block h-4 w-1/3"></span><span class="skeleton block h-3.5 w-full"></span><span class="skeleton block h-3.5 w-5/6"></span><span class="skeleton block h-3.5 w-2/3"></span></div>
+                </template>
+
+                <!-- Nog bezig: elke 5 s kijken (en daarmee de verwerking een stap verder helpen) -->
+                <template x-if="data?.status.value === 'verwerken'">
+                    <section class="app-card mb-3 p-4">
+                        <div class="mb-4 flex items-center gap-3">
+                            <img :src="$store.os.novaUrl" alt="Nova" class="h-10 w-10 shrink-0 rounded-full object-cover ring-2 ring-brand-500">
+                            <div class="min-w-0">
+                                <p class="text-sm font-bold text-navy-900">Nova schrijft het verslag</p>
+                                <p class="text-xs text-gray-500" x-text="data.waiting_for ? data.waiting_for + ' De opname is bewaard en wordt verwerkt zodra die er is.' : 'Het gesprek wordt omgezet naar tekst, daarna haalt Nova er de besluiten, acties en vragen uit. Dit duurt een paar minuten; je kunt dit scherm gerust verlaten.'"></p>
+                            </div>
+                        </div>
+                        <div class="space-y-2"><span class="skeleton block h-3.5 w-full"></span><span class="skeleton block h-3.5 w-5/6"></span><span class="skeleton block h-3.5 w-2/3"></span><span class="skeleton block h-3.5 w-3/4"></span></div>
+                    </section>
+                </template>
+
+                <template x-if="data?.status.value === 'opname'">
+                    <section class="mb-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                        <p class="text-sm font-bold text-amber-900">Deze opname is niet afgerond</p>
+                        <p class="mt-1 text-sm text-amber-800" x-text="'De opname loopt nog, of het scherm werd gesloten voordat er op Stop werd gedrukt. Wat er al binnen is (' + data.duration + '), kan Nova toch verwerken.'"></p>
+                        <button type="button" x-show="data.can_stop" @click="stopNow()" :disabled="busy !== null" class="mt-3 min-h-11 rounded-xl bg-brand-500 px-4 text-sm font-bold text-white active:bg-brand-600 disabled:opacity-60" x-text="busy === 'stop' ? 'Bezig' : 'Toch verwerken'"></button>
+                    </section>
+                </template>
+
+                <template x-if="data?.status.value === 'mislukt'">
+                    <section class="mb-3 rounded-2xl border border-red-200 bg-red-50 p-4">
+                        <p class="text-sm font-bold text-red-800">Verslag maken lukte niet</p>
+                        <p class="mt-1 text-sm text-red-700" x-text="data.error"></p>
+                        <button type="button" @click="retry()" :disabled="busy !== null" class="mt-3 min-h-11 rounded-xl bg-brand-500 px-4 text-sm font-bold text-white active:bg-brand-600 disabled:opacity-60" x-text="busy === 'retry' ? 'Bezig' : 'Opnieuw proberen'"></button>
+                    </section>
+                </template>
+
+                <template x-if="data?.status.value === 'klaar'">
+                    <div>
+                        <!-- Samenvatting -->
+                        <section data-enter class="app-card mb-3 p-4">
+                            <div class="mb-2 flex items-center gap-2">
+                                <img :src="$store.os.novaUrl" alt="" class="h-7 w-7 rounded-full object-cover">
+                                <h2 class="text-sm font-bold text-navy-900">Samenvatting</h2>
+                            </div>
+                            <p class="text-sm whitespace-pre-line text-gray-700" x-text="data.summary"></p>
+                            <p class="mt-3 text-xs text-gray-500">Concept van Nova op basis van het transcript. Controleer het voordat je het deelt.</p>
+                        </section>
+
+                        <section data-enter class="app-card mb-3 p-4" x-show="data.decisions.length">
+                            <h2 class="mb-3 flex items-center gap-2 text-sm font-bold text-navy-900"><span x-icon="'check'" class="h-4 w-4 text-green-700"></span> Besluiten</h2>
+                            <ul class="space-y-2">
+                                <template x-for="(decision, index) in data.decisions" :key="index">
+                                    <li class="rounded-xl bg-green-50 px-3 py-2 text-sm text-green-900" x-text="decision"></li>
+                                </template>
+                            </ul>
+                        </section>
+
+                        <!-- Acties: aanvinken wordt een taak, eigenaar en datum zijn aan te passen -->
+                        <section data-enter class="app-card mb-3 p-4" x-show="data.actions.length">
+                            <h2 class="mb-3 flex items-center gap-2 text-sm font-bold text-navy-900"><span x-icon="'clipboard-check'" class="h-4 w-4 text-planning-700"></span> Acties</h2>
+                            <form @submit.prevent="createTasks()" class="space-y-2">
+                                <template x-for="(action, index) in data.actions" :key="index">
+                                    <div>
+                                        <template x-if="action.task_id">
+                                            <div class="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 p-3">
+                                                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-500 text-white"><span x-icon="'check'" class="h-3.5 w-3.5"></span></span>
+                                                <span class="min-w-0 flex-1 text-sm text-gray-600" x-text="action.title"></span>
+                                                <button type="button" @click="$store.os.go(data.links.tasks)" class="tap shrink-0 text-xs font-semibold text-brand-700">Taak</button>
+                                            </div>
+                                        </template>
+                                        <template x-if="!action.task_id && form[index]">
+                                            <div class="rounded-xl border border-gray-200 p-3">
+                                                <label class="flex cursor-pointer items-start gap-3">
+                                                    <input type="checkbox" x-model="form[index].selected" class="mt-1 h-6 w-6 shrink-0 rounded border-gray-300 text-brand-500" :aria-label="'Taak maken: ' + action.title">
+                                                    <textarea x-model="form[index].title" rows="2" maxlength="255" aria-label="Actie" class="min-w-0 flex-1 resize-none !border-transparent !px-2 !py-1 text-sm font-medium text-navy-900 [field-sizing:content]"></textarea>
+                                                </label>
+                                                <div class="mt-2 grid grid-cols-1 gap-2 pl-9 min-[400px]:grid-cols-2" x-show="form[index].selected">
+                                                    <select x-model="form[index].owner_id" aria-label="Eigenaar" class="min-w-0 text-sm">
+                                                        <option value="">Ik zelf</option>
+                                                        <template x-for="member in data.team" :key="member.id">
+                                                            <option :value="String(member.id)" :selected="String(member.id) === form[index].owner_id" x-text="member.name"></option>
+                                                        </template>
+                                                    </select>
+                                                    <input type="date" x-model="form[index].deadline" aria-label="Datum" class="min-w-0 text-sm">
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </template>
+                                <button type="submit" x-show="openActions" :disabled="busy !== null" class="min-h-12 w-full rounded-xl bg-brand-500 py-3 text-sm font-bold text-white active:bg-brand-600 disabled:opacity-60" x-text="busy === 'tasks' ? 'Bezig' : 'Aangevinkte acties als taak aanmaken'"></button>
+                            </form>
+                        </section>
+
+                        <section data-enter class="app-card mb-3 p-4" x-show="data.questions.length">
+                            <h2 class="mb-3 flex items-center gap-2 text-sm font-bold text-navy-900"><span x-icon="'question-mark-circle'" class="h-4 w-4 text-amber-700"></span> Open vragen</h2>
+                            <ul class="space-y-2">
+                                <template x-for="(question, index) in data.questions" :key="index">
+                                    <li class="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900" x-text="question"></li>
+                                </template>
+                            </ul>
+                        </section>
+                    </div>
+                </template>
+
+                <!-- Transcript -->
+                <section data-enter class="app-card mb-3" x-show="data?.transcript.length">
+                    <button type="button" @click="transcriptOpen = !transcriptOpen" class="flex min-h-12 w-full items-center justify-between gap-3 p-4 text-left text-sm font-bold text-navy-900" :aria-expanded="transcriptOpen">
+                        Volledig transcript
+                        <span class="flex items-center gap-1 text-xs font-semibold text-gray-500"><span x-text="osFormat.tally(data?.transcript.length ?? 0, 'uitspraak', 'uitspraken')"></span> <span x-icon="'chevron-down'" class="h-4 w-4 transition" :class="transcriptOpen && 'rotate-180'"></span></span>
+                    </button>
+                    <template x-if="transcriptOpen">
+                        <div class="space-y-3 border-t border-gray-100 p-4">
+                            <template x-for="(line, index) in data.transcript" :key="index">
+                                <div class="flex gap-3 text-sm">
+                                    <span class="w-12 shrink-0 pt-0.5 text-xs text-gray-500 tabular-nums" x-text="line.time"></span>
+                                    <span class="min-w-0 flex-1">
+                                        <b x-show="line.speaker" class="block text-xs font-bold" :class="line.color" x-text="line.speaker"></b>
+                                        <span class="text-gray-700" x-text="line.text"></span>
+                                    </span>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                </section>
+
+                <!-- Opname -->
+                <template x-if="data?.audio">
+                    <section data-enter class="app-card mb-3 p-4">
+                        <h2 class="mb-3 text-sm font-bold text-navy-900">Opname</h2>
+                        <audio controls preload="metadata" :src="audioUrl(data)" class="w-full" @loadedmetadata="fixDuration($el)"></audio>
+                        <p class="mt-2 text-xs text-gray-500" x-text="data.audio.note"></p>
+                    </section>
+                </template>
+                <section class="app-card mb-3 p-4 text-sm text-gray-500" x-show="data && !data.audio && data.audio_deleted">De opname is na de bewaartermijn verwijderd. Het verslag blijft bewaard.</section>
+
+                <!-- Delen in de chat -->
+                <template x-if="data?.status.value === 'klaar' && data.channels.length">
+                    <section data-enter class="app-card mb-3 p-4">
+                        <h2 class="mb-3 text-sm font-bold text-navy-900">Delen in de chat</h2>
+                        <form @submit.prevent="share()" class="space-y-2">
+                            <select x-model="channel" aria-label="Kanaal" class="w-full">
+                                <template x-for="option in data.channels" :key="option.id">
+                                    <option :value="String(option.id)" :selected="String(option.id) === channel" x-text="option.name"></option>
+                                </template>
+                            </select>
+                            <button type="submit" :disabled="busy !== null" class="app-btn min-h-11 w-full justify-center disabled:opacity-60" x-text="busy === 'share' ? 'Bezig' : 'Nova deelt de samenvatting'"></button>
+                        </form>
+                    </section>
+                </template>
+
+                <button type="button" x-show="data?.can_delete" @click="remove()" :disabled="busy !== null" class="min-h-11 w-full rounded-xl border border-red-200 bg-white py-2.5 text-sm font-semibold text-red-700 active:bg-red-50 disabled:opacity-60">Verslag en opname verwijderen</button>
+            </div>
+        </template>
+    </div>
+</template>

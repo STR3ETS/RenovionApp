@@ -1,0 +1,141 @@
+<!-- Nieuwe calculatie (calculations/create) -->
+<template x-if="$store.os.route === 'nieuwecalculatie'">
+    <div>
+        <template x-for="key in [JSON.stringify($store.os.query ?? {})]" :key="key">
+            <div x-data="calculationCreateForm()">
+                <nav class="app-crumbs mb-2 !text-gray-500">
+                    <button type="button" @click="cancel()" class="tap" x-text="data?.lead ? data.lead.name : 'Terug'"></button>
+                    <span x-icon="'chevron-right'" class="h-3 w-3"></span>
+                    <span>Nieuwe calculatie</span>
+                </nav>
+                <div data-enter class="app-ph">
+                    <p class="sec-eye"><span x-icon="'calculator'"></span> Calculaties</p>
+                    <h1>Nieuwe <em>calculatie</em></h1>
+                    <p class="sub">Op basis van een opname, een omschrijving of een voorstel van Nova.</p>
+                </div>
+
+                <template x-if="unavailable">
+                    <div class="app-card p-5 text-center"><p class="text-sm font-semibold text-navy-900" x-text="unavailable"></p></div>
+                </template>
+                <template x-if="failed && !unavailable">
+                    <div class="app-card p-5 text-center">
+                        <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                        <button type="button" @click="load()" class="app-btn mt-3 !min-h-11">Opnieuw proberen</button>
+                    </div>
+                </template>
+                <div x-show="!form && !failed && !unavailable" class="app-card space-y-3 p-4">
+                    <div class="skeleton h-11 w-full"></div><div class="skeleton h-11 w-full"></div><div class="skeleton h-24 w-full"></div>
+                </div>
+
+                <template x-if="form && !unavailable">
+                    <form @submit.prevent="save()" @input="touch($event)" @change="touch($event)" novalidate class="space-y-3">
+                        <section data-enter class="app-card space-y-3 p-4">
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Titel *</span>
+                                <input type="text" name="title" x-model="form.title" enterkeyhint="next" placeholder="Bijv. Calculatie badkamer - Familie Jansen" class="!min-h-11 w-full" :class="err('title') && '!border-red-400'">
+                                <p x-show="err('title')" x-text="err('title')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Klant</span>
+                                <select name="customer_id" x-model="form.customer_id" class="!min-h-11 w-full" :class="err('customer_id') && '!border-red-400'">
+                                    <option value="">- Geen klant (losse calculatie) -</option>
+                                    <template x-for="customer in data.customers" :key="customer.id">
+                                        <option :value="customer.id" x-text="customer.name" :selected="String(customer.id) === String(form.customer_id)"></option>
+                                    </template>
+                                </select>
+                                <p x-show="err('customer_id')" x-text="err('customer_id')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+                            <div x-show="data.lead" class="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5">
+                                <p class="text-xs font-semibold text-gray-500">Gekoppelde aanvraag</p>
+                                <p class="text-sm font-semibold text-navy-900" x-text="data.lead?.name"></p>
+                                <p class="text-xs text-gray-500" x-text="data.lead?.sub"></p>
+                            </div>
+                        </section>
+
+                        <section data-enter class="app-card space-y-3 p-4">
+                            <div class="grid grid-cols-2 gap-2" role="group" aria-label="Invoermethode">
+                                <button type="button" @click="mode = 'handmatig'" :aria-pressed="mode === 'handmatig'"
+                                        class="tap min-h-11 rounded-xl border px-3 text-sm font-semibold" :class="mode === 'handmatig' ? 'border-brand-400 bg-brand-50 text-brand-800' : 'border-gray-200 text-gray-600'">Handmatig</button>
+                                <button type="button" @click="mode = 'ai'" :aria-pressed="mode === 'ai'"
+                                        class="tap min-h-11 rounded-xl border px-3 text-sm font-semibold" :class="mode === 'ai' ? 'border-brand-400 bg-brand-50 text-brand-800' : 'border-gray-200 text-gray-600'">Nova (spraak/tekst)</button>
+                            </div>
+
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Omschrijving</span>
+                                <span class="relative block">
+                                    <textarea name="description" x-model="form.description" rows="5" class="w-full pr-12" :class="err('description') && '!border-red-400'"
+                                              placeholder="Beschrijf het project. Bijv. badkamer 6 m2 volledig renoveren: strippen, vloer- en wandtegels, inloopdouche, wandcloset, stucwerk plafond."></textarea>
+                                    <button type="button" x-show="speechSupported" @click.prevent="dictate(() => form.description, (text) => form.description = text)" :aria-label="listening ? 'Stop met inspreken' : 'Spreek de opname in'"
+                                            class="absolute right-1.5 bottom-2 flex h-11 w-11 items-center justify-center rounded-full" :class="listening ? 'animate-pulse bg-red-500 text-white' : 'text-gray-500'">
+                                        <span x-icon="'microphone'" class="h-5 w-5"></span>
+                                    </button>
+                                </span>
+                                <p x-show="err('description')" x-text="err('description')" data-error class="mt-1 text-xs font-semibold text-red-700"></p>
+                            </label>
+
+                            <p x-show="mode === 'handmatig'" class="text-xs text-gray-500">Je maakt een calculatie aan en voegt daarna zelf regels toe vanuit de prijsbibliotheek.</p>
+
+                            <div x-show="mode === 'ai'" class="space-y-3">
+                                <div x-show="data.sources.length">
+                                    <p class="mb-1 text-sm font-semibold text-gray-700">Kostendatabase</p>
+                                    <p class="mb-2 text-xs text-gray-500">Nova gebruikt alleen prijzen uit de ingeschakelde bronnen.</p>
+                                    <template x-for="source in data.sources" :key="source.source">
+                                        <button type="button" @click="toggleSource(source.source)" role="switch" :aria-checked="form.sources.includes(source.source)" class="tap flex min-h-11 w-full items-center justify-between gap-3 text-left">
+                                            <span class="min-w-0">
+                                                <span class="block truncate text-sm font-medium text-navy-900" x-text="source.source"></span>
+                                                <span class="block text-xs text-gray-500" x-text="'Editie ' + source.edition"></span>
+                                            </span>
+                                            <span class="relative h-6 w-10 shrink-0 rounded-full transition" :class="form.sources.includes(source.source) ? 'bg-brand-500' : 'bg-gray-300'">
+                                                <span class="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition" :class="form.sources.includes(source.source) && 'translate-x-4'"></span>
+                                            </span>
+                                        </button>
+                                    </template>
+                                </div>
+                                <p x-show="!data.can_propose" class="rounded-xl bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">De AI-assistent is niet ingesteld op de server. Maak de calculatie handmatig aan.</p>
+                                <button type="button" x-show="data.can_propose" @click="propose()" :disabled="busy || !form.description.trim()"
+                                        class="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-navy-900 text-sm font-bold text-white disabled:opacity-50">
+                                    <img :src="$store.os.novaUrl" alt="" class="h-5 w-5 rounded-full object-cover">
+                                    <span x-text="busy ? 'Nova rekent' : (proposal ? 'Opnieuw voorstellen' : 'Stel regels voor met Nova')"></span>
+                                </button>
+                                <div x-show="busy" class="space-y-2"><div class="skeleton h-12 w-full"></div><div class="skeleton h-12 w-full"></div></div>
+                                <p x-show="proposeError" x-text="proposeError" class="text-xs font-semibold text-red-700"></p>
+
+                                <!-- Voorstel: eerst controleren, dan bevestigen -->
+                                <div x-show="proposal" class="rounded-xl border border-brand-200 bg-brand-50/50">
+                                    <p class="flex items-center gap-2 border-b border-brand-100 px-3 py-2.5 text-sm font-semibold text-navy-900">
+                                        <img :src="$store.os.novaUrl" alt="" class="h-6 w-6 rounded-full object-cover"> Voorstel van Nova: controleer de regels
+                                    </p>
+                                    <ul class="divide-y divide-brand-100">
+                                        <template x-for="(line, index) in proposal?.lines ?? []" :key="index">
+                                            <li class="flex items-start gap-2 px-3 py-2">
+                                                <span class="min-w-0 flex-1">
+                                                    <span class="block text-sm font-medium text-navy-900" x-text="line.description"></span>
+                                                    <span class="text-xs text-gray-500" x-text="[line.type, line.quantity + ' ' + (line.unit ?? ''), osFormat.euro(line.unit_price, 2)].join(', ')"></span>
+                                                </span>
+                                                <span class="shrink-0 pt-0.5 text-sm font-semibold whitespace-nowrap text-navy-900" x-text="osFormat.euro(lineTotal(line), 2)"></span>
+                                                <button type="button" @click="removeLine(index)" class="-m-2 flex h-11 w-11 shrink-0 items-center justify-center text-gray-400" aria-label="Regel weglaten">
+                                                    <span x-icon="'x-mark'" class="h-4 w-4"></span>
+                                                </button>
+                                            </li>
+                                        </template>
+                                    </ul>
+                                    <div class="flex justify-between border-t border-brand-100 px-3 py-2.5 text-sm">
+                                        <span class="text-xs font-semibold text-gray-600">Subtotaal (zonder onvoorzien, marge en btw)</span>
+                                        <b class="text-navy-900" x-text="osFormat.euro(proposalTotal(), 2)"></b>
+                                    </div>
+                                    <p x-show="proposal?.note" class="border-t border-brand-100 px-3 py-2.5 text-xs text-gray-600"><span class="font-semibold text-navy-900">Aannames:</span> <span x-text="proposal?.note"></span></p>
+                                </div>
+                                <p x-show="err('lines')" x-text="err('lines')" data-error class="text-xs font-semibold text-red-700"></p>
+                            </div>
+                        </section>
+
+                        <p x-show="formError" x-text="formError" role="alert" class="rounded-xl bg-red-100 px-3 py-2 text-sm font-medium text-red-800"></p>
+                        <div class="flex gap-2 pb-2">
+                            <button type="submit" :disabled="saving || (mode === 'ai' && !proposal)"
+                                    class="min-h-11 flex-1 rounded-xl bg-brand-500 px-4 text-sm font-bold text-white hover:bg-brand-600 active:bg-brand-600 disabled:opacity-60"
+                                    x-text="saving ? 'Bezig' : (mode === 'ai' ? (proposal ? 'Aanmaken met ' + osFormat.tally(proposal.lines.length, 'regel', 'regels') : 'Eerst een voorstel') : 'Calculatie aanmaken')"></button>
+                            <button type="button" @click="cancel()" class="min-h-11 rounded-xl border border-gray-300 bg-white px-5 text-sm font-semibold text-gray-600">Annuleren</button>
+                        </div>
+                    </form>
+                </template>
+            </div>
+        </template>
+    </div>
+</template>

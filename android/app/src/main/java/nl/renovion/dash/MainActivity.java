@@ -1,5 +1,7 @@
 package nl.renovion.dash;
 
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import androidx.webkit.WebViewCompat;
@@ -18,6 +20,22 @@ public class MainActivity extends BridgeActivity {
         super.onCreate(savedInstanceState);
         bridge.setWebViewClient(new RenovionWebViewClient(bridge));
         injectBridgeOnServerPages();
+        openDownloadsOutside();
+    }
+
+    /**
+     * Een PDF of ander bestand (documenten, bijlagen) doet in de Android-WebView anders niets: die toont alleen
+     * webpagina's en afbeeldingen. Zo'n adres gaat naar de telefoon (browser of PDF-app), die het opent of bewaart.
+     * De adressen zijn ondertekend en werken dus zonder inlog.
+     */
+    private void openDownloadsOutside() {
+        bridge.getWebView().setDownloadListener((url, userAgent, contentDisposition, mimeType, contentLength) -> {
+            try {
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+            } catch (ActivityNotFoundException exception) {
+                Logger.error("Renovion: geen app om dit bestand te openen", exception);
+            }
+        });
     }
 
     /**

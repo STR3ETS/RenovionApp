@@ -1,0 +1,192 @@
+<!-- ===== Opleverrapport ===== -->
+<template x-if="$store.os.route === 'opleverrapport'">
+    <div>
+        <template x-for="id in [$store.os.param]" :key="id">
+            <div x-data="deliveryReport(id)" class="pb-4">
+                <nav class="app-crumbs mb-2 !text-gray-500">
+                    <template x-if="data?.project">
+                        <span class="contents">
+                            <button type="button" @click="$store.os.go(data.project.path)" class="tap inline-flex min-w-0 items-center gap-1 font-semibold !text-brand-700"><span x-icon="'folder'" class="h-3.5 w-3.5 shrink-0"></span><span class="truncate" x-text="data.project.name"></span></button>
+                            <span x-icon="'chevron-right'" class="h-3 w-3 shrink-0"></span>
+                        </span>
+                    </template>
+                    <span>Opleverrapport</span>
+                </nav>
+
+                <div data-enter class="app-ph">
+                    <p class="sec-eye"><span x-icon="'clipboard-document-list'"></span> Oplevering</p>
+                    <h1>Opleverrapport</h1>
+                    <p class="sub" x-text="data?.subtitle ?? ''"></p>
+                    <span x-show="!data && !failed" class="skeleton block h-3.5 w-1/2"></span>
+                    <div class="app-ph-acts" x-show="data?.fully_signed">
+                        <span class="flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-800"><span x-icon="'check'" class="h-3.5 w-3.5"></span> Volledig ondertekend</span>
+                    </div>
+                </div>
+
+                <template x-if="failed">
+                    <div class="app-card mb-3 p-5 text-center">
+                        <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                        <button type="button" @click="load()" class="app-btn mt-3">Opnieuw proberen</button>
+                    </div>
+                </template>
+
+                <div class="mb-3 grid grid-cols-2 gap-2" x-show="data">
+                    <button type="button" x-show="data?.can_sign" @click="sign()" :disabled="busy !== null" class="col-span-2 flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-navy-950 text-sm font-bold text-white disabled:opacity-60">
+                        <span x-icon="'pencil-square'" class="h-4 w-4"></span> <span x-text="busy === 'sign' ? 'Bezig' : 'Ondertekenen namens Renovion'"></span>
+                    </button>
+                    <button type="button" x-show="data?.can_regenerate" @click="regenerate()" :disabled="busy !== null" class="app-btn justify-center disabled:opacity-60">
+                        <span x-icon="'arrow-path'" class="h-4 w-4"></span> <span x-text="busy === 'regenerate' ? 'Bezig' : 'Hergenereren'"></span>
+                    </button>
+                    <button type="button" @click="$store.os.openWeb(data.path)" class="app-btn justify-center" :class="!data?.can_regenerate && 'col-span-2'">
+                        <span x-icon="'arrow-down-tray'" class="h-4 w-4"></span> Download als PDF
+                    </button>
+                    <button type="button" @click="$store.os.go(data.project.path)" class="app-btn col-span-2 justify-center"><span x-icon="'folder'" class="h-4 w-4"></span> Naar project</button>
+                </div>
+                <p x-show="data && !data.client_signed" class="mb-3 text-xs text-gray-500">De klant vindt dit rapport onder "Actie van u nodig" in het klantportaal en ondertekent daar digitaal.</p>
+
+                <!-- Kop -->
+                <section data-enter class="app-card mb-3 p-4" x-show="!failed">
+                    <p class="text-xs font-bold tracking-wide text-brand-600 uppercase">Opleverrapport</p>
+                    <h2 class="mt-1 text-xl font-bold text-navy-950" x-text="data?.header.name ?? ''"></h2>
+                    <span x-show="!data" class="skeleton mt-1 block h-6 w-2/3"></span>
+                    <p class="mt-1 text-sm text-gray-500" x-text="data?.header.sub ?? ''"></p>
+                    <p class="mt-1 text-xs text-gray-500" x-text="data?.header.generated ?? ''"></p>
+                </section>
+
+                <!-- Planning -->
+                <section data-enter class="app-card mb-3 p-4" x-show="data">
+                    <h2 class="mb-3 text-sm font-bold text-navy-900">Planning</h2>
+                    <div class="grid grid-cols-2 gap-2">
+                        <template x-for="row in data?.planning ?? []" :key="row.label">
+                            <div class="rounded-xl bg-gray-50 p-3">
+                                <p class="text-xs text-gray-500" x-text="row.label"></p>
+                                <p class="text-sm font-bold" :class="{ amber: 'text-amber-700', green: 'text-green-700' }[row.tone] ?? 'text-navy-900'" x-text="row.value"></p>
+                            </div>
+                        </template>
+                    </div>
+                </section>
+
+                <section data-enter class="app-card mb-3 p-4" x-show="data?.scope">
+                    <h2 class="mb-2 text-sm font-bold text-navy-900">Uitgevoerde scope</h2>
+                    <p class="text-sm whitespace-pre-line text-gray-600" x-text="data?.scope"></p>
+                </section>
+
+                <!-- Fasen -->
+                <section data-enter class="app-card mb-3" x-show="data?.phases.length">
+                    <div class="app-card-h"><h3>Fasen</h3></div>
+                    <div class="app-card-b">
+                        <template x-for="(phase, index) in data?.phases ?? []" :key="index">
+                            <div class="app-li">
+                                <span class="min-w-0 flex-1"><b class="!font-medium" x-text="phase.name"></b><small x-show="phase.sub" x-text="phase.sub"></small></span>
+                                <span class="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap" :class="phase.done ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'" x-text="phase.status"></span>
+                            </div>
+                        </template>
+                    </div>
+                </section>
+
+                <!-- Uitgevoerd werk met bewijs -->
+                <section data-enter class="mb-3" x-show="data?.work.length">
+                    <h2 class="mb-2 px-1 text-sm font-bold text-navy-900">Uitgevoerd werk en bewijs</h2>
+                    <div class="space-y-2">
+                        <template x-for="(work, index) in data?.work ?? []" :key="index">
+                            <div class="app-card p-4">
+                                <div class="flex items-start justify-between gap-2">
+                                    <span class="min-w-0"><b class="block text-sm font-bold text-navy-900" x-text="work.name"></b><small class="block text-xs text-gray-500" x-text="work.sub"></small></span>
+                                    <span class="shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold" :class="work.done ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'" x-text="work.status"></span>
+                                </div>
+                                <ul x-show="work.items.length" class="mt-3 space-y-1">
+                                    <template x-for="(item, itemIndex) in work.items" :key="itemIndex">
+                                        <li class="flex items-start gap-1.5 text-sm text-gray-700">
+                                            <span x-icon="'check'" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-green-700"></span>
+                                            <span><span x-text="item.label"></span> <span class="text-xs text-gray-500" x-text="item.meta"></span></span>
+                                        </li>
+                                    </template>
+                                </ul>
+                                <div x-show="work.photos.length" class="mt-3 grid grid-cols-3 gap-2">
+                                    <template x-for="photo in work.photos" :key="photo.id">
+                                        <button type="button" @click="viewer = photo" class="h-20 overflow-hidden rounded-lg bg-gray-100" :aria-label="'Foto bekijken: ' + photo.caption"><img :src="photoUrl(photo)" alt="" loading="lazy" class="h-full w-full object-cover"></button>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </section>
+
+                <section data-enter class="app-card mb-3 p-4" x-show="data?.general_photos.length">
+                    <h2 class="mb-3 text-sm font-bold text-navy-900">Foto's van het resultaat</h2>
+                    <div class="grid grid-cols-2 gap-2">
+                        <template x-for="photo in data?.general_photos ?? []" :key="photo.id">
+                            <button type="button" @click="viewer = photo" class="h-28 overflow-hidden rounded-lg bg-gray-100" :aria-label="'Foto bekijken: ' + photo.caption"><img :src="photoUrl(photo)" alt="" loading="lazy" class="h-full w-full object-cover"></button>
+                        </template>
+                    </div>
+                </section>
+
+                <section data-enter class="app-card mb-3 p-4" x-show="data?.changes.length">
+                    <h2 class="mb-2 text-sm font-bold text-navy-900">Meerwerk en goedgekeurde wijzigingen</h2>
+                    <ul class="space-y-1.5">
+                        <template x-for="(change, index) in data?.changes ?? []" :key="index">
+                            <li class="flex items-baseline gap-2 text-sm text-gray-700">
+                                <span class="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-bold text-gray-600" x-text="change.version"></span>
+                                <span class="min-w-0"><span x-text="change.note"></span> <span class="text-xs text-gray-500" x-text="change.date"></span></span>
+                            </li>
+                        </template>
+                    </ul>
+                </section>
+
+                <!-- Restpunten -->
+                <section data-enter class="app-card mb-3 p-4" x-show="data">
+                    <h2 class="mb-2 text-sm font-bold text-navy-900">Restpunten</h2>
+                    <p x-show="data && !data.leftovers.length" class="flex items-center gap-1.5 text-sm font-medium text-green-700"><span x-icon="'check'" class="h-4 w-4"></span> Geen restpunten, alles is afgerond.</p>
+                    <div class="space-y-2">
+                        <template x-for="(item, index) in data?.leftovers ?? []" :key="index">
+                            <div class="rounded-xl border border-gray-200 p-3">
+                                <div class="flex items-start justify-between gap-2">
+                                    <b class="text-sm font-semibold text-navy-900"><span x-text="item.title"></span> <span class="text-xs font-normal text-gray-500" x-text="'(' + item.type + ')'"></span></b>
+                                    <span class="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800" x-text="item.status"></span>
+                                </div>
+                                <small class="mt-1 block text-xs text-gray-500" x-text="'Eigenaar: ' + item.owner + ', deadline: ' + item.deadline"></small>
+                            </div>
+                        </template>
+                    </div>
+                </section>
+
+                <section data-enter class="app-card mb-3 p-4" x-show="data?.warranty">
+                    <h2 class="mb-2 text-sm font-bold text-navy-900">Garantie en nazorg</h2>
+                    <p class="text-sm whitespace-pre-line text-gray-600" x-text="data?.warranty"></p>
+                </section>
+
+                <!-- Handtekeningen -->
+                <section data-enter class="mb-3 grid grid-cols-1 gap-2" x-show="data">
+                    <template x-for="[key, label] in [['company', 'Namens Renovion'], ['client', 'Namens de opdrachtgever']]" :key="key">
+                        <div class="app-card p-4">
+                            <p class="text-xs font-bold tracking-wide text-gray-600 uppercase" x-text="label"></p>
+                            <template x-if="data?.signatures[key]">
+                                <div>
+                                    <p class="mt-2 text-sm font-bold text-navy-900" x-text="data.signatures[key].name"></p>
+                                    <p class="text-xs text-gray-500" x-text="data.signatures[key].at"></p>
+                                    <p class="mt-1 flex items-center gap-1 text-xs font-semibold text-green-700"><span x-icon="'check'" class="h-3.5 w-3.5"></span> Digitaal ondertekend</p>
+                                </div>
+                            </template>
+                            <p x-show="!data?.signatures[key]" class="mt-2 text-sm text-gray-500">Nog niet ondertekend</p>
+                        </div>
+                    </template>
+                </section>
+
+                <!-- Foto schermvullend -->
+                <div x-show="viewer" x-cloak data-popup @renovion-back.window="if (viewer) { viewer = null; $event.preventDefault(); }" class="fixed inset-0 z-[70] flex flex-col bg-black pt-safe pb-safe">
+                    <template x-if="viewer">
+                        <div class="flex h-full flex-col">
+                            <div class="flex items-center gap-3 px-4 py-3 text-white">
+                                <span class="min-w-0 flex-1 truncate text-sm font-semibold" x-text="viewer.caption"></span>
+                                <button type="button" @click="viewer = null" class="tap rounded-lg p-2 text-white" aria-label="Sluiten"><span x-icon="'x-mark'" class="h-6 w-6"></span></button>
+                            </div>
+                            <div class="flex min-h-0 flex-1 items-center justify-center" @click.self="viewer = null">
+                                <img :src="photoUrl(viewer)" :alt="viewer.caption" class="max-h-full max-w-full object-contain">
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </template>
+    </div>
+</template>

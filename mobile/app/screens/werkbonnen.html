@@ -1,0 +1,224 @@
+<!-- ===== Werkbonnen ===== -->
+<template x-if="$store.os.route === 'werkbonnen'">
+    <div x-data="workOrders">
+        <div data-enter class="app-ph">
+            <p class="sec-eye"><span x-icon="'wrench'"></span> Uitvoering</p>
+            <h1><em>Werkbonnen</em></h1>
+            <p class="sub">Wat er op de bouwplaats gedaan is, in uren en materiaal. Na goedkeuring tellen de uren mee.</p>
+            <div class="app-ph-acts" x-show="data?.crm">
+                <button type="button" @click="filter('controle')" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white active:bg-brand-600">
+                    <span x-icon="'clipboard-check'" class="mr-1.5 h-4 w-4"></span><span x-text="(data?.to_review ?? 0) + ' ter controle'"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Eén project (vanuit Kwaliteit) -->
+        <div x-show="data?.project" class="mb-3 flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm">
+            <span x-icon="'folder'" class="h-4 w-4 shrink-0 text-gray-500"></span>
+            <span class="min-w-0 flex-1 truncate font-semibold text-navy-900" x-text="data?.project"></span>
+            <button type="button" @click="allProjects()" class="tap min-h-9 shrink-0 text-xs font-semibold text-brand-700">Alle projecten</button>
+        </div>
+
+        <!-- Filterpillen per status -->
+        <div class="app-chips -mx-4 !flex-nowrap overflow-x-auto px-4 pb-1 [scrollbar-width:none]" x-show="data">
+            <template x-for="option in data?.filters ?? []" :key="option.value">
+                <button type="button" @click="filter(option.value)" class="app-chip shrink-0" :class="(data.filter || '') === option.value && 'on'" :aria-pressed="(data.filter || '') === option.value">
+                    <b class="font-semibold" x-text="option.label"></b> <span x-text="option.count"></span>
+                </button>
+            </template>
+        </div>
+
+        <template x-if="failed">
+            <div class="app-card p-5 text-center">
+                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                <button type="button" @click="load()" class="app-btn mt-3">Opnieuw proberen</button>
+            </div>
+        </template>
+
+        <div x-show="!data && !failed" class="app-card">
+            <template x-for="i in 4" :key="i">
+                <div class="app-li"><span class="skeleton h-10 w-10 shrink-0 rounded-xl"></span><span class="flex-1"><span class="skeleton mb-1.5 block h-4 w-2/3"></span><span class="skeleton block h-3 w-1/2"></span></span></div>
+            </template>
+        </div>
+
+        <div x-show="data && !data.orders.length" class="app-card p-6 text-center">
+            <span class="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 text-gray-500"><span x-icon="'wrench'" class="h-5 w-5"></span></span>
+            <p class="text-sm font-semibold text-navy-900">Geen werkbonnen</p>
+            <p class="mt-1 text-xs text-gray-500">Zodra een uitvoerder een klus afrondt, staat de werkbon hier ter controle.</p>
+        </div>
+
+        <section data-enter class="app-card overflow-hidden" x-show="data?.orders.length">
+            <template x-for="order in data?.orders ?? []" :key="order.id">
+                <a :href="'#/werkbon/' + order.id" class="app-li border-l-4 !pl-3 active:bg-gray-50" :class="order.review ? '!border-l-amber-400' : '!border-l-transparent'">
+                    <span class="app-ic ok"><span x-icon="'wrench'" class="h-5 w-5"></span></span>
+                    <span class="min-w-0 flex-1">
+                        <b class="truncate" x-text="order.title"></b>
+                        <span class="mt-0.5 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold" :class="order.status.classes" x-text="order.status.label"></span>
+                        <small class="truncate" x-text="order.sub"></small>
+                    </span>
+                    <span class="shrink-0 text-right">
+                        <b class="block text-sm font-bold whitespace-nowrap text-navy-900" x-text="order.hours"></b>
+                        <small x-show="order.variance" class="block max-w-24 text-[11px] font-semibold" :class="order.variance?.over ? 'text-red-700' : 'text-green-700'" x-text="order.variance?.text"></small>
+                        <small x-show="order.on_budget" class="block text-[11px] text-gray-500">op begroting</small>
+                    </span>
+                </a>
+            </template>
+        </section>
+
+        <button type="button" x-show="data?.more" @click="$store.os.openWeb(data.web)" class="app-btn ghost mt-3 w-full justify-center">Oudere werkbonnen op de website</button>
+    </div>
+</template>
+
+<!-- ===== Werkbon ===== -->
+<template x-if="$store.os.route === 'werkbon'">
+    <div>
+        <template x-for="id in [$store.os.param]" :key="id">
+            <div x-data="workOrder(id)" class="pb-4">
+                <nav class="app-crumbs mb-2 !text-gray-500">
+                    <template x-if="data?.project">
+                        <span class="contents">
+                            <button type="button" @click="$store.os.go(data.project.path)" class="tap inline-flex min-w-0 items-center gap-1 font-semibold !text-brand-700"><span x-icon="'folder'" class="h-3.5 w-3.5 shrink-0"></span><span class="truncate" x-text="data.project.name"></span></button>
+                            <span x-icon="'chevron-right'" class="h-3 w-3 shrink-0"></span>
+                        </span>
+                    </template>
+                    <a x-show="!data?.project" href="#/werkbonnen" class="tap">Werkbonnen</a>
+                    <span x-show="!data?.project" x-icon="'chevron-right'" class="h-3 w-3"></span>
+                    <span x-text="data?.number ?? ''"></span>
+                </nav>
+
+                <div data-enter class="app-ph">
+                    <p class="sec-eye"><span x-icon="'wrench'"></span> <span x-text="data?.number ?? 'Werkbon'"></span></p>
+                    <h1><span x-text="data?.title ?? ''"></span><span x-show="!data" class="skeleton inline-block h-7 w-2/3 align-middle"></span></h1>
+                    <p class="sub" x-text="data?.subtitle ?? ''"></p>
+                    <div class="app-ph-acts" x-show="data">
+                        <span class="rounded-full px-3 py-1 text-sm font-semibold" :class="data?.status.classes" x-text="data?.status.label"></span>
+                    </div>
+                </div>
+
+                <template x-if="failed">
+                    <div class="app-card mb-3 p-5 text-center">
+                        <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                        <button type="button" @click="load()" class="app-btn mt-3">Opnieuw proberen</button>
+                    </div>
+                </template>
+
+                <div x-show="data?.rejection_reason" class="mb-3 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4">
+                    <span x-icon="'exclamation-triangle'" class="h-5 w-5 shrink-0 text-red-700"></span>
+                    <div>
+                        <p class="text-sm font-bold text-red-900">Teruggestuurd naar de uitvoerder</p>
+                        <p class="mt-0.5 text-sm text-red-800" x-text="data?.rejection_reason"></p>
+                    </div>
+                </div>
+
+                <!-- Goedkeuren of terugsturen -->
+                <section data-enter class="mb-3 rounded-2xl border border-amber-200 bg-amber-50 p-4" x-show="data?.can_approve">
+                    <h2 class="mb-1 text-sm font-bold text-navy-900">Ter controle</h2>
+                    <p class="mb-3 text-xs text-gray-700">Goedkeuren boekt de uren als kosten op het project en schuift de voortgang op.</p>
+                    <button type="button" @click="approve()" :disabled="busy !== null" class="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-brand-500 text-sm font-bold text-white active:bg-brand-600 disabled:opacity-60">
+                        <span x-icon="'check'" class="h-4 w-4"></span> <span x-text="busy === 'approve' ? 'Bezig' : 'Goedkeuren'"></span>
+                    </button>
+                    <form @submit.prevent="reject()" class="mt-2 space-y-2">
+                        <input type="text" x-model="reason" required maxlength="1000" placeholder="Waarom terug naar de uitvoerder?" aria-label="Reden om terug te sturen" class="w-full">
+                        <button type="submit" :disabled="busy !== null || !reason.trim()" class="min-h-11 w-full rounded-xl border border-gray-300 bg-white text-sm font-semibold text-gray-700 disabled:opacity-60" x-text="busy === 'reject' ? 'Bezig' : 'Terugsturen'"></button>
+                    </form>
+                </section>
+
+                <section data-enter class="mb-3 rounded-2xl border border-green-200 bg-green-50 p-4" x-show="data?.approved">
+                    <p class="flex items-center gap-2 text-sm font-bold text-green-900"><span x-icon="'check'" class="h-5 w-5 text-green-700"></span> Goedgekeurd</p>
+                    <p class="mt-1 text-xs text-green-800" x-text="data?.approved ? [data.approved.name, data.approved.at].filter(Boolean).join(', ') : ''"></p>
+                </section>
+
+                <!-- Uren en materiaal -->
+                <section data-enter class="app-card mb-3 p-4" x-show="!failed">
+                    <h2 class="mb-3 text-sm font-bold text-navy-900">Uren en materiaal</h2>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><p class="text-[11px] font-bold tracking-widest text-gray-500 uppercase">Geboekt</p><p class="mt-1 text-xl font-bold text-navy-900" x-text="data?.hours ?? ''"></p><span x-show="!data" class="skeleton mt-1 block h-6 w-12"></span></div>
+                        <div><p class="text-[11px] font-bold tracking-widest text-gray-500 uppercase">Begroot</p><p class="mt-1 text-xl font-bold text-gray-600" x-text="data?.budget_hours ?? ''"></p></div>
+                        <div><p class="text-[11px] font-bold tracking-widest text-gray-500 uppercase">Afwijking</p><p class="mt-1 text-xl font-bold" :class="data?.variance?.over ? 'text-red-700' : 'text-green-700'" x-text="data ? (data.variance?.text ?? 'n.v.t.') : ''"></p></div>
+                        <div><p class="text-[11px] font-bold tracking-widest text-gray-500 uppercase">Loonkosten</p>
+                            <p class="mt-1 text-xl font-bold text-navy-900" x-show="data?.labor_cost !== null" x-text="data ? osFormat.euro(data.labor_cost) : ''"></p>
+                            <p class="mt-1 text-sm text-gray-500" x-show="data && data.labor_cost === null">nog geen tarief</p>
+                        </div>
+                    </div>
+                    <div x-show="data?.materials.length" class="mt-4 border-t border-gray-100 pt-3">
+                        <p class="mb-2 text-[11px] font-bold tracking-widest text-gray-500 uppercase">Gebruikt materiaal</p>
+                        <template x-for="(post, index) in data?.materials ?? []" :key="index">
+                            <div class="flex items-center justify-between gap-3 py-1 text-sm">
+                                <span class="min-w-0 truncate text-navy-900" x-text="post.description"></span>
+                                <span class="shrink-0 font-semibold text-gray-600" x-text="post.quantity"></span>
+                            </div>
+                        </template>
+                    </div>
+                    <div x-show="data?.notes" class="mt-4 border-t border-gray-100 pt-3">
+                        <p class="mb-2 text-[11px] font-bold tracking-widest text-gray-500 uppercase">Opmerkingen</p>
+                        <p class="text-sm whitespace-pre-line text-gray-700" x-text="data?.notes"></p>
+                    </div>
+                </section>
+
+                <!-- De bevroren checklist -->
+                <section data-enter class="app-card mb-3 p-4" x-show="data?.checklist.length">
+                    <h2 class="mb-1 text-sm font-bold text-navy-900">Checklist op de bon</h2>
+                    <p class="mb-3 text-xs text-gray-500" x-text="data ? data.checklist_done + ' van ' + data.checklist.length + ' stappen afgevinkt op het moment van indienen.' : ''"></p>
+                    <template x-for="(step, index) in data?.checklist ?? []" :key="index">
+                        <div class="flex items-start gap-2.5 py-1.5">
+                            <span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full" :class="step.done ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'">
+                                <span x-icon="step.done ? 'check' : 'x-mark'" class="h-3 w-3"></span>
+                            </span>
+                            <span class="min-w-0 flex-1">
+                                <span class="block text-sm" :class="step.done ? 'text-navy-900' : 'text-gray-500'" x-text="step.title"></span>
+                                <small x-show="step.note" class="block text-xs text-gray-500" x-text="step.note"></small>
+                            </span>
+                            <span x-show="step.photos > 0" class="flex shrink-0 items-center gap-1 text-xs text-gray-500"><span x-icon="'camera'" class="h-3.5 w-3.5"></span> <span x-text="step.photos"></span></span>
+                        </div>
+                    </template>
+                </section>
+
+                <!-- Fotobewijs -->
+                <section data-enter class="app-card mb-3 p-4" x-show="data?.photos.length">
+                    <h2 class="mb-3 text-sm font-bold text-navy-900">Fotobewijs</h2>
+                    <div class="grid grid-cols-3 gap-2">
+                        <template x-for="photo in data?.photos ?? []" :key="photo.id">
+                            <button type="button" @click="viewer = photo" class="aspect-square overflow-hidden rounded-lg bg-gray-100" :aria-label="'Foto bekijken: ' + photo.caption">
+                                <img :src="photoUrl(photo)" alt="" loading="lazy" class="h-full w-full object-cover">
+                            </button>
+                        </template>
+                    </div>
+                </section>
+
+                <!-- Handtekening van de klant -->
+                <section data-enter class="app-card mb-3 p-4" x-show="data">
+                    <h2 class="mb-2 text-sm font-bold text-navy-900">Afgetekend door de klant</h2>
+                    <template x-if="data?.signed">
+                        <div><p class="text-sm font-semibold text-navy-900" x-text="data.signed.name"></p><p class="mt-0.5 text-xs text-gray-500" x-text="data.signed.at"></p></div>
+                    </template>
+                    <p x-show="data && !data.signed" class="text-sm text-gray-500">Niet afgetekend. Er was niemand aanwezig, of de uitvoerder heeft het overgeslagen.</p>
+                </section>
+
+                <!-- Dossier -->
+                <section data-enter class="app-card mb-3 p-4" x-show="data">
+                    <h2 class="mb-2 text-sm font-bold text-navy-900">Dossier</h2>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" @click="$store.os.go(data.project.path)" class="app-btn"><span x-icon="'folder'" class="h-4 w-4"></span> <span x-text="data?.project.name"></span></button>
+                        <button type="button" x-show="data?.job" @click="$store.os.go(data.job)" class="app-btn"><span x-icon="'identification'" class="h-4 w-4"></span> De klus op de bouwplaats</button>
+                    </div>
+                    <p x-show="data?.submitted_at" class="mt-2 text-xs text-gray-500" x-text="'Ingediend ' + data?.submitted_at"></p>
+                </section>
+
+                <!-- Foto schermvullend -->
+                <div x-show="viewer" x-cloak data-popup @renovion-back.window="if (viewer) { viewer = null; $event.preventDefault(); }" class="fixed inset-0 z-[70] flex flex-col bg-black pt-safe pb-safe">
+                    <template x-if="viewer">
+                        <div class="flex h-full flex-col">
+                            <div class="flex items-center gap-3 px-4 py-3 text-white">
+                                <span class="min-w-0 flex-1 truncate text-sm font-semibold" x-text="viewer.caption"></span>
+                                <button type="button" @click="viewer = null" class="tap rounded-lg p-2 text-white" aria-label="Sluiten"><span x-icon="'x-mark'" class="h-6 w-6"></span></button>
+                            </div>
+                            <div class="flex min-h-0 flex-1 items-center justify-center" @click.self="viewer = null">
+                                <img :src="photoUrl(viewer)" :alt="viewer.caption" class="max-h-full max-w-full object-contain">
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </template>
+    </div>
+</template>

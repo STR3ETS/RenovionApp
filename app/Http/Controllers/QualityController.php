@@ -10,7 +10,9 @@ use App\Models\QualityReview;
 use App\Models\SnagItem;
 use App\Models\Subcontractor;
 use App\Models\User;
+use App\Support\App\FieldWork;
 use App\Support\QualityTemplates;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -65,26 +67,26 @@ class QualityController extends Controller
     }
 
     /** Een controlepunt afvinken, of weer open zetten. */
-    public function toggleCheck(Request $request, QualityCheck $check): RedirectResponse
+    public function toggleCheck(Request $request, QualityCheck $check): RedirectResponse|JsonResponse
     {
         abort_unless($request->user()->can('manage-crm'), 403);
 
         if ($check->isChecked()) {
             $check->update(['checked_at' => null, 'checked_by' => null]);
 
-            return back()->with('success', 'Controlepunt weer open gezet.');
+            return FieldWork::done($request, 'Controlepunt weer open gezet.');
         }
 
         $check->update(['checked_at' => now(), 'checked_by' => $request->user()->id]);
 
-        return back()->with('success', 'Controlepunt afgevinkt.');
+        return FieldWork::done($request, 'Controlepunt afgevinkt.');
     }
 
     /**
      * Een stap in de oplevering afronden. Lukt alleen als de voorwaarde klopt,
      * en de reden staat in het bericht zodat je niet hoeft te zoeken.
      */
-    public function advance(Request $request, QualityReview $review): RedirectResponse
+    public function advance(Request $request, QualityReview $review): RedirectResponse|JsonResponse
     {
         abort_unless($request->user()->can('manage-crm'), 403);
 
@@ -92,7 +94,7 @@ class QualityController extends Controller
         $blocker = $review->blockerFor($review->step);
 
         if ($blocker !== '') {
-            return back()->with('error', $blocker);
+            return FieldWork::refuse($request, $blocker);
         }
 
         $step = min(count(QualityTemplates::FLOW) - 1, $review->step + 1);
@@ -111,11 +113,11 @@ class QualityController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Stap afgerond: '.QualityTemplates::FLOW[$review->step - 1][0].'.');
+        return FieldWork::done($request, 'Stap afgerond: '.QualityTemplates::FLOW[$review->step - 1][0].'.');
     }
 
     /** Het opleverformulier laten tekenen door de klant. */
-    public function sign(Request $request, QualityReview $review): RedirectResponse
+    public function sign(Request $request, QualityReview $review): RedirectResponse|JsonResponse
     {
         abort_unless($request->user()->can('manage-crm'), 403);
 
@@ -137,10 +139,10 @@ class QualityController extends Controller
             $review,
         );
 
-        return back()->with('success', 'Opleverformulier getekend.');
+        return FieldWork::done($request, 'Opleverformulier getekend.');
     }
 
-    public function storeSnag(Request $request, Project $project): RedirectResponse
+    public function storeSnag(Request $request, Project $project): RedirectResponse|JsonResponse
     {
         abort_unless($project->isAccessibleBy($request->user()), 403);
 
@@ -166,10 +168,10 @@ class QualityController extends Controller
             'locatie' => $snag->location,
         ]);
 
-        return back()->with('success', 'Restpunt vastgelegd.');
+        return FieldWork::done($request, 'Restpunt vastgelegd.');
     }
 
-    public function updateSnag(Request $request, SnagItem $snag): RedirectResponse
+    public function updateSnag(Request $request, SnagItem $snag): RedirectResponse|JsonResponse
     {
         abort_unless($snag->project->isAccessibleBy($request->user()), 403);
 
@@ -193,15 +195,15 @@ class QualityController extends Controller
 
         AuditLog::record($snag, 'restpunt bijgewerkt', $old, $validated);
 
-        return back()->with('success', 'Restpunt bijgewerkt.');
+        return FieldWork::done($request, 'Restpunt bijgewerkt.');
     }
 
-    public function destroySnag(Request $request, SnagItem $snag): RedirectResponse
+    public function destroySnag(Request $request, SnagItem $snag): RedirectResponse|JsonResponse
     {
         abort_unless($request->user()->can('manage-crm'), 403);
 
         $snag->delete();
 
-        return back()->with('success', 'Restpunt verwijderd.');
+        return FieldWork::done($request, 'Restpunt verwijderd.');
     }
 }

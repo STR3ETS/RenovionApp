@@ -8,6 +8,8 @@ use App\Models\AuditLog;
 use App\Models\ChatChannel;
 use App\Models\JobExecution;
 use App\Models\JobReport;
+use App\Support\App\FieldWork;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Enum;
@@ -15,10 +17,11 @@ use Illuminate\Validation\Rules\Enum;
 /**
  * Meldingen vanaf de bouwplaats. Een melding gaat direct naar het projectkanaal
  * in de teamchat en blijft in de inbox staan tot de projectleider hem afhandelt.
+ * De app (api/app/klussen) krijgt dezelfde meldingen als JSON.
  */
 class JobReportController extends Controller
 {
-    public function store(Request $request, JobExecution $job): RedirectResponse
+    public function store(Request $request, JobExecution $job): RedirectResponse|JsonResponse
     {
         abort_unless($request->user()->id === $job->user_id, 403);
 
@@ -65,12 +68,12 @@ class JobReportController extends Controller
             $report,
         );
 
-        return back()->with('success', $report->urgent
+        return FieldWork::done($request, $report->urgent
             ? 'Spoedmelding verstuurd. De projectleider krijgt hem direct te zien.'
             : 'Melding verstuurd naar de projectleider.');
     }
 
-    public function resolve(Request $request, JobReport $report): RedirectResponse
+    public function resolve(Request $request, JobReport $report): RedirectResponse|JsonResponse
     {
         abort_unless($request->user()->can('manage-crm'), 403);
 
@@ -89,7 +92,7 @@ class JobReportController extends Controller
             'reactie' => $validated['resolution'] ?? null,
         ]);
 
-        return back()->with('success', 'Melding afgehandeld.');
+        return FieldWork::done($request, 'Melding afgehandeld.');
     }
 
     /**

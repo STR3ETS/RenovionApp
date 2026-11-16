@@ -1,0 +1,459 @@
+<!-- ===== Mijn klussen ===== -->
+<template x-if="$store.os.route === 'klussen'">
+    <div x-data="jobs">
+        <div data-enter class="app-ph">
+            <p class="sec-eye"><span x-icon="'identification'"></span> Uitvoering</p>
+            <h1>Mijn <em>klussen</em></h1>
+            <p class="sub" x-text="data && !data.subject.me ? 'De klussen van ' + data.subject.name + '.' : 'Stap voor stap uitvoeren, foto\'s maken, melden en afronden.'"></p>
+        </div>
+
+        <!-- Projectleiding: meekijken bij een collega -->
+        <label x-show="data?.colleagues.length" class="mb-4 block">
+            <span class="mb-1 block text-sm font-semibold text-gray-700">Werken als</span>
+            <select @change="workAs($event.target.value)" class="w-full">
+                <option value="" :selected="data?.subject.me">Mijn eigen klussen</option>
+                <template x-for="person in data?.colleagues ?? []" :key="person.id">
+                    <option :value="person.id" :selected="!data.subject.me && person.id === data.subject.id" x-text="person.label"></option>
+                </template>
+            </select>
+        </label>
+
+        <template x-if="failed">
+            <div class="app-card p-5 text-center">
+                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                <button type="button" @click="load()" class="app-btn mt-3">Opnieuw proberen</button>
+            </div>
+        </template>
+
+        <div class="space-y-3" x-show="!data && !failed">
+            <template x-for="i in 3" :key="i">
+                <div class="app-card p-4"><span class="skeleton mb-2 block h-4 w-1/3"></span><span class="skeleton mb-1.5 block h-4 w-2/3"></span><span class="skeleton mb-3 block h-3 w-1/2"></span><span class="skeleton block h-2 w-full"></span></div>
+            </template>
+        </div>
+
+        <template x-for="[key, label] in sections" :key="key">
+            <section class="mb-5" x-show="data && (key === 'vandaag' || data[key].length)">
+                <h2 class="mb-2 flex items-baseline gap-2 text-sm font-bold text-navy-900">
+                    <span x-text="label"></span>
+                    <span x-show="key === 'vandaag'" class="text-xs font-medium text-gray-500" x-text="data?.today"></span>
+                </h2>
+
+                <div x-show="key === 'vandaag' && data && !data.vandaag.length" class="app-card p-6 text-center">
+                    <span class="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-green-100 text-green-700"><span x-icon="'sun'" class="h-5 w-5"></span></span>
+                    <p class="text-sm font-semibold text-navy-900">Vandaag geen klus ingepland</p>
+                    <p class="mt-1 text-xs text-gray-500">Zodra de werkvoorbereiding je inplant, staat je klus hier.</p>
+                </div>
+
+                <div class="space-y-3" :class="key === 'afgerond' && 'opacity-60'">
+                    <template x-for="job in data?.[key] ?? []" :key="job.id">
+                        <a :href="'#/klus/' + job.id" data-enter class="app-card block overflow-hidden active:bg-gray-50">
+                            <span class="block h-[3px] w-full" :class="accent(job.status)"></span>
+                            <span class="block p-4">
+                                <span class="mb-2 flex items-center justify-between gap-2">
+                                    <span class="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap" :class="job.status.classes" x-text="job.status.label"></span>
+                                    <small class="truncate text-xs text-gray-500" x-text="job.when"></small>
+                                </span>
+                                <b class="block truncate text-[15px] font-bold text-navy-900" x-text="job.title"></b>
+                                <span class="mt-0.5 block truncate text-xs text-gray-500" x-text="job.project"></span>
+                                <span x-show="job.address" class="mt-1.5 flex items-center gap-1 text-xs text-gray-500">
+                                    <span x-icon="'map-pin'" class="h-3.5 w-3.5 shrink-0"></span>
+                                    <span class="truncate" x-text="job.address"></span>
+                                </span>
+                                <span x-show="job.progress !== null" class="mt-3 flex items-center gap-2">
+                                    <span class="app-bar flex-1"><i :style="`width: ${job.progress}%`"></i></span>
+                                    <small class="w-9 text-right text-xs font-bold text-navy-900" x-text="job.progress + '%'"></small>
+                                </span>
+                                <span x-show="job.open_reports > 0" class="mt-2 flex items-center gap-1.5 text-xs font-semibold text-amber-700">
+                                    <span x-icon="'exclamation-triangle'" class="h-3.5 w-3.5"></span>
+                                    <span x-text="osFormat.tally(job.open_reports, 'melding', 'meldingen') + ' open'"></span>
+                                </span>
+                            </span>
+                        </a>
+                    </template>
+                </div>
+            </section>
+        </template>
+
+        <button type="button" @click="$store.os.go('/werkbonnen')" class="app-btn ghost w-full justify-center" x-show="data"><span x-icon="'wrench'" class="h-4 w-4"></span> Werkbonnen</button>
+    </div>
+</template>
+
+<!-- ===== Klus ===== -->
+<template x-if="$store.os.route === 'klus'">
+    <div>
+        <template x-for="id in [$store.os.param]" :key="id">
+            <div x-data="job(id)" class="pb-4">
+                <nav class="app-crumbs mb-2 !text-gray-500">
+                    <template x-if="data?.project">
+                        <span class="contents">
+                            <button type="button" @click="$store.os.go(data.project.path)" class="tap inline-flex min-w-0 items-center gap-1 font-semibold !text-brand-700"><span x-icon="'folder'" class="h-3.5 w-3.5 shrink-0"></span><span class="truncate" x-text="data.project.name"></span></button>
+                            <span x-icon="'chevron-right'" class="h-3 w-3 shrink-0"></span>
+                        </span>
+                    </template>
+                    <a x-show="!data?.project" href="#/klussen" class="tap">Mijn klussen</a>
+                    <span x-show="!data?.project" x-icon="'chevron-right'" class="h-3 w-3"></span>
+                    <span class="truncate" x-text="data?.title ?? ''"></span>
+                </nav>
+
+                <div data-enter class="app-ph">
+                    <p class="sec-eye"><span x-icon="'identification'"></span> <span x-text="data?.project?.name ?? 'Klus'"></span></p>
+                    <h1><span x-text="data?.title ?? ''"></span><span x-show="!data" class="skeleton inline-block h-7 w-2/3 align-middle"></span></h1>
+                    <a x-show="data?.address" :href="data?.maps" target="_blank" rel="noopener" class="tap mt-1 flex items-center gap-1 text-sm font-semibold text-brand-700">
+                        <span x-icon="'map-pin'" class="h-4 w-4 shrink-0"></span> <span x-text="data?.address"></span>
+                    </a>
+                    <p class="sub" x-text="data?.when ?? ''"></p>
+                    <div class="app-ph-acts" x-show="data">
+                        <span class="rounded-full px-3 py-1 text-sm font-semibold" :class="data?.status.classes" x-text="data?.status.label"></span>
+                    </div>
+                </div>
+
+                <template x-if="failed">
+                    <div class="app-card mb-3 p-5 text-center">
+                        <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                        <button type="button" @click="load()" class="app-btn mt-3">Opnieuw proberen</button>
+                    </div>
+                </template>
+
+                <!-- Voortgang -->
+                <section data-enter class="app-card mb-3 p-4" x-show="!failed">
+                    <div class="mb-2 flex items-end justify-between gap-3">
+                        <span>
+                            <b class="block text-2xl font-bold text-navy-900" x-text="data ? data.progress + '%' : ''"></b>
+                            <span x-show="!data" class="skeleton block h-7 w-16"></span>
+                        </span>
+                        <small class="text-xs text-gray-500" x-text="data ? data.steps_done + ' van ' + data.steps_total + ' stappen' : ''"></small>
+                    </div>
+                    <span class="app-bar"><i :style="`width: ${data?.progress ?? 0}%`"></i></span>
+                </section>
+
+                <!-- De grote knoppen: één handeling per keer, duimvriendelijk -->
+                <div class="mb-3 space-y-2" x-show="data?.can_execute">
+                    <button type="button" x-show="data?.action" @click="primary()" :disabled="busy !== null"
+                            class="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold disabled:opacity-60"
+                            :class="data?.status.value === 'bezig' ? 'border border-gray-300 bg-white text-navy-900 active:bg-gray-50' : 'bg-brand-500 text-white active:bg-brand-600'">
+                        <span x-icon="data?.action?.icon ?? 'play'" class="h-5 w-5"></span>
+                        <span x-text="busy === 'status' ? 'Bezig' : data?.action?.label"></span>
+                    </button>
+                    <button type="button" x-show="data?.active" @click="openFinish()" :disabled="busy !== null"
+                            class="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl border border-gray-300 bg-white py-4 text-base font-bold text-navy-900 active:bg-gray-50 disabled:opacity-60">
+                        <span x-icon="'check'" class="h-5 w-5"></span> Klus afronden
+                    </button>
+                    <div x-show="data?.done" class="flex items-center gap-3 rounded-2xl border border-green-200 bg-green-50 p-4">
+                        <span x-icon="'check'" class="h-6 w-6 shrink-0 text-green-700"></span>
+                        <span class="min-w-0 flex-1">
+                            <b class="block text-sm font-bold text-green-900">Klus afgerond en werkbon ingediend</b>
+                            <button type="button" x-show="data?.work_order" @click="$store.os.go(data.work_order.path)" class="tap block text-left text-xs text-green-800">
+                                <b class="underline" x-text="data?.work_order?.number"></b>, <span x-text="data?.work_order?.text"></span>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Tabbladen binnen de klus -->
+                <nav class="mb-3 flex gap-1 overflow-x-auto rounded-xl bg-gray-100 p-1 [scrollbar-width:none]" x-show="data" aria-label="Onderdelen van de klus">
+                    <template x-for="[key, label] in tabs" :key="key">
+                        <button type="button" @click="tab = key" class="tap flex min-h-11 flex-1 shrink-0 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-semibold"
+                                :class="tab === key ? 'bg-white text-navy-900 shadow-sm' : 'text-gray-600'" :aria-pressed="tab === key">
+                            <span x-text="label"></span>
+                            <span x-show="data?.counts[key] > 0" class="rounded-full bg-brand-500 px-1.5 text-[10px] font-bold text-white" x-text="data?.counts[key]"></span>
+                        </button>
+                    </template>
+                </nav>
+
+                <!-- Stappen -->
+                <div x-show="data && tab === 'stappen'" class="space-y-2">
+                    <div x-show="data?.can_execute && ['gepland', 'onderweg'].includes(data?.status.value)" class="flex items-start gap-3 rounded-2xl border border-steel-200 bg-steel-50 p-4">
+                        <span x-icon="'flag'" class="h-5 w-5 shrink-0 text-steel-700"></span>
+                        <p class="text-sm text-navy-900">Druk op <b>Start werk</b>: je doorloopt eerst de veiligheidscheck.</p>
+                    </div>
+                    <p x-show="data && !data.steps.length" class="app-card p-5 text-center text-sm text-gray-500">Deze klus heeft geen stappen.</p>
+                    <template x-for="step in data?.steps ?? []" :key="step.id">
+                        <div class="app-card overflow-hidden" :class="step.done && 'opacity-70'">
+                            <button type="button" @click="expanded[step.id] = !isOpen(step)" class="flex min-h-14 w-full items-start gap-3 p-4 text-left" :aria-expanded="isOpen(step)">
+                                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold" :class="step.done ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'">
+                                    <span x-show="step.done" x-icon="'check'" class="h-4 w-4"></span>
+                                    <span x-show="!step.done" x-text="step.number"></span>
+                                </span>
+                                <span class="min-w-0 flex-1">
+                                    <b class="block text-sm font-semibold" :class="step.done ? 'text-gray-500 line-through' : 'text-navy-900'" x-text="step.title"></b>
+                                    <small x-show="step.hint" class="mt-0.5 block text-xs text-gray-500" x-text="step.hint"></small>
+                                </span>
+                                <span x-show="step.photo_required || step.photos.length" class="flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[11px] font-bold"
+                                      :class="step.photos.length ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'" :title="step.photo_required ? 'Foto verplicht bij deze stap' : 'Foto gemaakt'">
+                                    <span x-icon="'camera'" class="h-3.5 w-3.5"></span> <span x-text="step.photos.length || ''"></span>
+                                </span>
+                            </button>
+
+                            <div x-show="isOpen(step)" x-cloak class="border-t border-gray-100 px-4 py-3">
+                                <div x-show="step.photos.length || uploadsFor(step.id).length" class="mb-3 flex gap-2 overflow-x-auto">
+                                    <template x-for="upload in uploadsFor(step.id)" :key="upload.key">
+                                        <div class="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                                            <img :src="upload.preview" alt="" class="h-full w-full object-cover opacity-60">
+                                            <span x-show="upload.state === 'busy'" class="absolute inset-x-1 bottom-1 rounded-full bg-navy-950/80 px-1 py-0.5 text-center text-[10px] font-semibold text-white">Versturen</span>
+                                            <button type="button" x-show="upload.state === 'failed'" @click="send(upload)" class="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-navy-950/60 text-[10px] font-semibold text-white">
+                                                Niet verstuurd <span class="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-navy-950">Opnieuw</span>
+                                            </button>
+                                        </div>
+                                    </template>
+                                    <template x-for="photo in step.photos" :key="photo.id">
+                                        <button type="button" @click="viewer = photo" class="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-gray-100" :aria-label="'Foto bekijken: ' + photo.caption">
+                                            <img :src="photoUrl(photo)" alt="" loading="lazy" class="h-full w-full object-cover">
+                                        </button>
+                                    </template>
+                                </div>
+
+                                <p x-show="step.note && noteFor !== step.id" class="mb-3 rounded-lg bg-gray-50 p-3 text-xs whitespace-pre-line text-gray-700" x-text="step.note"></p>
+
+                                <template x-if="canWork">
+                                    <div>
+                                        <div class="flex flex-wrap gap-2">
+                                            <label class="tap flex min-h-11 cursor-pointer items-center gap-1.5 rounded-xl px-3 text-sm font-semibold"
+                                                   :class="step.needs_photo ? 'bg-brand-500 text-white active:bg-brand-600' : 'border border-gray-300 bg-white text-navy-900 active:bg-gray-50'">
+                                                <span x-icon="'camera'" class="h-4 w-4"></span> Foto maken
+                                                <input type="file" accept="image/*" capture="environment" multiple class="sr-only" :aria-label="'Foto bij ' + step.title" @change="addPhotos($event, step)">
+                                            </label>
+                                            <button type="button" @click="editNote(step)" class="tap flex min-h-11 items-center gap-1.5 rounded-xl border border-gray-300 bg-white px-3 text-sm font-semibold text-navy-900 active:bg-gray-50">
+                                                <span x-icon="'pencil'" class="h-4 w-4"></span> Notitie
+                                            </button>
+                                            <button type="button" @click="toggleStep(step)" :disabled="busy !== null"
+                                                    class="tap flex min-h-11 items-center gap-1.5 rounded-xl px-3 text-sm font-bold disabled:opacity-60"
+                                                    :class="step.done ? 'border border-gray-300 bg-white text-gray-700' : 'bg-brand-500 text-white active:bg-brand-600'">
+                                                <span x-show="!step.done" x-icon="'check'" class="h-4 w-4"></span>
+                                                <span x-text="busy === 'step:' + step.id ? 'Bezig' : (step.done ? 'Ongedaan maken' : 'Stap klaar')"></span>
+                                            </button>
+                                        </div>
+                                        <form x-show="noteFor === step.id" @submit.prevent="saveNote(step)" class="mt-2 space-y-2">
+                                            <textarea x-model="noteText" rows="2" maxlength="2000" placeholder="Wat is er bijzonder aan deze stap?" aria-label="Notitie bij de stap" class="w-full"></textarea>
+                                            <button type="submit" :disabled="busy !== null" class="app-btn pri w-full justify-center disabled:opacity-60" x-text="busy === 'note:' + step.id ? 'Bezig' : 'Opslaan'"></button>
+                                        </form>
+                                        <p x-show="step.needs_photo" class="mt-2 text-xs font-semibold text-amber-700">Bij deze stap hoort een foto voordat je hem kunt afvinken.</p>
+                                    </div>
+                                </template>
+                                <p x-show="!canWork && !step.photos.length && !step.note" class="text-xs text-gray-500" x-text="step.done ? 'Afgevinkt.' : 'Nog niet afgevinkt.'"></p>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Info: wat moet er gebeuren, wie bel je en welke tekeningen horen erbij -->
+                <div x-show="data && tab === 'info'" class="space-y-3">
+                    <section class="app-card p-4">
+                        <p class="mb-2 text-[11px] font-bold tracking-widest text-gray-500 uppercase">Werkomschrijving</p>
+                        <p class="text-sm font-semibold text-navy-900" x-text="data?.title"></p>
+                        <p x-show="data?.info.entry_notes" class="mt-2 text-sm whitespace-pre-line text-gray-700" x-text="data?.info.entry_notes"></p>
+                        <p x-show="data?.info.project_notes" class="mt-2 text-sm whitespace-pre-line text-gray-500" x-text="data?.info.project_notes"></p>
+                    </section>
+
+                    <section class="app-card p-4" x-show="data?.info.leader || data?.info.customer">
+                        <p class="mb-2 text-[11px] font-bold tracking-widest text-gray-500 uppercase">Contact</p>
+                        <template x-for="[person, role] in [[data?.info.leader, 'Projectleider'], [data?.info.customer, 'Klant']]" :key="role">
+                            <div x-show="person" class="app-li !py-2">
+                                <span class="app-ic" :class="role === 'Klant' ? 'ok' : 'or'" x-text="osFormat.initials(person?.name)"></span>
+                                <span class="min-w-0 flex-1"><b class="truncate" x-text="person?.name"></b><small x-text="role"></small></span>
+                                <a x-show="person?.phone" :href="'tel:' + person?.phone" class="app-btn shrink-0"><span x-icon="'phone'" class="h-4 w-4"></span> Bel</a>
+                            </div>
+                        </template>
+                    </section>
+
+                    <section class="app-card p-4" x-show="data?.info.documents.length">
+                        <p class="mb-2 text-[11px] font-bold tracking-widest text-gray-500 uppercase">Tekeningen en documenten</p>
+                        <template x-for="doc in data?.info.documents ?? []" :key="doc.id">
+                            <button type="button" @click="$store.os.go(doc.path)" class="app-li w-full text-left">
+                                <span x-icon="'document-text'" class="h-5 w-5 shrink-0 text-gray-500"></span>
+                                <span class="min-w-0 flex-1"><b class="truncate !font-medium" x-text="doc.name"></b><small x-show="doc.category" x-text="doc.category"></small></span>
+                                <span x-icon="'chevron-right'" class="h-4 w-4 shrink-0 text-gray-400"></span>
+                            </button>
+                        </template>
+                    </section>
+
+                    <button type="button" x-show="data?.project" @click="$store.os.go(data.project.path)" class="app-btn w-full justify-center"><span x-icon="'folder'" class="h-4 w-4"></span> Projectdossier</button>
+                </div>
+
+                <!-- Foto's -->
+                <div x-show="data && tab === 'fotos'">
+                    <div x-show="data && !data.photos.length" class="app-card p-6 text-center">
+                        <span class="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 text-gray-500"><span x-icon="'camera'" class="h-5 w-5"></span></span>
+                        <p class="text-sm font-semibold text-navy-900">Nog geen foto's</p>
+                        <p class="mt-1 text-xs text-gray-500">Foto's die je bij een stap maakt, verschijnen hier en in het projectdossier.</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <template x-for="photo in data?.photos ?? []" :key="photo.id">
+                            <button type="button" @click="viewer = photo" class="overflow-hidden rounded-xl border border-gray-200 bg-white text-left" :aria-label="'Foto bekijken: ' + photo.caption">
+                                <img :src="photoUrl(photo)" alt="" loading="lazy" class="aspect-4/3 w-full object-cover">
+                                <span class="block truncate px-2.5 py-2 text-xs text-gray-600" x-text="photo.caption"></span>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Meldingen -->
+                <div x-show="data && tab === 'meldingen'" class="space-y-2">
+                    <button type="button" x-show="data?.can_execute" @click="openReport()" class="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-brand-500 py-3.5 text-sm font-bold text-white active:bg-brand-600">
+                        <span x-icon="'exclamation-triangle'" class="h-5 w-5"></span> Melding maken
+                    </button>
+                    <div x-show="data && !data.reports.length" class="app-card p-6 text-center">
+                        <span class="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-green-100 text-green-700"><span x-icon="'check'" class="h-5 w-5"></span></span>
+                        <p class="text-sm font-semibold text-navy-900">Geen meldingen</p>
+                        <p class="mt-1 text-xs text-gray-500">Loopt er iets anders dan verwacht? Maak een melding, dan pakt de projectleider het op.</p>
+                    </div>
+                    <template x-for="report in data?.reports ?? []" :key="report.id">
+                        <div class="app-card p-4" :class="!report.open && 'opacity-70'">
+                            <div class="flex items-start gap-3">
+                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full" :class="report.type.classes"><span x-icon="report.type.icon" class="h-4.5 w-4.5"></span></span>
+                                <div class="min-w-0 flex-1">
+                                    <p class="flex flex-wrap items-center gap-2 text-sm font-bold text-navy-900">
+                                        <span x-text="report.type.label"></span>
+                                        <span x-show="report.urgent" class="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-800">Spoed</span>
+                                    </p>
+                                    <p class="mt-1 text-sm whitespace-pre-line text-gray-700" x-text="report.body"></p>
+                                    <div x-show="report.photos.length" class="mt-2 flex gap-2 overflow-x-auto">
+                                        <template x-for="photo in report.photos" :key="photo.id">
+                                            <button type="button" @click="viewer = photo" class="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-gray-100" aria-label="Foto bekijken"><img :src="photoUrl(photo)" alt="" loading="lazy" class="h-full w-full object-cover"></button>
+                                        </template>
+                                    </div>
+                                    <p class="mt-2 text-xs text-gray-500" x-text="report.meta"></p>
+                                    <p x-show="report.resolution" class="mt-2 rounded-lg bg-gray-50 p-3 text-xs text-gray-700" x-text="report.resolution"></p>
+                                </div>
+                            </div>
+                            <form x-show="data.can_resolve && report.open" @submit.prevent="resolve(report)" class="mt-3 space-y-2 border-t border-gray-100 pt-3">
+                                <input type="text" x-model="resolutions[report.id]" maxlength="2000" placeholder="Wat is er afgesproken?" aria-label="Wat is er afgesproken?" class="w-full">
+                                <button type="submit" :disabled="busy !== null" class="app-btn pri w-full justify-center disabled:opacity-60" x-text="busy === 'resolve:' + report.id ? 'Bezig' : 'Afhandelen'"></button>
+                            </form>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Veiligheidscheck (LMRA) vóór het starten -->
+                <div data-popup x-show="sheet === 'lmra'" x-cloak @click.self="sheet = null" @renovion-back.window="if (sheet) { sheet = null; $event.preventDefault(); }"
+                     class="fixed inset-0 z-[60] flex items-end bg-navy-950/60 backdrop-blur-sm">
+                    <template x-if="sheet === 'lmra'">
+                        <form @submit.prevent="startWork()" x-swipe-dismiss="sheet = null" class="max-h-[90dvh] w-full space-y-3 overflow-y-auto rounded-t-[20px] bg-white p-5 pb-[calc(1.25rem_+_env(safe-area-inset-bottom))]">
+                            <div class="mx-auto -mt-2 mb-1 h-1.5 w-10 rounded-full bg-gray-300"></div>
+                            <h2 class="text-base font-bold text-navy-900">Veiligheidscheck</h2>
+                            <p class="text-sm text-gray-600">Laatste Minuut Risico Analyse. Alles moet ja zijn voordat je begint.</p>
+                            <template x-for="(question, index) in data.lmra" :key="index">
+                                <label class="flex min-h-12 items-start gap-3 rounded-xl border border-gray-200 p-3" :class="lmra[index] && 'border-green-300 bg-green-50'">
+                                    <input type="checkbox" x-model="lmra[index]" class="mt-0.5 h-5 w-5 shrink-0 rounded border-gray-300 text-brand-500">
+                                    <span class="text-sm text-navy-900" x-text="question"></span>
+                                </label>
+                            </template>
+                            <div class="flex gap-2 pt-1">
+                                <button type="button" @click="sheet = null" class="min-h-11 flex-1 rounded-xl border border-gray-300 text-sm font-semibold text-gray-600">Annuleren</button>
+                                <button type="submit" :disabled="lmra.some((answer) => !answer) || busy !== null" class="min-h-11 flex-1 rounded-xl bg-brand-500 text-sm font-bold text-white active:bg-brand-600 disabled:opacity-40" x-text="busy === 'status' ? 'Bezig' : 'Start werk'"></button>
+                            </div>
+                        </form>
+                    </template>
+                </div>
+
+                <!-- Klus afronden: levert de werkbon op -->
+                <div data-popup x-show="sheet === 'finish'" x-cloak @click.self="sheet = null" @renovion-back.window="if (sheet) { sheet = null; $event.preventDefault(); }"
+                     class="fixed inset-0 z-[60] flex items-end bg-navy-950/60 backdrop-blur-sm">
+                    <template x-if="sheet === 'finish' && finish">
+                        <form @submit.prevent="submitFinish()" x-swipe-dismiss="sheet = null" class="max-h-[92dvh] w-full space-y-3 overflow-y-auto rounded-t-[20px] bg-white p-5 pb-[calc(1.25rem_+_env(safe-area-inset-bottom))]">
+                            <div class="mx-auto -mt-2 mb-1 h-1.5 w-10 rounded-full bg-gray-300"></div>
+                            <h2 class="text-base font-bold text-navy-900">Klus afronden</h2>
+                            <p class="text-sm text-gray-600">Dit levert direct de werkbon op die de projectleider controleert.</p>
+
+                            <div x-show="data.finish.missing_evidence.length" class="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3">
+                                <span x-icon="'camera'" class="h-5 w-5 shrink-0 text-red-700"></span>
+                                <p class="text-sm text-red-900"><b>Verplichte foto ontbreekt</b> bij: <span x-text="data.finish.missing_evidence.join(', ')"></span>.</p>
+                            </div>
+                            <div x-show="!data.finish.missing_evidence.length && data.finish.open_steps" class="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                                <span x-icon="'exclamation-triangle'" class="h-5 w-5 shrink-0 text-amber-700"></span>
+                                <p class="text-sm text-amber-900">
+                                    <b x-text="data.finish.open_steps + (data.finish.open_steps === 1 ? ' stap staat' : ' stappen staan') + ' nog open.'"></b>
+                                    <span x-text="data.finish.open_titles + '.'"></span>
+                                    Je kunt alsnog afronden; dat staat dan eerlijk op de werkbon.
+                                </p>
+                            </div>
+                            <div x-show="!data.finish.missing_evidence.length && !data.finish.open_steps" class="flex items-center gap-2.5 rounded-xl border border-green-200 bg-green-50 p-3">
+                                <span x-icon="'check'" class="h-5 w-5 shrink-0 text-green-700"></span>
+                                <p class="text-sm text-green-900">Alle stappen zijn afgevinkt.</p>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Gewerkte uren</span>
+                                    <input type="number" inputmode="decimal" step="0.25" min="0.25" max="24" x-model="finish.hours" required class="w-full">
+                                </label>
+                                <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Klant tekent af</span>
+                                    <input type="text" x-model="finish.signed_name" maxlength="120" placeholder="Naam, of leeg" class="w-full">
+                                </label>
+                            </div>
+                            <p class="-mt-1 text-xs text-gray-500">Laat de naam leeg als niemand aanwezig is.</p>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Gebruikt materiaal</span>
+                                <textarea x-model="finish.materials" rows="3" maxlength="2000" placeholder="Een regel per post, bijvoorbeeld: 6 st gipsplaat" class="w-full"></textarea>
+                            </label>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Opmerkingen voor de projectleider</span>
+                                <textarea x-model="finish.notes" rows="2" maxlength="2000" class="w-full"></textarea>
+                            </label>
+                            <div class="flex gap-2 pt-1">
+                                <button type="button" @click="sheet = null" class="min-h-11 flex-1 rounded-xl border border-gray-300 text-sm font-semibold text-gray-600">Terug</button>
+                                <button type="submit" :disabled="data.finish.missing_evidence.length > 0 || busy !== null" class="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-brand-500 text-sm font-bold text-white active:bg-brand-600 disabled:opacity-40">
+                                    <span x-icon="'paper-airplane'" class="h-4 w-4"></span> <span x-text="busy === 'finish' ? 'Bezig' : 'Werkbon indienen'"></span>
+                                </button>
+                            </div>
+                        </form>
+                    </template>
+                </div>
+
+                <!-- Melding maken -->
+                <div data-popup x-show="sheet === 'report'" x-cloak @click.self="sheet = null" @renovion-back.window="if (sheet) { sheet = null; $event.preventDefault(); }"
+                     class="fixed inset-0 z-[60] flex items-end bg-navy-950/60 backdrop-blur-sm">
+                    <template x-if="sheet === 'report' && report">
+                        <form @submit.prevent="submitReport()" x-swipe-dismiss="sheet = null" class="max-h-[92dvh] w-full space-y-3 overflow-y-auto rounded-t-[20px] bg-white p-5 pb-[calc(1.25rem_+_env(safe-area-inset-bottom))]">
+                            <div class="mx-auto -mt-2 mb-1 h-1.5 w-10 rounded-full bg-gray-300"></div>
+                            <h2 class="text-base font-bold text-navy-900">Melding maken</h2>
+                            <div class="grid grid-cols-2 gap-2">
+                                <template x-for="type in data.report_types" :key="type.value">
+                                    <button type="button" @click="report.type = type.value" class="tap flex min-h-16 flex-col items-center justify-center gap-1.5 rounded-xl border p-2.5 text-center"
+                                            :class="report.type === type.value ? 'border-brand-400 bg-brand-50 text-brand-800' : 'border-gray-200 text-gray-700'" :aria-pressed="report.type === type.value">
+                                        <span x-icon="type.icon" class="h-5 w-5"></span>
+                                        <span class="text-[11px] leading-tight font-semibold" x-text="type.label"></span>
+                                    </button>
+                                </template>
+                            </div>
+                            <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Wat is er aan de hand?</span>
+                                <textarea x-model="report.body" rows="3" required maxlength="2000" placeholder="Beschrijf kort wat je ziet en wat je nodig hebt" class="w-full"></textarea>
+                            </label>
+                            <div x-show="report.previews.length" class="flex gap-2 overflow-x-auto">
+                                <template x-for="preview in report.previews" :key="preview">
+                                    <img :src="preview" alt="" class="h-16 w-16 shrink-0 rounded-lg object-cover">
+                                </template>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <label class="tap flex min-h-11 cursor-pointer items-center gap-1.5 rounded-xl border border-gray-300 px-3 text-sm font-semibold text-navy-900">
+                                    <span x-icon="'camera'" class="h-4 w-4"></span> Foto toevoegen
+                                    <input type="file" accept="image/*" capture="environment" multiple class="sr-only" aria-label="Foto bij de melding" @change="reportPhotos($event)">
+                                </label>
+                                <label class="tap flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-gray-300 px-3 text-sm font-semibold text-navy-900" :class="report.urgent && 'border-red-300 bg-red-50 text-red-800'">
+                                    <input type="checkbox" x-model="report.urgent" class="h-4 w-4 rounded border-gray-300 text-brand-500"> Spoed, werk ligt stil
+                                </label>
+                            </div>
+                            <div class="flex gap-2 pt-1">
+                                <button type="button" @click="sheet = null" class="min-h-11 flex-1 rounded-xl border border-gray-300 text-sm font-semibold text-gray-600">Annuleren</button>
+                                <button type="submit" :disabled="!report.body.trim() || busy !== null" class="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-brand-500 text-sm font-bold text-white active:bg-brand-600 disabled:opacity-40">
+                                    <span x-icon="'paper-airplane'" class="h-4 w-4"></span> <span x-text="busy === 'report' ? 'Bezig' : 'Versturen'"></span>
+                                </button>
+                            </div>
+                        </form>
+                    </template>
+                </div>
+
+                <!-- Foto schermvullend -->
+                <div x-show="viewer" x-cloak data-popup @renovion-back.window="if (viewer) { viewer = null; $event.preventDefault(); }" class="fixed inset-0 z-[70] flex flex-col bg-black pt-safe pb-safe">
+                    <template x-if="viewer">
+                        <div class="flex h-full flex-col">
+                            <div class="flex items-center gap-3 px-4 py-3 text-white">
+                                <span class="min-w-0 flex-1 truncate text-sm font-semibold" x-text="viewer.caption"></span>
+                                <button type="button" @click="viewer = null" class="tap rounded-lg p-2 text-white" aria-label="Sluiten"><span x-icon="'x-mark'" class="h-6 w-6"></span></button>
+                            </div>
+                            <div class="flex min-h-0 flex-1 items-center justify-center" @click.self="viewer = null">
+                                <img :src="photoUrl(viewer)" :alt="viewer.caption" class="max-h-full max-w-full object-contain">
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </template>
+    </div>
+</template>

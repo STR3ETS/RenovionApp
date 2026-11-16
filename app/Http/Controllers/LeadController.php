@@ -11,6 +11,7 @@ use App\Models\AuditLog;
 use App\Models\Customer;
 use App\Models\Lead;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -50,7 +51,7 @@ class LeadController extends Controller
         ]);
     }
 
-    public function store(StoreLeadRequest $request): RedirectResponse
+    public function store(StoreLeadRequest $request): RedirectResponse|JsonResponse
     {
         $validated = $request->validated();
 
@@ -90,6 +91,11 @@ class LeadController extends Controller
             return $lead;
         });
 
+        // De app (formulier in mobile/app): naar de aanvraag in de app.
+        if ($request->expectsJson()) {
+            return response()->json(['id' => $lead->id, 'path' => route('leads.show', $lead, false)], 201);
+        }
+
         return redirect()->route('leads.show', $lead)->with('success', 'Aanvraag aangemaakt.');
     }
 
@@ -113,7 +119,7 @@ class LeadController extends Controller
         ]);
     }
 
-    public function update(UpdateLeadRequest $request, Lead $lead): RedirectResponse
+    public function update(UpdateLeadRequest $request, Lead $lead): RedirectResponse|JsonResponse
     {
         $validated = $request->validated();
 
@@ -144,6 +150,10 @@ class LeadController extends Controller
                 AuditLog::record($lead, 'bijgewerkt', [], $lead->getChanges());
             }
         });
+
+        if ($request->expectsJson()) {
+            return response()->json(['id' => $lead->id, 'path' => route('leads.show', $lead, false)]);
+        }
 
         return redirect()->route('leads.show', $lead)->with('success', 'Aanvraag bijgewerkt.');
     }

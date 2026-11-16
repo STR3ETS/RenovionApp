@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\Photo;
 use App\Models\Project;
 use App\Models\WorkPackage;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -19,7 +20,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  */
 class PhotoController extends Controller
 {
-    public function store(Request $request, Project $project, StorePhotos $storePhotos): RedirectResponse
+    public function store(Request $request, Project $project, StorePhotos $storePhotos): RedirectResponse|JsonResponse
     {
         abort_unless($project->isAccessibleBy($request->user()), 403);
 
@@ -39,7 +40,12 @@ class PhotoController extends Controller
 
         $count = $storePhotos->handle($project, $validated['photos'], $request->user(), $workPackage, $validated);
 
-        return back()->with('success', $count.' '.($count === 1 ? 'foto' : 'foto\'s').' geüpload.');
+        $message = $count.' '.($count === 1 ? 'foto' : 'foto\'s').' geüpload.';
+
+        // De app (api/app/projecten/{id}/fotos) krijgt JSON en haalt de foto's daarna zelf opnieuw op.
+        return $request->expectsJson()
+            ? response()->json(['message' => $message, 'count' => $count], 201)
+            : back()->with('success', $message);
     }
 
     /**
@@ -58,7 +64,7 @@ class PhotoController extends Controller
         ]);
     }
 
-    public function update(Request $request, Photo $photo): RedirectResponse
+    public function update(Request $request, Photo $photo): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'caption' => ['nullable', 'string', 'max:255'],
@@ -67,7 +73,9 @@ class PhotoController extends Controller
 
         $photo->update($validated);
 
-        return back()->with('success', 'Foto bijgewerkt.');
+        return $request->expectsJson()
+            ? response()->json(['message' => 'Foto bijgewerkt.', 'caption' => $photo->caption, 'client_visible' => $photo->client_visible])
+            : back()->with('success', 'Foto bijgewerkt.');
     }
 
     public function destroy(Request $request, Photo $photo): RedirectResponse

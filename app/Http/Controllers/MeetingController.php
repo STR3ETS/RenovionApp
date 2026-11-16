@@ -198,7 +198,7 @@ class MeetingController extends Controller
     }
 
     /** Aangevinkte acties worden taken (eigenaar en datum zoals de gebruiker ze zette). */
-    public function tasks(Request $request, Meeting $meeting, CreateTask $createTask): RedirectResponse
+    public function tasks(Request $request, Meeting $meeting, CreateTask $createTask): RedirectResponse|JsonResponse
     {
         abort_unless($meeting->isAccessibleBy($request->user()), 403);
 
@@ -228,12 +228,16 @@ class MeetingController extends Controller
             $created++;
         }
         $meeting->update(['actions' => $actions]);
+        $message = $created === 0 ? 'Geen nieuwe taken gekozen.' : ($created === 1 ? '1 taak aangemaakt.' : $created.' taken aangemaakt.');
 
-        return back()->with('success', $created === 0 ? 'Geen nieuwe taken gekozen.' : ($created === 1 ? '1 taak aangemaakt.' : $created.' taken aangemaakt.'));
+        // De app (api/app/verslagen) krijgt JSON en haalt het verslag zelf opnieuw op.
+        return $request->expectsJson()
+            ? response()->json(['message' => $message, 'created' => $created])
+            : back()->with('success', $message);
     }
 
     /** Nova deelt de samenvatting in een kanaal, met een link naar het verslag. */
-    public function share(Request $request, Meeting $meeting): RedirectResponse
+    public function share(Request $request, Meeting $meeting): RedirectResponse|JsonResponse
     {
         abort_unless($meeting->isAccessibleBy($request->user()) && $meeting->status === MeetingStatus::Klaar, 403);
 
@@ -253,20 +257,24 @@ class MeetingController extends Controller
             'nova' => ['executed' => true, 'url' => route('meetings.show', $meeting, false)],
         ]);
 
-        return back()->with('success', 'Gedeeld in '.$channel->displayName().'.');
+        $message = 'Gedeeld in '.$channel->displayName().'.';
+
+        return $request->expectsJson() ? response()->json(['message' => $message]) : back()->with('success', $message);
     }
 
-    public function retry(Request $request, Meeting $meeting): RedirectResponse
+    public function retry(Request $request, Meeting $meeting): RedirectResponse|JsonResponse
     {
         abort_unless($meeting->isAccessibleBy($request->user()) && $meeting->status === MeetingStatus::Mislukt, 403);
 
         $meeting->update(['status' => MeetingStatus::Verwerken, 'error' => null, 'attempts' => 0, 'provider_id' => $meeting->transcript === null ? null : $meeting->provider_id]);
         ProcessMeeting::clearBackoff($meeting);
 
-        return back()->with('success', 'Nova probeert het opnieuw.');
+        return $request->expectsJson()
+            ? response()->json(['message' => 'Nova probeert het opnieuw.', 'status' => $meeting->status->value])
+            : back()->with('success', 'Nova probeert het opnieuw.');
     }
 
-    public function destroy(Request $request, Meeting $meeting): RedirectResponse
+    public function destroy(Request $request, Meeting $meeting): RedirectResponse|JsonResponse
     {
         abort_unless($request->user()->can('manage-crm') || $meeting->user_id === $request->user()->id, 403);
 
@@ -276,7 +284,9 @@ class MeetingController extends Controller
         }
         $meeting->delete();
 
-        return redirect()->route('meetings.index')->with('success', 'Verslag en opname verwijderd.');
+        return $request->expectsJson()
+            ? response()->json(['message' => 'Verslag en opname verwijderd.'])
+            : redirect()->route('meetings.index')->with('success', 'Verslag en opname verwijderd.');
     }
 
     private function authorizeOwner(Request $request, Meeting $meeting): void

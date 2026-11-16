@@ -41,6 +41,25 @@ const SCREEN_PATHS = {
     '/instellingen/meldingen': 'instellingen',
 };
 
+// Schermen in eigen bestanden: mobile/app/screens/<naam>.js (export routes + export default register) en
+// <naam>.html (de <template x-if> van het scherm). Uitleg en voorbeeld: screens/README.md en screens/offerte.*.
+const screenModules = import.meta.glob('./screens/*.js', { eager: true });
+const screenTemplates = import.meta.glob('./screens/*.html', { query: '?raw', import: 'default', eager: true });
+// Schermen die een serverpad mét query overnemen (#/nieuweaanvraag?klant=3, in $store.os.query); de rest
+// opent een pad met query als serverpagina. rewrites: (pathname, URLSearchParams) => '#/…' of null, voor
+// paden die op een ander scherm uitkomen (bijv. /projecten/5?tab=fotos).
+const QUERY_SCREENS = new Set(['werkpakket']);
+const REWRITES = [];
+for (const { routes = {} } of Object.values(screenModules)) {
+    SCREENS.push(...(routes.screens ?? []));
+    Object.assign(DETAILS, routes.details);
+    Object.assign(PARENTS, routes.parents);
+    Object.assign(SECTIONS, routes.sections);
+    Object.assign(SCREEN_PATHS, routes.paths);
+    (routes.query ?? []).forEach((name) => QUERY_SCREENS.add(name));
+    REWRITES.push(...(routes.rewrites ?? []));
+}
+
 // Laadscherm voor een serverpagina in de vorm van die pagina (index.html, "Naar een serverpagina"):
 // chatlijst, gesprek, formulier, projectdossier, aanvragen, zoeken of een gewone lijst. tabs = de
 // onderstreepte sectietabs bovenaan (AppSection op de server).
@@ -124,9 +143,11 @@ async function api(path, { method = 'GET', body, keepalive = false } = {}) {
 }
 
 const routeFromHash = () => {
-    const [route, param] = location.hash.replace(/^#\/?/, '').split('?')[0].split('/');
-    if (route in DETAILS && /^\d+$/.test(param ?? '')) return { route, param };
-    return { route: SCREENS.includes(route) || route === 'uitloggen' ? route : 'vandaag', param: null };
+    const [path, search] = location.hash.replace(/^#\/?/, '').split('?');
+    const [route, param] = path.split('/');
+    const query = Object.fromEntries(new URLSearchParams(search ?? ''));
+    if (route in DETAILS && /^\d+$/.test(param ?? '')) return { route, param, query };
+    return { route: SCREENS.includes(route) || route === 'uitloggen' ? route : 'vandaag', param: null, query };
 };
 
 // Opmaak, zoals op de server (Tally, bedragen, datums)
@@ -160,6 +181,8 @@ Alpine.store('os', {
     profile: JSON.parse(storage.get(PROFILE_KEY) ?? 'null'),
     route: routeFromHash().route,
     param: routeFromHash().param,
+    // Query van het scherm (#/nieuweaanvraag?klant=3), zie go() en QUERY_SCREENS.
+    query: routeFromHash().query,
     // Zijmenu: dicht = de gekozen weergave naar de server (saveSettings), niet bij elke tik.
     menuOpen: false,
     get drawer() {
@@ -261,9 +284,10 @@ Alpine.store('os', {
     },
 
     navigate() {
-        const { route, param } = routeFromHash();
+        const { route, param, query } = routeFromHash();
         // Instellingen verlaten: de wijzigingen in één keer naar de server.
         if (this.route === 'instellingen' && route !== 'instellingen') this.saveSettings();
+        this.query = query;
         this.route = route;
         this.param = param;
         this.drawer = this.help = this.nova = false;
@@ -279,15 +303,24 @@ Alpine.store('os', {
     // Een pad op de server: naar het scherm in de app als dat er is, anders de serverpagina.
     go(path) {
         const [pathname, query] = path.split('?');
-        if (SCREEN_PATHS[pathname] && !query) {
-            location.hash = `#/${SCREEN_PATHS[pathname]}`;
+        const suffix = query ? `?${query}` : '';
+        for (const rewrite of REWRITES) {
+            const hash = rewrite(pathname, new URLSearchParams(query ?? ''));
+            if (hash) {
+                location.hash = hash;
+                return;
+            }
+        }
+        const named = SCREEN_PATHS[pathname];
+        if (named && (!query || QUERY_SCREENS.has(named))) {
+            location.hash = `#/${named}${suffix}`;
             return;
         }
         for (const [screen, pattern] of Object.entries(DETAILS)) {
             const match = pathname.match(pattern);
-            // Een project met een query (?tab=fotos) is een serverpagina; een werkpakket altijd de app.
-            if (match && (!query || screen === 'werkpakket')) {
-                location.hash = `#/${screen}/${match[1]}`;
+            // Met een query (?tab=…) alleen naar de app als het scherm die overneemt, anders de serverpagina.
+            if (match && (!query || QUERY_SCREENS.has(screen))) {
+                location.hash = `#/${screen}/${match[1]}${suffix}`;
                 return;
             }
         }
@@ -961,16 +994,26 @@ Alpine.data('conversation', (id) => ({
         this.timer = setInterval(() => document.visibilityState === 'visible' && !Alpine.store('os').offline && this.poll(), CHAT_POLL_MS);
         // Toetsenbord open of dicht: het gesprek past in wat er zichtbaar is, het nieuwste bericht in beeld.
         this.onResize = () => { this.fit(); this.scrollDown(false); };
+        // iOS schuift het zichtbare deel bij het toetsenbord omhoog (scroll op visualViewport), zonder resize.
+        this.onShift = () => this.fit();
         window.visualViewport?.addEventListener('resize', this.onResize);
+        window.visualViewport?.addEventListener('scroll', this.onShift);
         this.fit();
     },
     destroy() {
         clearInterval(this.timer);
         window.visualViewport?.removeEventListener('resize', this.onResize);
+        window.visualViewport?.removeEventListener('scroll', this.onShift);
         this.recognition?.stop();
     },
+    // Het gesprek precies over het zichtbare deel. Android maakt de webview kleiner als het toetsenbord opent;
+    // iOS legt het toetsenbord eroverheen en schuift het zichtbare deel omhoog (offsetTop). Alleen de hoogte
+    // volgen werkt dan niet: de kop schuift uit beeld en de invoerbalk staat niet tegen het toetsenbord.
     fit() {
-        if (window.visualViewport) this.$el.style.height = `${window.visualViewport.height}px`;
+        const viewport = window.visualViewport;
+        if (!viewport) return;
+        this.$el.style.height = `${viewport.height}px`;
+        this.$el.style.transform = viewport.offsetTop > 0 ? `translateY(${viewport.offsetTop}px)` : '';
     },
 
     async open() {
@@ -1153,7 +1196,26 @@ Alpine.data('projects', () => ({
     },
 }));
 
-Alpine.data('project', (id) => ({ ...screen(`project:${id}`, `projecten/${id}`), ...finishing }));
+Alpine.data('project', (id) => ({
+    ...screen(`project:${id}`, `projecten/${id}`),
+    ...finishing,
+    statusBusy: false,
+    // Projectstatus (kantoor): zelfde regels als de website (ProjectStatusController); afgerond zet de opleverdatum.
+    async setStatus(status) {
+        if (status.value === this.data.status_value || this.statusBusy) return;
+        if (status.value === 'afgerond' && !(await Alpine.store('os').ask('Project afronden? De voortgang gaat naar 100% en de opleverdatum wordt vandaag.', 'Afronden'))) return;
+        this.statusBusy = true;
+        try {
+            const result = await api(`projecten/${id}/status`, { method: 'PATCH', body: { status: status.value } });
+            fetchedAt.projecten = fetchedAt.vandaag = 0;
+            await this.load({ force: true });
+            Alpine.store('os').toast(result.message ?? `Status: ${result.label}.`);
+        } catch (error) {
+            Alpine.store('os').toast(errorText(error, 'Status wijzigen lukte niet. Controleer de verbinding.'));
+        }
+        this.statusBusy = false;
+    },
+}));
 
 // Foto's kleiner maken vóór het versturen: een telefoonfoto van 4 MB wordt zo'n 400 kB, en dat scheelt
 // veel op de bouwplaats met slecht bereik. Lukt het niet, dan gaat het origineel.
@@ -1186,6 +1248,23 @@ Alpine.data('workPackage', (id) => {
         uploads: [],
         viewer: null,
         caption: '',
+        // Kantoor: checklist aanvullen (ChecklistItemController, zelfde regels als de website).
+        newItem: { label: '', requires_photos: 0 },
+        addingItem: false,
+        async addItem() {
+            const label = this.newItem.label.trim();
+            if (!label || this.addingItem) return;
+            this.addingItem = true;
+            try {
+                await api(`werkpakketten/${id}/items`, { method: 'POST', body: { label, requires_photos: Number(this.newItem.requires_photos) || 0 } });
+                this.newItem = { label: '', requires_photos: 0 };
+                fetchedAt[`project:${this.data.project.id}`] = fetchedAt[`uitvoering:${this.data.project.id}`] = 0;
+                await this.load({ force: true });
+            } catch (error) {
+                Alpine.store('os').toast(errorText(error, 'Toevoegen lukte niet. Controleer de verbinding.'));
+            }
+            this.addingItem = false;
+        },
 
         init() {
             this.$watch('$store.os.offline', (offline) => !offline && this.retryUploads());
@@ -1464,6 +1543,16 @@ Alpine.directive('icon', (el, { expression }, { evaluateLater, effect }) => {
     el.classList.add('os-icon');
     effect(() => name((value) => { el.innerHTML = iconSvg(value); }));
 });
+
+// De schermen uit screens/: hun Alpine-componenten registreren met de gedeelde hulpjes, en hun templates in
+// <main> zetten (binnen de <template> van de ingelogde app, dus vóór Alpine die kloont).
+const screenContext = { Alpine, api, screen, fetchScreen, fetchedAt, cache, errorText, animateIn, shrinkPhoto, format, novaUrl };
+Object.values(screenModules).forEach((module) => module.default?.(screenContext));
+const screenSlot = document.querySelector('template[x-if="$store.os.signedIn"]')?.content.getElementById('os-screens');
+if (screenSlot) {
+    Object.keys(screenTemplates).sort().forEach((file) => screenSlot.insertAdjacentHTML('beforebegin', screenTemplates[file]));
+    screenSlot.remove();
+}
 
 window.Alpine = Alpine;
 Alpine.plugin(swipeDismiss);

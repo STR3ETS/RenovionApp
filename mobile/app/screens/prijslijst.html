@@ -1,0 +1,128 @@
+<!-- ===== Prijslijst ===== -->
+<template x-if="$store.os.route === 'prijslijst'">
+    <div x-data="priceList">
+        <nav class="app-sectabs" aria-label="Onderdelen van deze sectie">
+            <a href="#/offertes">Offertes</a>
+            <a href="#/calculaties">Calculaties</a>
+            <a href="#/prijslijst" class="on" aria-current="page">Prijslijst</a>
+        </nav>
+
+        <div data-enter class="app-ph">
+            <p class="sec-eye"><span x-icon="'calculator'"></span> Kostendatabase</p>
+            <h1>Prijs<em>lijst</em></h1>
+            <p class="sub">
+                <span x-show="data" x-text="data ? osFormat.tally(data.count, 'artikel', 'artikelen') + ', Nova gebruikt deze lijst voor calculaties en offertes' : ''"></span>
+                <span x-show="!data" class="skeleton block h-3.5 w-2/3"></span>
+            </p>
+            <div class="app-ph-acts">
+                <button type="button" @click="adding = !adding" class="tap min-h-11 rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white active:bg-brand-600" :aria-expanded="adding">
+                    <span x-icon="adding ? 'x-mark' : 'plus'" class="mr-1.5 h-4 w-4"></span><span x-text="adding ? 'Sluiten' : 'Artikel'"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Nieuw artikel -->
+        <form x-show="adding" x-cloak @submit.prevent="add()" class="mb-3 space-y-2 rounded-2xl border border-calc-200 bg-calc-50 p-4">
+            <h2 class="text-sm font-bold text-navy-900">Nieuw artikel</h2>
+            <input type="text" x-model="item.name" required maxlength="255" placeholder="Naam van het artikel" aria-label="Naam" class="w-full !rounded-xl">
+            <div class="grid grid-cols-2 gap-2">
+                <select x-model="item.type" aria-label="Type" class="w-full !rounded-xl">
+                    <template x-for="option in data?.types ?? []" :key="option.value">
+                        <option :value="option.value" :selected="item.type === option.value" x-text="option.label"></option>
+                    </template>
+                </select>
+                <select x-model="item.unit" aria-label="Eenheid" class="w-full !rounded-xl">
+                    <template x-for="unit in data?.units ?? []" :key="unit">
+                        <option :value="unit" :selected="item.unit === unit" x-text="unit"></option>
+                    </template>
+                </select>
+            </div>
+            <input type="number" inputmode="decimal" x-model="item.unit_price" required min="0" step="0.01" placeholder="Prijs excl. btw" aria-label="Prijs excl. btw" class="w-full !rounded-xl">
+            <button type="submit" :disabled="busy !== null || !item.name.trim() || item.unit_price === ''" class="app-btn min-h-11 pri w-full justify-center disabled:opacity-60" x-text="busy === 'add' ? 'Bezig' : 'Toevoegen'"></button>
+            <p class="text-xs text-gray-500">Het artikelnummer wordt automatisch toegekend (ARB, MAT, MTR, OND of STP plus volgnummer).</p>
+        </form>
+
+        <div class="relative mb-3">
+            <span x-icon="'magnifying-glass'" class="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-gray-400"></span>
+            <input type="search" x-model="q" enterkeyhint="search" placeholder="Zoek op naam of artikelnummer" aria-label="Prijslijst doorzoeken" class="w-full !rounded-xl !pl-10" @keydown.enter="$el.blur()">
+        </div>
+
+        <!-- Typefilter: één rij die zijwaarts scrolt -->
+        <div class="app-chips -mx-4 !flex-nowrap overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+            <button type="button" @click="type = ''" :class="type === '' && 'on'" class="app-chip shrink-0" :aria-pressed="type === ''"><b class="font-semibold">Alle</b></button>
+            <template x-for="option in data?.types ?? []" :key="option.value">
+                <button type="button" @click="type = option.value" :class="type === option.value && 'on'" class="app-chip shrink-0" :aria-pressed="type === option.value">
+                    <b class="font-semibold" x-text="option.label"></b>
+                </button>
+            </template>
+        </div>
+
+        <template x-if="failed">
+            <div class="app-card p-5 text-center">
+                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                <button type="button" @click="load()" class="app-btn min-h-11 mt-3">Opnieuw proberen</button>
+            </div>
+        </template>
+
+        <template x-if="data && shown.length === 0">
+            <div class="app-card p-6 text-center">
+                <p class="text-sm font-semibold text-navy-900">Geen artikelen gevonden</p>
+                <p class="mt-1 text-sm text-gray-500">Pas de zoekterm of het typefilter aan, of voeg een artikel toe.</p>
+            </div>
+        </template>
+
+        <div class="space-y-2">
+            <template x-for="i in (data || failed ? 0 : 6)" :key="i">
+                <div class="app-card p-4"><span class="skeleton mb-2 block h-4 w-2/3"></span><span class="skeleton block h-3 w-1/2"></span></div>
+            </template>
+            <template x-for="row in shown" :key="row.id">
+                <div class="app-card border-l-4 !border-l-calc-500 p-3.5" :class="!row.active && 'opacity-60'">
+                    <div x-show="editing !== row.id">
+                        <div class="flex items-start gap-3">
+                            <span class="mt-0.5 shrink-0 rounded-lg bg-calc-100 px-2 py-1 font-mono text-[11px] font-bold text-calc-700" x-text="row.code"></span>
+                            <span class="min-w-0 flex-1">
+                                <b class="block text-sm font-semibold text-navy-900" x-text="row.name"></b>
+                                <small class="block text-xs text-gray-500" x-text="row.sub"></small>
+                            </span>
+                        </div>
+                        <div class="mt-2.5 flex items-center gap-2">
+                            <span class="rounded-full px-2.5 py-0.5 text-xs font-semibold" :class="row.type.classes" x-text="row.type.label"></span>
+                            <b class="flex-1 text-right text-sm font-bold whitespace-nowrap text-navy-900"><span x-text="osFormat.euro(row.price, 2)"></span> <span class="text-xs font-medium text-gray-500" x-text="'/ ' + row.unit"></span></b>
+                        </div>
+                        <div class="mt-2.5 grid grid-cols-2 gap-2">
+                            <button type="button" @click="startEdit(row)" class="app-btn min-h-11 justify-center"><span x-icon="'pencil'" class="h-4 w-4"></span> Bewerken</button>
+                            <button type="button" @click="toggle(row)" :disabled="busy !== null" :aria-pressed="row.active"
+                                    class="tap flex min-h-11 items-center justify-center gap-1.5 rounded-xl text-sm font-semibold disabled:opacity-60"
+                                    :class="row.active ? 'bg-green-100 text-green-800' : 'border border-gray-200 bg-gray-50 text-gray-600'">
+                                <span class="h-2 w-2 rounded-full" :class="row.active ? 'bg-green-500' : 'bg-gray-400'"></span>
+                                <span x-text="busy === 'toggle:' + row.id ? 'Bezig' : (row.active ? 'Actief' : 'Uit')"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Bewerken -->
+                    <form x-show="editing === row.id" @submit.prevent="save(row)" class="space-y-2">
+                        <label class="block"><span class="app-lbl">Naam</span><input type="text" x-model="edit.name" required maxlength="255" class="w-full !rounded-xl"></label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="block">
+                                <span class="app-lbl">Type</span>
+                                <select x-model="edit.type" class="w-full !rounded-xl">
+                                    <template x-for="option in data?.types ?? []" :key="option.value">
+                                        <option :value="option.value" :selected="edit.type === option.value" x-text="option.label"></option>
+                                    </template>
+                                </select>
+                            </label>
+                            <label class="block"><span class="app-lbl">Eenheid</span><input type="text" x-model="edit.unit" required maxlength="10" class="w-full !rounded-xl"></label>
+                            <label class="block"><span class="app-lbl">Prijs excl. btw</span><input type="number" inputmode="decimal" x-model="edit.unit_price" required min="0" step="0.01" class="w-full !rounded-xl"></label>
+                            <label class="block"><span class="app-lbl">Opslag %</span><input type="number" inputmode="decimal" x-model="edit.surcharge_pct" min="0" max="100" step="0.1" class="w-full !rounded-xl"></label>
+                        </div>
+                        <div class="flex gap-2">
+                            <button type="submit" :disabled="busy !== null" class="app-btn min-h-11 pri flex-1 justify-center disabled:opacity-60" x-text="busy === 'save:' + row.id ? 'Bezig' : 'Opslaan'"></button>
+                            <button type="button" @click="editing = null" class="app-btn min-h-11 ghost">Annuleren</button>
+                        </div>
+                    </form>
+                </div>
+            </template>
+        </div>
+    </div>
+</template>

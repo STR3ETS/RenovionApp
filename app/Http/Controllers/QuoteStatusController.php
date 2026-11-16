@@ -7,13 +7,14 @@ use App\Enums\QuoteStatus;
 use App\Enums\TimelineEventType;
 use App\Models\AuditLog;
 use App\Models\Quote;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class QuoteStatusController extends Controller
 {
-    public function update(Request $request, Quote $quote, AcceptQuote $acceptQuote): RedirectResponse
+    public function update(Request $request, Quote $quote, AcceptQuote $acceptQuote): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'status' => ['required', Rule::enum(QuoteStatus::class)],
@@ -23,11 +24,18 @@ class QuoteStatusController extends Controller
         $new = QuoteStatus::from($validated['status']);
 
         if (! $quote->status->isOpen()) {
-            return back()->with('error', 'Deze offerte is al afgehandeld.');
+            return $request->expectsJson()
+                ? response()->json(['message' => 'Deze offerte is al afgehandeld.'], 422)
+                : back()->with('error', 'Deze offerte is al afgehandeld.');
         }
 
         if ($new === QuoteStatus::Akkoord) {
             $project = $acceptQuote->handle($quote);
+
+            // De app gaat zelf naar het nieuwe project.
+            if ($request->expectsJson()) {
+                return response()->json(['status' => $new->value, 'label' => $new->label(), 'project' => route('projects.show', $project, false)]);
+            }
 
             return redirect()->route('projects.show', $project)
                 ->with('success', "Offerte akkoord - project \"{$project->name}\" aangemaakt.");
@@ -65,6 +73,10 @@ class QuoteStatusController extends Controller
 
         if ($new === QuoteStatus::Afgewezen) {
             $quote->customer->recordEvent(TimelineEventType::Offerte, "Offerte {$quote->number} afgewezen", null, $quote);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json(['status' => $new->value, 'label' => $new->label()]);
         }
 
         return back()->with('success', "Offertestatus gewijzigd naar {$new->label()}.");

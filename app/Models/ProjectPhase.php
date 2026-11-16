@@ -38,6 +38,12 @@ class ProjectPhase extends Model
     ];
 
     /**
+     * De fase na de oplevering. Telt niet mee in de voortgang: een opgeleverd project staat zo op 100%, en de
+     * kwaliteitsketen (minstens 95%) kan beginnen zonder dat de nazorg al is vrijgegeven (keuze Dylan).
+     */
+    public const AFTERCARE = 'Nazorg';
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array

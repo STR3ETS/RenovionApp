@@ -11,7 +11,9 @@ use App\Models\AuditLog;
 use App\Models\Customer;
 use App\Models\Lead;
 use App\Models\Quote;
+use App\Support\NativeApp;
 use App\Support\QuoteBlockRegistry;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -50,7 +52,7 @@ class QuoteController extends Controller
         ]);
     }
 
-    public function store(StoreQuoteRequest $request): RedirectResponse
+    public function store(StoreQuoteRequest $request): RedirectResponse|JsonResponse
     {
         $validated = $request->validated();
 
@@ -84,6 +86,15 @@ class QuoteController extends Controller
             return $quote;
         });
 
+        // De app: naar het offertescherm in de app; de builder (bureaugereedschap) opent daar als serverpagina.
+        if ($request->expectsJson()) {
+            return response()->json([
+                'id' => $quote->id,
+                'path' => route('quotes.show', $quote, false),
+                'builder' => route('quotes.builder', $quote, false),
+            ], 201);
+        }
+
         // Direct de builder in (Eazyonline-concept): daar bouw je het document.
         return redirect()->route('quotes.builder', $quote);
     }
@@ -98,21 +109,43 @@ class QuoteController extends Controller
     /**
      * Nieuwe versie starten met wijzigingslog (briefing §6).
      */
-    public function newVersion(Request $request, Quote $quote): RedirectResponse
+    public function newVersion(Request $request, Quote $quote): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'note' => ['required', 'string', 'max:255'],
         ], [], ['note' => 'toelichting']);
 
         if ($quote->status === QuoteStatus::Concept) {
-            return redirect()->route('quotes.show', $quote)
-                ->with('error', 'Deze offerte is al een concept - je kunt hem direct bewerken.');
+            return $request->expectsJson()
+                ? response()->json(['message' => 'Deze offerte is al een concept: je kunt hem direct bewerken.'], 422)
+                : redirect()->route('quotes.show', $quote)
+                    ->with('error', 'Deze offerte is al een concept - je kunt hem direct bewerken.');
         }
 
         $quote->startNewVersion($validated['note']);
 
+        if ($request->expectsJson()) {
+            return response()->json(['version' => $quote->version]);
+        }
+
         return redirect()->route('quotes.show', $quote)
             ->with('success', "Versie v{$quote->version} gestart - de offerte staat weer op concept.");
+    }
+
+    /**
+     * Het document zoals de klant het ziet, voor intern: zonder ondertekenen en zonder dat het als "bekeken"
+     * telt. Opent in de app vanaf het offertescherm, licht, met PDF via de printdialoog van de telefoon.
+     */
+    public function document(Quote $quote): View
+    {
+        $quote->load(['lines', 'customer']);
+        $bundle = session('app_bundle');
+
+        return view('quotes.public', [
+            'quote' => $quote,
+            'preview' => true,
+            'back' => NativeApp::active() && $bundle ? $bundle.'/#/offerte/'.$quote->id : route('quotes.show', $quote),
+        ]);
     }
 
     public function edit(Quote $quote): View|RedirectResponse
@@ -127,11 +160,13 @@ class QuoteController extends Controller
         return view('quotes.edit', ['quote' => $quote]);
     }
 
-    public function update(UpdateQuoteRequest $request, Quote $quote): RedirectResponse
+    public function update(UpdateQuoteRequest $request, Quote $quote): RedirectResponse|JsonResponse
     {
         if ($quote->status !== QuoteStatus::Concept) {
-            return redirect()->route('quotes.show', $quote)
-                ->with('error', 'Alleen conceptoffertes kunnen worden bewerkt.');
+            return $request->expectsJson()
+                ? response()->json(['message' => 'Alleen conceptoffertes kunnen worden bewerkt.'], 422)
+                : redirect()->route('quotes.show', $quote)
+                    ->with('error', 'Alleen conceptoffertes kunnen worden bewerkt.');
         }
 
         $validated = $request->validated();
@@ -145,6 +180,10 @@ class QuoteController extends Controller
             $quote->lines()->delete();
             $this->syncLines($quote, $validated['lines']);
         });
+
+        if ($request->expectsJson()) {
+            return response()->json(['id' => $quote->id, 'path' => route('quotes.show', $quote, false)]);
+        }
 
         return redirect()->route('quotes.show', $quote)->with('success', 'Offerte bijgewerkt.');
     }

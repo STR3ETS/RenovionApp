@@ -1,0 +1,108 @@
+<!-- ===== Offertedashboard ===== -->
+<template x-if="$store.os.route === 'offertedashboard'">
+    <div x-data="quoteDashboard" x-effect="if (data) { periods = data.periods; sellers = data.sellers; }">
+        <nav class="app-crumbs mb-2 !text-gray-500">
+            <a href="#/offertes" class="tap">Offertes</a>
+            <span x-icon="'chevron-right'" class="h-3 w-3"></span>
+            <span>Dashboard</span>
+        </nav>
+
+        <div data-enter class="app-ph">
+            <p class="sec-eye"><span x-icon="'chart-bar'"></span> Calculatie en offertes</p>
+            <h1>Offerte<em>dashboard</em></h1>
+            <p class="sub">Wat is verstuurd, wat is geopend, wat is getekend, en wat kan er nog komen.</p>
+        </div>
+
+        <div class="mb-3 grid grid-cols-2 gap-2">
+            <select x-model="period" @change="filter()" aria-label="Periode" class="min-h-11 w-full !rounded-xl">
+                <template x-for="option in periods ?? [{ value: 'jaar', label: 'Dit jaar' }]" :key="option.value">
+                    <option :value="option.value" :selected="option.value === period" x-text="option.label"></option>
+                </template>
+            </select>
+            <select x-model="seller" @change="filter()" aria-label="Verkoper" class="min-h-11 w-full !rounded-xl">
+                <option value="">Alle verkopers</option>
+                <template x-for="person in sellers ?? []" :key="person.id">
+                    <option :value="String(person.id)" :selected="String(person.id) === seller" x-text="person.name"></option>
+                </template>
+            </select>
+        </div>
+
+        <template x-if="failed">
+            <div class="app-card mb-3 p-5 text-center">
+                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                <button type="button" @click="load()" class="app-btn mt-3 min-h-11">Opnieuw proberen</button>
+            </div>
+        </template>
+
+        <!-- Kerncijfers -->
+        <section class="app-kpis mb-3" x-show="!failed">
+            <template x-for="i in (data ? 0 : 5)" :key="'s' + i">
+                <div class="app-kpi" :class="i === 1 && 'wide'"><span class="skeleton mb-2 block h-3 w-1/2"></span><span class="skeleton mb-2 block h-6 w-2/3"></span><span class="skeleton block h-3 w-3/4"></span></div>
+            </template>
+            <template x-for="(kpi, index) in data?.kpis ?? []" :key="kpi.label">
+                <div data-enter class="app-kpi" :class="{ dark: kpi.dark, wide: index === 0 }">
+                    <span class="lbl" x-text="kpi.label"></span>
+                    <span class="v" x-text="kpi.value"></span>
+                    <span class="s" x-text="kpi.sub"></span>
+                </div>
+            </template>
+        </section>
+
+        <!-- Alle offertes -->
+        <section data-enter class="app-card mb-3" x-show="!failed">
+            <div class="app-card-h"><h3>Alle <em>offertes</em></h3></div>
+            <p class="px-5 text-xs text-gray-500">De scoringskans komt uit gedrag: vragen gesteld is zestig procent, twee keer gekeken vijfenveertig, een keer gekeken vijfendertig, nooit geopend vijftien.</p>
+            <div class="app-card-b">
+                <template x-for="i in (data ? 0 : 4)" :key="i">
+                    <div class="py-3.5"><span class="skeleton mb-2 block h-3.5 w-2/3"></span><span class="skeleton block h-3 w-1/2"></span></div>
+                </template>
+                <p x-show="data && data.rows.length === 0" class="py-4 text-sm text-gray-500">Nog geen verstuurde offertes. Zodra je een offerte verstuurt, verschijnt hij hier met wat de klant ermee doet.</p>
+                <template x-for="row in data?.rows ?? []" :key="row.id">
+                    <button type="button" @click="$store.os.go(row.path)" class="app-li w-full text-left">
+                        <span class="min-w-0 flex-1">
+                            <span class="flex flex-wrap items-center gap-1.5">
+                                <b class="truncate" x-text="row.customer"></b>
+                                <span class="rounded-full px-2 py-0.5 text-[10px] font-bold" :class="row.state.classes" x-text="row.state.label"></span>
+                                <span x-show="row.questions" class="rounded-full bg-calc-100 px-2 py-0.5 text-[10px] font-bold text-calc-700" x-text="row.questions"></span>
+                            </span>
+                            <small x-text="row.sub"></small>
+                        </span>
+                        <span class="shrink-0 text-right">
+                            <b class="whitespace-nowrap" x-text="row.total"></b>
+                            <small x-show="row.note" class="max-w-[9rem]" :class="row.signed && '!text-green-700'" x-text="row.note"></small>
+                        </span>
+                    </button>
+                </template>
+            </div>
+        </section>
+
+        <!-- Doorlooptijd -->
+        <section data-enter class="app-card mb-3 p-4" x-show="data">
+            <h2 class="mb-3 text-sm font-bold text-navy-900">Door<span class="text-brand-600">looptijd</span></h2>
+            <dl class="space-y-2.5 text-sm">
+                <template x-for="item in data?.lead_times ?? []" :key="item.label">
+                    <div class="flex items-center justify-between gap-3"><dt class="text-gray-500" x-text="item.label"></dt><dd class="font-bold text-navy-900" x-text="item.value"></dd></div>
+                </template>
+            </dl>
+        </section>
+
+        <!-- Waarom verloren -->
+        <section data-enter class="app-card mb-3 p-4" x-show="data?.lost">
+            <h2 class="mb-1 text-sm font-bold text-navy-900">Waarom <span class="text-brand-600">verloren</span></h2>
+            <p class="mb-3 text-xs text-gray-500" x-text="data?.lost?.sub"></p>
+            <div class="space-y-2.5">
+                <template x-for="item in data?.lost?.reasons ?? []" :key="item.reason">
+                    <div>
+                        <div class="flex items-center justify-between gap-2 text-sm">
+                            <span class="min-w-0 truncate text-gray-700" x-text="item.reason"></span>
+                            <span class="shrink-0 font-semibold text-navy-900" x-text="item.count"></span>
+                        </div>
+                        <span class="mt-1 block h-1.5 overflow-hidden rounded-full bg-gray-100">
+                            <span class="block h-full rounded-full bg-red-400" :style="'width: ' + item.width + '%'"></span>
+                        </span>
+                    </div>
+                </template>
+            </div>
+        </section>
+    </div>
+</template>

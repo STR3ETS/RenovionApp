@@ -1,0 +1,195 @@
+<!-- ===== Rapportages ===== -->
+<template x-if="$store.os.route === 'rapportages'">
+    <div x-data="reports">
+        <nav class="app-sectabs" aria-label="Onderdelen van Inzicht">
+            <a href="#/rapportages" class="on" aria-current="page">Rapportages</a>
+            <a href="#/marketing">Marketing</a>
+        </nav>
+
+        <div data-enter class="app-ph">
+            <p class="sec-eye"><span x-icon="'chart-bar'"></span> Inzicht</p>
+            <h1><em>Rapportages</em></h1>
+            <p class="sub">Een rapport is een momentopname uit de data die er is, dus altijd actueel.</p>
+            <div class="app-ph-acts" x-show="data">
+                <button type="button" @click="print()" class="app-btn min-h-11"><span x-icon="'document-text'" class="h-4 w-4"></span> Afdrukken</button>
+            </div>
+        </div>
+
+        <!-- Soort rapport -->
+        <div class="-mx-4 mb-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+            <template x-for="option in data?.types ?? []" :key="option.value">
+                <button type="button" @click="choose(option.value)"
+                        class="flex min-h-11 w-[13.5rem] shrink-0 items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left"
+                        :class="type === option.value ? 'border-brand-500 bg-brand-50' : 'border-gray-200 bg-white'" :aria-pressed="type === option.value">
+                    <span x-icon="option.icon" class="h-4 w-4 shrink-0" :class="type === option.value ? 'text-brand-600' : 'text-gray-400'"></span>
+                    <span class="min-w-0">
+                        <span class="block text-sm font-bold text-navy-900" x-text="option.label"></span>
+                        <span class="block text-[11px] leading-snug text-gray-500" x-text="option.about"></span>
+                    </span>
+                </button>
+            </template>
+            <template x-for="i in (data ? 0 : 3)" :key="i"><span class="skeleton block h-14 w-[13.5rem] shrink-0 !rounded-xl"></span></template>
+        </div>
+
+        <div class="mb-3" x-show="type === 'project' && data?.projects.length">
+            <select x-model="project" @change="pickProject()" aria-label="Project" class="w-full">
+                <option value="">Kies een project</option>
+                <template x-for="option in data?.projects ?? []" :key="option.id"><option :value="option.id" x-text="option.label" :selected="String(option.id) === String(project)"></option></template>
+            </select>
+        </div>
+
+        <template x-if="failed">
+            <div class="app-card mb-3 p-5 text-center">
+                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                <button type="button" @click="load()" class="app-btn mt-3 min-h-11">Opnieuw proberen</button>
+            </div>
+        </template>
+
+        <article data-enter class="app-card p-4" x-show="!failed">
+            <header class="mb-4 border-b border-gray-100 pb-4">
+                <p class="text-[11px] font-bold tracking-widest text-brand-600 uppercase">Renovion</p>
+                <h2 class="mt-1 text-xl font-bold text-navy-900"><span x-text="data?.report.title ?? ''"></span><span x-show="!data" class="skeleton inline-block h-6 w-2/3 align-middle"></span></h2>
+                <p class="mt-1 text-sm text-gray-500" x-show="data?.report.period" x-text="data?.report.period"></p>
+            </header>
+
+            <section class="mb-5 grid grid-cols-2 gap-3" x-show="data?.report.kpis.length">
+                <template x-for="kpi in data?.report.kpis ?? []" :key="kpi.label">
+                    <div class="rounded-xl bg-gray-50 p-3">
+                        <p class="app-lbl" x-text="kpi.label"></p>
+                        <p class="mt-1 text-lg font-bold" :class="kpi.bad ? 'text-red-600' : 'text-navy-900'" x-text="kpi.value"></p>
+                    </div>
+                </template>
+            </section>
+
+            <template x-if="!data">
+                <div class="space-y-4"><template x-for="i in 3" :key="i"><div><span class="skeleton mb-2 block h-4 w-1/2"></span><span class="skeleton mb-1.5 block h-3 w-full"></span><span class="skeleton block h-3 w-4/5"></span></div></template></div>
+            </template>
+
+            <div class="space-y-5">
+                <template x-for="(section, index) in data?.report.sections ?? []" :key="index">
+                    <section>
+                        <h3 class="mb-2 flex items-baseline gap-2 text-sm font-bold text-navy-900">
+                            <span class="font-mono text-xs text-gray-400" x-text="String(index + 1).padStart(2, '0')"></span>
+                            <span x-text="section.title"></span>
+                        </h3>
+                        <p x-show="section.lines.length === 0" class="text-sm text-gray-500">Niets te melden.</p>
+                        <ul class="space-y-1.5">
+                            <template x-for="(line, i) in section.lines" :key="i">
+                                <li class="flex items-start gap-2.5 text-sm">
+                                    <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" :class="line.bad ? 'bg-red-500' : 'bg-green-500'"></span>
+                                    <span :class="line.bad ? 'text-navy-900' : 'text-gray-600'" x-text="line.text"></span>
+                                </li>
+                            </template>
+                        </ul>
+                    </section>
+                </template>
+            </div>
+
+            <footer class="mt-6 border-t border-gray-100 pt-3 text-xs text-gray-500" x-show="data">
+                <span x-text="data?.made"></span> Een rode stip betekent dat die regel aandacht vraagt.
+            </footer>
+        </article>
+    </div>
+</template>
+
+<!-- ===== Marketing ===== -->
+<template x-if="$store.os.route === 'marketing'">
+    <div x-data="marketing">
+        <nav class="app-sectabs" aria-label="Onderdelen van Inzicht">
+            <a href="#/rapportages">Rapportages</a>
+            <a href="#/marketing" class="on" aria-current="page">Marketing</a>
+        </nav>
+
+        <div data-enter class="app-ph">
+            <p class="sec-eye"><span x-icon="'megaphone'"></span> Inzicht</p>
+            <h1><em>Marketing</em></h1>
+            <p class="sub">Niet hoeveel aanvragen er binnenkwamen, maar welke bron werk oplevert.</p>
+        </div>
+
+        <div class="mb-3">
+            <select x-model="period" @change="choose()" aria-label="Periode" class="w-full">
+                <template x-for="option in data?.periods ?? [{ value: 'jaar', label: 'Dit jaar' }]" :key="option.value"><option :value="option.value" x-text="option.label" :selected="option.value === period"></option></template>
+            </select>
+        </div>
+
+        <template x-if="failed">
+            <div class="app-card mb-3 p-5 text-center">
+                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                <button type="button" @click="load()" class="app-btn mt-3 min-h-11">Opnieuw proberen</button>
+            </div>
+        </template>
+
+        <section class="app-kpis mb-3" x-show="!failed">
+            <div data-enter class="app-kpi dark">
+                <span class="lbl">Gewonnen waarde</span>
+                <span class="v"><i>€</i> <span x-text="data ? osFormat.euro(data.kpis.won_value).slice(2) : ''"></span><span x-show="!data" class="skeleton skeleton-dark inline-block h-6 w-32 align-middle"></span></span>
+                <span class="s">aan opdrachten</span>
+            </div>
+            <div data-enter class="app-kpi" style="--kc: #c2506d">
+                <span class="lbl">Aanvragen</span>
+                <span class="v"><span x-text="data?.kpis.total"></span><span x-show="!data" class="skeleton inline-block h-6 w-10 align-middle"></span></span>
+                <span class="s">in deze periode</span>
+            </div>
+            <div data-enter class="app-kpi" style="--kc: #3e6ba8">
+                <span class="lbl">In de pipeline</span>
+                <span class="v !text-[22px]"><span x-text="data ? osFormat.euro(data.kpis.pipeline_value) : ''"></span><span x-show="!data" class="skeleton inline-block h-6 w-20 align-middle"></span></span>
+                <span class="s">nog open</span>
+            </div>
+            <div data-enter class="app-kpi wide" style="--kc: #1e8a5a">
+                <span class="lbl">Terugkerende klanten</span>
+                <span class="v"><span x-text="data?.kpis.repeat_customers"></span><span x-show="!data" class="skeleton inline-block h-6 w-10 align-middle"></span></span>
+                <span class="s">meer dan een project</span>
+            </div>
+        </section>
+
+        <div x-show="data?.best_source" class="mb-3 flex items-start gap-3 rounded-2xl border border-green-200 bg-green-50 p-4">
+            <span x-icon="'light-bulb'" class="h-5 w-5 shrink-0 text-green-700"></span>
+            <p class="text-sm text-green-900">
+                <b x-text="data?.best_source?.label"></b> converteert het best:
+                <span x-text="data?.best_source ? data.best_source.conversion + ' procent van wat beslist is werd een opdracht, gemiddeld ' + osFormat.euro(data.best_source.average) + ' per opdracht.' : ''"></span>
+            </p>
+        </div>
+
+        <!-- Aanvragen per maand -->
+        <section data-enter class="app-card mb-3 p-4" x-show="!failed">
+            <h2 class="mb-3 text-sm font-bold text-navy-900">Aanvragen <span class="text-brand-600">per maand</span></h2>
+            <div class="flex h-32 items-end gap-1">
+                <template x-for="i in (data ? 0 : 12)" :key="i"><span class="skeleton block flex-1 !rounded-b-none" :style="`height: ${15 + (i % 5) * 15}%`"></span></template>
+                <template x-for="month in data?.per_month ?? []" :key="month.month">
+                    <div class="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1">
+                        <span class="text-[10px] font-semibold text-gray-500" x-text="month.count || ''"></span>
+                        <span class="block w-full rounded-t bg-planning-500/70" :style="bar(month.count)"></span>
+                        <span class="text-[9px] text-gray-500" x-text="month.label"></span>
+                    </div>
+                </template>
+            </div>
+        </section>
+
+        <!-- Per bron, kanaal en dienst -->
+        <template x-for="block in data?.breakdowns ?? []" :key="block.key">
+            <section data-enter class="app-card mb-3">
+                <div class="app-card-h">
+                    <div>
+                        <h3 x-text="block.title"></h3>
+                        <p class="mt-0.5 text-xs text-gray-500" x-text="block.about"></p>
+                    </div>
+                </div>
+                <div class="app-card-b">
+                    <p x-show="block.rows.length === 0" class="py-3 text-sm text-gray-500">Nog niets vastgelegd.</p>
+                    <template x-for="row in block.rows" :key="row.label">
+                        <div class="app-li">
+                            <span class="min-w-0 flex-1">
+                                <b class="truncate" x-text="row.label"></b>
+                                <small x-text="row.total + ' totaal, ' + row.won + ' gewonnen'"></small>
+                            </span>
+                            <span class="shrink-0 text-right">
+                                <b class="whitespace-nowrap" x-text="osFormat.euro(row.value)"></b>
+                                <span class="mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-bold" :class="{ green: 'bg-green-100 text-green-800', amber: 'bg-amber-100 text-amber-800', gray: 'bg-gray-100 text-gray-600' }[row.tone]" x-text="row.conversion"></span>
+                            </span>
+                        </div>
+                    </template>
+                </div>
+            </section>
+        </template>
+    </div>
+</template>

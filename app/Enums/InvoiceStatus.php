@@ -33,6 +33,17 @@ enum InvoiceStatus: string
         };
     }
 
+    /** Lichte badges voor de app (api/app). */
+    public function appBadgeClasses(): string
+    {
+        return match ($this) {
+            self::Concept => 'bg-gray-200 text-gray-700',
+            self::Verzonden => 'bg-steel-100 text-steel-800',
+            self::Betaald => 'bg-green-100 text-green-800',
+            self::Oninbaar => 'bg-red-100 text-red-800',
+        };
+    }
+
     /** Verzonden en nog niet betaald: dat staat open bij de klant. */
     public function isOutstanding(): bool
     {

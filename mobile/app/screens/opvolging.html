@@ -1,0 +1,58 @@
+<!-- ===== Opvolging ===== -->
+<template x-if="$store.os.route === 'opvolging'">
+    <div x-data="followUps">
+        <div data-enter class="app-ph">
+            <p class="sec-eye"><span x-icon="'phone'"></span> Verkoop</p>
+            <h1><em>Opvolging</em></h1>
+            <p class="sub">Te laat bovenaan, dan wat niets gepland heeft. Een aanvraag zonder vervolgstap valt het snelst stil.</p>
+        </div>
+
+        <div class="app-chips -mx-4 !flex-nowrap overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+            <button type="button" @click="filter = ''" :class="filter === '' && 'on'" class="app-chip shrink-0" :aria-pressed="filter === ''">
+                <b class="font-semibold">Alles</b> <span x-text="data ? data.total : ''"></span>
+            </button>
+            <template x-for="option in filters" :key="option.value">
+                <button type="button" @click="filter = option.value" :class="filter === option.value && 'on'" class="app-chip shrink-0" :aria-pressed="filter === option.value">
+                    <b class="font-semibold" x-text="option.label"></b> <span x-text="option.count"></span>
+                </button>
+            </template>
+        </div>
+
+        <template x-if="failed">
+            <div class="app-card p-5 text-center">
+                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                <button type="button" @click="load()" class="app-btn mt-3 min-h-11">Opnieuw proberen</button>
+            </div>
+        </template>
+
+        <template x-if="data && rows.length === 0">
+            <div class="app-card p-6 text-center">
+                <p class="text-sm font-semibold text-navy-900">Niets om op te volgen</p>
+                <p class="mt-1 text-sm text-gray-500">Alle open aanvragen hebben een vervolgstap met een datum.</p>
+            </div>
+        </template>
+
+        <div class="space-y-2.5" x-show="!failed">
+            <template x-for="i in (data ? 0 : 4)" :key="i">
+                <div class="app-card p-4"><span class="skeleton mb-2 block h-4 w-2/3"></span><span class="skeleton mb-1.5 block h-3 w-1/2"></span><span class="skeleton block h-3 w-1/3"></span></div>
+            </template>
+            <template x-for="row in data ? rows : []" :key="row.id">
+                <div data-enter class="app-card border-l-4 p-4" :class="{ laat: '!border-l-red-500', niets: '!border-l-amber-400' }[row.key] ?? '!border-l-transparent'">
+                    <button type="button" @click="$store.os.go(row.path)" class="block w-full text-left">
+                        <span class="flex flex-wrap items-center gap-1.5">
+                            <b class="text-[15px] font-bold text-navy-900" x-text="row.name"></b>
+                            <span class="rounded-full px-2 py-0.5 text-[10px] font-bold" :class="row.status.classes" x-text="row.status.label"></span>
+                            <span x-show="row.silent" class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">Stil</span>
+                        </span>
+                        <span class="mt-0.5 block text-xs text-gray-500" x-text="row.sub"></span>
+                        <span class="mt-2 flex items-baseline gap-2">
+                            <b class="shrink-0 text-sm font-bold" :class="{ laat: 'text-red-700', niets: 'text-amber-700' }[row.key] ?? 'text-navy-900'" x-text="row.label"></b>
+                            <span class="min-w-0 text-xs text-gray-500" x-text="row.next"></span>
+                        </span>
+                    </button>
+                    <a x-show="row.phone" :href="'tel:' + row.phone" class="app-btn pri mt-3 min-h-11 w-full justify-center"><span x-icon="'phone'" class="h-4 w-4"></span> Bellen</a>
+                </div>
+            </template>
+        </div>
+    </div>
+</template>

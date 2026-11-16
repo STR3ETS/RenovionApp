@@ -28,4 +28,14 @@ enum MeetingStatus: string
             self::Mislukt => 'bg-red-100 text-red-700',
         };
     }
+
+    /** Lichte badge voor de schermen in de app (mobile/app). */
+    public function appBadgeClasses(): string
+    {
+        return match ($this) {
+            self::Opname, self::Mislukt => 'bg-red-100 text-red-800',
+            self::Verwerken => 'bg-amber-100 text-amber-800',
+            self::Klaar => 'bg-green-100 text-green-800',
+        };
+    }
 }

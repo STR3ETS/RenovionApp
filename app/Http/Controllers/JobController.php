@@ -21,8 +21,23 @@ class JobController extends Controller
 {
     public function index(Request $request): View
     {
-        $user = $this->subject($request);
+        $user = self::subject($request);
 
+        return view('jobs.index', [
+            'subject' => $user,
+            'colleagues' => self::colleagues($request->user()),
+            ...self::groups($user),
+        ]);
+    }
+
+    /**
+     * De klussen van een medewerker in drie groepen: vandaag, komend (drie weken) en afgerond (twee
+     * weken terug). Gedeeld met de app (Api\App\JobController).
+     *
+     * @return array{vandaag: Collection<int, array<string, mixed>>, komend: Collection<int, array<string, mixed>>, afgerond: Collection<int, array<string, mixed>>}
+     */
+    public static function groups(User $user): array
+    {
         $entries = ScheduleEntry::where('user_id', $user->id)
             ->whereNotNull('project_id')
             ->with(['project.customer', 'project.projectLeader'])
@@ -41,17 +56,21 @@ class JobController extends Controller
             'status' => $jobs->get($entry->id)?->status ?? JobStatus::Gepland,
         ]);
 
-        return view('jobs.index', [
-            'subject' => $user,
-            'colleagues' => $request->user()->can('manage-crm')
-                ? User::query()->where('active', true)->orderBy('name')->get()->filter->isPlannable()
-                : collect(),
-            'vandaag' => $this->today($rows),
+        return [
+            'vandaag' => self::today($rows),
             'komend' => $rows->filter(fn (array $row) => $row['entry']->date->isAfter(today())
                 && $row['entry']->date->lessThanOrEqualTo(today()->addDays(21))),
             'afgerond' => $rows->filter(fn (array $row) => $row['status'] === JobStatus::Klaar
                 && $row['entry']->date->greaterThanOrEqualTo(today()->subDays(14))),
-        ]);
+        ];
+    }
+
+    /** Bij wie de projectleiding kan meekijken ("Werken als"); leeg voor een uitvoerder. */
+    public static function colleagues(User $viewer): Collection
+    {
+        return $viewer->can('manage-crm')
+            ? User::query()->where('active', true)->orderBy('name')->get()->filter->isPlannable()
+            : collect();
     }
 
     public function show(Request $request, ScheduleEntry $scheduleEntry): View
@@ -86,7 +105,7 @@ class JobController extends Controller
      * @param  Collection<int, array<string, mixed>>  $rows
      * @return Collection<int, array<string, mixed>>
      */
-    private function today(Collection $rows): Collection
+    private static function today(Collection $rows): Collection
     {
         return $rows->filter(function (array $row) {
             $entry = $row['entry'];
@@ -100,9 +119,9 @@ class JobController extends Controller
 
     /**
      * Wiens klussen bekijken we? Standaard je eigen. Beheerders mogen met
-     * ?medewerker= meekijken bij een collega.
+     * ?medewerker= meekijken bij een collega. Gedeeld met de app.
      */
-    private function subject(Request $request): User
+    public static function subject(Request $request): User
     {
         $id = $request->integer('medewerker');
 

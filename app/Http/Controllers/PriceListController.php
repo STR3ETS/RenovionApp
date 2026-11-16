@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\CalculationLineType;
 use App\Models\PriceItem;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -43,7 +44,7 @@ class PriceListController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
         $validated = $this->validated($request);
 
@@ -56,15 +57,26 @@ class PriceListController extends Controller
             'last_checked_at' => today(),
         ]);
 
+        if ($request->expectsJson()) {
+            return response()->json(['message' => "Artikel {$item->code} toegevoegd aan de prijslijst.", 'id' => $item->id]);
+        }
+
         return redirect()->route('price-items.index', $request->only(['q', 'type']))
             ->with('success', "Artikel {$item->code} toegevoegd aan de prijslijst.");
     }
 
-    public function update(Request $request, PriceItem $priceItem): RedirectResponse
+    public function update(Request $request, PriceItem $priceItem): RedirectResponse|JsonResponse
     {
         // Alleen aan/uit zetten
         if ($request->boolean('toggle')) {
             $priceItem->update(['active' => ! $priceItem->active]);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $priceItem->active ? "{$priceItem->code} staat weer aan." : "{$priceItem->code} staat uit en wordt niet meer voorgesteld.",
+                    'active' => $priceItem->active,
+                ]);
+            }
 
             return redirect()->route('price-items.index', $request->only(['q', 'type']))
                 ->with('success', $priceItem->active ? "{$priceItem->code} staat weer aan." : "{$priceItem->code} staat uit en wordt niet meer voorgesteld.");
@@ -74,6 +86,10 @@ class PriceListController extends Controller
             ...$this->validated($request),
             'last_checked_at' => today(),
         ]);
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => "Artikel {$priceItem->code} bijgewerkt."]);
+        }
 
         return redirect()->route('price-items.index', $request->only(['q', 'type']))
             ->with('success', "Artikel {$priceItem->code} bijgewerkt.");

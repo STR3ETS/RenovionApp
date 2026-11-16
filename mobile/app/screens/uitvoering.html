@@ -1,0 +1,114 @@
+<!-- ===== Uitvoering van een project (fasen, gate, werkpakketten): screens/uitvoering.js ===== -->
+<template x-if="$store.os.route === 'uitvoering'">
+    <div>
+        <template x-for="id in [$store.os.param]" :key="id">
+            <div x-data="execution(id)">
+                <nav class="app-crumbs mb-2 !text-gray-500">
+                    <template x-if="data?.project">
+                        <span class="contents">
+                            <button type="button" @click="$store.os.go(data.project.path)" class="tap inline-flex min-w-0 items-center gap-1 font-semibold !text-brand-700"><span x-icon="'folder'" class="h-3.5 w-3.5 shrink-0"></span><span class="truncate" x-text="data.project.name"></span></button>
+                            <span x-icon="'chevron-right'" class="h-3 w-3 shrink-0"></span>
+                        </span>
+                    </template>
+                    <span>Uitvoering</span>
+                </nav>
+                <div data-enter class="app-ph">
+                    <p class="sec-eye"><span x-icon="'calendar'"></span> Uitvoering</p>
+                    <h1><span x-text="data?.project.name ?? ''"></span><span x-show="!data" class="skeleton inline-block h-7 w-2/3 align-middle"></span></h1>
+                    <p class="sub">Fasen met hun gate en de werkpakketten eronder.</p>
+                </div>
+
+                <template x-if="failed">
+                    <div class="app-card p-5 text-center">
+                        <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                        <button type="button" @click="load()" class="app-btn mt-3">Opnieuw proberen</button>
+                    </div>
+                </template>
+
+                <template x-if="!data && !failed">
+                    <div class="space-y-3">
+                        <template x-for="i in 3" :key="i"><div class="app-card p-4"><span class="skeleton mb-2 block h-4 w-1/2"></span><span class="skeleton block h-3 w-1/3"></span></div></template>
+                    </div>
+                </template>
+
+                <div class="space-y-3">
+                    <template x-for="phase in data?.phases ?? []" :key="phase.id">
+                        <section data-enter class="app-card overflow-hidden" :class="phase.active && '!border-brand-300 ring-1 ring-brand-100'">
+                            <header class="flex items-start gap-3 p-4">
+                                <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold"
+                                      :class="phase.done ? 'bg-green-500 text-white' : (phase.active ? 'bg-brand-500 text-white' : 'bg-gray-100 text-gray-500')">
+                                    <span x-show="phase.done" x-icon="'check'" class="h-3.5 w-3.5"></span>
+                                    <span x-show="!phase.done" x-text="phase.position"></span>
+                                </span>
+                                <span class="min-w-0 flex-1">
+                                    <b class="block text-sm font-bold text-navy-900" x-text="phase.name"></b>
+                                    <small class="block text-xs text-gray-500" x-text="phase.sub"></small>
+                                </span>
+                                <span x-show="!data.can_manage" class="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold" :class="phase.status.classes" x-text="phase.status.label"></span>
+                            </header>
+
+                            <!-- Kantoor: status en vrijgeven (de gate) -->
+                            <div x-show="data.can_manage" class="flex flex-wrap items-center gap-2 border-t border-gray-100 px-4 py-3">
+                                <label class="min-w-0 flex-1">
+                                    <span class="sr-only">Status van deze fase</span>
+                                    <select class="w-full" :value="phase.status.value" :disabled="busy !== null" @change="setStatus(phase, $event.target.value)">
+                                        <template x-for="status in data.statuses" :key="status.value">
+                                            <option :value="status.value" x-text="status.label" :selected="status.value === phase.status.value"></option>
+                                        </template>
+                                    </select>
+                                </label>
+                                <button type="button" x-show="!phase.done" @click="toggleApprove(phase)" class="app-btn min-h-11 !bg-navy-950 !text-white" :aria-expanded="approving === phase.id">Vrijgeven</button>
+                            </div>
+                            <form x-show="approving === phase.id" x-cloak @submit.prevent="approve(phase)" class="space-y-2 border-t border-gray-100 bg-gray-50 px-4 py-3">
+                                <p class="text-xs text-gray-500">Gate: alle werkpakketten in deze fase moeten gereed zijn.</p>
+                                <input type="text" x-model="note" maxlength="255" placeholder="Bewijs of notitie (optioneel)" class="w-full">
+                                <button type="submit" :disabled="busy !== null" class="w-full rounded-xl bg-brand-500 py-2.5 text-sm font-bold text-white active:bg-brand-600 disabled:opacity-60" x-text="busy === 'approve:' + phase.id ? 'Bezig' : 'Fase vrijgeven'"></button>
+                            </form>
+
+                            <!-- Werkpakketten -->
+                            <div x-show="phase.packages.length || data.can_manage" class="border-t border-gray-100 px-2 py-1">
+                                <template x-for="pkg in phase.packages" :key="pkg.id">
+                                    <a :href="'#/werkpakket/' + pkg.id" class="app-li" :class="pkg.done && 'opacity-60'">
+                                        <span class="h-2.5 w-2.5 shrink-0 rounded-full" :class="pkg.done ? 'bg-green-500' : (pkg.overdue ? 'bg-red-500' : 'bg-amber-500')"></span>
+                                        <span class="min-w-0 flex-1">
+                                            <b :class="pkg.done && 'line-through'" x-text="pkg.name"></b>
+                                            <small :class="pkg.overdue && '!text-red-700'" x-text="pkg.sub"></small>
+                                        </span>
+                                        <span class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap" :class="pkg.status.classes" x-text="pkg.status.label"></span>
+                                        <span x-icon="'chevron-right'" class="h-4 w-4 shrink-0 text-gray-300"></span>
+                                    </a>
+                                </template>
+                                <p x-show="!phase.packages.length" class="px-2 py-3 text-sm text-gray-500">Nog geen werkpakketten in deze fase.</p>
+
+                                <button type="button" x-show="data.can_manage && adding !== phase.id" @click="toggleAdd(phase)" class="tap my-1 flex min-h-11 w-full items-center gap-1.5 rounded-xl px-2 text-sm font-semibold text-brand-700">
+                                    <span x-icon="'plus'" class="h-4 w-4"></span> Werkpakket
+                                </button>
+                                <form x-show="adding === phase.id" x-cloak @submit.prevent="addPackage(phase)" class="space-y-2 px-2 py-2">
+                                    <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Naam</span>
+                                        <input type="text" x-model="pkg.name" required maxlength="255" placeholder="Bijv. Elektra begane grond" class="w-full">
+                                        <span x-show="errors.name" class="mt-1 block text-xs font-medium text-red-600" x-text="errors.name?.[0]"></span>
+                                    </label>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Verantwoordelijke</span>
+                                            <select x-model="pkg.responsible_id" class="w-full">
+                                                <option value="">Niemand</option>
+                                                <template x-for="member in data.team" :key="member.id"><option :value="member.id" x-text="member.name"></option></template>
+                                            </select>
+                                        </label>
+                                        <label class="block"><span class="mb-1 block text-sm font-semibold text-gray-700">Deadline</span>
+                                            <input type="date" x-model="pkg.deadline" class="w-full">
+                                        </label>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button type="submit" :disabled="busy !== null || !pkg.name.trim()" class="flex-1 rounded-xl bg-brand-500 py-2.5 text-sm font-bold text-white active:bg-brand-600 disabled:opacity-60" x-text="busy === 'add:' + phase.id ? 'Bezig' : 'Toevoegen'"></button>
+                                        <button type="button" @click="adding = null" class="app-btn">Annuleren</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </section>
+                    </template>
+                </div>
+            </div>
+        </template>
+    </div>
+</template>

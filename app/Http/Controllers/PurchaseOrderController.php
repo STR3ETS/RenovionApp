@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\PurchaseInvoice;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderLine;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -55,7 +56,7 @@ class PurchaseOrderController extends Controller
         return view('purchase-orders.show', ['order' => $purchaseOrder]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'project_id' => ['required', 'exists:projects,id'],
@@ -77,11 +78,19 @@ class PurchaseOrderController extends Controller
 
         AuditLog::record($order, 'inkooporder aangemaakt', [], ['leverancier' => $order->supplier]);
 
+        // De app gaat zelf naar de nieuwe bestelling.
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => "Inkooporder {$order->number} aangemaakt.",
+                'path' => route('purchase-orders.show', $order, false),
+            ]);
+        }
+
         return redirect()->route('purchase-orders.show', $order)
             ->with('success', "Inkooporder {$order->number} aangemaakt.");
     }
 
-    public function update(Request $request, PurchaseOrder $purchaseOrder): RedirectResponse
+    public function update(Request $request, PurchaseOrder $purchaseOrder): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'supplier' => ['sometimes', 'string', 'max:160'],
@@ -103,10 +112,14 @@ class PurchaseOrderController extends Controller
 
         AuditLog::record($purchaseOrder, 'inkooporder bijgewerkt', $old, $validated);
 
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Inkooporder bijgewerkt.', 'status' => $purchaseOrder->status, 'label' => $purchaseOrder->statusLabel()]);
+        }
+
         return back()->with('success', 'Inkooporder bijgewerkt.');
     }
 
-    public function storeLine(Request $request, PurchaseOrder $purchaseOrder): RedirectResponse
+    public function storeLine(Request $request, PurchaseOrder $purchaseOrder): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'description' => ['required', 'string', 'max:255'],
@@ -125,12 +138,20 @@ class PurchaseOrderController extends Controller
             'position' => (int) $purchaseOrder->lines()->max('position') + 1,
         ]);
 
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Regel toegevoegd.']);
+        }
+
         return back()->with('success', 'Regel toegevoegd.');
     }
 
-    public function destroyLine(PurchaseOrderLine $line): RedirectResponse
+    public function destroyLine(Request $request, PurchaseOrderLine $line): RedirectResponse|JsonResponse
     {
         $line->delete();
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Regel verwijderd.']);
+        }
 
         return back()->with('success', 'Regel verwijderd.');
     }

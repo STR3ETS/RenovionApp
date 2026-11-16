@@ -7,6 +7,7 @@ use App\Models\Project;
 use App\Services\ProjectHealthService;
 use App\Support\ProjectHealth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -18,6 +19,17 @@ use Illuminate\View\View;
 class PortfolioController extends Controller
 {
     public function __invoke(Request $request, ProjectHealthService $healthService): View
+    {
+        return view('projects.portfolio', self::portfolio($request, $healthService));
+    }
+
+    /**
+     * Filter, sortering, rijen en tellers per licht. Ook voor de app (api/app/portfolio), zodat beide
+     * dezelfde projecten in dezelfde volgorde tonen.
+     *
+     * @return array{rows: Collection<int, array{project: Project, health: ProjectHealth}>, filter: ?HealthLight, sort: string, counts: Collection<string, int>}
+     */
+    public static function portfolio(Request $request, ProjectHealthService $healthService): array
     {
         $request->validate([
             'licht' => ['nullable', Rule::enum(HealthLight::class)],
@@ -44,11 +56,11 @@ class PortfolioController extends Controller
             })
             ->values();
 
-        return view('projects.portfolio', [
+        return [
             'rows' => $rows,
             'filter' => $filter,
             'sort' => $sort,
             'counts' => collect($health)->countBy(fn (ProjectHealth $item) => $item->overall->value),
-        ]);
+        ];
     }
 }

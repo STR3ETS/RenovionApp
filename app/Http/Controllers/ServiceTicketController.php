@@ -8,6 +8,8 @@ use App\Models\Customer;
 use App\Models\Project;
 use App\Models\ServiceTicket;
 use App\Models\User;
+use App\Support\App\FieldWork;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -44,7 +46,7 @@ class ServiceTicketController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'project_id' => ['nullable', 'exists:projects,id'],
@@ -90,10 +92,10 @@ class ServiceTicketController extends Controller
             $ticket,
         );
 
-        return back()->with('success', "Melding {$ticket->number} aangenomen. ".$ticket->warranty_note);
+        return FieldWork::done($request, "Melding {$ticket->number} aangenomen. ".$ticket->warranty_note);
     }
 
-    public function update(Request $request, ServiceTicket $serviceTicket): RedirectResponse
+    public function update(Request $request, ServiceTicket $serviceTicket): RedirectResponse|JsonResponse
     {
         abort_unless($request->user()->can('manage-crm'), 403);
 
@@ -129,6 +131,6 @@ class ServiceTicketController extends Controller
             );
         }
 
-        return back()->with('success', 'Melding bijgewerkt.');
+        return FieldWork::done($request, 'Melding bijgewerkt.');
     }
 }
