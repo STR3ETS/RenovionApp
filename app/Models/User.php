@@ -30,6 +30,9 @@ class User extends Authenticatable
     /** Weergave in de iOS/Android-app (app_theme): telefoon = volgt de donkere modus van de telefoon. */
     public const APP_THEMES = ['licht', 'donker', 'telefoon'];
 
+    /** Zolang iemand niets kiest, volgt de app de telefoon (ook de standaard in de database en in de app). */
+    public const DEFAULT_APP_THEME = 'telefoon';
+
     /**
      * Spiegelt de databasedefault zodat ongepersisteerde/verse modellen ook een rol hebben.
      *
@@ -38,7 +41,7 @@ class User extends Authenticatable
     protected $attributes = [
         'role' => 'uitvoerder',
         'motion_enabled' => true,
-        'app_theme' => 'licht',
+        'app_theme' => self::DEFAULT_APP_THEME,
     ];
 
     /**

@@ -4,12 +4,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Renovion OS</title>
-    <!-- Weergave (licht/donker/telefoon) vóór het eerste beeld, uit de opslag; main.js werkt hem bij. -->
+    <!-- Weergave (licht/donker/telefoon) vóór het eerste beeld, uit de opslag; main.js werkt hem bij.
+         Standaard "telefoon": de app volgt de donkere modus van de telefoon tot iemand zelf iets kiest. -->
     <script>
         try {
-            const theme = localStorage.getItem('renovion-os-theme') ?? 'licht';
+            const theme = localStorage.getItem('renovion-os-theme') ?? 'telefoon';
             if (theme === 'donker' || (theme === 'telefoon' && matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('os-dark');
-        } catch { /* geen opslag: licht */ }
+        } catch {
+            if (matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.classList.add('os-dark');
+        }
     </script>
     <script type="module" src="./main.js"></script>
 </head>
@@ -1933,18 +1936,8 @@
                             </div>
                         </template>
                     </nav>
-                    <!-- Weergave: licht, donker of volgens de telefoon (users.app_theme, ook voor de serverpagina's) -->
-                    <div class="border-t border-navy-800 px-3 pt-3">
-                        <p class="mb-1.5 px-1 text-[11px] font-bold tracking-widest text-navy-300 uppercase">Weergave</p>
-                        <div class="app-theme-switch" role="radiogroup" aria-label="Weergave">
-                            <template x-for="[value, label, icon] in [['licht', 'Licht', 'sun'], ['donker', 'Donker', 'moon'], ['telefoon', 'Telefoon', 'device-phone-mobile']]" :key="value">
-                                <button type="button" role="radio" :aria-checked="$store.os.theme === value" :class="$store.os.theme === value && 'on'" @click="$store.os.setTheme(value)">
-                                    <span x-icon="icon" class="h-4 w-4"></span> <span x-text="label"></span>
-                                </button>
-                            </template>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2.5 p-3 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))]">
+                    <!-- Weergave staat in Instellingen (tandwiel hieronder), niet in het zijmenu: je kiest hem één keer. -->
+                    <div class="flex items-center gap-2.5 border-t border-navy-800 p-3 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))]">
                         <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navy-700 text-xs font-bold text-navy-100" x-text="$store.os.profile.user.initials"></span>
                         <span class="min-w-0 flex-1">
                             <span class="block truncate text-sm font-semibold text-white" x-text="$store.os.profile.user.name"></span>

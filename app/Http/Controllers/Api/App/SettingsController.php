@@ -70,7 +70,7 @@ class SettingsController extends Controller
                 'icon' => $type->icon(),
                 'enabled' => $user->wantsPush($type),
             ], NotificationType::forUser($user)),
-            'theme' => $user->app_theme ?? 'licht',
+            'theme' => $user->app_theme ?? User::DEFAULT_APP_THEME,
             'motion' => $user->motion_enabled !== false,
             'devices' => $user->deviceTokens()->count(),
         ];

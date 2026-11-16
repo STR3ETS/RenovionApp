@@ -21,7 +21,7 @@ class AppSettingsTest extends TestCase
 
         $this->withToken($user->createToken('telefoon')->plainTextToken)->getJson(route('api.app.settings'))
             ->assertOk()
-            ->assertJsonPath('theme', 'licht')
+            ->assertJsonPath('theme', 'telefoon')
             ->assertJsonPath('motion', true)
             ->assertJsonPath('devices', 0)
             ->assertJsonPath('notifications.0.type', 'chat_mention')

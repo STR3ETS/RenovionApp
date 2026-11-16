@@ -15,6 +15,8 @@ const TOKEN_KEY = 'renovion-os-token';
 const PROFILE_KEY = 'renovion-os-profile';
 // Weergave: licht, donker of telefoon (volgt de donkere modus van de telefoon). Ook in index.html (vóór het eerste beeld).
 const THEME_KEY = 'renovion-os-theme';
+// Zolang iemand niets kiest, volgt de app de telefoon (zelfde standaard als users.app_theme op de server).
+const DEFAULT_THEME = 'telefoon';
 const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
 // Instellingen die nog naar de server moeten (zie saveSettings): blijven bewaard tot het gelukt is.
 const SETTINGS_PENDING_KEY = 'renovion-os-settings-pending';
@@ -214,16 +216,7 @@ Alpine.store('os', {
     param: routeFromHash().param,
     // Query van het scherm (#/nieuweaanvraag?klant=3), zie go() en QUERY_SCREENS.
     query: routeFromHash().query,
-    // Zijmenu: dicht = de gekozen weergave naar de server (saveSettings), niet bij elke tik.
-    menuOpen: false,
-    get drawer() {
-        return this.menuOpen;
-    },
-    set drawer(open) {
-        const closing = this.menuOpen && !open;
-        this.menuOpen = open;
-        if (closing) this.saveSettings();
-    },
+    drawer: false,
     // Gewijzigde instellingen die nog niet op de server staan: { theme, motion, 'notifications.<soort>' }.
     pendingSettings: (() => { try { return JSON.parse(storage.get(SETTINGS_PENDING_KEY) ?? '{}') ?? {}; } catch { return {}; } })(),
     savingSettings: null,
@@ -232,7 +225,7 @@ Alpine.store('os', {
     leaving: null, // { kind, tabs } van de serverpagina die opent, zie leaveScreen()
     update: null, // { url } als deze app te oud is (426), zie api() en checkVersion()
     offline: false,
-    theme: storage.get(THEME_KEY) ?? 'licht',
+    theme: storage.get(THEME_KEY) ?? DEFAULT_THEME,
     shownAt: null,
     toastText: null,
     question: null,
@@ -382,7 +375,7 @@ Alpine.store('os', {
     setProfile(profile) {
         this.profile = profile;
         storage.set(PROFILE_KEY, JSON.stringify(profile));
-        // De keuze staat op de server (ook voor de serverpagina's): een andere telefoon of het zijmenu daar wint,
+        // De keuze staat op de server (ook voor de serverpagina's): wat een andere telefoon koos, wint,
         // behalve als hier nog een keuze klaarstaat die nog niet verstuurd is.
         if (profile?.theme && profile.theme !== this.theme && !('theme' in this.pendingSettings)) {
             this.theme = profile.theme;
@@ -398,13 +391,13 @@ Alpine.store('os', {
         setTimeout(() => window.dispatchEvent(new Event('renovion-top-changed')), 50);
     },
 
-    // Meteen op de telefoon; naar de server pas als het zijmenu of Instellingen dichtgaat (saveSettings).
+    // Meteen op de telefoon; naar de server pas als je Instellingen verlaat (saveSettings).
     setTheme(value) {
         if (value === this.theme) return;
         this.theme = value;
         storage.set(THEME_KEY, value);
         this.applyTheme();
-        this.changeSetting('theme', value, this.profile?.theme ?? 'licht');
+        this.changeSetting('theme', value, this.profile?.theme ?? DEFAULT_THEME);
     },
 
     // Een instelling klaarzetten voor de server. Terug naar wat er al staat = niets meer te versturen.
@@ -439,7 +432,7 @@ Alpine.store('os', {
                 if (!error.status) return; // geen verbinding: later opnieuw
                 this.pendingSettings = {};
                 storage.remove(SETTINGS_PENDING_KEY);
-                this.theme = this.profile?.theme ?? 'licht';
+                this.theme = this.profile?.theme ?? DEFAULT_THEME;
                 storage.set(THEME_KEY, this.theme);
                 this.applyTheme();
                 window.dispatchEvent(new Event('renovion-settings-reset'));

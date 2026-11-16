@@ -114,40 +114,8 @@
             @endforeach
         </nav>
 
-        {{-- Weergave: dezelfde keuze als het zijmenu in de app (users.app_theme, partials/app/theme). Wisselt
-             meteen, maar gaat pas naar de server als het zijmenu dichtgaat of je de pagina verlaat (niet per tik). --}}
-        <div class="border-t border-navy-800 px-3 pt-3" x-data="{
-                theme: window.renovionTheme?.get() ?? 'licht',
-                saved: window.renovionTheme?.get() ?? 'licht',
-                choose(value) {
-                    this.theme = value;
-                    window.renovionTheme?.set(value);
-                },
-                async save() {
-                    const value = this.theme;
-                    if (value === this.saved) return;
-                    try {
-                        await patchJson(@js(route('app-theme.update')), { theme: value }, { keepalive: true });
-                        this.saved = value;
-                    } catch {
-                        this.theme = this.saved;
-                        window.renovionTheme?.set(this.saved);
-                    }
-                },
-             }"
-             x-effect="if (!$store.shell.drawer) save()"
-             @pagehide.window="save()">
-            <p class="mb-1.5 px-1 text-[11px] font-bold tracking-widest text-navy-300 uppercase">Weergave</p>
-            <div class="app-theme-switch" role="radiogroup" aria-label="Weergave">
-                @foreach (['licht' => ['Licht', 'sun'], 'donker' => ['Donker', 'moon'], 'telefoon' => ['Telefoon', 'device-phone-mobile']] as $value => [$label, $icon])
-                    <button type="button" role="radio" :aria-checked="theme === @js($value)" :class="theme === @js($value) && 'on'" @click="choose(@js($value))">
-                        <x-icon :name="$icon" class="h-4 w-4" /> {{ $label }}
-                    </button>
-                @endforeach
-            </div>
-        </div>
-
-        <div class="flex items-center gap-2.5 p-3 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))]">
+        {{-- Weergave staat in Instellingen (tandwiel hieronder), niet in het zijmenu: je kiest hem één keer. --}}
+        <div class="flex items-center gap-2.5 border-t border-navy-800 p-3 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))]">
             <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navy-700 text-xs font-bold text-navy-100">
                 {{ str(auth()->user()->name)->substr(0, 1)->upper() }}
             </span>
