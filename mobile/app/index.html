@@ -2001,8 +2001,8 @@
                         <span class="cnt" x-show="$store.os.counts.attention > 0" x-text="$store.os.counts.attention"></span>
                         <span class="spark"><span x-icon="'sparkles'" class="h-3 w-3"></span></span>
                     </button>
-                    <div data-popup x-show="$store.os.nova" x-cloak @click.self="$store.os.nova = false" class="fixed inset-0 z-[60] flex items-end bg-navy-950/60 backdrop-blur-sm">
-                        <div x-swipe-dismiss="$store.os.nova = false" class="flex h-[85dvh] w-full flex-col rounded-t-[20px] bg-white" @click.stop>
+                    <div data-popup x-show="$store.os.nova" x-cloak x-fit-viewport @fitted="scrollDown()" @click.self="$store.os.nova = false" class="fixed inset-x-0 top-0 h-dvh z-[60] flex items-end bg-navy-950/60 backdrop-blur-sm">
+                        <div x-swipe-dismiss="$store.os.nova = false" class="flex h-[85dvh] max-h-[calc(100%_-_env(safe-area-inset-top))] w-full flex-col rounded-t-[20px] bg-white" @click.stop>
                             <div class="mx-auto mt-2 h-1.5 w-10 rounded-full bg-gray-300"></div>
                             <div class="flex items-center gap-3 border-b border-gray-100 p-4">
                                 <img :src="$store.os.novaUrl" alt="Nova" class="h-10 w-10 rounded-full object-cover ring-2 ring-brand-500">
@@ -2038,7 +2038,7 @@
                                     <span class="flex items-center gap-2 rounded-2xl bg-gray-100 px-4 py-2.5 text-xs text-gray-500"><span class="inline-block h-2 w-2 animate-pulse rounded-full bg-brand-500"></span> Nova denkt na</span>
                                 </div>
                             </div>
-                            <form @submit.prevent="send()" class="flex items-center gap-2 border-t border-gray-100 p-3 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))]">
+                            <form @submit.prevent="send()" class="nova-form flex items-center gap-2 border-t border-gray-100 p-3 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))]">
                                 <button type="button" @click="toggleMic()" x-show="speechSupported" :class="listening ? 'animate-pulse bg-red-500 text-white' : 'bg-gray-100 text-gray-500'" class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full" :aria-label="listening ? 'Stop met luisteren' : 'Inspreken'">
                                     <span x-icon="'microphone'" class="h-5 w-5"></span>
                                 </button>

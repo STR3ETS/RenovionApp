@@ -278,9 +278,9 @@
         </button>
         @endif
 
-        <div data-popup x-show="open" x-cloak @click.self="open = false" @keydown.escape.window="open = false"
-             class="fixed inset-0 z-50 flex items-end justify-center bg-navy-950/60 backdrop-blur-sm lg:items-center">
-            <div x-swipe-dismiss="open = false" class="flex h-[85dvh] w-full max-w-lg flex-col rounded-t-2xl bg-surface-800 lg:h-[70vh] lg:rounded-2xl" @click.stop>
+        <div data-popup x-show="open" x-cloak x-fit-viewport @fitted="scrollDown()" @click.self="open = false" @keydown.escape.window="open = false"
+             class="fixed inset-x-0 top-0 h-dvh z-50 flex items-end justify-center bg-navy-950/60 backdrop-blur-sm lg:items-center">
+            <div x-swipe-dismiss="open = false" class="flex h-[85dvh] max-h-[calc(100%_-_env(safe-area-inset-top))] w-full max-w-lg flex-col rounded-t-2xl bg-surface-800 lg:h-[70vh] lg:rounded-2xl" @click.stop>
                 <x-sheet-handle class="mt-2 lg:hidden" />
 
                 {{-- Header --}}
@@ -344,7 +344,7 @@
                 </div>
 
                 {{-- Invoer --}}
-                <form @submit.prevent="send()" class="flex items-center gap-2 border-t border-surface-700 p-3 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))]">
+                <form @submit.prevent="send()" class="nova-form flex items-center gap-2 border-t border-surface-700 p-3 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))]">
                     <button type="button" @click="toggleMic()" x-show="speechSupported"
                             :class="listening ? 'bg-red-500 text-white animate-pulse' : 'bg-surface-750 text-slate-400 hover:bg-surface-700'"
                             class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition"

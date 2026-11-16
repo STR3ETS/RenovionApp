@@ -678,3 +678,9 @@ html:not([data-motion])::view-transition-new(root) {
     color: var(--color-slate-500);
     font-weight: 400;
 }
+
+/* Nova met het toetsenbord open: het toetsenbord ligt over de home-indicator van de iPhone, dus geen extra
+   ruimte onder de invoerbalk (anders een strook tussen invoer en toetsenbord). Zoals .chat-panel form. */
+.keyboard-open .nova-form {
+    padding-bottom: 0.75rem;
+}

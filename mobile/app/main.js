@@ -5,6 +5,7 @@ import './app.css';
 import '../../resources/js/native.js';
 import '../../resources/js/keyboard.js';
 import swipeDismiss from '../../resources/js/swipe-dismiss.js';
+import fitViewport from '../../resources/js/fit-viewport.js';
 import { iconSvg } from './icons.js';
 import heroUrl from '../../public/images/os-hero.jpg';
 import novaUrl from '../../public/nova.jpg';
@@ -1819,4 +1820,5 @@ if (screenSlot) {
 
 window.Alpine = Alpine;
 Alpine.plugin(swipeDismiss);
+Alpine.plugin(fitViewport);
 Alpine.start();

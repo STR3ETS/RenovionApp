@@ -3,6 +3,7 @@ import './native.js';
 import './keyboard.js';
 import './motion.js';
 import swipeDismiss from './swipe-dismiss.js';
+import fitViewport from './fit-viewport.js';
 import meetingRecorder from './meeting-recorder.js';
 
 window.Alpine = Alpine;
@@ -715,6 +716,7 @@ Alpine.data('nova', (proposeUrl, executeUrl) => ({
 }));
 
 Alpine.plugin(swipeDismiss);
+Alpine.plugin(fitViewport);
 Alpine.plugin(meetingRecorder);
 Alpine.start();
 
