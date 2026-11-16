@@ -936,7 +936,7 @@
                     <div>
                         <template x-for="id in [$store.os.param]" :key="id">
                             <div x-data="workPackage(id)" class="pb-4">
-                                <nav class="mb-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs font-semibold text-gray-600">
+                                <nav class="app-crumbs mb-2 !text-gray-500">
                                     <a :href="data ? '#/project/' + data.project.id : '#/projecten'" class="tap inline-flex min-w-0 items-center gap-1 !text-brand-700"><span x-icon="'folder'" class="h-3.5 w-3.5 shrink-0"></span><span class="truncate" x-text="data?.project.name ?? 'Project'"></span></a>
                                     <span x-icon="'chevron-right'" class="h-3 w-3"></span>
                                     <span x-text="data?.phase ?? ''"></span>
