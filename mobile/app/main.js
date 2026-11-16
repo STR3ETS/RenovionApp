@@ -7,6 +7,7 @@ import '../../resources/js/keyboard.js';
 import swipeDismiss from '../../resources/js/swipe-dismiss.js';
 import fitViewport from '../../resources/js/fit-viewport.js';
 import novaHistory from '../../resources/js/nova-history.js';
+import photoViewer from '../../resources/js/photo-viewer.js';
 import { iconSvg } from './icons.js';
 import heroUrl from '../../public/images/os-hero.jpg';
 import novaUrl from '../../public/nova.jpg';
@@ -1831,4 +1832,5 @@ if (screenSlot) {
 window.Alpine = Alpine;
 Alpine.plugin(swipeDismiss);
 Alpine.plugin(fitViewport);
+Alpine.plugin(photoViewer);
 Alpine.start();

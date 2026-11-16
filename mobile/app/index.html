@@ -1791,10 +1791,13 @@
                                             <template x-if="item.message.user !== null">
                                                 <div class="flex" :class="item.message.mine ? 'justify-end' : 'justify-start'">
                                                     <div class="max-w-[82%]">
-                                                        <div class="chat-bubble" :class="item.message.mine && 'mine'" :style="`--who: ${nameColor(item.message.user.name)}`" @click="item.message.body && (actionsFor = actionsFor === item.message.id ? null : item.message.id)">
+                                                        <div class="chat-bubble" :class="item.message.mine && 'mine'" :style="`--who: ${nameColor(item.message.user.name)}`" @click="!$event.target.closest('[data-photo]') && item.message.body && (actionsFor = actionsFor === item.message.id ? null : item.message.id)">
                                                             <p x-show="item.startsGroup && !item.message.mine" class="chat-name mb-0.5 text-xs font-bold" x-text="item.message.user.name"></p>
+                                                            <!-- Tik op de foto: schermvullend (photo-viewer), met de andere foto's in dit gesprek ernaast -->
                                                             <template x-if="item.message.attachment_url">
-                                                                <img :src="attachmentUrl(item.message)" :alt="item.message.attachment_name ?? 'Foto'" @load="photoLoaded()" class="mb-1 max-h-64 w-full rounded-lg object-cover">
+                                                                <button type="button" class="mb-1 block w-full" :data-photo="attachmentUrl(item.message)" :data-caption="item.message.body || item.message.user.name" :data-meta="item.message.user.name + ', ' + item.message.time" :aria-label="'Foto van ' + item.message.user.name + ' bekijken'">
+                                                                    <img :src="attachmentUrl(item.message)" :alt="item.message.attachment_name ?? 'Foto'" @load="photoLoaded()" class="max-h-64 w-full rounded-lg object-cover">
+                                                                </button>
                                                             </template>
                                                             <p x-show="item.message.body" class="text-[14.5px] leading-snug break-words" x-html="format(item.message.body)"></p>
                                                             <p class="mt-0.5 text-right text-[10.5px] text-gray-500" x-text="item.message.time"></p>
@@ -2131,6 +2134,28 @@
                 </template>
             </div>
             <div x-show="$store.os.toastText" x-cloak x-transition.opacity class="fixed inset-x-4 bottom-[calc(84px_+_env(safe-area-inset-bottom))] z-[70] rounded-xl bg-navy-950 px-4 py-3 text-center text-sm font-medium text-white" x-text="$store.os.toastText"></div>
+
+            <!-- Foto schermvullend (resources/js/photo-viewer.js, zelfde als components/photo-viewer op de server):
+                 tik op een [data-photo]. Vegen = volgende foto, knijpen of dubbeltikken = zoomen, omlaag vegen = sluiten. -->
+            <div x-data="photoViewer" x-show="isOpen" x-cloak x-transition.opacity
+                 @photo-open.window="show($event.detail)"
+                 @renovion-back.window="if (isOpen) { close(); $event.preventDefault(); }"
+                 class="fixed inset-0 z-[80] flex flex-col bg-black text-white" role="dialog" aria-modal="true" aria-label="Foto bekijken">
+                <div class="flex items-center justify-between px-2 pt-[calc(0.5rem_+_env(safe-area-inset-top))] pb-2">
+                    <span class="px-2 text-sm font-semibold text-gray-300" x-text="items.length > 1 ? (index + 1) + ' van ' + items.length : ''"></span>
+                    <button type="button" @click="close()" class="flex h-11 w-11 items-center justify-center rounded-full text-white active:bg-white/10" aria-label="Sluiten">
+                        <span x-icon="'x-mark'" class="h-6 w-6"></span>
+                    </button>
+                </div>
+                <div class="relative min-h-0 flex-1 touch-none overflow-hidden select-none"
+                     @pointerdown="down($event)" @pointermove="move($event)" @pointerup="up($event)" @pointercancel="cancel()">
+                    <img :src="item.src" :alt="item.caption || 'Foto'" draggable="false" class="h-full w-full object-contain" :style="{ transform }">
+                </div>
+                <div class="px-4 pt-3 pb-[calc(1rem_+_env(safe-area-inset-bottom))]">
+                    <p class="text-sm font-semibold" x-show="item.caption" x-text="item.caption"></p>
+                    <p class="mt-0.5 text-xs text-gray-300" x-show="item.meta" x-text="item.meta"></p>
+                </div>
+            </div>
         </div>
     </template>
 </body>
