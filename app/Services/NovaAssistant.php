@@ -351,6 +351,12 @@ class NovaAssistant
         $leads = Lead::open()->with('customer:id,name')->get(['id', 'customer_id', 'service', 'status'])
             ->map(fn (Lead $l) => "{$l->id} | {$l->customer->name} | ".($l->service ?? '-')." | {$l->status->label()}")->implode("\n");
 
+        // Wat de Inbox nu toont (projecten die uitlopen, geblokkeerde fasen, offertes zonder opvolging...). Zonder dit
+        // zei Nova op "welke projecten lopen achter?" dat ze dat niet kon zien.
+        $attention = (new AttentionService)->items()->take(30)
+            ->map(fn (array $item) => "{$item['label']} | {$item['title']}".(filled($item['subtitle'] ?? null) ? " | {$item['subtitle']}" : ''))
+            ->implode("\n") ?: 'Niets.';
+
         return <<<PROMPT
             Je bent Nova, de AI-assistent van Renovion Dash - het CRM- en projectmanagementsysteem van renovatiebedrijf Renovion uit Arnhem.
             Je praat met {$user->name} ({$user->role->label()}). Antwoord altijd in het Nederlands, kort en to-the-point.
@@ -380,6 +386,9 @@ class NovaAssistant
 
             OPEN AANVRAGEN (id | klant | dienst | status):
             {$leads}
+
+            WAT NU AANDACHT VRAAGT (zoals in de Inbox: soort | waarover | toelichting):
+            {$attention}
             PROMPT;
     }
 

@@ -168,6 +168,15 @@ class ChatMessageController extends Controller
         try {
             $prompt = trim(str_ireplace('@nova', '', (string) $message->body));
 
+            // Alleen "@Nova" zonder vraag: Claude weigert een leeg bericht, en dan zag de gebruiker "kon dit even
+            // niet verwerken". Zeg liever wat Nova kan.
+            if ($prompt === '') {
+                return $channel->messages()->create([
+                    'user_id' => null,
+                    'body' => 'Waar kan ik je mee helpen? Zet je vraag achter @Nova, bijvoorbeeld: @Nova plan morgen om 10 uur een terugbelafspraak met familie Jansen.',
+                ]);
+            }
+
             if ($channel->isProjectChannel() && $channel->project !== null) {
                 $prompt = 'Context: dit gaat over project "'.$channel->project->name.'" (id '.$channel->project->id.'). '.$prompt;
             }

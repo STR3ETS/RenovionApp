@@ -219,6 +219,22 @@ class ChatTest extends TestCase
         $this->assertSame(2, $kanaal->messages()->count());
     }
 
+    public function test_nova_without_a_question_explains_instead_of_failing(): void
+    {
+        config(['renovion.ai.api_key' => 'test-key']);
+
+        $this->mock(NovaAssistant::class, function ($mock) {
+            $mock->shouldReceive('isConfigured')->andReturn(true);
+            $mock->shouldReceive('propose')->never(); // een leeg bericht gaat niet naar Claude
+        });
+
+        $kanaal = ChatChannel::create(['type' => 'team', 'name' => 'Algemeen']);
+        $this->actingAs(User::factory()->create())->postJson('/chat/'.$kanaal->id.'/berichten', ['body' => '@Nova'])->assertOk();
+
+        $antwoord = $kanaal->messages()->whereNull('user_id')->sole();
+        $this->assertStringStartsWith('Waar kan ik je mee helpen?', $antwoord->body);
+    }
+
     public function test_uitvoerders_do_not_trigger_nova(): void
     {
         config(['renovion.ai.api_key' => 'test-key']);

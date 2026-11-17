@@ -197,4 +197,16 @@ class NovaTest extends TestCase
             'action' => ['type' => 'create_task', 'params' => ['customer_id' => 999999]],
         ])->assertUnprocessable();
     }
+
+    public function test_nova_knows_what_the_inbox_shows(): void
+    {
+        // "Welke projecten lopen achter?" kon Nova niet beantwoorden: ze zag alleen naam en status.
+        Project::factory()->create(['name' => 'Badkamer Laat', 'end_date_expected' => today()->subDays(5)]);
+        $user = User::factory()->create();
+
+        $prompt = (new \ReflectionMethod(NovaAssistant::class, 'systemPrompt'))->invoke(new NovaAssistant, $user);
+
+        $this->assertStringContainsString('WAT NU AANDACHT VRAAGT', $prompt);
+        $this->assertStringContainsString('Project loopt uit | Badkamer Laat', $prompt);
+    }
 }

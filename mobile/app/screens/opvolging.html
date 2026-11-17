@@ -20,7 +20,7 @@
 
         <template x-if="failed">
             <div class="app-card p-5 text-center">
-                <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
+                <p class="text-sm font-semibold text-navy-900" x-text="$data.failText ?? 'Geen verbinding met de server'">Geen verbinding met de server</p>
                 <button type="button" @click="load()" class="app-btn mt-3 min-h-11">Opnieuw proberen</button>
             </div>
         </template>

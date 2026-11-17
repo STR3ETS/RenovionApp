@@ -226,6 +226,12 @@
     min-height: 42px;
 }
 
+/* Datum en tijd naast elkaar (twee kolommen): met grotere tekst op de telefoon (Android "lettergrootte") paste
+   "06-11-2026" niet meer met 12px aan elke kant. */
+.native-app input:is([type='date'], [type='time'], [type='datetime-local']) {
+    padding-inline: 8px;
+}
+
 /* Voortgangsbalk */
 .native-app main [class*='bg-brand-500'][style*='width:'] {
     background: linear-gradient(90deg, #f26a1b, #f7934d);
@@ -936,6 +942,23 @@ form + .app-li {
     box-shadow: 0 1px 2px rgb(194 80 12 / 0.12);
 }
 
+/* Een lange titel als laatste stap maakt alleen zichzelf korter: de knop terug en het pijltje houden hun maat
+   (anders schoof het pijltje over de knop). */
+.app-crumbs > :is(a, button) {
+    flex-shrink: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.app-crumbs > .os-icon {
+    flex-shrink: 0;
+}
+
+.app-crumbs > span:last-child {
+    min-width: 0;
+    flex-shrink: 1;
+}
+
 .app-crumbs a:active,
 .app-crumbs button:active {
     background: var(--color-brand-100);
@@ -1573,8 +1596,16 @@ form + .app-li {
     --color-planning-100: color-mix(in srgb, var(--color-planning-500) 20%, var(--os-surface));
     --color-planning-200: color-mix(in srgb, var(--color-planning-500) 32%, var(--os-surface));
     --color-planning-700: color-mix(in srgb, var(--color-planning-500) 65%, #fff);
+    --color-calc-50: color-mix(in srgb, var(--color-calc-500) 12%, var(--os-surface));
     --color-calc-100: color-mix(in srgb, var(--color-calc-500) 22%, var(--os-surface));
+    --color-calc-200: color-mix(in srgb, var(--color-calc-500) 34%, var(--os-surface));
     --color-calc-700: color-mix(in srgb, var(--color-calc-500) 55%, #fff);
+    /* Violet (Nova stelt offerteposten voor): bleef anders een wit vlak in de donkere weergave. */
+    --color-violet-50: color-mix(in srgb, #8b5cf6 12%, var(--os-surface));
+    --color-violet-100: color-mix(in srgb, #8b5cf6 20%, var(--os-surface));
+    --color-violet-200: color-mix(in srgb, #8b5cf6 34%, var(--os-surface));
+    --color-violet-600: color-mix(in srgb, #8b5cf6 75%, #fff);
+    --color-violet-700: color-mix(in srgb, #8b5cf6 60%, #fff);
     --color-offerte-100: color-mix(in srgb, var(--color-offerte-500) 22%, var(--os-surface));
     --color-offerte-700: color-mix(in srgb, var(--color-offerte-500) 55%, #fff);
 

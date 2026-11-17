@@ -607,6 +607,17 @@ function screen(name, path) {
         data: null,
         shownJson: null,
         failed: false,
+        // Waarom laden mislukte (HTTP-status, 0 = geen verbinding): bepaalt de melding en of opnieuw proberen zin heeft.
+        failStatus: 0,
+        get failText() {
+            if (this.failStatus === 404) return 'Dit bestaat niet (meer). Misschien is het verwijderd.';
+            if (this.failStatus === 403) return 'Hier heb je geen toegang toe.';
+            if (this.failStatus >= 500) return SERVER_ERROR;
+            return 'Geen verbinding met de server';
+        },
+        get failGone() {
+            return this.failStatus === 404 || this.failStatus === 403;
+        },
         async init() {
             this.present(cache.read(this.cacheName));
             const first = this.data === null;
@@ -637,7 +648,10 @@ function screen(name, path) {
                 const entry = await fetchScreen(name, this.path, { force });
                 if (name === this.cacheName) this.present(entry);
             } catch (error) {
-                if (error.status !== 401 && name === this.cacheName) this.failed = this.data === null;
+                if (error.status !== 401 && name === this.cacheName) {
+                    this.failStatus = error.status ?? 0;
+                    this.failed = this.data === null;
+                }
             }
         },
     };
