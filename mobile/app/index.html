@@ -1795,7 +1795,7 @@
                                                             <p x-show="item.startsGroup && !item.message.mine" class="chat-name mb-0.5 text-xs font-bold" x-text="item.message.user.name"></p>
                                                             <!-- Tik op de foto: schermvullend (photo-viewer), met de andere foto's in dit gesprek ernaast -->
                                                             <template x-if="item.message.attachment_url">
-                                                                <button type="button" class="mb-1 block w-full" :data-photo="attachmentUrl(item.message)" :data-caption="item.message.body || item.message.user.name" :data-meta="item.message.user.name + ', ' + item.message.time" :aria-label="'Foto van ' + item.message.user.name + ' bekijken'">
+                                                                <button type="button" class="mb-1 block w-full" :data-photo="attachmentUrl(item.message)" :data-caption="item.message.body || item.message.user.name" :data-meta="item.message.body ? item.message.user.name + ', ' + item.message.time : item.message.time" :aria-label="'Foto van ' + item.message.user.name + ' bekijken'">
                                                                     <img :src="attachmentUrl(item.message)" :alt="item.message.attachment_name ?? 'Foto'" @load="photoLoaded()" class="max-h-64 w-full rounded-lg object-cover">
                                                                 </button>
                                                             </template>
