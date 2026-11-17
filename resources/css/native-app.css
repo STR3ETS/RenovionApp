@@ -1337,6 +1337,89 @@ form + .app-li {
     }
 }
 
+/*
+ * Schermwissel in de app (slideTo in mobile/app/main.js, view transitions): vooruit schuift het nieuwe scherm
+ * een stukje van rechts in en het oude naar links weg, terug andersom. Topbalk, onderbalk en Nova-knop hebben
+ * een eigen naam en blijven dus staan. Kort (220 ms), alleen transform en opacity.
+ */
+.native-app[data-bundle] .app-top {
+    view-transition-name: os-top;
+}
+
+.native-app[data-bundle] .app-bnav {
+    view-transition-name: os-bnav;
+}
+
+.native-app[data-bundle] .app-nova {
+    view-transition-name: os-nova;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .native-app[data-nav]::view-transition-old(root),
+    .native-app[data-nav]::view-transition-new(root) {
+        animation-duration: 220ms;
+        animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+        animation-fill-mode: both;
+    }
+
+    .native-app[data-nav='forward']::view-transition-old(root) {
+        animation-name: os-slide-out-left;
+    }
+
+    .native-app[data-nav='forward']::view-transition-new(root) {
+        animation-name: os-slide-in-right;
+    }
+
+    .native-app[data-nav='back']::view-transition-old(root) {
+        animation-name: os-slide-out-right;
+    }
+
+    .native-app[data-nav='back']::view-transition-new(root) {
+        animation-name: os-slide-in-left;
+    }
+
+    /* Tab in de onderbalk: alleen kort overvloeien (de standaardanimatie van view transitions), korter. */
+    .native-app[data-nav='tab']::view-transition-old(root),
+    .native-app[data-nav='tab']::view-transition-new(root) {
+        animation-duration: 160ms;
+    }
+
+    /* Wat blijft staan, wisselt zonder te knipperen. */
+    .native-app[data-nav]::view-transition-group(os-top),
+    .native-app[data-nav]::view-transition-group(os-bnav),
+    .native-app[data-nav]::view-transition-group(os-nova) {
+        animation-duration: 220ms;
+    }
+}
+
+@keyframes os-slide-in-right {
+    from {
+        opacity: 0;
+        transform: translateX(28px);
+    }
+}
+
+@keyframes os-slide-out-left {
+    to {
+        opacity: 0;
+        transform: translateX(-28px);
+    }
+}
+
+@keyframes os-slide-in-left {
+    from {
+        opacity: 0;
+        transform: translateX(-28px);
+    }
+}
+
+@keyframes os-slide-out-right {
+    to {
+        opacity: 0;
+        transform: translateX(28px);
+    }
+}
+
 /* Filters: één rij, alleen de gekozen gevuld (prototype .seg) */
 .native-app main div:has(> a.tap[class*='rounded-full'][class*='px-3']) {
     scrollbar-width: none;

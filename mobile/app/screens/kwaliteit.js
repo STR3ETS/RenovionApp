@@ -11,7 +11,7 @@ export const routes = {
     paths: { '/kwaliteit': 'kwaliteit' },
 };
 
-export default function register({ Alpine, api, screen, fetchedAt, errorText }) {
+export default function register({ Alpine, api, screen, fetchedAt, errorText, quickToggles }) {
     const os = () => Alpine.store('os');
     const emptySnag = () => ({ title: '', location: '', assigned_to: '', subcontractor_id: '', due_on: '', customer: false });
 
@@ -51,8 +51,20 @@ export default function register({ Alpine, api, screen, fetchedAt, errorText }) 
             }
             this.run('advance', `kwaliteit/${this.data.review_id}/volgende-stap`, { method: 'POST' }, 'Stap afronden lukte niet. Controleer de verbinding.');
         },
+        // Controlepunt afvinken: meteen zichtbaar, de server volgt (quickToggles in main.js).
+        ...quickToggles({
+            locate(checkId) { return this.data?.checks.find((check) => check.id === checkId); },
+            read: (check) => check.checked,
+            write(check, value) {
+                check.checked = value;
+                if (this.data) this.data.checks_done = this.data.checks.filter((other) => other.checked).length;
+            },
+            send: (check) => api(`controlepunten/${check.id}/toggle`, { method: 'PATCH' }),
+            refresh() { return this.changed(); },
+            fallback: 'Afvinken lukte niet. Controleer de verbinding.',
+        }),
         toggleCheck(check) {
-            this.run(`check:${check.id}`, `controlepunten/${check.id}/toggle`, { method: 'PATCH' }, 'Afvinken lukte niet. Controleer de verbinding.');
+            this.quickToggle(check);
         },
         async sign() {
             const name = this.signedName.trim();

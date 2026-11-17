@@ -32,25 +32,24 @@ export default function register({ Alpine, api, screen, fetchedAt, errorText }) 
             fetchedAt[`project:${id}`] = fetchedAt.projecten = fetchedAt.vandaag = 0;
             await this.load({ force: true });
         },
-        async setStatus(phase, select) {
-            const value = select.value;
-            // Lukt het niet, dan de keuzelijst terug op de bewaarde status: :value zet hem niet opnieuw als
-            // de gegevens gelijk blijven.
-            if (value === phase.status.value || this.busy) {
-                select.value = phase.status.value;
-                return;
-            }
-            this.busy = `status:${phase.id}`;
+        // Fasestatus: de nieuwe status staat meteen (kleur en tekst), de server volgt op de achtergrond. Andere
+        // fasen blijven intussen te wijzigen. Mislukt het, dan staat de oude status er weer, met de reden.
+        saving: {},
+        async setStatus(phase, value) {
+            if (value === phase.status.value || this.saving[phase.id]) return;
+            const before = { ...phase.status };
+            const option = this.data.statuses.find((status) => status.value === value);
+            phase.status = { ...phase.status, value, label: option?.label ?? phase.status.label };
+            this.saving = { ...this.saving, [phase.id]: true };
             try {
-                const { message } = await api(`fasen/${phase.id}`, { method: 'PATCH', body: { status: value } });
+                await api(`fasen/${phase.id}`, { method: 'PATCH', body: { status: value } });
                 await this.changed();
-                Alpine.store('os').toast(message);
             } catch (error) {
+                phase.status = before;
                 Alpine.store('os').toast(errorText(error, 'Status wijzigen lukte niet. Controleer de verbinding.'));
-                select.value = phase.status.value;
                 await this.load({ force: true });
             }
-            this.busy = null;
+            this.saving = Object.fromEntries(Object.entries(this.saving).filter(([key]) => Number(key) !== phase.id));
         },
         toggleApprove(phase) {
             this.approving = this.approving === phase.id ? null : phase.id;

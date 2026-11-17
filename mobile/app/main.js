@@ -211,6 +211,58 @@ const format = {
 
 window.osFormat = format;
 
+// Waar je was: elk bezocht adres met zijn scrollpositie. Terug (Android-knop, iOS-veeg, "Terug") komt uit op
+// dezelfde plek in de lijst; een nieuw scherm begint bovenaan. Staat boven de store, want Alpine roept init()
+// (en daarmee navigate()) al aan bij het registreren.
+const visits = [];
+function visit(hash) {
+    const current = visits.at(-1);
+    if (current) current.y = window.scrollY;
+    if (current?.hash === hash) return { back: false, scrollY: current.y, changed: false };
+    const back = visits.at(-2)?.hash === hash;
+    if (back) visits.pop();
+    else visits.push({ hash, y: 0 });
+    if (visits.length > 60) visits.splice(0, visits.length - 60);
+    return { back, scrollY: back ? visits.at(-1).y : 0, changed: Boolean(current) };
+}
+
+// Terug naar de oude plek zodra het scherm hoog genoeg is (bewaarde gegevens staan er meteen, verse kunnen
+// nog binnenkomen). Stopt als de gebruiker zelf scrolt of na een seconde.
+let scrollRestore = 0;
+function restoreScroll(y) {
+    const attempt = ++scrollRestore;
+    window.scrollTo(0, y);
+    if (y <= 0) return;
+    const until = performance.now() + 1000;
+    const stop = () => { scrollRestore++; };
+    window.addEventListener('touchstart', stop, { once: true, passive: true });
+    const step = () => {
+        if (attempt !== scrollRestore) return;
+        const room = document.documentElement.scrollHeight - innerHeight;
+        window.scrollTo(0, Math.min(y, room));
+        if (room >= y || performance.now() > until) {
+            window.removeEventListener('touchstart', stop);
+            return;
+        }
+        requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+}
+
+// Schermwissel als korte schuif (view transitions; Android-webview en iOS 18). Zonder ondersteuning of met
+// "minder beweging" op de telefoon wisselt het meteen, zoals voorheen.
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+function slideTo(direction, animate, update) {
+    if (!animate || !document.startViewTransition || reducedMotion.matches || document.visibilityState !== 'visible') {
+        update();
+        return;
+    }
+    const root = document.documentElement;
+    root.dataset.nav = direction;
+    const transition = document.startViewTransition(update);
+    transition.finished.finally(() => { if (root.dataset.nav === direction) delete root.dataset.nav; });
+}
+
 Alpine.store('os', {
     token: storage.get(TOKEN_KEY),
     profile: JSON.parse(storage.get(PROFILE_KEY) ?? 'null'),
@@ -313,16 +365,28 @@ Alpine.store('os', {
         const { route, param, query } = routeFromHash();
         // Instellingen verlaten: de wijzigingen in één keer naar de server.
         if (this.route === 'instellingen' && route !== 'instellingen') this.saveSettings();
-        this.query = query;
-        this.route = route;
-        this.param = param;
-        this.drawer = this.help = this.nova = false;
         if (route === 'uitloggen') {
+            this.route = route;
             this.forget();
             return;
         }
-        document.documentElement.dataset.sec = SECTIONS[route] ?? route;
-        window.scrollTo(0, 0);
+        const { back, scrollY, changed } = visit(location.hash || '#/');
+        const apply = () => {
+            this.query = query;
+            this.route = route;
+            this.param = param;
+            this.drawer = this.help = this.nova = false;
+            document.documentElement.dataset.sec = SECTIONS[route] ?? route;
+        };
+        // Vooruit schuift het nieuwe scherm van rechts in, terug van links; het oude staat er tot het nieuwe klaar is.
+        // Wisselen tussen de tabs van de onderbalk is geen stap vooruit of terug: dat vloeit kort over.
+        const tab = (screen) => Boolean(screen) && this.menu.tabs.some((item) => item.screen === screen);
+        const direction = tab(this.route) && tab(route) ? 'tab' : (back ? 'back' : 'forward');
+        slideTo(direction, changed, async () => {
+            apply();
+            await Alpine.nextTick();
+            restoreScroll(scrollY);
+        });
         setTimeout(() => window.dispatchEvent(new Event('renovion-top-changed')), 50);
     },
 
@@ -1821,7 +1885,47 @@ async function printPart(element, title) {
 
 // De schermen uit screens/: hun Alpine-componenten registreren met de gedeelde hulpjes, en hun templates in
 // <main> zetten (binnen de <template> van de ingelogde app, dus vóór Alpine die kloont).
-const screenContext = { Alpine, api, screen, fetchScreen, fetchedAt, cache, errorText, animateIn, shrinkPhoto, format, novaUrl, printPart };
+// Afvinken dat meteen reageert (zoals het werkpakket): het vinkje staat direct, de server volgt op de achtergrond
+// en de andere knoppen blijven bruikbaar. Snel achter elkaar afvinken mag; per punt loopt er hoogstens één verzoek
+// (de server wisselt om). Pas als het even stil is, één keer vers ophalen; wat dan nog onderweg is, blijft staan.
+// Mislukt het, dan springt het vinkje terug met een melding. Bij succes geen melding: het vinkje zegt genoeg.
+// locate(id) = het punt in de huidige gegevens, read/write = de stand (write past ook tellers aan), send = het
+// verzoek, refresh = vers ophalen. Alle vijf draaien met `this` = het scherm.
+function quickToggles({ locate, read, write, send, refresh, fallback }) {
+    return {
+        toggling: {},
+        toggleTimer: null,
+        isToggling(item) {
+            return item.id in this.toggling;
+        },
+        async quickToggle(item) {
+            if (item.id in this.toggling) return;
+            const value = !read.call(this, item);
+            this.toggling = { ...this.toggling, [item.id]: value };
+            write.call(this, item, value);
+            clearTimeout(this.toggleTimer);
+            try {
+                await send.call(this, item);
+            } catch (error) {
+                const current = locate.call(this, item.id) ?? item;
+                write.call(this, current, !value);
+                Alpine.store('os').toast(errorText(error, fallback));
+            }
+            this.toggling = Object.fromEntries(Object.entries(this.toggling).filter(([key]) => Number(key) !== item.id));
+            this.toggleTimer = setTimeout(async () => {
+                if (Object.keys(this.toggling).length) return;
+                await refresh.call(this);
+                // Tijdens het ophalen opnieuw getikt: die keuze terugzetten over de verse gegevens.
+                Object.entries(this.toggling).forEach(([id, wanted]) => {
+                    const fresh = locate.call(this, Number(id));
+                    if (fresh && read.call(this, fresh) !== wanted) write.call(this, fresh, wanted);
+                });
+            }, 600);
+        },
+    };
+}
+
+const screenContext = { Alpine, api, screen, fetchScreen, fetchedAt, cache, errorText, animateIn, shrinkPhoto, format, novaUrl, printPart, quickToggles };
 Object.values(screenModules).forEach((module) => module.default?.(screenContext));
 const screenSlot = document.querySelector('template[x-if="$store.os.signedIn"]')?.content.getElementById('os-screens');
 if (screenSlot) {

@@ -15,7 +15,7 @@ export const routes = {
     query: ['klussen', 'klus'],
 };
 
-export default function register({ Alpine, api, screen, fetchedAt, errorText, shrinkPhoto }) {
+export default function register({ Alpine, api, screen, fetchedAt, errorText, shrinkPhoto, quickToggles }) {
     const os = () => Alpine.store('os');
 
     Alpine.data('jobs', () => {
@@ -111,12 +111,28 @@ export default function register({ Alpine, api, screen, fetchedAt, errorText, sh
                 if (result) this.sheet = null;
             },
 
+            // Stap klaar: meteen afgevinkt en de volgende open stap klapt open; de server volgt (quickToggles).
+            ...quickToggles({
+                locate(stepId) { return this.data?.steps.find((step) => step.id === stepId); },
+                read: (step) => step.done,
+                write(step, value) {
+                    step.done = value;
+                    if (!this.data) return;
+                    this.data.steps_done = this.data.steps.filter((other) => other.done).length;
+                    if (value && this.data.open_step === step.id) {
+                        this.data.open_step = this.data.steps.find((other) => !other.done)?.id ?? null;
+                    }
+                },
+                send(step) { return api(`klussen/${this.data.job_id}/stappen/${step.id}/toggle`, { method: 'PATCH' }); },
+                refresh() { return this.refresh(); },
+                fallback: 'Afvinken lukte niet. Controleer de verbinding.',
+            }),
             toggleStep(step) {
                 if (!step.done && step.needs_photo) {
                     os().toast('Bij deze stap hoort een foto. Maak die eerst.');
                     return;
                 }
-                this.run(`step:${step.id}`, `klussen/${this.data.job_id}/stappen/${step.id}/toggle`, { method: 'PATCH' }, 'Afvinken lukte niet. Controleer de verbinding.');
+                this.quickToggle(step);
             },
             editNote(step) {
                 this.noteFor = this.noteFor === step.id ? null : step.id;

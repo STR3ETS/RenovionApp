@@ -17,7 +17,7 @@ export const routes = {
 // De query staat in $store.os.query (object), bijv. $store.os.query.aanvraag. Zonder 'query' opent een pad met
 // query nog als serverpagina.
 
-export default function register({ Alpine, api, screen, fetchScreen, fetchedAt, cache, errorText, animateIn, shrinkPhoto, format, novaUrl, printPart }) {
+export default function register({ Alpine, api, screen, fetchScreen, fetchedAt, cache, errorText, animateIn, shrinkPhoto, format, novaUrl, printPart, quickToggles }) {
     Alpine.data('jobs', () => ({ ...screen('klussen', 'klussen') }));
     Alpine.data('job', (id) => ({ ...screen(`klus:${id}`, `klussen/${id}`) }));
 }
@@ -27,6 +27,14 @@ export default function register({ Alpine, api, screen, fetchScreen, fetchedAt, 
 - `printPart(element, titel)`: alleen dat element afdrukken of als PDF bewaren (printdialoog van de telefoon), zie `offertedocument.*`.
 - `api(pad, { method, body })`: `api/app/<pad>` met token; gooit bij een fout (`error.status`, `error.data`). `errorText(error, 'Tekst. Controleer de verbinding.')` voor de toast.
 - Na een wijziging: `fetchedAt.<cacheNaam> = 0` voor lijsten die het tonen, en `this.load({ force: true })`.
+- **Meteen reageren:** een tik toont het resultaat direct en de server volgt; niet de hele knoppenrij op slot en geen
+  melding bij succes, alleen bij een fout (dan springt het terug). Afvinken: `...quickToggles({ locate, read, write,
+  send, refresh, fallback })` en `this.quickToggle(item)` (voorbeelden: `kwaliteit.js`, `klussen.js`). Een keuze
+  (status): zet hem lokaal, sla op, bij een fout terug (`uitvoering.js` `setStatus`, `deferredStatus` in main.js).
+  Let op: `:disabled="... || saving[id]"` geeft `undefined` als er niets loopt, en Alpine maakt de knop dan dicht;
+  schrijf `Boolean(saving[id])`.
+- Schermwissels schuiven vanzelf (vooruit van rechts, terug van links, tabs overvloeien) en terug komt op dezelfde
+  scrollplek uit (`visit`, `restoreScroll`, `slideTo` in main.js); een scherm hoeft daar niets voor te doen.
 - Store (`Alpine.store('os')` of `$store.os` in de template): `go(serverpad)` (naar het scherm in de app als dat er is, anders de serverpagina), `openWeb(serverpad)` (altijd de serverpagina, bijv. de offerte-builder), `toast(tekst)`, `ask(vraag, knop)` (Promise<bool>), `crm` (kantoor), `profile`, `param` (id van een detailscherm), `route`.
 - `shrinkPhoto(file)`: foto verkleinen vóór uploaden (zoals werkpakketten en chat).
 

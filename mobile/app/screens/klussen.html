@@ -219,7 +219,7 @@
                                                     class="tap flex min-h-11 items-center gap-1.5 rounded-xl px-3 text-sm font-bold disabled:opacity-60"
                                                     :class="step.done ? 'border border-gray-300 bg-white text-gray-700' : 'bg-brand-500 text-white active:bg-brand-600'">
                                                 <span x-show="!step.done" x-icon="'check'" class="h-4 w-4"></span>
-                                                <span x-text="busy === 'step:' + step.id ? 'Bezig' : (step.done ? 'Ongedaan maken' : 'Stap klaar')"></span>
+                                                <span x-text="step.done ? 'Ongedaan maken' : 'Stap klaar'"></span>
                                             </button>
                                         </div>
                                         <form x-show="noteFor === step.id" @submit.prevent="saveNote(step)" class="mt-2 space-y-2">
