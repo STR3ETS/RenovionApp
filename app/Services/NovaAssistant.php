@@ -403,10 +403,10 @@ class NovaAssistant
         $leads = Lead::open()->with('customer:id,name')->get(['id', 'customer_id', 'service', 'status'])
             ->map(fn (Lead $l) => "{$l->id} | {$l->customer->name} | ".($l->service ?? '-')." | {$l->status->label()}")->implode("\n");
 
-        // De planning van vandaag tot twee weken vooruit: zonder dit zei Nova op "wat staat er morgen gepland?" en
+        // De planning van maandag van deze week tot twee weken vooruit ("deze week" telt ook wat al geweest is): zonder dit zei Nova op "wat staat er morgen gepland?" en
         // "hoeveel uur heeft Peter ingepland?" dat ze dat niet kon zien.
         $planning = ScheduleEntry::with(['user:id,name', 'project:id,name', 'customer:id,name'])
-            ->whereBetween('date', [today(), today()->addDays(14)])
+            ->whereBetween('date', [today()->startOfWeek(), today()->addDays(14)])
             ->orderBy('date')->orderBy('start_time')->limit(80)
             ->get()
             ->map(fn (ScheduleEntry $entry) => collect([
@@ -472,7 +472,7 @@ class NovaAssistant
             OPEN AANVRAGEN (id | klant | dienst | status):
             {$leads}
 
-            PLANNING VANDAAG TOT TWEE WEKEN VOORUIT (datum | tijd | wie | soort | titel | project of klant):
+            PLANNING VAN DEZE WEEK (VANAF MAANDAG) TOT TWEE WEKEN VOORUIT (datum | tijd | wie | soort | titel | project of klant):
             {$planning}
 
             OPENSTAANDE OFFERTES (nummer | klant | status | bedrag | dagen open):
