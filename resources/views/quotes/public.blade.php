@@ -34,15 +34,18 @@
         <div class="fixed inset-x-0 top-0 z-40 h-[env(safe-area-inset-top)] bg-gray-100"></div>
     @endif
 
-    <div class="mx-auto max-w-3xl px-4 py-6 pb-[calc(1.5rem_+_env(safe-area-inset-bottom))] lg:py-10">
+    {{-- Het document als één vel (.os-sheet in native-app.css, zoals de builder en de app): op de telefoon van
+         rand tot rand, vanaf sm als wit vel met schaduw. --}}
+    <div class="mx-auto max-w-3xl pb-[calc(1.5rem_+_env(safe-area-inset-bottom))] sm:px-4 sm:py-6 lg:py-10">
 
         @if (session('success'))
-            <div class="mb-4 rounded-xl bg-green-100 px-4 py-3 text-sm font-medium text-green-800 print:hidden">{{ session('success') }}</div>
+            <div class="mx-4 mt-4 mb-4 rounded-xl bg-green-100 px-4 py-3 text-sm font-medium text-green-800 sm:mx-0 sm:mt-0 print:hidden">{{ session('success') }}</div>
         @endif
         @if (session('error'))
-            <div class="mb-4 rounded-xl bg-red-100 px-4 py-3 text-sm font-medium text-red-800 print:hidden">{{ session('error') }}</div>
+            <div class="mx-4 mt-4 mb-4 rounded-xl bg-red-100 px-4 py-3 text-sm font-medium text-red-800 sm:mx-0 sm:mt-0 print:hidden">{{ session('error') }}</div>
         @endif
 
+        <div class="os-sheet overflow-hidden sm:border sm:border-gray-200 sm:shadow-[0_1px_3px_rgb(13_26_46/0.08),0_16px_36px_-16px_rgb(13_26_46/0.3)] print:border-0 print:shadow-none">
         <div class="space-y-4">
             {{-- Statusbanner --}}
             @if ($quote->status === \App\Enums\QuoteStatus::Akkoord)
@@ -61,16 +64,19 @@
 
             {{-- Acties --}}
             @if (! ($preview ?? false) && $quote->status->isOpen() && ! $quote->isExpired())
-                <div class="rounded-2xl border border-gray-200 bg-white px-6 py-8 lg:px-8 print:hidden" id="ondertekenen">
+                <div class="border-t border-gray-200 bg-gray-50 px-6 py-8 lg:px-8 print:hidden" id="ondertekenen">
                     <h2 class="text-lg font-bold text-navy-950">Akkoord?</h2>
                     <p class="mt-1 mb-5 text-sm text-gray-500">Onderteken de offerte digitaal - wij nemen daarna direct contact met u op over de planning.</p>
 
                     <form method="POST" action="{{ route('quotes.public.sign', $quote->public_token) }}" class="space-y-3 rounded-2xl border border-gray-200 bg-white p-5">
                         @csrf
-                        <x-field label="Uw volledige naam" name="signed_name">
+                        {{-- Geen <x-field>: die is gemaakt voor de donkere website (label bijna wit), dit vel is licht. --}}
+                        <div>
+                            <label for="signed_name" class="mb-1 block text-sm font-semibold text-navy-900">Uw volledige naam</label>
                             <input type="text" name="signed_name" id="signed_name" required value="{{ old('signed_name') }}" placeholder="{{ $quote->customer->name }}"
                                    class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
-                        </x-field>
+                            @error('signed_name')<p class="mt-1 text-xs font-medium text-red-600">{{ $message }}</p>@enderror
+                        </div>
                         <label class="flex items-start gap-2 text-sm text-gray-600">
                             <input type="checkbox" name="agree" value="1" required class="mt-0.5 rounded border-gray-300 text-brand-700 focus:ring-brand-500">
                             Ik heb de offerte gelezen en ga akkoord met de werkzaamheden, het totaalbedrag en de voorwaarden.
@@ -107,6 +113,7 @@
 
             {{-- Footer --}}
             @include('quotes.partials.footer')
+        </div>
         </div>
 
         <div class="mt-4 flex justify-center print:hidden">

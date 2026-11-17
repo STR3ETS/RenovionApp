@@ -219,8 +219,11 @@
 
         {{-- ===== Tab: Preview (klant) ===== --}}
         <div x-show="tab === 'preview'" x-cloak>
-            <div class="mx-auto max-w-3xl">
-                @include('quotes.partials.document', ['quote' => $quote])
+            {{-- Eén vel, zoals op de klantlink (.os-sheet) --}}
+            <div class="os-sheet mx-auto max-w-3xl overflow-hidden rounded-2xl">
+                <div class="space-y-4">
+                    @include('quotes.partials.document', ['quote' => $quote])
+                </div>
             </div>
             <p class="mt-3 text-center text-xs text-slate-500">Zo ziet de klant de offerte via de klantlink (inclusief knoppen voor ondertekenen, aanpassing aanvragen en afwijzen).</p>
         </div>
