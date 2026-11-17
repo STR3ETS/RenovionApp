@@ -10,7 +10,7 @@
             <h2 class="text-sm font-bold text-white">Hoofd<span class="text-brand-500">stukken</span></h2>
             <p class="mt-0.5 text-xs text-slate-400">
                 {{ $totals->lineCount }} {{ $totals->lineCount === 1 ? 'regel' : 'regels' }},
-                tarief {{ 'EUR '.number_format($rate, 2, ',', '.') }} per uur
+                tarief {{ '€ '.number_format($rate, 2, ',', '.') }} per uur
             </p>
         </div>
 
@@ -67,7 +67,7 @@
                         </span>
 
                         <span class="shrink-0 text-right">
-                            <b class="block text-sm font-bold text-white">EUR {{ number_format($total, 0, ',', '.') }}</b>
+                            <b class="block text-sm font-bold text-white">€ {{ number_format($total, 0, ',', '.') }}</b>
                             <small class="block text-xs text-slate-500">
                                 {{ $totals->direct > 0 ? number_format($total / $totals->direct * 100, 1, ',', '.') : '0,0' }}% van de kosten
                             </small>

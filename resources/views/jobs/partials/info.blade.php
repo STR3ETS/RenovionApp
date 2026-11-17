@@ -1,6 +1,6 @@
 {{-- Alles wat je op de bouwplaats bij de hand wilt hebben: wat moet er gebeuren,
      wie je belt en welke tekeningen erbij horen. --}}
-<div class="grid gap-3 lg:grid-cols-2">
+<div class="grid grid-cols-1 gap-3 lg:grid-cols-2">
     <div class="rounded-2xl border border-surface-700 bg-surface-800 p-4">
         <p class="mb-2 text-[11px] font-bold tracking-widest text-slate-500 uppercase">Werkomschrijving</p>
         <p class="text-sm font-semibold text-white">{{ $entry->displayTitle() }}</p>

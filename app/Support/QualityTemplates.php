@@ -54,7 +54,7 @@ class QualityTemplates
 
     /** Extra stukken bij een project onder de Wet kwaliteitsborging. */
     public const WKB_CHECKS = [
-        'Fotos van de kritische momenten vastgelegd',
+        "Foto's van de kritische momenten vastgelegd",
         'Borgingsplan van de kwaliteitsborger in het dossier',
         'Consumentendossier samengesteld',
         'Gereedmelding bij de gemeente gedaan',

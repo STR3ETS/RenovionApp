@@ -4,7 +4,7 @@
 
     <form method="POST" action="{{ route('calculations.store') }}"
           x-data="calcCreate(@js(route('calculations.propose')), @js(old('description', $lead?->description)), @js($sources->pluck('source')->values()))"
-          class="grid gap-4 lg:grid-cols-3">
+          class="grid grid-cols-1 gap-4 lg:grid-cols-3">
         @csrf
         @if ($lead)
             <input type="hidden" name="lead_id" value="{{ $lead->id }}">
@@ -13,7 +13,7 @@
         <div class="space-y-4 lg:col-span-2">
             {{-- Basis --}}
             <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
-                <div class="grid gap-4 sm:grid-cols-2">
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <x-field label="Titel *" name="title" class="sm:col-span-2">
                         <input type="text" name="title" id="title" required
                                value="{{ old('title', $lead ? 'Calculatie '.($lead->service ?? 'renovatie').' - '.$lead->customer->name : '') }}"

@@ -178,7 +178,7 @@ class AgentRegistry
         'prepare_project_case' => [
             'agent' => 'nova', 'level' => 'voorbereiden', 'approver' => 'Eigenaar van de content',
             'name' => 'Projectcase voorbereiden',
-            'input' => 'getekende oplevering, vrijgegeven fotos en toestemming',
+            'input' => "getekende oplevering, vrijgegeven foto's en toestemming",
             'output' => 'conceptcase voor de website',
         ],
     ];

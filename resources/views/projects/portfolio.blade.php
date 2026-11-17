@@ -41,14 +41,13 @@
                             <span class="rounded-full px-2 py-0.5 text-[10px] font-bold {{ $health->overall->badgeClasses() }}">{{ $health->overall->label() }}</span>
                         </div>
                         <p class="mt-0.5 truncate text-xs text-slate-400">
-                            {{ $project->customer->name }}{{ $project->city ? ', '.$project->city : '' }}
-                            @if ($project->projectLeader), {{ $project->projectLeader->name }} @endif
+                            {{ $project->customer->name }}{{ $project->city ? ', '.$project->city : '' }}@if ($project->projectLeader), {{ $project->projectLeader->name }} @endif
                         </p>
                     </div>
                     <x-health-lights :health="$health" compact />
                 </div>
 
-                <div class="mt-3 grid gap-3 lg:grid-cols-3">
+                <div class="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-3">
                     <x-progress-vs-plan :health="$health" class="lg:col-span-1" />
 
                     <div class="text-xs">

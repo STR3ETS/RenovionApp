@@ -1,5 +1,5 @@
 @php
-    $eur = fn (float $v) => 'EUR '.number_format($v, 0, ',', '.');
+    $eur = fn (float $v) => '€ '.number_format($v, 0, ',', '.');
     $num = fn (float $v, int $d = 1) => rtrim(rtrim(number_format($v, $d, ',', '.'), '0'), ',');
     // Rood vanaf vijf procent over de begroting, oranje zodra het erboven komt.
     $pill = fn (?float $v) => $v === null
@@ -112,7 +112,7 @@
                             </table>
                         </div>
 
-                        <div class="mt-4 grid gap-4 border-t border-surface-700 pt-4 sm:grid-cols-4">
+                        <div class="mt-4 grid grid-cols-1 gap-4 border-t border-surface-700 pt-4 sm:grid-cols-4">
                             <div>
                                 <p class="text-[11px] font-bold tracking-widest text-slate-500 uppercase">Aanneemsom</p>
                                 <p class="text-base font-bold text-white">{{ $eur($r['value']) }}</p>

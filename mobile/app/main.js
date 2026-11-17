@@ -191,14 +191,16 @@ const format = {
         const diff = Math.round((date.setHours(0, 0, 0, 0) - today.setHours(0, 0, 0, 0)) / 86_400_000);
         if (diff === 0) return 'Vandaag';
         if (diff === 1) return 'Morgen';
-        return new Intl.DateTimeFormat('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' }).format(new Date(`${iso}T12:00:00`));
+        const other = new Date(`${iso}T12:00:00`);
+        // Een ander jaar staat erbij, anders lijkt "1 jan" van vorig jaar op deze januari.
+        return new Intl.DateTimeFormat('nl-NL', { weekday: 'short', day: 'numeric', month: 'short', ...(other.getFullYear() !== new Date().getFullYear() && { year: 'numeric' }) }).format(other);
     },
     time: (at) => new Intl.DateTimeFormat('nl-NL', { hour: '2-digit', minute: '2-digit' }).format(new Date(at)),
     since: (at) => {
         const date = new Date(at);
         return date.toDateString() === new Date().toDateString()
             ? `vandaag ${format.time(at)}`
-            : new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(date);
+            : new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'short', ...(date.getFullYear() !== new Date().getFullYear() && { year: 'numeric' }), hour: '2-digit', minute: '2-digit' }).format(date);
     },
     initials: (name) => (name ?? '').split(' ').slice(0, 2).map((part) => part[0]?.toUpperCase() ?? '').join(''),
 };

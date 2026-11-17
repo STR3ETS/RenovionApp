@@ -117,7 +117,7 @@ class JobChecklistTemplates
     /** En waarmee elke klus eindigt. */
     private const CLOSING = [
         ['Opruimen en afval afvoeren', 'Werkplek bezemschoon achterlaten', false],
-        ['Eindfotos maken', 'Overzicht van het resultaat', true],
+        ["Eindfoto's maken", 'Overzicht van het resultaat', true],
         ['Kort afstemmen met de klant', 'Laat zien wat er gedaan is', false],
     ];
 
@@ -171,7 +171,7 @@ class JobChecklistTemplates
             'Gereedschap en persoonlijke beschermingsmiddelen zijn in orde',
             'De werkplek is veilig (stroom, gas, water, valgevaar)',
             'Ik weet wie ik bel bij nood',
-            'Geen onbekende risicos (asbest, instabiele constructie)',
+            "Geen onbekende risico's (asbest, instabiele constructie)",
         ];
     }
 }

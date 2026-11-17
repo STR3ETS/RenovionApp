@@ -18,11 +18,7 @@
                         @endif
                     </span>
                     <span class="block truncate text-xs text-slate-400">
-                        {{ $user->email }}{{ $user->phone ? ', '.$user->phone : '' }}
-                        @if ($user->role === \App\Enums\UserRole::Uitvoerder)
-                           , {{ $user->projects_count }} {{ $user->projects_count === 1 ? 'project' : 'projecten' }}
-                        @endif
-                       , {{ $user->tasks_count }} open {{ $user->tasks_count === 1 ? 'taak' : 'taken' }}
+                        {{ $user->email }}{{ $user->phone ? ', '.$user->phone : '' }}{{ ($user->role === \App\Enums\UserRole::Uitvoerder) ? ', '.($user->projects_count).' '.($user->projects_count === 1 ? 'project' : 'projecten') : '' }}, {{ $user->tasks_count }} open {{ $user->tasks_count === 1 ? 'taak' : 'taken' }}
                     </span>
                 </span>
                 <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap {{ $user->role->badgeClasses() }}">
@@ -73,8 +69,7 @@
                         @foreach ($section['items'] as $module => [$label, $route])
                             <tr class="border-b border-surface-700/60 last:border-b-0">
                                 <td class="sticky left-0 z-10 bg-surface-800 px-4 py-2">
-                                    <span class="block truncate text-slate-200">{{ $label }}</span>
-                                    @if (in_array($module, $managementOnly, true))
+                                    <span class="block truncate text-slate-200">{{ $label }}</span>@if (in_array($module, $managementOnly, true))
                                         <span class="text-[10px] text-slate-500">alleen directie</span>
                                     @endif
                                 </td>

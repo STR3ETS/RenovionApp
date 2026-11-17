@@ -33,7 +33,7 @@
                            title="Vandaag geen klus ingepland"
                            subtitle="Zodra de werkvoorbereiding je inplant, staat je klus hier." />
         @else
-            <div data-motion-fan class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <div data-motion-fan class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 @foreach ($vandaag as $row)
                     {{ $card($row) }}
                 @endforeach
@@ -44,7 +44,7 @@
     @if ($komend->isNotEmpty())
         <section class="mb-6">
             <h2 class="mb-3 text-sm font-bold text-white">Komende klussen</h2>
-            <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 @foreach ($komend as $row)
                     {{ $card($row) }}
                 @endforeach
@@ -55,7 +55,7 @@
     @if ($afgerond->isNotEmpty())
         <section>
             <h2 class="mb-3 text-sm font-bold text-white">Afgerond</h2>
-            <div class="grid gap-3 opacity-60 sm:grid-cols-2 xl:grid-cols-3">
+            <div class="grid grid-cols-1 gap-3 opacity-60 sm:grid-cols-2 xl:grid-cols-3">
                 @foreach ($afgerond as $row)
                     {{ $card($row, true) }}
                 @endforeach

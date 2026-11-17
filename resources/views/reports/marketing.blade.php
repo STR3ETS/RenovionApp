@@ -1,5 +1,5 @@
 @php
-    $eur = fn (float $v) => 'EUR '.number_format($v, 0, ',', '.');
+    $eur = fn (float $v) => '€ '.number_format($v, 0, ',', '.');
     $d = $data;
     $maxMonth = max(1, collect($d['per_month'])->max() ?: 1);
 @endphp
@@ -35,7 +35,7 @@
         </div>
     @endif
 
-    <div class="grid gap-4 lg:grid-cols-2">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {{-- Aanvragen per maand --}}
         <div class="rounded-2xl border border-surface-700 bg-surface-800 p-5 lg:col-span-2">
             <h2 class="mb-4 text-sm font-bold text-white">Aanvragen <span class="text-brand-500">per maand</span></h2>

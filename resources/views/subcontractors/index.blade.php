@@ -65,7 +65,7 @@
         <x-empty-state icon="briefcase" category="klant" title="Nog geen onderaannemers"
                        subtitle="Meld een partner aan en vul het dossier aan voordat je werk uitzet." />
     @else
-        <div data-motion-fan class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div data-motion-fan class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
             @foreach ($subcontractors as $sub)
                 @php($dossier = $sub->dossier())
                 <a href="{{ route('subcontractors.show', $sub) }}"
@@ -95,10 +95,7 @@
                                 {{ $dossier['complete'] ? 'Dossier rond' : count($dossier['open']).' '.(count($dossier['open']) === 1 ? 'punt' : 'punten').' open' }}
                             </span>
                             <span class="text-xs text-slate-500">
-                                {{ $sub->assignments }} {{ $sub->assignments === 1 ? 'opdracht' : 'opdrachten' }}
-                                @if ($sub->rating)
-                                    , {{ $sub->rating }} van 5
-                                @endif
+                                {{ $sub->assignments }} {{ $sub->assignments === 1 ? 'opdracht' : 'opdrachten' }}{{ ($sub->rating) ? ', '.($sub->rating).' van 5' : '' }}
                             </span>
                         </span>
                     </span>

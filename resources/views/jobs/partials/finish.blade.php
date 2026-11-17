@@ -39,7 +39,7 @@
             <form method="POST" action="{{ route('jobs.complete', $job) }}" class="space-y-3">
                 @csrf
 
-                <div class="grid gap-3 sm:grid-cols-2">
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <x-field label="Gewerkte uren" name="hours">
                         <input type="number" step="0.25" min="0.25" max="24" name="hours" id="hours"
                                value="{{ old('hours', $job->estimatedHours()) }}" required

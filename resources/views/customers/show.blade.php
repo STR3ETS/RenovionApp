@@ -9,7 +9,7 @@
         @endif
     </x-page-header>
 
-    <div class="grid gap-4 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
 
         {{-- Timeline: het centrale dossier --}}
         <div class="lg:col-span-2">
@@ -38,13 +38,11 @@
                                     <p class="mt-0.5 text-sm whitespace-pre-line text-slate-300">{{ $event->body }}</p>
                                 @endif
                                 <p class="mt-1 text-xs text-slate-500">
-                                    {{ $event->happened_at->translatedFormat('j M Y, H:i') }}
-                                    @if ($viaNova)
-                                       , Nova{{ $event->user ? ', bevestigd door '.$event->user->name : '' }}
-                                    @else
-                                       , {{ $event->user?->name ?? $event->source->label() }}
-                                    @endif
-                                   , {{ $event->type->label() }}
+                                    {{ collect([
+                                        $event->happened_at->translatedFormat('j M Y, H:i'),
+                                        $viaNova ? 'Nova'.($event->user ? ', bevestigd door '.$event->user->name : '') : ($event->user?->name ?? $event->source->label()),
+                                        $event->type->label(),
+                                    ])->implode(', ') }}
                                 </p>
                             </div>
                         </div>

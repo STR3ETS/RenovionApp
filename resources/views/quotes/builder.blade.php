@@ -73,7 +73,7 @@
           'uploadUrl' => route('quotes.builder.upload', $quote),
           'aiUrl' => route('quotes.builder.ai', $quote),
           'generateUrl' => route('quotes.builder.generate', $quote),
-          'showUrl' => route('quotes.show', $quote),
+          'showUrl' => $back,
           'blocks' => $quote->blocks ?? [],
           'registry' => $registry,
           'templates' => $templates->map(fn ($t) => ['id' => $t->id, 'name' => $t->name, 'description' => $t->description, 'is_default' => (bool) $t->is_default])->all(),
@@ -85,12 +85,12 @@
     {{-- Topbar --}}
     <header class="flex h-14 shrink-0 items-center justify-between gap-4 border-b border-gray-200 bg-white px-4 whitespace-nowrap lg:px-6">
         <div class="flex min-w-0 items-center gap-3">
-            <a href="{{ route('quotes.show', $quote) }}" class="flex items-center gap-1 text-xs font-semibold text-gray-500 transition hover:text-navy-900">
+            <a href="{{ $back }}" class="flex items-center gap-1 text-xs font-semibold text-gray-500 transition hover:text-navy-900">
                 <x-icon name="chevron-right" class="h-3.5 w-3.5 rotate-180" /> Terug
             </a>
             <div class="h-5 w-px bg-gray-200"></div>
             <div class="min-w-0">
-                <p class="truncate text-sm font-bold text-navy-950">Offerte bouwen <span class="font-semibold text-gray-500">, {{ $quote->number }}, v{{ $quote->version }}</span></p>
+                <p class="truncate text-sm font-bold text-navy-950">Offerte bouwen <span class="font-semibold text-gray-500">{{ $quote->number }}, v{{ $quote->version }}</span></p>
                 <p class="truncate text-xs text-gray-500">{{ $quote->customer->name }}{{ $quote->lead?->service ? ', '.$quote->lead->service : '' }}</p>
             </div>
         </div>
@@ -103,13 +103,14 @@
                 <span x-text="saveStatus()"></span>
             </span>
             <button type="button" @click="save()" :disabled="saving"
-                    :class="saveError ? 'bg-red-50 text-red-600 hover:bg-red-100' : (dirty || saving ? 'bg-navy-950 text-white hover:bg-navy-900' : 'bg-gray-100 text-gray-500 hover:bg-gray-200')"
+                    {{-- Op de telefoon alleen als er iets te bewaren is (opslaan gaat vanzelf), anders verdringt hij de titel. --}}
+                    :class="(saveError ? 'bg-red-50 text-red-600 hover:bg-red-100' : (dirty || saving ? 'bg-navy-950 text-white hover:bg-navy-900' : 'bg-gray-100 text-gray-500 hover:bg-gray-200 max-sm:hidden'))"
                     class="h-9 rounded-full px-4 text-xs font-bold transition disabled:cursor-wait"
                     title="Opslaan (Ctrl+S)">
                 <span x-text="saving ? 'Opslaan…' : (saveError ? 'Opnieuw proberen' : (dirty ? 'Opslaan' : 'Opgeslagen'))"></span>
             </button>
-            <div class="h-5 w-px bg-gray-200"></div>
-            <a href="{{ route('quotes.show', $quote) }}" class="inline-flex h-9 items-center justify-center rounded-full bg-brand-500 px-5 text-xs font-bold text-white transition hover:bg-brand-600 active:bg-brand-600" title="Terug naar de offertepagina - daar verstuur je de offerte ook">Klaar</a>
+            <div class="h-5 w-px bg-gray-200 max-sm:hidden"></div>
+            <a href="{{ $back }}" class="inline-flex h-9 items-center justify-center rounded-full bg-brand-500 px-5 text-xs font-bold text-white transition hover:bg-brand-600 active:bg-brand-600" title="Terug naar de offertepagina - daar verstuur je de offerte ook">Klaar</a>
         </div>
     </header>
 

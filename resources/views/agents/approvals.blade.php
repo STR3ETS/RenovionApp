@@ -36,11 +36,7 @@
                                 <p class="mt-1 text-sm text-slate-200">{{ $approval->summary }}</p>
 
                                 <p class="mt-1.5 text-xs text-slate-500">
-                                    {{ $approval->reference }},
-                                    {{ AgentRegistry::skill($approval->skill)['name'] ?? $approval->skill }}
-                                    @if ($approval->project), {{ $approval->project->name }} @endif
-                                    @if ($approval->approver_role), beslist door {{ $approval->approver_role }} @endif
-                                    , gevraagd {{ $approval->created_at->diffForHumans() }}
+                                    {{ collect([$approval->reference, AgentRegistry::skill($approval->skill)['name'] ?? $approval->skill, $approval->project?->name, $approval->approver_role ? 'beslist door '.$approval->approver_role : null, 'gevraagd '.$approval->created_at->diffForHumans()])->filter()->implode(', ') }}
                                 </p>
 
                                 @if (filled($approval->payload))
@@ -89,8 +85,7 @@
                         </small>
                         <small class="block text-xs text-slate-500">
                             {{ $approval->decider?->name ?? 'het systeem' }},
-                            {{ $approval->decided_at?->translatedFormat('j M Y H:i') }}
-                            @if ($approval->reason), {{ $approval->reason }} @endif
+                            {{ $approval->decided_at?->translatedFormat('j M Y H:i') }}@if ($approval->reason), {{ $approval->reason }} @endif
                         </small>
                     </span>
                     <span class="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold {{ $approval->badgeClasses() }}">{{ $approval->statusLabel() }}</span>

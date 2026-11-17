@@ -8,9 +8,9 @@
     <h2 class="mb-1 text-sm font-bold text-white">Opties <span class="text-brand-500">en meerwerk</span></h2>
     <p class="mb-4 text-xs text-slate-500">
         @if ($totals->approvedExtras > 0)
-            EUR {{ number_format($totals->approvedExtras, 0, ',', '.') }} akkoord, EUR {{ number_format($totals->openOptions, 0, ',', '.') }} nog open.
+            € {{ number_format($totals->approvedExtras, 0, ',', '.') }} akkoord, € {{ number_format($totals->openOptions, 0, ',', '.') }} nog open.
         @else
-            EUR {{ number_format($totals->openOptions, 0, ',', '.') }} open, nog niets akkoord.
+            € {{ number_format($totals->openOptions, 0, ',', '.') }} open, nog niets akkoord.
         @endif
     </p>
 
@@ -28,12 +28,8 @@
                                 <p class="mt-0.5 text-xs text-slate-400">{{ $option->note }}</p>
                             @endif
                             <p class="mt-1 text-xs text-slate-500">
-                                {{ rtrim(rtrim(number_format((float) $option->quantity, 2, ',', '.'), '0'), ',') }} {{ $option->unit }}
-                                @if ($option->needsPricing())
-                                    <span class="font-semibold text-amber-300">, prijs nog invullen</span>
-                                @else
-                                    , EUR {{ number_format($bedrag, 0, ',', '.') }} inclusief staart
-                                @endif
+                                {{-- Komma direct achter de eenheid: een regelovergang ervoor wordt een spatie ("m2 , €"). --}}
+                                {{ rtrim(rtrim(number_format((float) $option->quantity, 2, ',', '.'), '0'), ',') }} {{ $option->unit }}@if ($option->needsPricing())<span class="font-semibold text-amber-300">, prijs nog invullen</span>@else{{ ', € '.number_format($bedrag, 0, ',', '.').' inclusief staart' }}@endif
                             </p>
                         </div>
                         <span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold {{ $option->badgeClasses() }}">{{ $option->statusLabel() }}</span>

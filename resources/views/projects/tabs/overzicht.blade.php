@@ -7,7 +7,7 @@
         <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
             <h2 class="mb-4 text-sm font-bold text-white">Project<span class="text-brand-500">voortgang</span></h2>
 
-            <div class="grid gap-5 lg:grid-cols-3">
+            <div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
                 <x-progress-vs-plan :health="$health" />
 
                 <div>
@@ -50,7 +50,7 @@
         </div>
     @endif
 
-    <div class="grid gap-4 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div class="space-y-4 lg:col-span-2">
             {{-- Wat er aan werk open staat --}}
             <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">

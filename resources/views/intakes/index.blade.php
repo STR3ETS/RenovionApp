@@ -54,10 +54,7 @@
                                     {{ $intake->customer?->name ?? $intake->lead?->customer?->name ?? 'Onbekende klant' }}
                                 </b>
                                 <small class="block truncate text-xs text-slate-400">
-                                    Stap {{ $intake->step + 1 }} van {{ count($steps) }}, {{ $intake->stepLabel() }}
-                                    @if ($intake->survey_on)
-                                        , opname {{ $intake->survey_on->translatedFormat('j M') }} met {{ $intake->surveyor?->name }}
-                                    @endif
+                                    Stap {{ $intake->step + 1 }} van {{ count($steps) }}, {{ $intake->stepLabel() }}{{ ($intake->survey_on) ? ', '.'opname '.($intake->survey_on->translatedFormat('j M')).' met '.($intake->surveyor?->name) : '' }}
                                 </small>
                             </span>
 

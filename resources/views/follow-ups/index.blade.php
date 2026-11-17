@@ -34,14 +34,7 @@
                         </span>
                         <small class="mt-0.5 block truncate text-xs text-slate-400">
                             {{ $lead->service ?: 'geen dienst' }},
-                            @if ($lead->last_contact_at)
-                                laatste contact {{ $lead->last_contact_at->diffForHumans() }}
-                            @else
-                                nog geen contact geweest
-                            @endif
-                            @if ($lead->assignee)
-                                , {{ $lead->assignee->name }}
-                            @endif
+                            {{ $lead->last_contact_at ? 'laatste contact '.$lead->last_contact_at->diffForHumans() : 'nog geen contact geweest' }}{{ ($lead->assignee) ? ', '.($lead->assignee->name) : '' }}
                         </small>
                     </span>
 

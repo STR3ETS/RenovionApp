@@ -16,7 +16,7 @@
                 <div data-enter class="app-ph">
                     <p class="sec-eye"><span x-icon="'document-text'"></span> Offerte</p>
                     <h1><span x-text="data ? data.number + ', v' + data.version : ''"></span><span x-show="!data" class="skeleton inline-block h-7 w-2/3 align-middle"></span></h1>
-                    <p class="sub" x-text="data ? [data.title, data.subtitle].filter(Boolean).join(' · ') : ''"></p>
+                    <p class="sub" x-text="data ? [data.title, data.subtitle].filter(Boolean).join(', ') : ''"></p>
                     <div class="app-ph-acts" x-show="data">
                         <span class="rounded-full px-3 py-1 text-sm font-semibold" :class="data?.status.classes" x-text="data?.status.label"></span>
                     </div>
@@ -120,7 +120,7 @@
                                 <span class="text-xs font-semibold whitespace-nowrap text-gray-500" x-text="osFormat.euro(version.total)"></span>
                             </div>
                         </template>
-                        <p x-show="data && data.versions.length === 0" class="text-xs text-gray-500" x-text="'Nog geen eerdere versies. Bij versturen wordt de inhoud bevroren als v' + data?.version + '.'"></p>
+                        <p x-show="data && data.versions.length === 0" class="text-xs text-gray-500" x-text="data?.concept ? 'Nog geen eerdere versies. Bij versturen wordt de inhoud bevroren als v' + data.version + '.' : 'Nog geen eerdere versies. Deze versie is bij het versturen bevroren.'"></p>
                     </div>
                     <form x-show="data && !data.concept" @submit.prevent="newVersion()" class="mt-3 space-y-2">
                         <input type="text" x-model="versionNote" required maxlength="255" placeholder="Wat wijzigt er in deze versie?" class="w-full">

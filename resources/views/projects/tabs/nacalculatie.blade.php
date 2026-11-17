@@ -1,5 +1,5 @@
 @php
-    $eur = fn (float $v) => 'EUR '.number_format($v, 0, ',', '.');
+    $eur = fn (float $v) => '€ '.number_format($v, 0, ',', '.');
     $num = fn (float $v, int $d = 1) => rtrim(rtrim(number_format($v, $d, ',', '.'), '0'), ',');
     $pill = fn (?float $v) => $v === null
         ? 'bg-white/10 text-slate-400'

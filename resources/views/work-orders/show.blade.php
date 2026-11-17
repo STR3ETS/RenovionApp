@@ -25,7 +25,7 @@
         </div>
     @endif
 
-    <div class="grid gap-4 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div class="space-y-4 lg:col-span-2">
             {{-- Uren en materiaal --}}
             <div class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
@@ -49,11 +49,7 @@
                     <div>
                         <p class="text-[11px] font-bold tracking-widest text-slate-500 uppercase">Loonkosten</p>
                         <p class="mt-1 text-xl font-bold text-white">
-                            @if ($order->hourly_rate !== null)
-                                EUR {{ number_format($order->laborCost(), 0, ',', '.') }}
-                            @else
-                                <span class="text-slate-500">nog geen tarief</span>
-                            @endif
+                            € {{ number_format($order->laborCost(), 0, ',', '.') }}
                         </p>
                     </div>
                 </div>

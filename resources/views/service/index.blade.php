@@ -14,7 +14,7 @@
         <x-kpi label="Afgehandeld" :value="(string) ($counts[ServiceTicket::STATUS_RESOLVED] ?? 0)" sub="in totaal" />
     </x-kpi-row>
 
-    <div class="grid gap-4 xl:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <div class="xl:col-span-2">
             <x-tabs>
                 <x-tab :href="route('service.index')" :active="$filter === ''" :count="$counts->sum()">Alles</x-tab>
@@ -53,13 +53,10 @@
                                         <p class="mt-1 text-sm text-slate-300">{{ $ticket->description }}</p>
 
                                         <p class="mt-1.5 text-xs text-slate-500">
-                                            {{ $ticket->number }}, {{ $ticket->customer->name }}@if ($ticket->project), {{ $ticket->project->name }} @endif,
+                                            {{ $ticket->number }}, {{ $ticket->customer->name }}@if ($ticket->project), {{ $ticket->project->name }}@endif,
                                             {{ ServiceTicket::CHANNELS[$ticket->reported_via] ?? $ticket->reported_via }},
                                             {{ $ticket->daysOpen() }} {{ $ticket->daysOpen() === 1 ? 'dag' : 'dagen' }}
-                                            {{ $ticket->isOpen() ? 'open' : 'doorlooptijd' }}
-                                            @if ($ticket->assignee)
-                                                , {{ $ticket->assignee->name }}
-                                            @endif
+                                            {{ $ticket->isOpen() ? 'open' : 'doorlooptijd' }}{{ ($ticket->assignee) ? ', '.($ticket->assignee->name) : '' }}
                                         </p>
 
                                         @if ($ticket->warranty_note)
@@ -78,7 +75,7 @@
                                             @csrf
                                             @method('PATCH')
 
-                                            <div class="grid gap-2 sm:grid-cols-3">
+                                            <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
                                                 <select name="status" class="w-full rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-white focus:border-brand-500 focus:ring-brand-500">
                                                     @foreach (ServiceTicket::STATUSES as $key => $label)
                                                         <option value="{{ $key }}" @selected($ticket->status === $key)>{{ $label }}</option>
@@ -151,7 +148,7 @@
                               class="w-full rounded-xl border-surface-600 bg-surface-850 text-sm text-white focus:border-brand-500 focus:ring-brand-500"></textarea>
                 </x-field>
 
-                <div class="grid gap-2 sm:grid-cols-2">
+                <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <x-field label="Prioriteit" name="priority">
                         <select name="priority" id="priority" required
                                 class="w-full rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-white focus:border-brand-500 focus:ring-brand-500">

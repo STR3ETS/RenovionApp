@@ -244,7 +244,7 @@ class InvoiceController extends Controller
             $invoice->customer->recordEvent(
                 TimelineEventType::Betaling,
                 "Factuur {$invoice->number} verstuurd",
-                $invoice->description.', EUR '.number_format($invoice->total(), 2, ',', '.'),
+                $invoice->description.', € '.number_format($invoice->total(), 2, ',', '.'),
                 $invoice,
             );
         }

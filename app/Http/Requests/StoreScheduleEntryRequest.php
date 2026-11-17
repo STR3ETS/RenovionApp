@@ -32,4 +32,14 @@ class StoreScheduleEntryRequest extends FormRequest
             'notes' => ['nullable', 'string', 'max:2000'],
         ];
     }
+
+    /**
+     * De standaardtekst van "after" gaat over datums ("moet een datum na starttijd zijn").
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return ['end_time.after' => 'De eindtijd moet na de begintijd liggen.'];
+    }
 }

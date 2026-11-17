@@ -1,5 +1,5 @@
 @php
-    $eur = fn (float $v, int $d = 0) => 'EUR '.number_format($v, $d, ',', '.');
+    $eur = fn (float $v, int $d = 0) => '€ '.number_format($v, $d, ',', '.');
     $num = fn (float $v, int $d = 2) => rtrim(rtrim(number_format($v, $d, ',', '.'), '0'), ',');
     $labels = [
         'arbeid' => ['Arbeid', 'bg-brand-500'],
@@ -63,7 +63,7 @@
         </div>
     @endif
 
-    <div class="grid gap-4 xl:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <div class="space-y-4 xl:col-span-2">
             @include('budgets.partials.chapters')
         </div>

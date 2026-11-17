@@ -1,6 +1,6 @@
 @php
     use App\Enums\InvoiceStatus;
-    $eur = fn (float $v) => 'EUR '.number_format($v, 2, ',', '.');
+    $eur = fn (float $v) => '€ '.number_format($v, 2, ',', '.');
 @endphp
 
 <x-layouts.app :title="$invoice->number">
@@ -15,7 +15,7 @@
         <span class="rounded-full px-3 py-1.5 text-xs font-bold {{ $invoice->status->badgeClasses() }}">{{ $invoice->status->label() }}</span>
     </x-page-header>
 
-    <div class="grid gap-4 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div class="lg:col-span-2">
             <div class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
                 <table class="w-full text-sm">

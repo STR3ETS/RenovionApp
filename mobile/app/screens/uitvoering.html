@@ -51,7 +51,7 @@
                             <div x-show="data.can_manage" class="flex flex-wrap items-center gap-2 border-t border-gray-100 px-4 py-3">
                                 <label class="min-w-0 flex-1">
                                     <span class="sr-only">Status van deze fase</span>
-                                    <select class="w-full" :value="phase.status.value" :disabled="busy !== null" @change="setStatus(phase, $event.target.value)">
+                                    <select class="w-full" :value="phase.status.value" :disabled="busy !== null" @change="setStatus(phase, $event.target)">
                                         <template x-for="status in data.statuses" :key="status.value">
                                             <option :value="status.value" x-text="status.label" :selected="status.value === phase.status.value"></option>
                                         </template>

@@ -1,6 +1,6 @@
 @php
     use App\Models\Rfq;
-    $eur = fn (float $v) => 'EUR '.number_format($v, 0, ',', '.');
+    $eur = fn (float $v) => '€ '.number_format($v, 0, ',', '.');
 @endphp
 
 <x-layouts.app :title="$rfq->title">
@@ -32,7 +32,7 @@
         </div>
     @endif
 
-    <div class="grid gap-4 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div class="space-y-4 lg:col-span-2">
             {{-- Biedingen vergelijken --}}
             <div class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
@@ -116,7 +116,7 @@
                         @csrf
                         <h3 class="text-sm font-bold text-white">Bieding <span class="text-brand-500">vastleggen</span></h3>
 
-                        <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                        <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
                             <select name="subcontractor_id" required
                                     class="w-full rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-white focus:border-brand-500 focus:ring-brand-500">
                                 @foreach ($rfq->invited as $partner)
@@ -158,8 +158,7 @@
                     <div class="mb-3 space-y-1.5">
                         @foreach ($rfq->invited as $partner)
                             <div class="flex items-center gap-2 text-sm">
-                                <span class="min-w-0 flex-1 truncate text-slate-200">{{ $partner->name }}</span>
-                                @if ($rfq->bids->contains('subcontractor_id', $partner->id))
+                                <span class="min-w-0 flex-1 truncate text-slate-200">{{ $partner->name }}</span>@if ($rfq->bids->contains('subcontractor_id', $partner->id))
                                     <span class="shrink-0 rounded-full bg-green-500/15 px-2 py-0.5 text-[10px] font-bold text-green-300">Bood</span>
                                 @else
                                     <span class="shrink-0 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold text-slate-400">Wacht</span>

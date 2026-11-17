@@ -56,12 +56,10 @@
                     <span class="min-w-0 flex-1">
                         <span class="block truncate text-sm font-semibold text-white">{{ $lead->customer->name }}</span>
                         <span class="block truncate text-xs text-slate-400">
-                            {{ $lead->customer->city ?? '-' }}, {{ $lead->service ?? 'Aanvraag' }}
-                            @if ($lead->value), € {{ number_format((float) $lead->value, 0, ',', '.') }} @endif
+                            {{ $lead->customer->city ?? '-' }}, {{ $lead->service ?? 'Aanvraag' }}@if ($lead->value), € {{ number_format((float) $lead->value, 0, ',', '.') }} @endif
                         </span>
                         <span class="mt-0.5 block text-xs text-slate-500">
-                            {{ $lead->assignee?->name ?? 'Niet toegewezen' }}
-                           , laatste contact: {{ $lead->last_contact_at?->translatedFormat('j M') ?? 'nog geen' }}
+                            {{ $lead->assignee?->name ?? 'Niet toegewezen' }}, laatste contact: {{ $lead->last_contact_at?->translatedFormat('j M') ?? 'nog geen' }}
                         </span>
                     </span>
                     @if ($lead->missingPhone())

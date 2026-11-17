@@ -7,7 +7,7 @@
 
         {{-- Quick add --}}
         <form x-show="nieuw" x-cloak method="POST" action="{{ route('tasks.store') }}"
-              class="mb-4 grid gap-3 rounded-2xl border border-brand-500/30 bg-surface-800 p-4 sm:grid-cols-2 lg:grid-cols-4">
+              class="mb-4 grid grid-cols-1 gap-3 rounded-2xl border border-brand-500/30 bg-surface-800 p-4 sm:grid-cols-2 lg:grid-cols-4">
             @csrf
             <input type="text" name="title" required placeholder="Wat moet er gebeuren? *"
                    class="rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500 sm:col-span-2">
@@ -67,12 +67,9 @@
 
                     <span class="min-w-0 flex-1">
                         <span class="block truncate text-sm font-semibold {{ $task->status->isOpen() ? 'text-white' : 'text-slate-500 line-through' }}">{{ $task->title }}</span>
-                        <span class="block text-xs text-slate-400">
-                            @if ($task->customer)@can('manage-crm')<a href="{{ route('customers.show', $task->customer) }}" class="font-medium text-klant-400">{{ $task->customer->name }}</a>@else{{ $task->customer->name }}@endcan, @endif
+                        <span class="block text-xs text-slate-400">@if ($task->customer)@can('manage-crm')<a href="{{ route('customers.show', $task->customer) }}" class="font-medium text-klant-400">{{ $task->customer->name }}</a>@else{{ $task->customer->name }}@endcan, @endif
                             @if ($task->project)<a href="{{ route('projects.show', $task->project) }}" class="font-medium text-project-400">{{ $task->project->name }}</a>, @endif
-                            {{ $task->owner?->name ?? 'geen eigenaar' }}
-                            @if ($task->deadline), <span class="{{ $task->isOverdue() ? 'font-semibold text-red-400' : '' }}">{{ $task->deadline->isToday() ? 'vandaag' : $task->deadline->translatedFormat('j M') }}</span> @endif
-                            @if ($task->note), {{ str($task->note)->limit(60) }} @endif
+                            {{ $task->owner?->name ?? 'geen eigenaar' }}@if ($task->deadline), <span class="{{ $task->isOverdue() ? 'font-semibold text-red-400' : '' }}">{{ $task->deadline->isToday() ? 'vandaag' : $task->deadline->translatedFormat('j M') }}</span>@endif{{ $task->note ? ', '.str($task->note)->limit(60) : '' }}
                         </span>
                     </span>
 

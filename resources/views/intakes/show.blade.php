@@ -46,7 +46,7 @@
         @endforeach
     </nav>
 
-    <div class="grid gap-4 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div class="space-y-4 lg:col-span-2">
             @if ($step === 0)
                 {{-- Stap 1: klant en adres, komt uit het klantdossier --}}
@@ -87,7 +87,7 @@
                     <h2 class="text-sm font-bold text-white">Opname <span class="text-brand-500">inplannen</span></h2>
                     <p class="text-xs text-slate-400">Dit zet de afspraak meteen in de planning van wie gaat.</p>
 
-                    <div class="grid gap-4 sm:grid-cols-3">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                         <x-field label="Wie gaat" name="surveyor_id">
                             <select name="surveyor_id" id="surveyor_id" required
                                     class="w-full rounded-xl border-surface-600 bg-surface-850 text-sm text-white focus:border-brand-500 focus:ring-brand-500">

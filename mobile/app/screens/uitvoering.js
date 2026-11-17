@@ -32,8 +32,14 @@ export default function register({ Alpine, api, screen, fetchedAt, errorText }) 
             fetchedAt[`project:${id}`] = fetchedAt.projecten = fetchedAt.vandaag = 0;
             await this.load({ force: true });
         },
-        async setStatus(phase, value) {
-            if (value === phase.status.value || this.busy) return;
+        async setStatus(phase, select) {
+            const value = select.value;
+            // Lukt het niet, dan de keuzelijst terug op de bewaarde status: :value zet hem niet opnieuw als
+            // de gegevens gelijk blijven.
+            if (value === phase.status.value || this.busy) {
+                select.value = phase.status.value;
+                return;
+            }
             this.busy = `status:${phase.id}`;
             try {
                 const { message } = await api(`fasen/${phase.id}`, { method: 'PATCH', body: { status: value } });
@@ -41,6 +47,7 @@ export default function register({ Alpine, api, screen, fetchedAt, errorText }) 
                 Alpine.store('os').toast(message);
             } catch (error) {
                 Alpine.store('os').toast(errorText(error, 'Status wijzigen lukte niet. Controleer de verbinding.'));
+                select.value = phase.status.value;
                 await this.load({ force: true });
             }
             this.busy = null;

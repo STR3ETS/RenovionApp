@@ -16,7 +16,7 @@
 @else
     @php($score = $intake->completeness())
 
-    <div class="grid gap-4 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div class="space-y-4 lg:col-span-2">
             <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
                 <div class="mb-4 flex flex-wrap items-center justify-between gap-3">

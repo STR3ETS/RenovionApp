@@ -17,7 +17,7 @@
                 <span class="min-w-0 flex-1">
                     <span class="block truncate text-sm font-semibold text-white {{ $isAf ? 'line-through' : '' }}">{{ $task->title }}</span>
                     <span class="block truncate text-xs text-slate-400">
-                        {{ $task->owner?->name ?? 'niet toegewezen' }}@if ($task->deadline), {{ $task->deadline->translatedFormat('j M') }} @endif, {{ $task->source->label() }}
+                        {{ $task->owner?->name ?? 'niet toegewezen' }}@if ($task->deadline), {{ $task->deadline->translatedFormat('j M') }}@endif, {{ $task->source->label() }}
                     </span>
                     @if ($task->note)
                         <span class="mt-0.5 block text-xs text-slate-500">{{ $task->note }}</span>

@@ -8,7 +8,7 @@
 
         <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
             <h2 class="mb-4 text-sm font-bold text-white">Klantgegevens</h2>
-            <div class="grid gap-4 sm:grid-cols-2">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <x-field label="Naam" name="name" class="sm:col-span-2">
                     <input type="text" name="name" id="name" value="{{ old('name', $lead->customer->name) }}" class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
                 </x-field>
@@ -34,7 +34,7 @@
 
         <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
             <h2 class="mb-4 text-sm font-bold text-white">Aanvraag</h2>
-            <div class="grid gap-4 sm:grid-cols-2">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <x-field label="Dienst" name="service">
                     <input type="text" name="service" id="service" value="{{ old('service', $lead->service) }}" class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
                 </x-field>

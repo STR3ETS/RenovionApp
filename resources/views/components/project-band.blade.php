@@ -14,7 +14,7 @@
         'Opdrachtgever' => $customer?->name ?? 'onbekend',
         'Fase' => $current?->name ?? 'Afgerond',
         'Projectleider' => $project->projectLeader?->name ?? 'nog niet toegewezen',
-        'Projectwaarde' => 'EUR '.number_format((float) $project->value, 2, ',', '.'),
+        'Projectwaarde' => '€ '.number_format((float) $project->value, 2, ',', '.'),
         'Offerte'.($project->quote ? ' '.$project->quote->number : '') => $project->quote?->status->label() ?? 'nog niet',
     ];
 @endphp
@@ -72,7 +72,7 @@
         </div>
 
         {{-- Metadatastrip --}}
-        <dl class="grid max-w-5xl gap-3 border-t border-white/10 pt-4 sm:grid-cols-3 lg:grid-cols-6">
+        <dl class="grid grid-cols-1 max-w-5xl gap-3 border-t border-white/10 pt-4 sm:grid-cols-3 lg:grid-cols-6">
             @foreach ($meta as $label => $value)
                 <div class="min-w-0">
                     <dt class="text-[10px] font-semibold tracking-[0.1em] text-slate-400 uppercase">{{ $label }}</dt>

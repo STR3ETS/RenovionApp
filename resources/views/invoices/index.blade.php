@@ -1,6 +1,6 @@
 @php
     use App\Enums\InvoiceStatus;
-    $eur = fn (float $v) => 'EUR '.number_format($v, 0, ',', '.');
+    $eur = fn (float $v) => '€ '.number_format($v, 0, ',', '.');
 @endphp
 
 <x-layouts.app title="Facturatie">

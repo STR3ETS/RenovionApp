@@ -60,9 +60,7 @@
                         @endif
 
                         <span class="mt-0.5 block text-xs text-slate-500">
-                            {{ $event->occurred_at->translatedFormat('j M Y H:i:s') }}
-                            @if ($event->project), {{ $event->project->name }} @endif
-                            @if ($event->run), {{ $event->run->reference }} @endif
+                            {{ collect([$event->occurred_at->translatedFormat('j M Y H:i:s'), $event->project?->name, $event->run?->reference])->filter()->implode(', ') }}
                         </span>
                     </span>
                 </div>

@@ -117,7 +117,7 @@ class AppAgentsTest extends TestCase
         $skill = $skills->firstWhere('id', 'propose_variation');
         $this->assertTrue($skill['paused']);
         $this->assertSame(500.0, (float) $skill['limit']);
-        $this->assertStringContainsString('boven EUR 500 altijd een mens', $skill['decides']);
+        $this->assertStringContainsString('boven € 500 altijd een mens', $skill['decides']);
 
         $this->withToken($token)->patchJson(route('api.app.skills.update', 'bestaat_niet'), ['level' => 'observeren'])->assertNotFound();
     }

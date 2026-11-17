@@ -1,13 +1,13 @@
 @php
     $quote = $project->quote;
-    $eur = fn (float $v) => 'EUR '.number_format($v, 2, ',', '.');
+    $eur = fn (float $v) => '€ '.number_format($v, 2, ',', '.');
 @endphp
 
 @if ($quote === null)
     <x-empty-state icon="document-text" category="offerte" title="Geen offerte aan dit project gekoppeld"
                    subtitle="Een project ontstaat normaal uit een getekende offerte. Is dit project handmatig aangemaakt, dan kan die koppeling ontbreken." />
 @else
-    <div class="grid gap-4 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div class="space-y-4 lg:col-span-2">
             <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
                 <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -24,7 +24,7 @@
                     </div>
                 </div>
 
-                <dl class="grid gap-4 border-t border-surface-700 pt-4 sm:grid-cols-4">
+                <dl class="grid grid-cols-1 gap-4 border-t border-surface-700 pt-4 sm:grid-cols-4">
                     <div>
                         <dt class="text-[11px] font-bold tracking-widest text-slate-500 uppercase">Subtotaal</dt>
                         <dd class="mt-1 text-base font-bold text-white">{{ $eur((float) $quote->subtotal) }}</dd>

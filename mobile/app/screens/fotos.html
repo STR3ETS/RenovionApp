@@ -118,7 +118,7 @@
                     <button type="button" @click="close()" class="tap flex h-11 w-11 shrink-0 items-center justify-center rounded-lg" aria-label="Terug"><span x-icon="'chevron-left'" class="h-6 w-6"></span></button>
                     <span class="min-w-0 flex-1">
                         <span class="block truncate text-sm font-semibold" x-text="data?.caption ?? ''"></span>
-                        <span class="block truncate text-xs text-white/70" x-text="data ? [data.meta, data.position ? data.position + ' van ' + data.count : null].filter(Boolean).join(' · ') : ''"></span>
+                        <span class="block truncate text-xs text-white/70" x-text="data ? [data.meta, data.position ? data.position + ' van ' + data.count : null].filter(Boolean).join(', ') : ''"></span>
                         <span x-show="!data && !failed" class="skeleton skeleton-dark block h-4 w-1/2"></span>
                     </span>
                     <button type="button" x-show="data?.removable" @click="remove()" :disabled="busy !== null" class="tap flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-white/80 disabled:opacity-50" aria-label="Foto verwijderen"><span x-icon="'trash'" class="h-5 w-5"></span></button>

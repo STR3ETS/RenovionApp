@@ -274,7 +274,7 @@ class CostReviewService
         }
 
         if ($commitment > 0) {
-            $parts[] = 'EUR '.number_format($commitment, 0, ',', '.').' besteld, nog niet gefactureerd';
+            $parts[] = '€ '.number_format($commitment, 0, ',', '.').' besteld, nog niet gefactureerd';
         }
 
         return $parts === [] ? 'Nog niets geboekt' : implode(', ', $parts);

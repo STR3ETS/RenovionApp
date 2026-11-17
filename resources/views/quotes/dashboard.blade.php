@@ -1,5 +1,5 @@
 @php
-    $eur = fn (float $v) => 'EUR '.number_format($v, 0, ',', '.');
+    $eur = fn (float $v) => '€ '.number_format($v, 0, ',', '.');
     $pct = fn (?float $v) => $v === null ? 'n.v.t.' : rtrim(rtrim(number_format($v, 1, ',', '.'), '0'), ',').'%';
     $d = $data;
     $states = [
@@ -42,7 +42,7 @@
                    : 'gemiddeld na '.rtrim(rtrim(number_format($d['days_to_open'], 1, ',', '.'), '0'), ',').' dagen'" />
     </x-kpi-row>
 
-    <div class="grid gap-4 xl:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <div class="xl:col-span-2">
             <div class="overflow-hidden rounded-2xl border border-surface-700 bg-surface-800">
                 <div class="border-b border-surface-700 p-5">

@@ -2,7 +2,7 @@
     use App\Enums\DocumentCategory;
 @endphp
 
-<div class="grid gap-4 lg:grid-cols-3">
+<div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
     <div class="lg:col-span-2">
         @if ($documents->isEmpty())
             <x-empty-state icon="folder" category="klant" title="Nog geen documenten"
@@ -18,8 +18,7 @@
                         <span class="min-w-0 flex-1">
                             <b class="block truncate text-sm font-semibold text-white">{{ $document->name }}</b>
                             <small class="block truncate text-xs text-slate-400">
-                                {{ $document->category->label() }}, {{ $document->created_at->translatedFormat('j M Y') }}
-                                @if ($document->uploader), {{ $document->uploader->name }} @endif
+                                {{ $document->category->label() }}, {{ $document->created_at->translatedFormat('j M Y') }}@if ($document->uploader), {{ $document->uploader->name }} @endif
                             </small>
                         </span>
                         <x-icon name="arrow-down-tray" class="h-4 w-4 shrink-0 text-slate-500" />

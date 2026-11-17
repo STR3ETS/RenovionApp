@@ -105,9 +105,20 @@ class WorkOrder extends Model
     }
 
     /** De kosten van deze bon: geboekte uren tegen het vastgelegde tarief. */
+    /**
+     * Het tarief waarmee de uren tellen: vastgelegd op de bon, anders dat van de medewerker (standaard 50).
+     * Goedkeuren legt precies dit tarief vast, dus de bon toont vóór goedkeuren al wat het gaat kosten.
+     */
+    public function effectiveRate(): float
+    {
+        return $this->hourly_rate !== null
+            ? (float) $this->hourly_rate
+            : ($this->user?->rate() ?? 50.0);
+    }
+
     public function laborCost(): float
     {
-        return (float) $this->hours * (float) ($this->hourly_rate ?? 0);
+        return (float) $this->hours * $this->effectiveRate();
     }
 
     /** Afwijking tegenover de begrote uren, in uren. */

@@ -8,7 +8,7 @@
 
         <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
             <h2 class="mb-4 text-sm font-bold text-white">Project</h2>
-            <div class="grid gap-4 sm:grid-cols-2">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <x-field label="Klant" name="customer_id" class="sm:col-span-2">
                     <select name="customer_id" id="customer_id" class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
                         @foreach ($customers as $customer)
@@ -65,7 +65,7 @@
 
         <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
             <h2 class="mb-4 text-sm font-bold text-white">Uitvoerders op dit project</h2>
-            <div class="grid gap-2 sm:grid-cols-2">
+            <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 @forelse ($uitvoerders as $uitvoerder)
                     <label class="flex items-center gap-2 rounded-xl border border-surface-700 p-3 text-sm font-medium text-white transition has-checked:border-brand-400 has-checked:bg-brand-500/10">
                         <input type="checkbox" name="craftsmen[]" value="{{ $uitvoerder->id }}"
@@ -81,7 +81,7 @@
 
         <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
             <h2 class="mb-4 text-sm font-bold text-white">Betalingen</h2>
-            <div class="grid gap-4 sm:grid-cols-2">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <x-field label="Projectwaarde (€)" name="value">
                     <input type="number" name="value" id="value" value="{{ old('value', $project->value) }}" min="0" step="0.01" class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
                 </x-field>

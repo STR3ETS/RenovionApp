@@ -18,7 +18,7 @@
 
     @include('dashboard.partials.vandaag-kop')
 
-    <div class="grid gap-x-4 gap-y-6 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-x-4 gap-y-6 lg:grid-cols-3">
 
         {{-- Werklijst centraal: actie gaat vóór informatie --}}
         <section class="lg:col-span-2">
@@ -50,7 +50,7 @@
                                     <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg {{ $iconClasses(true) }}"><x-icon name="currency-euro" class="h-4 w-4" /></span>
                                     <span class="min-w-0 flex-1">
                                         <span class="block truncate text-sm font-bold text-white">{{ $project->customer->name }}: aanbetaling nog niet ontvangen</span>
-                                        <span class="block truncate text-xs text-slate-400">€ {{ number_format((float) $project->deposit_amount, 0, ',', '.') }} · start {{ $project->start_date->translatedFormat('j M') }}</span>
+                                        <span class="block truncate text-xs text-slate-400">€ {{ number_format((float) $project->deposit_amount, 0, ',', '.') }}, start {{ $project->start_date->translatedFormat('j M') }}</span>
                                     </span>
                                 </a>
                                 <a href="{{ route('projects.show', $project) }}" class="{{ $pillClasses }}">Controleer</a>
@@ -64,7 +64,7 @@
                                     <span class="min-w-0 flex-1">
                                         <span class="block truncate text-sm font-bold text-white">Offerte {{ $quote->number }} wacht op opvolging</span>
                                         <span class="block truncate text-xs text-slate-400">
-                                            {{ $quote->customer->name }} · al {{ $quote->daysOpen() }} {{ $quote->daysOpen() === 1 ? 'dag' : 'dagen' }} open · € {{ number_format((float) $quote->total, 0, ',', '.') }}@if ($quote->viewed_count > 0) · {{ $quote->viewed_count }}× bekeken @endif
+                                            {{ $quote->customer->name }}, al {{ $quote->daysOpen() }} {{ $quote->daysOpen() === 1 ? 'dag' : 'dagen' }} open, € {{ number_format((float) $quote->total, 0, ',', '.') }}@if ($quote->viewed_count > 0), {{ $quote->viewed_count }}× bekeken @endif
                                         </span>
                                     </span>
                                 </a>
@@ -81,8 +81,7 @@
                                         <span class="block truncate text-sm font-bold text-white">
                                             {{ ucfirst($lead->next_action ?? ($lead->status === \App\Enums\LeadStatus::Nieuw ? 'nieuwe aanvraag opvolgen' : 'opvolgen')) }}: {{ $lead->customer->name }}@if ($teLaat) (te laat)@endif
                                         </span>
-                                        <span class="block truncate text-xs text-slate-400">
-                                            @if ($lead->next_action_at){{ $lead->next_action_at->isToday() ? $lead->next_action_at->format('H:i') : $lead->next_action_at->translatedFormat('j M H:i') }} · @endif{{ $lead->service ?? 'Aanvraag' }} · {{ $lead->status->label() }}
+                                        <span class="block truncate text-xs text-slate-400">@if ($lead->next_action_at){{ $lead->next_action_at->isToday() ? $lead->next_action_at->format('H:i') : $lead->next_action_at->translatedFormat('j M H:i') }}, @endif{{ $lead->service ?? 'Aanvraag' }}, {{ $lead->status->label() }}
                                         </span>
                                     </span>
                                 </a>
@@ -100,7 +99,7 @@
                                 <span class="min-w-0 flex-1">
                                     <span class="block truncate text-sm font-bold text-white">{{ $task->title }}@if ($task->isOverdue()) (te laat)@endif</span>
                                     <span class="block truncate text-xs text-slate-400">
-                                        {{ $task->customer?->name ?? $task->project?->name ?? 'Algemeen' }}@if ($task->deadline) · {{ $task->deadline->isToday() ? 'vandaag' : $task->deadline->translatedFormat('j M') }}@endif · prioriteit {{ strtolower($task->priority->label()) }}
+                                        {{ $task->customer?->name ?? $task->project?->name ?? 'Algemeen' }}@if ($task->deadline), {{ $task->deadline->isToday() ? 'vandaag' : $task->deadline->translatedFormat('j M') }}@endif, prioriteit {{ strtolower($task->priority->label()) }}
                                     </span>
                                 </span>
                                 <button type="button"
@@ -133,7 +132,7 @@
                             @php
                                 // Subregel: waar het over gaat, wat voor afspraak, en wie het doet.
                                 $context = $entry->title ? ($entry->project?->name ?? $entry->customer?->name) : null;
-                                $subregel = collect([$context, $entry->type->label(), $entry->user?->name])->filter()->implode(' · ');
+                                $subregel = collect([$context, $entry->type->label(), $entry->user?->name])->filter()->implode(', ');
                                 $dossier = $entry->project ? route('projects.show', $entry->project) : ($entry->lead ? route('leads.show', $entry->lead) : null);
                             @endphp
                             <div class="flex items-center gap-4 py-3.5">
@@ -177,7 +176,7 @@
                                 <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg {{ $iconTint }}"><x-icon name="clipboard-check" class="h-4 w-4" /></span>
                                 <span class="min-w-0 flex-1">
                                     <span class="block truncate text-sm font-bold text-white">{{ $task->title }}</span>
-                                    <span class="block truncate text-xs text-slate-400">{{ collect([$wanneer, $task->project?->name ?? $task->customer?->name])->filter()->implode(' · ') ?: 'Geen deadline' }}</span>
+                                    <span class="block truncate text-xs text-slate-400">{{ collect([$wanneer, $task->project?->name ?? $task->customer?->name])->filter()->implode(', ') ?: 'Geen deadline' }}</span>
                                 </span>
                                 <button type="button"
                                         x-data

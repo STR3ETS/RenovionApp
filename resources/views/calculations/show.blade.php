@@ -14,7 +14,7 @@
         </div>
     @endif
 
-    <div class="grid gap-4 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div class="space-y-4 lg:col-span-2">
 
             {{-- Regels --}}
@@ -123,7 +123,7 @@
                         </div>
                     </div>
 
-                    <form method="POST" action="{{ route('calculations.lines.store', $calculation) }}" class="grid gap-3 sm:grid-cols-12">
+                    <form method="POST" action="{{ route('calculations.lines.store', $calculation) }}" class="grid grid-cols-1 gap-3 sm:grid-cols-12">
                         @csrf
                         <input type="hidden" name="price_item_id" :value="line.price_item_id">
                         <div class="sm:col-span-2">

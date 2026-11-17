@@ -43,7 +43,7 @@
         </x-tabs>
 
         <span class="flex shrink-0 items-center gap-1.5 rounded-full border border-surface-700 px-3.5 py-2 text-sm text-slate-400">
-            Modelkosten <b class="text-white">EUR {{ number_format($cost, 2, ',', '.') }}</b>
+            Modelkosten <b class="text-white">€ {{ number_format($cost, 2, ',', '.') }}</b>
         </span>
     </div>
 
@@ -66,10 +66,7 @@
                                 <span class="rounded-full px-2 py-0.5 text-[10px] font-bold {{ $run->badgeClasses() }}">{{ $run->statusLabel() }}</span>
                             </span>
                             <small class="mt-0.5 block truncate text-xs text-slate-400">
-                                {{ $run->reference }}, {{ $agent['name'] }}
-                                @if ($run->project), {{ $run->project->name }} @endif
-                                @if ($run->trigger), aanleiding {{ $run->trigger }} @endif
-                                , {{ $run->created_at->diffForHumans() }}
+                                {{ collect([$run->reference, $agent['name'], $run->project?->name, $run->trigger ? 'aanleiding '.$run->trigger : null, $run->created_at->diffForHumans()])->filter()->implode(', ') }}
                             </small>
                         </span>
 
@@ -78,13 +75,13 @@
                                 <small class="block text-xs text-slate-500">{{ $run->duration() }} seconden</small>
                             @endif
                             @if ((float) $run->cost > 0)
-                                <small class="block text-xs text-slate-500">EUR {{ number_format((float) $run->cost, 2, ',', '.') }}</small>
+                                <small class="block text-xs text-slate-500">€ {{ number_format((float) $run->cost, 2, ',', '.') }}</small>
                             @endif
                         </span>
                     </button>
 
                     <div x-show="open" x-cloak class="border-t border-surface-700 bg-surface-850 p-4">
-                        <div class="grid gap-4 lg:grid-cols-2">
+                        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
                             <div>
                                 <p class="mb-2 text-[11px] font-bold tracking-widest text-slate-500 uppercase">Verloop</p>
                                 @if (filled($run->steps))

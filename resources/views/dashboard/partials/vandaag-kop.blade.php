@@ -61,7 +61,7 @@
     $kpis = collect([
         [
             'label' => 'Werkvoorraad excl. btw',
-            'value' => 'EUR '.number_format($stats['omzet_lopend'], 0, ',', '.'),
+            'value' => '€ '.number_format($stats['omzet_lopend'], 0, ',', '.'),
             'sub' => $stats['actieve_projecten'].' '.($stats['actieve_projecten'] === 1 ? 'project' : 'projecten').' in opdracht',
             'dark' => true,
             'url' => route('projects.index'),

@@ -1,5 +1,5 @@
 @php
-    $eur = fn (float $v) => 'EUR '.number_format($v, 0, ',', '.');
+    $eur = fn (float $v) => '€ '.number_format($v, 0, ',', '.');
     $f = $finance;
     $maxCash = max(1, collect($f['cashflow'])->flatMap(fn ($m) => [$m['in'], $m['out']])->max() ?: 1);
     $maxRev = max(1, collect($f['revenue_per_month'])->max() ?: 1);
@@ -20,7 +20,7 @@
         <x-kpi label="Pipeline gewogen" :value="$eur($f['pipeline'])" :sub="$eur($f['open_quotes']).' aan offertes'" />
     </x-kpi-row>
 
-    <div class="grid gap-4 lg:grid-cols-2">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {{-- Omzet per maand, zes maanden terug --}}
         <div class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
             <h2 class="mb-4 text-sm font-bold text-white">Omzet <span class="text-brand-500">per maand</span></h2>

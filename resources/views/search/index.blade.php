@@ -79,8 +79,7 @@
                                 <span class="min-w-0 flex-1">
                                     <span class="block truncate text-sm font-semibold text-white">{{ $task->title }}</span>
                                     <span class="block truncate text-xs text-slate-400">
-                                        {{ $task->project?->name ?? $task->customer?->name ?? 'Algemeen' }}
-                                        @if ($task->deadline), {{ $task->deadline->translatedFormat('j M') }} @endif
+                                        {{ $task->project?->name ?? $task->customer?->name ?? 'Algemeen' }}@if ($task->deadline), {{ $task->deadline->translatedFormat('j M') }} @endif
                                     </span>
                                 </span>
                                 <span class="rounded-full px-2.5 py-0.5 text-xs font-semibold {{ $task->status->badgeClasses() }}">{{ $task->status->label() }}</span>

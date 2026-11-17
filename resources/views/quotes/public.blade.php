@@ -73,7 +73,8 @@
                         {{-- Geen <x-field>: die is gemaakt voor de donkere website (label bijna wit), dit vel is licht. --}}
                         <div>
                             <label for="signed_name" class="mb-1 block text-sm font-semibold text-navy-900">Uw volledige naam</label>
-                            <input type="text" name="signed_name" id="signed_name" required value="{{ old('signed_name') }}" placeholder="{{ $quote->customer->name }}"
+                            {{-- Bij een fout springt de pagina naar dit veld; anders staat de melding onderaan buiten beeld. --}}
+                            <input type="text" name="signed_name" id="signed_name" required value="{{ old('signed_name') }}" placeholder="{{ $quote->customer->name }}" @if ($errors->hasAny(['signed_name', 'agree'])) autofocus @endif
                                    class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
                             @error('signed_name')<p class="mt-1 text-xs font-medium text-red-600">{{ $message }}</p>@enderror
                         </div>
@@ -89,12 +90,13 @@
                     </form>
 
                     <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                        <details class="rounded-2xl border border-gray-200 bg-white p-5">
+                        <details class="rounded-2xl border border-gray-200 bg-white p-5" @if ($errors->has('message')) open @endif>
                             <summary class="cursor-pointer text-sm font-semibold text-navy-900">Aanpassing aanvragen</summary>
                             <form method="POST" action="{{ route('quotes.public.change', $quote->public_token) }}" class="mt-3 space-y-2">
                                 @csrf
-                                <textarea aria-label="Wat wilt u aangepast zien" name="message" rows="3" required placeholder="Wat wilt u aangepast zien?"
-                                          class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500"></textarea>
+                                <textarea aria-label="Wat wilt u aangepast zien" name="message" rows="3" required maxlength="2000" placeholder="Wat wilt u aangepast zien?" @error('message') autofocus @enderror
+                                          class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">{{ old('message') }}</textarea>
+                                @error('message')<p class="text-xs font-medium text-red-600">{{ $message }}</p>@enderror
                                 <button type="submit" class="rounded-xl border border-gray-300 bg-white px-5 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">Versturen</button>
                             </form>
                         </details>
@@ -102,7 +104,7 @@
                             <summary class="cursor-pointer text-sm font-semibold text-navy-900">Offerte afwijzen</summary>
                             <form method="POST" action="{{ route('quotes.public.reject', $quote->public_token) }}" class="mt-3 space-y-2">
                                 @csrf
-                                <textarea aria-label="Reden van afwijzen" name="reason" rows="3" placeholder="Mogen we vragen waarom? (niet verplicht)"
+                                <textarea aria-label="Reden van afwijzen" name="reason" rows="3" maxlength="2000" placeholder="Mogen we vragen waarom? (niet verplicht)"
                                           class="w-full rounded-xl border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500"></textarea>
                                 <button type="submit" class="rounded-xl border border-red-200 bg-white px-5 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50">Afwijzen</button>
                             </form>

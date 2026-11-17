@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\Quote;
 use App\Models\QuoteTemplate;
 use App\Services\QuoteBlockAi;
+use App\Support\NativeApp;
 use App\Support\QuoteBlockRegistry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -37,8 +38,12 @@ class QuoteBuilderController extends Controller
             $quote->update(['blocks' => $typed]);
         }
 
+        // Vanuit de app terug naar het offertescherm in de app, niet naar de serverpagina.
+        $bundle = session('app_bundle');
+
         return view('quotes.builder', [
             'quote' => $quote,
+            'back' => NativeApp::active() && $bundle ? $bundle.'/#/offerte/'.$quote->id : route('quotes.show', $quote),
             'templates' => QuoteTemplate::orderBy('sort_order')->orderBy('name')->get(),
             'registry' => collect(QuoteBlockRegistry::registry())
                 ->map(fn (array $meta, string $type) => [...$meta, 'type' => $type])

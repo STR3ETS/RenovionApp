@@ -6,7 +6,7 @@
     <x-page-header title="Mailteksten" eyebrow="Organisatie" category="klant"
                    subtitle="De teksten die naar klanten gaan, op één plek in plaats van in de hoofden van vier mensen." />
 
-    <div class="grid gap-4 xl:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 xl:grid-cols-3">
         {{-- De templates --}}
         <div class="space-y-3 xl:col-span-2">
             @foreach ($templates as $template)
@@ -47,7 +47,7 @@
                         @csrf
                         @method('PATCH')
 
-                        <div class="grid gap-3 sm:grid-cols-2">
+                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                             <x-field label="Naam" name="name">
                                 <input type="text" name="name" value="{{ $template->name }}"
                                        class="w-full rounded-xl border-surface-600 bg-surface-800 py-2 text-sm text-white focus:border-brand-500 focus:ring-brand-500">

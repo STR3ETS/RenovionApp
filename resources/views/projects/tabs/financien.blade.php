@@ -1,10 +1,10 @@
 @php
     use App\Enums\InvoiceStatus;
-    $eur = fn (float $v) => 'EUR '.number_format($v, 2, ',', '.');
+    $eur = fn (float $v) => '€ '.number_format($v, 2, ',', '.');
     $s = $settlement;
 @endphp
 
-<div class="grid gap-4 lg:grid-cols-3">
+<div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
     <div class="space-y-4 lg:col-span-2">
         {{-- Facturen --}}
         <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">

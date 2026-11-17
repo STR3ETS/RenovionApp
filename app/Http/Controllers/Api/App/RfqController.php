@@ -132,7 +132,7 @@ class RfqController extends Controller
             'subtitle' => collect([
                 $rfq->project->name,
                 $rfq->chapter_code ? 'hoofdstuk '.$rfq->chapter_code : null,
-                'begroot EUR '.number_format((float) $rfq->budget, 0, ',', '.'),
+                'begroot € '.number_format((float) $rfq->budget, 0, ',', '.'),
             ])->filter()->join(', '),
             'status' => ['value' => $rfq->status, 'label' => $rfq->statusLabel(), 'classes' => $rfq->appBadgeClasses()],
             'overdue' => $rfq->isOverdue(),

@@ -30,7 +30,7 @@
                     <span class="shrink-0 text-xs text-slate-500">{{ rtrim(rtrim(number_format((float) $term->percentage, 2, ',', '.'), '0'), ',') }}%</span>
                 @endif
 
-                <span class="w-24 shrink-0 text-right text-sm font-semibold text-white">EUR {{ number_format($bedrag, 0, ',', '.') }}</span>
+                <span class="w-24 shrink-0 text-right text-sm font-semibold text-white">€ {{ number_format($bedrag, 0, ',', '.') }}</span>
                 <span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold {{ $term->badgeClasses() }}">{{ $term->statusLabel() }}</span>
 
                 @if ($budget->isDraft())
@@ -48,7 +48,7 @@
 
     <div class="mt-3 flex items-center justify-between border-t border-surface-700 pt-3">
         <span class="text-sm font-bold text-white">Aanneemsom</span>
-        <span class="text-sm font-bold text-white">EUR {{ number_format($totals->contractSum(), 0, ',', '.') }}</span>
+        <span class="text-sm font-bold text-white">€ {{ number_format($totals->contractSum(), 0, ',', '.') }}</span>
     </div>
 
     @if ($budget->isDraft())

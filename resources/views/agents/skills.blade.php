@@ -7,7 +7,7 @@
                    subtitle="Wat mag welke agent, op welk niveau, en wie beslist erover." />
 
     {{-- De vier niveaus --}}
-    <section class="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <section class="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         @foreach ($levels as $key => $level)
             <div class="rounded-2xl border border-surface-700 bg-surface-800 p-4">
                 <p class="text-[11px] font-bold tracking-widest text-calc-400 uppercase">{{ $level['label'] }}</p>
@@ -83,13 +83,7 @@
                                     Invoer: {{ $skill['input'] }}. Uitkomst: {{ $skill['output'] }}.
                                 </p>
                                 <p class="mt-0.5 text-xs text-slate-500">
-                                    Beslist: {{ $skill['approver'] ?? 'niemand, dit is een vastgestelde actie' }}
-                                    @if ($setting['limit'] !== null)
-                                        , boven EUR {{ number_format($setting['limit'], 0, ',', '.') }} altijd een mens
-                                    @endif
-                                    @if (($runCounts[$skillId] ?? 0) > 0)
-                                        , {{ $runCounts[$skillId] }} {{ $runCounts[$skillId] === 1 ? 'uitvoering' : 'uitvoeringen' }}
-                                    @endif
+                                    Beslist: {{ $skill['approver'] ?? 'niemand, dit is een vastgestelde actie' }}{{ ($setting['limit'] !== null) ? ', '.'boven € '.(number_format($setting['limit'], 0, ',', '.')).' altijd een mens' : '' }}{{ (($runCounts[$skillId] ?? 0) > 0) ? ', '.($runCounts[$skillId]).' '.($runCounts[$skillId] === 1 ? 'uitvoering' : 'uitvoeringen') : '' }}
                                 </p>
                             </div>
                         </div>

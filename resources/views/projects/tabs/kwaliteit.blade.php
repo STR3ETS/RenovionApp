@@ -3,7 +3,7 @@
     $open = $snags->filter->isOpen();
 @endphp
 
-<div class="grid gap-4 lg:grid-cols-3">
+<div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
     <div class="space-y-4 lg:col-span-2">
         {{-- De opleverketen --}}
         <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
@@ -54,8 +54,7 @@
                                 @endif
                             </div>
                             <p class="mt-0.5 text-xs text-slate-400">
-                                {{ $snag->location ?: 'geen locatie' }}, {{ $snag->ownerName() }}
-                                @if ($snag->due_on), voor {{ $snag->due_on->translatedFormat('j M') }} @endif
+                                {{ $snag->location ?: 'geen locatie' }}, {{ $snag->ownerName() }}@if ($snag->due_on), voor {{ $snag->due_on->translatedFormat('j M') }} @endif
                             </p>
                         </div>
                     @endforeach

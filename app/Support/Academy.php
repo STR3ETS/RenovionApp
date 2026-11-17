@@ -421,7 +421,7 @@ class Academy
         ['Geen gunning zonder compleet partnerdossier', 'users'],
         ['Werkbonnen dezelfde week ingevuld en goedgekeurd', 'wrench'],
         ['Meerwerk pas uitvoeren na akkoord van de klant', 'currency-euro'],
-        ['Fotos bij elk kritisch moment, ook voor de Wkb', 'camera'],
+        ["Foto's bij elk kritisch moment, ook voor de Wkb", 'camera'],
     ];
 
     /**

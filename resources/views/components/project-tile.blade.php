@@ -49,7 +49,7 @@
         </div>
 
         <p class="mt-1.5 text-base leading-snug font-bold text-white">{{ $project->name }}</p>
-        <p class="mt-0.5 text-xs text-slate-400">{{ collect([$project->customer->name, $project->city])->filter()->implode(' · ') }}</p>
+        <p class="mt-0.5 text-xs text-slate-400">{{ collect([$project->customer->name, $project->city])->filter()->implode(', ') }}</p>
 
         <div class="mt-4 flex items-center justify-between text-xs font-semibold">
             <span class="text-slate-300">Voortgang</span>

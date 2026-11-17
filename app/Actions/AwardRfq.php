@@ -47,7 +47,7 @@ class AwardRfq
             // De opdrachtbevestiging moet getekend terugkomen voordat er iemand start.
             Task::create([
                 'title' => "Opdrachtbevestiging {$rfq->order_number} laten tekenen",
-                'note' => $subcontractor->name.', EUR '.number_format((float) $bid->price, 2, ',', '.'),
+                'note' => $subcontractor->name.', € '.number_format((float) $bid->price, 2, ',', '.'),
                 'project_id' => $rfq->project_id,
                 'owner_id' => $user->id,
                 'deadline' => today()->addDays(2),
@@ -69,7 +69,7 @@ class AwardRfq
                 TimelineEventType::Wijziging,
                 "{$rfq->number} gegund aan {$subcontractor->name}",
                 sprintf(
-                    'EUR %s tegenover EUR %s begroot. Opdracht %s.',
+                    '€ %s tegenover € %s begroot. Opdracht %s.',
                     number_format((float) $bid->price, 2, ',', '.'),
                     number_format((float) $rfq->budget, 2, ',', '.'),
                     $rfq->order_number,
@@ -78,7 +78,7 @@ class AwardRfq
             );
 
             return sprintf(
-                'Gegund aan %s voor EUR %s. Dat is EUR %s %s de begroting en staat nu als verplichting in de prognose.',
+                'Gegund aan %s voor € %s. Dat is € %s %s de begroting en staat nu als verplichting in de prognose.',
                 $subcontractor->name,
                 number_format((float) $bid->price, 2, ',', '.'),
                 number_format(abs($savings ?? 0), 2, ',', '.'),

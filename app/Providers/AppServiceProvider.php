@@ -65,6 +65,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -101,6 +102,16 @@ class AppServiceProvider extends ServiceProvider
                 'weekdays_short' => ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'],
             ]);
         }
+
+        // Grenzen in validatiemeldingen met een komma: "Uren moet minimaal 0,25 zijn", niet "0.25".
+        foreach (['min' => ':min', 'max' => ':max'] as $rule => $placeholder) {
+            Validator::replacer($rule, fn (string $message, string $attribute, string $r, array $parameters) => str_replace($placeholder, str_replace('.', ',', $parameters[0] ?? ''), $message));
+        }
+        Validator::replacer('between', fn (string $message, string $attribute, string $r, array $parameters) => str_replace(
+            [':min', ':max'],
+            [str_replace('.', ',', $parameters[0] ?? ''), str_replace('.', ',', $parameters[1] ?? '')],
+            $message,
+        ));
 
         // App-tokens (api/app): na 60 dagen niet gebruiken opnieuw inloggen. Sanctum's eigen 'expiration'
         // telt vanaf het aanmaken; dit telt vanaf het laatste gebruik, zodat dagelijks gebruik ingelogd blijft.

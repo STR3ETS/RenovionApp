@@ -36,8 +36,7 @@
                 </a>
             @endif
             <p class="mt-1 text-xs text-slate-500">
-                {{ $entry->date->translatedFormat('j M') }}@if (! $einde->isSameDay($entry->date)) t/m {{ $einde->translatedFormat('j M') }}@endif
-                @if ($job->dayLabel()), {{ $job->dayLabel() }}@endif, {{ $job->user->name }}
+                {{ collect([$entry->date->translatedFormat('j M').(! $einde->isSameDay($entry->date) ? ' t/m '.$einde->translatedFormat('j M') : ''), $job->dayLabel(), $job->user->name])->filter()->implode(', ') }}
             </p>
         </div>
 
@@ -143,8 +142,7 @@
         @endforeach
     </nav>
 
-    @if ($tab === 'stappen')
-        @if (in_array($job->status, [JobStatus::Gepland, JobStatus::Onderweg], true))
+    @if ($tab === 'stappen')@if (in_array($job->status, [JobStatus::Gepland, JobStatus::Onderweg], true))
             <div class="mb-4 flex items-start gap-3 rounded-xl border border-lead-500/25 bg-lead-500/10 p-4">
                 <x-icon name="flag" class="h-5 w-5 shrink-0 text-lead-300" />
                 <p class="text-sm text-slate-200">

@@ -1,9 +1,9 @@
 @php
     use App\Models\PurchaseOrder;
-    $eur = fn (float $v) => 'EUR '.number_format($v, 0, ',', '.');
+    $eur = fn (float $v) => '€ '.number_format($v, 0, ',', '.');
 @endphp
 
-<div class="grid gap-4 lg:grid-cols-2">
+<div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
     {{-- Bestellingen --}}
     <div>
         <h2 class="mb-3 text-sm font-bold text-white">Bestellingen</h2>
@@ -26,10 +26,7 @@
                             </span>
                             <span class="mt-0.5 block truncate text-xs text-slate-400">
                                 {{ $order->number }},
-                                {{ $order->expected_on ? 'levering '.$order->expected_on->translatedFormat('j M') : 'geen leverdatum' }}
-                                @if ($order->invoices->isEmpty())
-                                    , nog geen factuur
-                                @endif
+                                {{ $order->expected_on ? 'levering '.$order->expected_on->translatedFormat('j M') : 'geen leverdatum' }}{{ ($order->invoices->isEmpty()) ? ', '.'nog geen factuur' : '' }}
                             </span>
                         </span>
                         <span class="shrink-0 text-sm font-bold text-white">{{ $eur($order->total()) }}</span>
@@ -57,8 +54,7 @@
                                 <span class="rounded-full px-2 py-0.5 text-[10px] font-bold {{ $rfq->badgeClasses() }}">{{ $rfq->statusLabel() }}</span>
                             </span>
                             <span class="mt-0.5 block truncate text-xs text-slate-400">
-                                {{ $rfq->number }}, {{ $rfq->bids->count() }} {{ $rfq->bids->count() === 1 ? 'bieding' : 'biedingen' }}
-                                @if ($rfq->winner), gegund aan {{ $rfq->winner->name }} @endif
+                                {{ $rfq->number }}, {{ $rfq->bids->count() }} {{ $rfq->bids->count() === 1 ? 'bieding' : 'biedingen' }}@if ($rfq->winner), gegund aan {{ $rfq->winner->name }} @endif
                             </span>
                         </span>
 

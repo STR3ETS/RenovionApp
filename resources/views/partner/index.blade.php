@@ -1,6 +1,6 @@
 @php
     use App\Support\CertificateCatalogue;
-    $eur = fn (float $v) => 'EUR '.number_format($v, 2, ',', '.');
+    $eur = fn (float $v) => '€ '.number_format($v, 2, ',', '.');
 @endphp
 
 <x-layouts.portal title="Overzicht" portal="Partnerportaal" home="partner.index">
@@ -36,7 +36,7 @@
                 @csrf
                 <p class="text-sm font-semibold text-gray-900">Stuk aanleveren</p>
 
-                <div class="grid gap-2 sm:grid-cols-2">
+                <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <select name="type" required
                             class="w-full rounded-xl border-gray-300 py-2 text-sm focus:border-brand-500 focus:ring-brand-500">
                         <optgroup label="Documenten">
@@ -89,10 +89,7 @@
                             <div class="min-w-0">
                                 <p class="font-bold text-gray-900">{{ $rfq->title }}</p>
                                 <p class="text-sm text-gray-500">
-                                    {{ $rfq->number }}, {{ $rfq->project->city ?: $rfq->project->name }}
-                                    @if ($rfq->starts_on)
-                                        , gewenste start {{ $rfq->starts_on->translatedFormat('j F') }}
-                                    @endif
+                                    {{ $rfq->number }}, {{ $rfq->project->city ?: $rfq->project->name }}{{ ($rfq->starts_on) ? ', '.'gewenste start '.($rfq->starts_on->translatedFormat('j F')) : '' }}
                                 </p>
                             </div>
                             @if ($rfq->deadline)
@@ -108,15 +105,14 @@
 
                         @if ($own)
                             <div class="mt-3 rounded-xl bg-green-50 p-3 text-sm text-gray-700">
-                                <b>Uw bieding staat vast:</b> {{ $eur((float) $own->price) }}
-                                @if ($own->can_start_on), start {{ $own->can_start_on->translatedFormat('j F') }} @endif.
+                                <b>Uw bieding staat vast:</b> {{ $eur((float) $own->price) }}@if ($own->can_start_on), start {{ $own->can_start_on->translatedFormat('j F') }} @endif.
                                 U kunt hem hieronder nog aanpassen zolang wij niet hebben besloten.
                             </div>
                         @endif
 
                         <form method="POST" action="{{ route('partner.bid', $rfq) }}" class="mt-3 space-y-2 border-t border-gray-200 pt-3">
                             @csrf
-                            <div class="grid gap-2 sm:grid-cols-4">
+                            <div class="grid grid-cols-1 gap-2 sm:grid-cols-4">
                                 <input type="number" step="0.01" min="0" name="price" required
                                        value="{{ $own?->price }}" placeholder="Uw prijs"
                                        class="w-full rounded-xl border-gray-300 py-2 text-sm focus:border-brand-500 focus:ring-brand-500">
@@ -154,8 +150,7 @@
                         <div class="min-w-0 flex-1">
                             <p class="truncate font-semibold text-gray-900">{{ $rfq->title }}</p>
                             <p class="truncate text-sm text-gray-500">
-                                {{ $rfq->order_number }}, gegund {{ $rfq->awarded_on?->translatedFormat('j F Y') }}
-                                @if ($rfq->starts_on), start {{ $rfq->starts_on->translatedFormat('j F') }} @endif
+                                {{ $rfq->order_number }}, gegund {{ $rfq->awarded_on?->translatedFormat('j F Y') }}@if ($rfq->starts_on), start {{ $rfq->starts_on->translatedFormat('j F') }} @endif
                             </p>
                         </div>
                         <p class="shrink-0 font-bold text-gray-900">{{ $eur((float) ($bid?->price ?? 0)) }}</p>

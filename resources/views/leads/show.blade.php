@@ -5,7 +5,7 @@
         <a href="{{ route('leads.edit', $lead) }}" class="rounded-lg border border-surface-600 bg-surface-800 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-surface-850">Bewerken</a>
     </x-page-header>
 
-    <div class="grid gap-4 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div class="space-y-4 lg:col-span-2">
 
             {{-- Signalen --}}
@@ -66,7 +66,7 @@
                                   class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">{{ old('summary') }}</textarea>
                     </x-field>
 
-                    <div class="grid gap-3 sm:grid-cols-2">
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <x-field label="Volgende actie" name="next_action">
                             <input type="text" name="next_action" id="next_action" value="{{ old('next_action') }}" placeholder="Bijv. terugbellen na foto's"
                                    class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
@@ -101,7 +101,7 @@
             {{-- Aanvraag --}}
             <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
                 <h2 class="mb-3 text-sm font-bold text-white">Aanvraag</h2>
-                <dl class="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
+                <dl class="grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
                     <div><dt class="text-slate-400">Dienst</dt><dd class="font-medium">{{ $lead->service ?? '-' }}</dd></div>
                     <div><dt class="text-slate-400">Waarde</dt><dd class="font-medium">{{ $lead->value ? '€ '.number_format((float) $lead->value, 0, ',', '.') : '-' }}</dd></div>
                     <div>

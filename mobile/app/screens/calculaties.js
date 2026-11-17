@@ -113,9 +113,16 @@ export default function register({ Alpine, api, screen, cache, fetchedAt, errorT
             Alpine.store('os').toast(done.message);
             await this.changed();
         },
-        async setQuantity(row, value) {
-            if (value === '' || Number(value) === row.quantity) return;
+        async setQuantity(row, input) {
+            const value = input.value;
+            // Leeg of afgewezen: het vakje terug op wat er bewaard is. Alpine zet :value niet opnieuw als
+            // de gegevens niet veranderen, dus anders blijft "-3" staan terwijl er 6 is opgeslagen.
+            if (value === '' || Number(value) === Number(row.quantity)) {
+                input.value = row.quantity;
+                return;
+            }
             const done = await this.run(`qty:${row.id}`, () => api(`calculaties/${id}/regels/${row.id}`, { method: 'PATCH', body: { quantity: value } }), 'Aantal opslaan lukte niet. Controleer de verbinding.');
+            if (!done) input.value = row.quantity;
             await this.changed();
             if (done) Alpine.store('os').toast(done.message);
         },

@@ -18,7 +18,7 @@
                 <div data-enter class="app-ph">
                     <p class="sec-eye"><span x-icon="'document-text'"></span> Offerte</p>
                     <h1><span x-text="data?.title ?? ''"></span><span x-show="!data" class="skeleton inline-block h-7 w-2/3 align-middle"></span></h1>
-                    <p class="sub" x-text="data ? data.number + ', v' + data.version + ' · ' + data.customer : ''"></p>
+                    <p class="sub" x-text="data ? data.number + ', v' + data.version + ', ' + data.customer : ''"></p>
                     <div class="app-ph-acts" x-show="data">
                         <button type="button" @click="pdf()" :disabled="printing" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white active:bg-brand-600 disabled:opacity-60">
                             <span class="inline-flex items-center gap-1.5"><span x-icon="'arrow-down-tray'" class="h-4 w-4"></span> PDF</span>

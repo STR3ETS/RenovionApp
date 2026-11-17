@@ -148,7 +148,7 @@ class JobExecutionTest extends TestCase
 
         $this->actingAs($uitvoerder)->post(route('jobs.complete', $job), [
             'hours' => 7.5,
-            'materials' => "6 st gipsplaat\n2,5 m2 tegels\nemmer tegellijm",
+            'materials' => "6 st gipsplaat\n2,5 m2 tegels\nemmer tegellijm\n3 zakken voegmiddel",
             'notes' => 'Afvoer zat dieper dan op tekening.',
             'signed_name' => 'Mevrouw De Groot',
         ])->assertRedirect(route('jobs.index'));
@@ -163,11 +163,13 @@ class JobExecutionTest extends TestCase
 
         // Materiaal is per regel ontleed, ook de regel zonder hoeveelheid.
         // JSON kent geen verschil tussen 6 en 6.0, dus vergelijken we als float.
-        $this->assertCount(3, $order->materials);
+        $this->assertCount(4, $order->materials);
         $this->assertSame(6.0, (float) $order->materials[0]['quantity']);
         $this->assertSame('gipsplaat', $order->materials[0]['description']);
         $this->assertSame(2.5, (float) $order->materials[1]['quantity']);
         $this->assertSame('emmer tegellijm', $order->materials[2]['description']);
+        // Een eenheid van meer dan vier letters hoort bij de hoeveelheid, niet bij de omschrijving.
+        $this->assertSame(['quantity' => 3.0, 'unit' => 'zakken', 'description' => 'voegmiddel'], [...$order->materials[3], 'quantity' => (float) $order->materials[3]['quantity']]);
 
         // De checklist is bevroren op de bon.
         $this->assertCount($job->steps()->count(), $order->checklist);

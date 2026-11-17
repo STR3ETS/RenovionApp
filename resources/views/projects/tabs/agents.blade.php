@@ -2,7 +2,7 @@
     use App\Support\AgentRegistry;
 @endphp
 
-<div class="grid gap-4 lg:grid-cols-3">
+<div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
     <div class="space-y-4 lg:col-span-2">
         {{-- Wat agents op dit project deden --}}
         <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
@@ -82,8 +82,7 @@
                             </div>
                             <p class="mt-1 text-xs text-slate-400">{{ $approval->summary }}</p>
                             <p class="mt-1 text-xs text-slate-500">
-                                {{ $approval->agentMeta()['name'] }}, {{ $approval->created_at->diffForHumans() }}
-                                @if ($approval->decider), besloten door {{ $approval->decider->name }} @endif
+                                {{ $approval->agentMeta()['name'] }}, {{ $approval->created_at->diffForHumans() }}@if ($approval->decider), besloten door {{ $approval->decider->name }} @endif
                             </p>
 
                             @if ($approval->isOpen())

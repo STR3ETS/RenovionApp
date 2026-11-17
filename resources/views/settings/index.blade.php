@@ -2,7 +2,7 @@
     <x-page-header title="Instellingen" eyebrow="Organisatie" category="klant"
                    subtitle="Bedrijfsgegevens en de standaardwaarden waarmee het systeem rekent." />
 
-    <div class="grid gap-4 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div class="lg:col-span-2">
             <form method="POST" action="{{ route('settings.update') }}" class="space-y-4">
                 @csrf
@@ -12,7 +12,7 @@
                     <div class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
                         <h2 class="mb-4 text-sm font-bold text-white">{{ $group }}</h2>
 
-                        <div class="grid gap-4 sm:grid-cols-2">
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             @foreach ($fields as $key => $field)
                                 @continue($field['group'] !== $group)
                                 <x-field :label="$field['label']" :name="'settings['.$key.']'">

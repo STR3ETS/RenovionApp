@@ -30,9 +30,7 @@ class ApproveWorkOrder
             $order->load(['project', 'user', 'task']);
 
             $hours = (float) $order->hours;
-            $rate = $order->hourly_rate !== null
-                ? (float) $order->hourly_rate
-                : ($order->user?->rate() ?? 50.0);
+            $rate = $order->effectiveRate();
 
             $project = $order->project;
             $before = (int) $project->progress;

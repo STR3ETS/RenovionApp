@@ -16,10 +16,7 @@
         <span class="mb-2 flex items-center justify-between gap-2">
             <span class="rounded-full px-2.5 py-1 text-[11px] font-bold {{ $status->badgeClasses() }}">{{ $status->label() }}</span>
             <small class="text-xs text-slate-500">
-                {{ $entry->date->translatedFormat('j M') }}@if (! $einde->isSameDay($entry->date)) t/m {{ $einde->translatedFormat('j M') }}@endif
-                @if ($job?->dayLabel() && $einde->greaterThanOrEqualTo(today()))
-                    , {{ $job->dayLabel() }}
-                @endif
+                {{ $entry->date->translatedFormat('j M') }}@if (! $einde->isSameDay($entry->date)) t/m {{ $einde->translatedFormat('j M') }}@endif{{ ($job?->dayLabel() && $einde->greaterThanOrEqualTo(today())) ? ', '.($job->dayLabel()) : '' }}
             </small>
         </span>
 

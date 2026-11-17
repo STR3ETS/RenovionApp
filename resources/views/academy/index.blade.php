@@ -64,7 +64,7 @@
                 {{ $category['label'] }}
             </h2>
 
-            <div data-motion-fan class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <div data-motion-fan class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 @foreach ($own as $id => $tour)
                     @php($state = $progress[$id] ?? ['done' => false, 'started' => false, 'step' => 0])
                     <a href="{{ route('academy.show', $id) }}"
@@ -97,7 +97,7 @@
         </section>
     @endforeach
 
-    <div class="grid gap-4 lg:grid-cols-2">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {{-- De afspraken --}}
         <div class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
             <h2 class="mb-1 text-sm font-bold text-white">Zo doen we het <span class="text-brand-500">hier</span></h2>

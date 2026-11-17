@@ -16,10 +16,7 @@
                     <span class="block truncate text-sm font-semibold text-white">{{ $entry->displayTitle() }}</span>
                     <span class="block truncate text-xs text-slate-400">
                         {{ $entry->user?->name ?? 'niemand toegewezen' }},
-                        {{ $entry->type->label() }}
-                        @unless ($einde->isSameDay($entry->date))
-                            , tot en met {{ $einde->translatedFormat('j M') }}
-                        @endunless
+                        {{ $entry->type->label() }}{{ ! ($einde->isSameDay($entry->date)) ? ', '.'tot en met '.($einde->translatedFormat('j M')) : '' }}
                     </span>
                 </span>
 

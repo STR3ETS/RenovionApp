@@ -93,7 +93,7 @@ class WorkOrderController extends Controller
                 'text' => ($variance > 0 ? '+' : '').FieldWork::number($variance, 1),
                 'over' => $variance > 0,
             ],
-            'labor_cost' => $workOrder->hourly_rate !== null ? $workOrder->laborCost() : null,
+            'labor_cost' => $workOrder->laborCost(),
             'materials' => collect($workOrder->materials ?? [])->map(fn (array $post) => [
                 'description' => $post['description'],
                 'quantity' => FieldWork::number($post['quantity']).' '.$post['unit'],

@@ -13,7 +13,7 @@
 
         {{-- Nieuw artikel --}}
         <form x-show="nieuw" x-cloak method="POST" action="{{ route('price-items.store') }}"
-              class="mb-4 grid gap-3 rounded-2xl border border-calc-500/30 bg-calc-500/10 p-4 sm:grid-cols-2 lg:grid-cols-6">
+              class="mb-4 grid grid-cols-1 gap-3 rounded-2xl border border-calc-500/30 bg-calc-500/10 p-4 sm:grid-cols-2 lg:grid-cols-6">
             @csrf
             <input type="hidden" name="q" value="{{ $q }}">
             @if ($type)<input type="hidden" name="type" value="{{ $type->value }}">@endif
@@ -77,7 +77,7 @@
 
                     {{-- Inline bewerken --}}
                     <form x-show="bewerk === {{ $item->id }}" x-cloak method="POST" action="{{ route('price-items.update', $item) }}"
-                          class="grid gap-3 p-3 sm:grid-cols-2 lg:grid-cols-6">
+                          class="grid grid-cols-1 gap-3 p-3 sm:grid-cols-2 lg:grid-cols-6">
                         @csrf
                         @method('PATCH')
                         <input type="hidden" name="q" value="{{ $q }}">

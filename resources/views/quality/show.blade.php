@@ -18,7 +18,7 @@
         </span>
     </x-page-header>
 
-    <div class="grid gap-4 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div class="space-y-4 lg:col-span-2">
             {{-- De opleverketen --}}
             <div class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
@@ -132,10 +132,7 @@
                                             @endif
                                         </span>
                                         <small class="mt-0.5 block text-xs text-slate-400">
-                                            {{ $snag->location ?: 'geen locatie' }}, {{ $snag->ownerName() }}
-                                            @if ($snag->due_on)
-                                                , voor {{ $snag->due_on->translatedFormat('j M') }}
-                                            @endif
+                                            {{ $snag->location ?: 'geen locatie' }}, {{ $snag->ownerName() }}{{ ($snag->due_on) ? ', '.'voor '.($snag->due_on->translatedFormat('j M')) : '' }}
                                         </small>
                                         @if ($snag->description)
                                             <small class="mt-1 block text-xs text-slate-400">{{ $snag->description }}</small>
@@ -170,14 +167,14 @@
 
                 <form method="POST" action="{{ route('snags.store', $project) }}" class="mt-4 space-y-2 border-t border-surface-700 pt-4">
                     @csrf
-                    <div class="grid gap-2 sm:grid-cols-2">
+                    <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                         <input type="text" name="title" required placeholder="Wat is er niet in orde?"
                                class="w-full rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-white placeholder:text-slate-500 focus:border-brand-500 focus:ring-brand-500">
                         <input type="text" name="location" placeholder="Waar precies, bijvoorbeeld: badkamer, achterwand"
                                class="w-full rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-white placeholder:text-slate-500 focus:border-brand-500 focus:ring-brand-500">
                     </div>
 
-                    <div class="grid gap-2 sm:grid-cols-3">
+                    <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
                         <select name="assigned_to" class="w-full rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-white focus:border-brand-500 focus:ring-brand-500">
                             <option value="">Eigen mens</option>
                             @foreach ($people as $person)

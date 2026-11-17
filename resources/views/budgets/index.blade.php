@@ -65,7 +65,7 @@
                     </span>
 
                     <span class="shrink-0 text-right">
-                        <b class="block text-sm font-bold text-white">EUR {{ number_format($t->totalExcludingVat, 0, ',', '.') }}</b>
+                        <b class="block text-sm font-bold text-white">€ {{ number_format($t->totalExcludingVat, 0, ',', '.') }}</b>
                         <small class="block text-xs text-slate-500">
                             {{ number_format($t->hours, 0, ',', '.') }} uur, marge {{ number_format($t->margin, 1, ',', '.') }}%
                         </small>

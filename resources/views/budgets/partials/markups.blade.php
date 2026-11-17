@@ -24,7 +24,7 @@
                 @endif
 
                 <span class="w-24 shrink-0 text-right text-sm font-semibold text-white">
-                    EUR {{ number_format($berekend['amount'] ?? 0, 0, ',', '.') }}
+                    € {{ number_format($berekend['amount'] ?? 0, 0, ',', '.') }}
                 </span>
 
                 @if ($budget->isDraft())
@@ -42,7 +42,7 @@
 
     <div class="mt-3 flex items-center justify-between border-t border-surface-700 pt-3">
         <span class="text-sm font-bold text-white">Totaal staart</span>
-        <span class="text-sm font-bold text-white">EUR {{ number_format($totals->markupTotal, 0, ',', '.') }}</span>
+        <span class="text-sm font-bold text-white">€ {{ number_format($totals->markupTotal, 0, ',', '.') }}</span>
     </div>
 
     @if ($budget->isDraft())

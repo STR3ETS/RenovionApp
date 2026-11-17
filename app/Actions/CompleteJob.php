@@ -124,8 +124,12 @@ class CompleteJob
             ->map(fn (string $line) => trim($line))
             ->filter();
 
-        return $lines->map(function (string $line) {
-            if (preg_match('/^([\d.,]+)\s*([a-zA-Z0-9²]{1,4})?\s+(.+)$/u', $line, $m) === 1) {
+        // Eenheden die langer zijn dan vier letters ("3 zakken tegellijm") eerst, anders wordt
+        // "zakken" deel van de omschrijving en staat er "3 st".
+        $units = 'zakken|kokers|koker|emmers|emmer|dozen|rollen|platen|plaat|pakken|stuks|liter|meter';
+
+        return $lines->map(function (string $line) use ($units) {
+            if (preg_match('/^([\d.,]+)\s*('.$units.'|[a-zA-Z0-9²]{1,4})?\s+(.+)$/iu', $line, $m) === 1) {
                 return [
                     'quantity' => (float) str_replace(',', '.', $m[1]),
                     'unit' => $m[2] ?: 'st',

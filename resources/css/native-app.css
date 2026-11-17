@@ -242,6 +242,13 @@
     box-shadow: 0 1px 0 var(--color-gray-200);
 }
 
+/* Springt de browser naar een veld (verplicht veld leeg, focus), dan niet onder de vaste topbalk (59px) of
+   de onderbalk: anders staat de melding "Vul dit veld in" bij een veld dat je niet ziet. */
+html.native-app {
+    scroll-padding-top: calc(env(safe-area-inset-top) + 76px);
+    scroll-padding-bottom: calc(env(safe-area-inset-bottom) + 88px);
+}
+
 .app-iconbtn {
     display: grid;
     flex: none;
@@ -1557,6 +1564,7 @@ form + .app-li {
     --color-green-600: color-mix(in srgb, var(--color-green-500) 80%, #fff);
     --color-green-700: color-mix(in srgb, var(--color-green-500) 65%, #fff);
     --color-green-800: color-mix(in srgb, var(--color-green-500) 55%, #fff);
+    --color-green-900: color-mix(in srgb, var(--color-green-500) 48%, #fff);
 
     --color-amber-50: color-mix(in srgb, var(--color-amber-500) 10%, var(--os-surface));
     --color-amber-100: color-mix(in srgb, var(--color-amber-500) 18%, var(--os-surface));
@@ -1572,6 +1580,8 @@ form + .app-li {
     --color-red-600: color-mix(in srgb, var(--color-red-500) 70%, #fff);
     --color-red-700: color-mix(in srgb, var(--color-red-500) 60%, #fff);
     --color-red-800: color-mix(in srgb, var(--color-red-500) 52%, #fff);
+    /* Ook de donkerste inkt (meldingen in klussen en werkbonnen), anders donkerrood op donkerrood. */
+    --color-red-900: color-mix(in srgb, var(--color-red-500) 45%, #fff);
 
     --color-blue-100: color-mix(in srgb, var(--color-blue-500) 22%, var(--os-surface));
     --color-blue-700: color-mix(in srgb, var(--color-blue-500) 55%, #fff);
@@ -1611,6 +1621,7 @@ form + .app-li {
     --color-violet-200: color-mix(in srgb, #8b5cf6 34%, var(--os-surface));
     --color-violet-600: color-mix(in srgb, #8b5cf6 75%, #fff);
     --color-violet-700: color-mix(in srgb, #8b5cf6 60%, #fff);
+    --color-violet-800: color-mix(in srgb, #8b5cf6 52%, #fff);
     --color-offerte-100: color-mix(in srgb, var(--color-offerte-500) 22%, var(--os-surface));
     --color-offerte-700: color-mix(in srgb, var(--color-offerte-500) 55%, #fff);
 

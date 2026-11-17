@@ -34,7 +34,7 @@
     @endif
     <p class="mt-1 text-(--hero-fg-soft)">{{ $quote->customer->name }}</p>
 
-    <div class="mt-6 grid gap-6 border-t border-(--hero-line) pt-6 text-sm sm:grid-cols-3">
+    <div class="mt-6 grid grid-cols-1 gap-6 border-t border-(--hero-line) pt-6 text-sm sm:grid-cols-3">
         <div class="space-y-3">
             <div>
                 <p class="text-xs font-bold text-(--hero-fg-muted)">Offertenummer</p>

@@ -30,10 +30,7 @@
                         <small class="mt-0.5 block truncate text-xs text-slate-400">
                             {{ $project->customer?->name }},
                             voortgang {{ $project->progress }}%,
-                            {{ $project->client_photos_count }} {{ $project->client_photos_count === 1 ? 'foto' : "foto's" }} zichtbaar
-                            @if ($project->hidden_photos_count > 0)
-                                , {{ $project->hidden_photos_count }} verborgen
-                            @endif
+                            {{ $project->client_photos_count }} {{ $project->client_photos_count === 1 ? 'foto' : "foto's" }} zichtbaar{{ ($project->hidden_photos_count > 0) ? ', '.($project->hidden_photos_count).' verborgen' : '' }}
                         </small>
                     </span>
 

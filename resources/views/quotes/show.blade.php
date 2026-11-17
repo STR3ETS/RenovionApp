@@ -32,9 +32,7 @@
                         <div class="rounded-xl border p-4 {{ $quote->daysOpen() >= 5 ? 'border-red-300 bg-red-500/10' : 'border-amber-300 bg-amber-500/10' }}">
                             <p class="flex items-center gap-2 text-sm font-semibold {{ $quote->daysOpen() >= 5 ? 'text-red-300' : 'text-amber-300' }}">
                                 <x-signal-dot :color="$quote->daysOpen() >= 5 ? 'red' : 'amber'" />
-                                Offerte staat {{ $quote->daysOpen() }} dagen open
-                                @if ($quote->viewed_count > 0), {{ $quote->viewed_count }}× bekeken @endif
-                                - vandaag opvolgen.
+                                Offerte staat {{ $quote->daysOpen() }} dagen open{{ $quote->viewed_count > 0 ? ', '.$quote->viewed_count.'× bekeken' : '' }} - vandaag opvolgen.
                             </p>
                             @if ($quote->customer->phone)
                                 <a href="tel:{{ $quote->customer->phone }}" class="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-600"><x-icon name="phone" /> {{ $quote->customer->name }} bellen</a>
@@ -77,8 +75,8 @@
                                                     <span class="ml-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-300">stelpost</span>
                                                 @endif
                                             </td>
-                                            <td class="py-2.5 text-right text-slate-300">{{ rtrim(rtrim(number_format((float) $line->quantity, 2, ',', '.'), '0'), ',') }} {{ $line->unit }}</td>
-                                            <td class="py-2.5 text-right font-semibold text-white">€ {{ number_format((float) $line->total, 2, ',', '.') }}</td>
+                                            <td class="py-2.5 pl-3 text-right whitespace-nowrap text-slate-300">{{ rtrim(rtrim(number_format((float) $line->quantity, 2, ',', '.'), '0'), ',') }} {{ $line->unit }}</td>
+                                            <td class="py-2.5 pl-3 text-right font-semibold whitespace-nowrap text-white">€ {{ number_format((float) $line->total, 2, ',', '.') }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>

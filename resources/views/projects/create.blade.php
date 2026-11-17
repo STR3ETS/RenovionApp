@@ -25,7 +25,7 @@
                 </x-field>
             </div>
 
-            <div x-show="!bestaand" x-cloak class="grid gap-4 sm:grid-cols-2">
+            <div x-show="!bestaand" x-cloak class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <x-field label="Naam *" name="customer_name" class="sm:col-span-2">
                     <input type="text" name="customer_name" id="customer_name" value="{{ old('customer_name') }}" placeholder="Familie Jansen" class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
                 </x-field>
@@ -51,7 +51,7 @@
 
         <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
             <h2 class="mb-4 text-sm font-bold text-white">Project</h2>
-            <div class="grid gap-4 sm:grid-cols-2">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <x-field label="Projectnaam *" name="name" class="sm:col-span-2">
                     <input type="text" name="name" id="name" value="{{ old('name') }}" required placeholder="Badkamer Jansen" class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
                 </x-field>
@@ -101,7 +101,7 @@
 
         <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
             <h2 class="mb-4 text-sm font-bold text-white">Uitvoerders op dit project</h2>
-            <div class="grid gap-2 sm:grid-cols-2">
+            <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 @forelse ($uitvoerders as $uitvoerder)
                     <label class="flex items-center gap-2 rounded-xl border border-surface-700 p-3 text-sm font-medium text-white transition has-checked:border-brand-400 has-checked:bg-brand-500/10">
                         <input type="checkbox" name="craftsmen[]" value="{{ $uitvoerder->id }}"

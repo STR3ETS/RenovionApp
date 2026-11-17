@@ -45,7 +45,7 @@ class ProjectDossierTest extends TestCase
             ->assertSee('Opdrachtgever')
             ->assertSee('Projectleider')
             ->assertSee('Projectwaarde')
-            ->assertSee('EUR 18.500,00');
+            ->assertSee('€ 18.500,00');
     }
 
     public function test_every_tab_opens_for_an_admin(): void

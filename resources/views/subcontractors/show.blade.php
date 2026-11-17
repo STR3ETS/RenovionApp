@@ -32,7 +32,7 @@
         </div>
     @endif
 
-    <div class="grid gap-4 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div class="space-y-4 lg:col-span-2">
             {{-- Het dossier --}}
             <div class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
@@ -48,10 +48,7 @@
                             <span class="min-w-0 flex-1">
                                 <b class="block truncate text-sm font-semibold text-white">{{ $item['label'] }}</b>
                                 <small class="block text-xs text-slate-500">
-                                    {{ CertificateCatalogue::stateLabel($item['state']) }}
-                                    @if ($item['until'])
-                                        , geldig tot {{ $item['until']->translatedFormat('j M Y') }}
-                                    @endif
+                                    {{ CertificateCatalogue::stateLabel($item['state']) }}{{ ($item['until']) ? ', '.'geldig tot '.($item['until']->translatedFormat('j M Y')) : '' }}
                                 </small>
                             </span>
                         </div>
@@ -63,7 +60,7 @@
                     @csrf
                     <h3 class="text-sm font-bold text-white">Dossierstuk <span class="text-brand-500">vastleggen</span></h3>
 
-                    <div class="grid gap-2 sm:grid-cols-2">
+                    <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                         <select name="type" required
                                 class="w-full rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-white focus:border-brand-500 focus:ring-brand-500">
                             <optgroup label="Documenten">
@@ -103,7 +100,7 @@
                                     <span class="block truncate text-xs text-slate-500">{{ $rfq->order_number }}, {{ $rfq->project->name }}</span>
                                 </span>
                                 <span class="shrink-0 text-sm font-bold text-white">
-                                    EUR {{ number_format((float) ($rfq->winningBid()?->price ?? 0), 0, ',', '.') }}
+                                    € {{ number_format((float) ($rfq->winningBid()?->price ?? 0), 0, ',', '.') }}
                                 </span>
                             </a>
                         @endforeach

@@ -28,7 +28,7 @@
         @endforeach
     </nav>
 
-    <div class="grid gap-4 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div class="lg:col-span-2">
             <article class="rounded-2xl border border-surface-700 bg-surface-800 p-6 lg:p-8">
                 <p class="text-[11px] font-bold tracking-widest text-calc-400 uppercase">Stap {{ $step + 1 }}</p>

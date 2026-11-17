@@ -20,8 +20,7 @@
                         <span class="rounded-full px-2 py-0.5 text-[10px] font-bold {{ $order->status->badgeClasses() }}">{{ $order->status->label() }}</span>
                     </span>
                     <span class="mt-0.5 block truncate text-xs text-slate-400">
-                        {{ $order->number }}, {{ $order->user?->name ?? 'niet toegewezen' }}, {{ $order->date->translatedFormat('j M Y') }}
-                        @if ($order->isSigned()), afgetekend door {{ $order->signed_name }} @endif
+                        {{ $order->number }}, {{ $order->user?->name ?? 'niet toegewezen' }}, {{ $order->date->translatedFormat('j M Y') }}@if ($order->isSigned()), afgetekend door {{ $order->signed_name }} @endif
                     </span>
                 </span>
 

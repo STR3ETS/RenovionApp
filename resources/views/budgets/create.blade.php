@@ -12,7 +12,7 @@
                        class="w-full rounded-xl border-surface-600 bg-surface-850 text-sm text-white placeholder:text-slate-500 focus:border-brand-500 focus:ring-brand-500">
             </x-field>
 
-            <div class="mt-4 grid gap-4 sm:grid-cols-2">
+            <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <x-field label="Project" name="project_id">
                     <select name="project_id" id="project_id"
                             class="w-full rounded-xl border-surface-600 bg-surface-850 text-sm text-white focus:border-brand-500 focus:ring-brand-500">
@@ -42,7 +42,7 @@
         <div class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
             <h2 class="mb-4 text-sm font-bold text-white">Reken<span class="text-brand-500">instellingen</span></h2>
 
-            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <x-field label="Uurtarief" name="hourly_rate">
                     <input type="number" step="0.01" min="1" name="hourly_rate" id="hourly_rate" value="{{ old('hourly_rate', 55) }}"
                            class="w-full rounded-xl border-surface-600 bg-surface-850 text-sm text-white focus:border-brand-500 focus:ring-brand-500">

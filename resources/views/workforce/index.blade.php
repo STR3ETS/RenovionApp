@@ -89,7 +89,7 @@
                     </button>
 
                     <div x-show="open" x-cloak class="border-t border-surface-700 bg-surface-850 p-4">
-                        <div class="grid gap-4 lg:grid-cols-3">
+                        <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
                             {{-- Deze week --}}
                             <div>
                                 <p class="mb-2 text-[11px] font-bold tracking-widest text-slate-500 uppercase">Deze week</p>
@@ -194,7 +194,7 @@
                         </div>
 
                         @can('manage-team')
-                            <form method="POST" action="{{ route('workforce.update', $person) }}" class="mt-4 grid gap-3 border-t border-surface-700 pt-4 sm:grid-cols-4">
+                            <form method="POST" action="{{ route('workforce.update', $person) }}" class="mt-4 grid grid-cols-1 gap-3 border-t border-surface-700 pt-4 sm:grid-cols-4">
                                 @csrf
                                 @method('PATCH')
                                 <x-field label="Functie" name="job_title">

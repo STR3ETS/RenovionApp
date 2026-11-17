@@ -94,7 +94,7 @@
 
     {{-- Hero: de belofte van het systeem plus de voortgang van de checklist --}}
     <section class="mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-navy-950 via-navy-950 to-navy-900 text-white">
-        <div class="grid gap-6 p-6 lg:grid-cols-3 lg:p-8">
+        <div class="grid grid-cols-1 gap-6 p-6 lg:grid-cols-3 lg:p-8">
             <div class="lg:col-span-2">
                 <p class="text-[11px] font-bold tracking-widest text-brand-400 uppercase">Eén omgeving voor het hele proces</p>
                 @if ($canCrm)
@@ -149,7 +149,7 @@
         <h2 class="mt-0.5 text-lg font-bold text-white">{{ $canCrm ? 'Van aanvraag tot nazorg in '.count($flow).' stappen' : 'Jouw dag in '.count($flow).' stappen' }}</h2>
         <p class="mt-0.5 mb-4 text-sm text-slate-400">{{ $canCrm ? 'Elke stap bouwt voort op de vorige. Wat eenmaal is ingevoerd, hoef je nergens opnieuw te typen.' : 'Meer is het niet. Alles wat je invult ziet kantoor direct.' }}</p>
 
-        <ol class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <ol class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
             @foreach ($flow as $index => [$category, $icon, $title, $text])
                 <li class="flex flex-col gap-3 rounded-2xl border border-surface-700 bg-surface-800 p-5">
                     <div class="flex items-center justify-between">
@@ -218,7 +218,7 @@
         <h2 class="mt-0.5 text-lg font-bold text-white">Waar je wat vindt</h2>
         <p class="mt-0.5 mb-4 text-sm text-slate-400">{{ $canCrm ? 'In de volgorde van het menu links. Klik op een kaart om er direct heen te gaan.' : 'Dit zijn de knoppen in de balk onderin.' }}</p>
 
-        <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             @foreach ($modules as [$icon, $title, $text, $url, $category])
                 <a href="{{ $url }}" class="group flex gap-3 rounded-2xl border border-surface-700 bg-surface-800 p-4 transition hover:border-surface-600 hover:shadow-sm">
                     <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl {{ $chip($category) }}">
@@ -239,7 +239,7 @@
     {{-- Nova --}}
     @if ($canCrm)
         <section class="mb-8 overflow-hidden rounded-2xl border border-surface-700 bg-surface-800">
-            <div class="grid gap-6 p-6 lg:grid-cols-[auto_1fr] lg:p-8">
+            <div class="grid grid-cols-1 gap-6 p-6 lg:grid-cols-[auto_1fr] lg:p-8">
                 <x-nova-avatar class="h-16 w-16 ring-2 ring-brand-500" />
                 <div class="min-w-0">
                     <p class="text-[11px] font-bold tracking-widest text-brand-400 uppercase">Nova</p>
@@ -249,7 +249,7 @@
                         Pas daarna gebeurt er iets, en dat wordt altijd vastgelegd.
                     </p>
 
-                    <div class="mt-5 grid gap-3 sm:grid-cols-2">
+                    <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <div class="flex gap-3">
                             <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg {{ $chip('brand') }}"><x-icon name="microphone" class="h-4 w-4" /></span>
                             <span><span class="block text-sm font-semibold text-white">Spreek of typ een opdracht</span><span class="block text-xs text-slate-400">"Maak een taak voor Peter: morgen stucwerk Bakker nakijken." Nova maakt taken, afspraken en notities.</span></span>
@@ -277,7 +277,7 @@
                     @if ($automations->isNotEmpty())
                         <div class="mt-6 rounded-xl bg-surface-850 p-4">
                             <p class="text-xs font-semibold text-white">Waar Nova op let (automations, elke 15 minuten)</p>
-                            <ul class="mt-2 grid gap-x-6 gap-y-1.5 sm:grid-cols-2">
+                            <ul class="mt-2 grid grid-cols-1 gap-x-6 gap-y-1.5 sm:grid-cols-2">
                                 @foreach ($automations as $automation)
                                     <li class="flex gap-2 text-xs text-slate-400">
                                         <x-icon name="bolt" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-500" />
@@ -300,7 +300,7 @@
         <p class="text-[11px] font-bold tracking-widest text-slate-500 uppercase">Goed om te weten</p>
         <h2 class="mt-0.5 mb-4 text-lg font-bold text-white">Voordat je begint</h2>
 
-        <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             @foreach ($tips as [$icon, $title, $text])
                 <div class="flex gap-3 rounded-2xl border border-surface-700 bg-surface-800 p-4">
                     <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-slate-200">

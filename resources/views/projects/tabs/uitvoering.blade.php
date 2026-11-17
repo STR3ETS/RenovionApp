@@ -10,9 +10,7 @@
                     <span class="min-w-0 flex-1">
                         <span class="block text-sm font-bold text-white">{{ $phase->name }}</span>
                         <span class="block text-xs text-slate-500">
-                            {{ $phase->responsible?->name ?? 'Geen verantwoordelijke' }}
-                            @if ($phase->approved_at), vrijgegeven door {{ $phase->approver?->name ?? '-' }} op {{ $phase->approved_at->translatedFormat('j M') }} @endif
-                            @if ($phase->client_approved_at), klant: gezien en akkoord ({{ $phase->client_approved_at->translatedFormat('j M') }}) @endif
+                            {{ collect([$phase->responsible?->name ?? 'Geen verantwoordelijke', $phase->approved_at ? 'vrijgegeven door '.($phase->approver?->name ?? '-').' op '.$phase->approved_at->translatedFormat('j M') : null, $phase->client_approved_at ? 'klant: gezien en akkoord ('.$phase->client_approved_at->translatedFormat('j M').')' : null])->filter()->implode(', ') }}
                         </span>
                     </span>
 
@@ -51,9 +49,7 @@
                                     <span class="min-w-0 flex-1">
                                         <span class="block truncate text-sm font-semibold text-white {{ $package->isDone() ? 'text-slate-500 line-through' : '' }}">{{ $package->name }}</span>
                                         <span class="block text-xs text-slate-500">
-                                            {{ $package->responsible?->name ?? 'Niet toegewezen' }}
-                                            @if ($package->deadline), {{ $package->deadline->translatedFormat('j M') }} @endif
-                                            @if ($package->items->isNotEmpty()), checklist {{ $package->items->filter->isDone()->count() }}/{{ $package->items->count() }} @endif
+                                            {{ collect([$package->responsible?->name ?? 'Niet toegewezen', $package->deadline?->translatedFormat('j M'), $package->items->isNotEmpty() ? 'checklist '.$package->items->filter->isDone()->count().'/'.$package->items->count() : null])->filter()->implode(', ') }}
                                         </span>
                                     </span>
                                     <span class="rounded-full px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap {{ $package->status->badgeClasses() }}">{{ $package->status->label() }}</span>

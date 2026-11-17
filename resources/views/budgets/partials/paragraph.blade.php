@@ -7,7 +7,7 @@
         <p class="min-w-0 truncate text-xs font-bold tracking-wide text-slate-300 uppercase">
             {{ $chapter->code }}{{ $paragraph->code }} {{ $paragraph->name }}
         </p>
-        <p class="shrink-0 text-sm font-bold text-white">EUR {{ number_format($paragraafTotaal, 0, ',', '.') }}</p>
+        <p class="shrink-0 text-sm font-bold text-white">€ {{ number_format($paragraafTotaal, 0, ',', '.') }}</p>
     </div>
 
     @if ($paragraph->lines->isNotEmpty())

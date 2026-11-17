@@ -20,9 +20,7 @@
                 <span class="min-w-0 flex-1">
                     <span class="block text-sm font-semibold text-white">{{ $quote->customer->name }}</span>
                     <span class="block text-xs text-slate-400">
-                        {{ $quote->number }}, € {{ number_format((float) $quote->total, 2, ',', '.') }}
-                        @if ($quote->daysOpen() !== null), {{ $quote->daysOpen() }} dagen open @endif
-                        @if ($quote->viewed_count > 0), {{ $quote->viewed_count }}× bekeken @endif
+                        {{ collect([$quote->number, '€ '.number_format((float) $quote->total, 2, ',', '.'), $quote->daysOpen() !== null ? $quote->daysOpen().' dagen open' : null, $quote->viewed_count > 0 ? $quote->viewed_count.'× bekeken' : null])->filter()->implode(', ') }}
                     </span>
                 </span>
                 @if ($quote->daysOpen() !== null && $quote->daysOpen() >= 5)

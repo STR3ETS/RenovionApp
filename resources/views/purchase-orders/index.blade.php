@@ -1,7 +1,7 @@
 @php
     use App\Models\PurchaseInvoice;
     use App\Models\PurchaseOrder;
-    $eur = fn (float $v) => 'EUR '.number_format($v, 0, ',', '.');
+    $eur = fn (float $v) => '€ '.number_format($v, 0, ',', '.');
 @endphp
 
 <x-layouts.app title="Inkoop">
@@ -52,7 +52,7 @@
         <x-kpi label="Bestellingen totaal" :value="(string) $orders->total()" sub="in de lijst" />
     </x-kpi-row>
 
-    <div class="grid gap-4 xl:grid-cols-2">
+    <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <div>
             <h2 class="mb-3 text-sm font-bold text-white">Bestellingen</h2>
 
@@ -147,7 +147,7 @@
                 @csrf
                 <h3 class="text-sm font-bold text-white">Inkoopfactuur <span class="text-brand-500">boeken</span></h3>
 
-                <div class="grid gap-3 sm:grid-cols-2">
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <x-field label="Leverancier" name="supplier">
                         <input type="text" name="supplier" id="pi_supplier" required
                                class="w-full rounded-xl border-surface-600 bg-surface-850 text-sm text-white focus:border-brand-500 focus:ring-brand-500">

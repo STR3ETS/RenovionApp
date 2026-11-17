@@ -191,7 +191,7 @@ class AgentController extends Controller
                                 'about' => 'Invoer: '.$skill['input'].'. Uitkomst: '.$skill['output'].'.',
                                 'decides' => collect([
                                     'Beslist: '.($skill['approver'] ?? 'niemand, dit is een vastgestelde actie'),
-                                    $setting['limit'] !== null ? 'boven EUR '.number_format($setting['limit'], 0, ',', '.').' altijd een mens' : null,
+                                    $setting['limit'] !== null ? 'boven € '.number_format($setting['limit'], 0, ',', '.').' altijd een mens' : null,
                                     $runs > 0 ? $runs.' '.($runs === 1 ? 'uitvoering' : 'uitvoeringen') : null,
                                 ])->filter()->implode(', '),
                             ];

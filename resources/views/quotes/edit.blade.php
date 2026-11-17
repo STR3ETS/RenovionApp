@@ -7,7 +7,7 @@
         @method('PATCH')
 
         <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
-            <div class="grid gap-4 sm:grid-cols-2">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <x-field label="Geldig tot" name="valid_until">
                     <input type="date" name="valid_until" id="valid_until" value="{{ old('valid_until', $quote->valid_until?->toDateString()) }}" class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
                 </x-field>
