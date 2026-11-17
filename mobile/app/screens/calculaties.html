@@ -175,7 +175,7 @@
                         <template x-for="row in data?.totals ?? []" :key="row.label">
                             <div class="flex justify-between gap-3" :class="row.strong && 'border-t border-white/10 pt-1.5'">
                                 <dt :class="row.strong ? 'font-semibold' : 'text-navy-300'" x-text="row.label"></dt>
-                                <dd class="whitespace-nowrap" :class="row.big ? 'text-base font-bold text-brand-300' : (row.strong ? 'font-bold' : 'font-medium')" x-text="osFormat.euro(row.value, 2)"></dd>
+                                <dd class="whitespace-nowrap" :class="row.big ? 'text-base font-bold text-brand-400' : (row.strong ? 'font-bold' : 'font-medium')" x-text="osFormat.euro(row.value, 2)"></dd>
                             </div>
                         </template>
                     </dl>
