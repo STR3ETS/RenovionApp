@@ -553,6 +553,12 @@ Alpine.data('nova', (proposeUrl, executeUrl) => ({
                     text: 'Dit zet ik voor je klaar. Akkoord?',
                     proposal: { action: data.action, preview: data.preview, viaVoice, state: 'open' },
                 });
+                // Meer gevraagd ("taak én afspraak"): elk extra voorstel een eigen kaart.
+                (data.more ?? []).forEach((more) => this.messages.push({
+                    role: 'nova',
+                    text: 'En dit zet ik ook klaar.',
+                    proposal: { action: more.action, preview: more.preview, viaVoice, state: 'open' },
+                }));
             } else {
                 this.messages.push({ role: 'nova', text: data.text });
             }

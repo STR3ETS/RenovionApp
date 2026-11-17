@@ -3,9 +3,13 @@
 namespace Tests\Feature;
 
 use App\Enums\LeadStatus;
+use App\Enums\QuoteStatus;
+use App\Models\ChatChannel;
 use App\Models\Customer;
 use App\Models\Lead;
 use App\Models\Project;
+use App\Models\Quote;
+use App\Models\ScheduleEntry;
 use App\Models\User;
 use App\Services\NovaAssistant;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -208,6 +212,39 @@ class NovaTest extends TestCase
 
         $this->assertStringContainsString('WAT NU AANDACHT VRAAGT', $prompt);
         $this->assertStringContainsString('Project loopt uit | Badkamer Laat', $prompt);
+    }
+
+    public function test_nova_knows_the_planning_and_the_open_quotes(): void
+    {
+        // "Wat staat er morgen gepland?" en "welke offertes staan open en wat zijn ze waard?" kon Nova niet beantwoorden.
+        $peter = User::factory()->create(['name' => 'Peter Plan']);
+        ScheduleEntry::create(['user_id' => $peter->id, 'date' => today()->addDay(), 'type' => 'project', 'title' => 'Tegels zetten', 'start_time' => '08:00', 'end_time' => '12:00']);
+        $quote = Quote::factory()->create(['status' => QuoteStatus::Verstuurd, 'total' => 12345]);
+
+        $prompt = (new \ReflectionMethod(NovaAssistant::class, 'systemPrompt'))->invoke(new NovaAssistant, $peter);
+
+        $this->assertStringContainsString('08:00-12:00 | Peter Plan | Projectwerk | Tegels zetten', $prompt);
+        $this->assertStringContainsString($quote->number.' | ', $prompt);
+        $this->assertStringContainsString('€ 12.345 incl. btw', $prompt);
+    }
+
+    public function test_more_than_one_proposal_becomes_more_than_one_card_in_the_chat(): void
+    {
+        config(['renovion.ai.api_key' => 'test-key']);
+        $this->mock(NovaAssistant::class, function ($mock) {
+            $mock->shouldReceive('isConfigured')->andReturn(true);
+            $mock->shouldReceive('propose')->once()->andReturn([
+                'type' => 'proposal',
+                'action' => ['type' => 'create_task', 'params' => ['title' => 'Bellen']],
+                'preview' => 'Taak: "Bellen"',
+                'more' => [['action' => ['type' => 'create_note', 'params' => ['customer_id' => 1, 'body' => 'x']], 'preview' => 'Notitie']],
+            ]);
+        });
+        $kanaal = ChatChannel::create(['type' => 'team', 'name' => 'Algemeen']);
+
+        $this->actingAs(User::factory()->create())->postJson('/chat/'.$kanaal->id.'/berichten', ['body' => '@Nova bel ze en noteer het'])->assertOk();
+
+        $this->assertSame(['Taak: "Bellen"', 'Notitie'], $kanaal->messages()->whereNull('user_id')->orderBy('id')->get()->pluck('nova.preview')->all());
     }
 
     public function test_nova_gets_the_earlier_messages_of_the_conversation(): void

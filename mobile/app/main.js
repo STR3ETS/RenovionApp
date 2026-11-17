@@ -1812,6 +1812,8 @@ Alpine.data('nova', () => ({
             this.messages.push(data.type === 'proposal'
                 ? { role: 'nova', text: 'Dit zet ik voor je klaar. Akkoord?', proposal: { action: data.action, preview: data.preview, viaVoice, state: 'open' } }
                 : { role: 'nova', text: data.text });
+            // Meer gevraagd ("taak én afspraak"): elk extra voorstel een eigen kaart.
+            (data.more ?? []).forEach((more) => this.messages.push({ role: 'nova', text: 'En dit zet ik ook klaar.', proposal: { action: more.action, preview: more.preview, viaVoice, state: 'open' } }));
         } catch (error) {
             this.messages.push({ role: 'nova', text: error.data?.text ?? (error.status >= 500 ? null : error.data?.message) ?? 'Nova is nu niet bereikbaar. Probeer het zo nog eens.' });
         }

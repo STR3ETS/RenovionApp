@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Anthropic\Client;
 use App\Enums\ActionSource;
+use App\Enums\QuoteStatus;
 use App\Enums\ScheduleEntryType;
 use App\Enums\TaskPriority;
 use App\Enums\TimelineEventType;
@@ -11,6 +12,7 @@ use App\Models\AuditLog;
 use App\Models\Customer;
 use App\Models\Lead;
 use App\Models\Project;
+use App\Models\Quote;
 use App\Models\ScheduleEntry;
 use App\Models\Task;
 use App\Models\User;
@@ -62,6 +64,9 @@ class NovaAssistant
             messages: $this->conversation($message, $history),
         );
 
+        // "Maak een taak én plan een afspraak": Claude zet dan meerdere acties klaar. Het eerste voorstel staat
+        // in action/preview (zoals altijd, ook voor oudere apps), de rest in "more"; eerder viel die stil weg.
+        $proposals = [];
         foreach ($response->content as $block) {
             if ($block->type === 'tool_use' && in_array($block->name, self::ACTIONS, true)) {
                 $action = ['type' => $block->name, 'params' => (array) $block->input];
@@ -75,12 +80,16 @@ class NovaAssistant
                     ];
                 }
 
-                return [
-                    'type' => 'proposal',
-                    'action' => $action,
-                    'preview' => $this->preview($action),
-                ];
+                $proposals[] = ['action' => $action, 'preview' => $this->preview($action)];
             }
+        }
+
+        if ($proposals !== []) {
+            return [
+                'type' => 'proposal',
+                ...$proposals[0],
+                'more' => array_slice($proposals, 1),
+            ];
         }
 
         foreach ($response->content as $block) {
@@ -394,6 +403,35 @@ class NovaAssistant
         $leads = Lead::open()->with('customer:id,name')->get(['id', 'customer_id', 'service', 'status'])
             ->map(fn (Lead $l) => "{$l->id} | {$l->customer->name} | ".($l->service ?? '-')." | {$l->status->label()}")->implode("\n");
 
+        // De planning van vandaag tot twee weken vooruit: zonder dit zei Nova op "wat staat er morgen gepland?" en
+        // "hoeveel uur heeft Peter ingepland?" dat ze dat niet kon zien.
+        $planning = ScheduleEntry::with(['user:id,name', 'project:id,name', 'customer:id,name'])
+            ->whereBetween('date', [today(), today()->addDays(14)])
+            ->orderBy('date')->orderBy('start_time')->limit(80)
+            ->get()
+            ->map(fn (ScheduleEntry $entry) => collect([
+                $entry->date->translatedFormat('D j M'),
+                $entry->start_time ? substr($entry->start_time, 0, 5).($entry->end_time ? '-'.substr($entry->end_time, 0, 5) : '') : 'hele dag',
+                $entry->user?->name ?? '-',
+                $entry->type->label(),
+                $entry->title ?: '-',
+                $entry->project?->name ?? $entry->customer?->name ?? '-',
+            ])->implode(' | '))
+            ->implode("\n") ?: 'Niets gepland.';
+
+        // Openstaande offertes met bedrag: de Inbox noemt alleen de offertes die opvolging nodig hebben.
+        $quotes = Quote::with('customer:id,name')
+            ->whereNotIn('status', [QuoteStatus::Akkoord, QuoteStatus::Afgewezen])
+            ->latest('id')->limit(40)->get()
+            ->map(fn (Quote $quote) => collect([
+                $quote->number,
+                $quote->customer?->name ?? '-',
+                $quote->status->label(),
+                '€ '.number_format((float) $quote->total, 0, ',', '.').' incl. btw',
+                $quote->daysOpen() !== null ? $quote->daysOpen().' dagen open' : null,
+            ])->filter()->implode(' | '))
+            ->implode("\n") ?: 'Geen.';
+
         // Wat de Inbox nu toont (projecten die uitlopen, geblokkeerde fasen, offertes zonder opvolging...). Zonder dit
         // zei Nova op "welke projecten lopen achter?" dat ze dat niet kon zien.
         $attention = (new AttentionService)->items()->take(30)
@@ -413,6 +451,9 @@ class NovaAssistant
             - Herken relatieve datums ("morgen", "vrijdag", "volgende week dinsdag") en reken ze om naar YYYY-MM-DD op basis van vandaag.
             - Een "terugbelafspraak" is type "terugbel"; een intake is type "intake"; overleg of bezoek is "afspraak".
             - Eerdere berichten in dit gesprek staan boven het laatste bericht. Gebruik ze om te begrijpen waar "dat", "hem", "die klant" of "doe maar 11 uur" op slaat, en vraag niet opnieuw wat al gezegd is. Een voorstel dat al is uitgevoerd, zet je niet nog eens klaar, tenzij de gebruiker daar om vraagt; een aanpassing op een voorstel ("liever donderdag", "maak er 11 uur van") zet je opnieuw klaar met de tool, als nieuw voorstel met de aanpassing. Beschrijf een voorstel nooit alleen in tekst en vraag nooit "Bevestig je dit?": de gebruiker bevestigt met de knop bij het voorstel, en die verschijnt alleen als je de tool gebruikt.
+            - Vraagt de gebruiker meerdere dingen tegelijk ("maak een taak en plan een afspraak"), gebruik dan in hetzelfde antwoord voor elk een tool: elk voorstel krijgt een eigen knop. Laat er geen stilletjes weg.
+            - Een contactmoment leg je vast bij een open aanvraag (log_contact). Heeft de klant geen open aanvraag, zet het gesprek dan klaar als notitie bij de klant (create_note) en de volgende actie als taak (create_task), in plaats van terug te vragen.
+            - Vragen over de planning ("wat staat er morgen", "hoeveel uur heeft Peter") beantwoord je met de planning hieronder; tel bij uren de tijden op.
             - Bij onduidelijkheid (welke klant, welke datum) vraag je kort terug in plaats van te gokken. Stel dan een gewone vraag in één of twee zinnen, zonder opsomming en zonder vraagtekens als invulplek (dus niet "10:00-??", wel "Tot hoe laat duurt de afspraak?").
             - Een afspraak zonder eindtijd duurt een uur; vraag alleen naar de eindtijd als de duur echt onduidelijk is. Plan je voor iemand anders dan de gebruiker, dan staat dat in de opdracht; anders plan je voor de gebruiker zelf.
             - Informatieve vragen over klanten, projecten of planning beantwoord je direct op basis van de context hieronder.
@@ -430,6 +471,12 @@ class NovaAssistant
 
             OPEN AANVRAGEN (id | klant | dienst | status):
             {$leads}
+
+            PLANNING VANDAAG TOT TWEE WEKEN VOORUIT (datum | tijd | wie | soort | titel | project of klant):
+            {$planning}
+
+            OPENSTAANDE OFFERTES (nummer | klant | status | bedrag | dagen open):
+            {$quotes}
 
             WAT NU AANDACHT VRAAGT (zoals in de Inbox: soort | waarover | toelichting):
             {$attention}

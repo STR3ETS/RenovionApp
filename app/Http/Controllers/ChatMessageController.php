@@ -183,7 +183,7 @@ class ChatMessageController extends Controller
 
             $result = $assistant->propose($prompt, $request->user(), $this->novaHistory($channel, $message));
 
-            return $channel->messages()->create([
+            $first = $channel->messages()->create([
                 'user_id' => null,
                 'body' => $result['type'] === 'proposal'
                     ? 'Zal ik dit klaarzetten?'
@@ -194,6 +194,17 @@ class ChatMessageController extends Controller
                     'executed' => false,
                 ] : null,
             ]);
+
+            // Meer dan één actie gevraagd ("taak én afspraak"): elk voorstel een eigen kaart om te bevestigen.
+            foreach ($result['more'] ?? [] as $proposal) {
+                $channel->messages()->create([
+                    'user_id' => null,
+                    'body' => 'En dit?',
+                    'nova' => ['action' => $proposal['action'], 'preview' => $proposal['preview'], 'executed' => false],
+                ]);
+            }
+
+            return $first;
         } catch (\Throwable) {
             return $channel->messages()->create([
                 'user_id' => null,
