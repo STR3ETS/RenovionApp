@@ -21,7 +21,15 @@
         .canvas-scroll::-webkit-scrollbar { width: 8px; background: transparent; }
         .canvas-scroll::-webkit-scrollbar-thumb { background: rgba(7, 7, 36, 0.12); border-radius: 999px; }
         .canvas-scroll::-webkit-scrollbar-thumb:hover { background: rgba(7, 7, 36, 0.25); }
-        .block-wrapper { position: relative; outline: 2px solid transparent; outline-offset: 5px; border-radius: 18px; transition: outline-color .15s; }
+        /* Het document als één vel over de volle breedte (zoals het offertedocument in de app): de blokken
+           lopen van rand tot rand, gescheiden door een lijn, zonder losse kaarten of ruimte ertussen. */
+        .builder-sheet { background: #fff; }
+        @media (min-width: 64rem) {
+            .builder-sheet { border: 1px solid rgb(229 231 235); box-shadow: 0 1px 3px rgba(7, 7, 36, .06), 0 12px 32px -16px rgba(7, 7, 36, .18); }
+        }
+        .builder-sheet .block-wrapper + .block-wrapper { border-top: 1px solid rgb(229 231 235); }
+        .builder-sheet .block-wrapper > div > :is(section, header, figure) { border: 0 !important; border-radius: 0 !important; box-shadow: none !important; }
+        .block-wrapper { position: relative; outline: 2px solid transparent; outline-offset: -2px; transition: outline-color .15s; }
         .block-wrapper:hover { outline-color: rgba(248, 91, 11, .3); }
         .block-wrapper.selected { outline-color: rgba(248, 91, 11, .6); }
         .block-wrapper.kept { outline-color: rgba(248, 91, 11, .45); }
@@ -48,6 +56,12 @@
             100% { outline-color: rgba(248, 91, 11, 0); box-shadow: 0 0 0 rgba(248, 91, 11, 0); }
         }
         .block-flash { animation: blockFlash 1.2s ease-out; }
+        /* Telefoon: het vel loopt tot de rand, dus geen ruimte ernaast. De knoppen staan in het blok en het gekozen
+           blok maakt rechts plaats, zodat de tekst er niet onder valt. */
+        @media (max-width: 63.99rem) {
+            .block-actions { right: 8px; }
+            .builder-sheet .block-wrapper.selected > div > :is(section, header, figure) { padding-right: 56px !important; }
+        }
     </style>
 </head>
 <body class="flex h-screen flex-col bg-gray-100 pt-safe font-sans text-gray-900 antialiased"
@@ -95,7 +109,7 @@
                 <span x-text="saving ? 'Opslaan…' : (saveError ? 'Opnieuw proberen' : (dirty ? 'Opslaan' : 'Opgeslagen'))"></span>
             </button>
             <div class="h-5 w-px bg-gray-200"></div>
-            <a href="{{ route('quotes.show', $quote) }}" class="h-9 rounded-full bg-brand-500 px-5 text-xs leading-9 font-bold text-white transition hover:bg-brand-600 active:bg-brand-600" title="Terug naar de offertepagina - daar verstuur je de offerte ook">Klaar</a>
+            <a href="{{ route('quotes.show', $quote) }}" class="inline-flex h-9 items-center justify-center rounded-full bg-brand-500 px-5 text-xs font-bold text-white transition hover:bg-brand-600 active:bg-brand-600" title="Terug naar de offertepagina - daar verstuur je de offerte ook">Klaar</a>
         </div>
     </header>
 
@@ -131,17 +145,18 @@
 
         {{-- Midden: canvas, het live document --}}
         <main class="canvas-scroll flex-1 overflow-y-auto">
-            <div class="mx-auto max-w-[800px] space-y-4 px-6 py-6 lg:px-8">
+            <div class="lg:p-6">
 
                 {{-- Lege staat --}}
                 <template x-if="blocks.length === 0">
-                    <div class="rounded-2xl border border-gray-200 bg-white p-12 text-center">
+                    <div class="m-4 rounded-2xl border border-gray-200 bg-white p-12 text-center lg:m-0">
                         <span class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-brand-50 text-brand-500"><x-icon name="document-text" class="h-6 w-6" /></span>
                         <p class="text-sm font-bold text-navy-900">Nog geen blokken</p>
                         <p class="mt-1 text-xs text-gray-500">Begin met een template of voeg losse blokken toe.</p>
                     </div>
                 </template>
 
+                <div x-show="blocks.length > 0" class="builder-sheet">
                 <template x-for="(block, index) in blocks" :key="block.id">
                     <div class="block-wrapper"
                          :class="{ selected: selectedIdx === index, 'drag-over': dragOver === index && dragFrom !== index, dragging: dragFrom === index, kept: block.data._keep }"
@@ -193,8 +208,9 @@
                         @endforeach
                     </div>
                 </template>
+                </div>
 
-                <p x-show="blocks.length > 0" class="pb-2 text-center text-xs text-gray-500">Tekst pas je direct in het document aan. Kies een blok voor verplaatsen, Nova, dupliceren of verwijderen.</p>
+                <p x-show="blocks.length > 0" class="px-4 py-3 text-center text-xs text-gray-500 lg:px-0 lg:pb-0">Tekst pas je direct in het document aan. Kies een blok voor verplaatsen, Nova, dupliceren of verwijderen.</p>
             </div>
         </main>
 
