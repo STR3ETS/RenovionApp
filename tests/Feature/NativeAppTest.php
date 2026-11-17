@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Notifications\TaskAssigned;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -104,5 +105,17 @@ class NativeAppTest extends TestCase
             ->assertDontSee('class="app-nova', false);
 
         $this->get(route('dashboard'))->assertOk()->assertSee('class="app-nova', false);
+    }
+
+    public function test_the_nova_button_has_no_counter(): void
+    {
+        // Wat aandacht vraagt telt de Inbox in de onderbalk; op Nova stond hetzelfde getal, dat verwarde.
+        Cache::put('attention-count', 14);
+        $html = $this->actingAs($this->admin())->withHeader('User-Agent', self::APP)->get(route('dashboard'))->assertOk()->getContent();
+
+        preg_match('/<button[^>]*class="app-nova.*?<\/button>/s', $html, $nova);
+        $this->assertNotEmpty($nova);
+        $this->assertStringNotContainsString('class="cnt"', $nova[0]);
+        $this->assertStringContainsString('<span class="cnt">14</span>', $html); // op de Inbox-tab
     }
 }

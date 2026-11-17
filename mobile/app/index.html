@@ -1997,8 +1997,8 @@
             <template x-if="$store.os.crm">
                 <div x-data="nova">
                     <button type="button" @click="$store.os.nova = true" x-show="!$store.os.nova && $store.os.route !== 'gesprek'" class="app-nova hide-on-keyboard" aria-label="Nova openen">
+                        <!-- Geen teller op Nova: het aantal wat aandacht vraagt staat op de Inbox in de onderbalk. -->
                         <img :src="$store.os.novaUrl" alt="" class="h-full w-full rounded-full object-cover">
-                        <span class="cnt" x-show="$store.os.counts.attention > 0" x-text="$store.os.counts.attention"></span>
                         <span class="spark"><span x-icon="'sparkles'" class="h-3 w-3"></span></span>
                     </button>
                     <div data-popup x-show="$store.os.nova" x-cloak x-fit-viewport @fitted="scrollDown()" @click.self="$store.os.nova = false" class="fixed inset-x-0 top-0 h-dvh z-[60] flex items-end bg-navy-950/60 backdrop-blur-sm">

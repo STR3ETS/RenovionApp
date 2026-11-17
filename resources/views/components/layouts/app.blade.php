@@ -260,10 +260,8 @@
             {{-- Niet in een chatgesprek: daar ligt de knop over Versturen, en @Nova kan in de chat zelf (zoals in de app). --}}
             @unless (request()->routeIs('chat.show'))
             <button type="button" @click="openPanel()" class="app-nova hide-on-keyboard" title="Nova" aria-label="Nova openen">
+                {{-- Geen teller op Nova: het aantal wat aandacht vraagt staat op de Inbox in de onderbalk. --}}
                 <x-nova-avatar class="h-full w-full" />
-                @if ($aandachtCount > 0)
-                    <span class="cnt">{{ $aandachtCount }}</span>
-                @endif
                 <span class="spark"><x-icon name="sparkles" class="h-3 w-3" /></span>
             </button>
             @endunless
