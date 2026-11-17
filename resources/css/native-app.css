@@ -942,6 +942,11 @@ form + .app-li {
     box-shadow: 0 1px 2px rgb(194 80 12 / 0.12);
 }
 
+/* Laden mislukt (de kaart met failText uit screen()): geen grijze blokken meer van een titel die niet komt. */
+.native-app main :has(> .app-card > p[x-text*='failText']) .skeleton {
+    display: none;
+}
+
 /* Een lange titel als laatste stap maakt alleen zichzelf korter: de knop terug en het pijltje houden hun maat
    (anders schoof het pijltje over de knop). */
 .app-crumbs > :is(a, button) {
