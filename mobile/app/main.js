@@ -215,9 +215,15 @@ window.osFormat = format;
 // dezelfde plek in de lijst; een nieuw scherm begint bovenaan. Staat boven de store, want Alpine roept init()
 // (en daarmee navigate()) al aan bij het registreren.
 const visits = [];
+// De laatste plek per adres: tussen de tabs van de onderbalk wissel je niet "terug" maar opzij (Vandaag ->
+// Projecten -> Planning -> Vandaag), en dan hoort elke tab te staan waar je hem liet.
+const lastScroll = new Map();
 function visit(hash) {
     const current = visits.at(-1);
-    if (current) current.y = window.scrollY;
+    if (current) {
+        current.y = window.scrollY;
+        lastScroll.set(current.hash, current.y);
+    }
     if (current?.hash === hash) return { back: false, scrollY: current.y, changed: false };
     const back = visits.at(-2)?.hash === hash;
     if (back) visits.pop();
@@ -370,7 +376,8 @@ Alpine.store('os', {
             this.forget();
             return;
         }
-        const { back, scrollY, changed } = visit(location.hash || '#/');
+        const hash = location.hash || '#/';
+        const { back, scrollY: backY, changed } = visit(hash);
         const apply = () => {
             this.query = query;
             this.route = route;
@@ -382,6 +389,9 @@ Alpine.store('os', {
         // Wisselen tussen de tabs van de onderbalk is geen stap vooruit of terug: dat vloeit kort over.
         const tab = (screen) => Boolean(screen) && this.menu.tabs.some((item) => item.screen === screen);
         const direction = tab(this.route) && tab(route) ? 'tab' : (back ? 'back' : 'forward');
+        // Naar een tab van de onderbalk: terug op de plek waar je die tab verliet, ook als je er andere tabs of
+        // schermen tussendoor opende. Terug (één stap) blijft de plek van de vorige stap.
+        const scrollY = back ? backY : (tab(route) ? (lastScroll.get(hash) ?? 0) : 0);
         slideTo(direction, changed, async () => {
             apply();
             await Alpine.nextTick();
