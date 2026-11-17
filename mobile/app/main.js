@@ -50,8 +50,6 @@ const screenTemplates = import.meta.glob('./screens/*.html', { query: '?raw', im
 // paden die op een ander scherm uitkomen (bijv. /projecten/5?tab=fotos).
 const QUERY_SCREENS = new Set(['werkpakket']);
 const REWRITES = [];
-// Schermen die altijd licht zijn, ook in de donkere weergave (een document zoals de klant het ziet).
-const LIGHT_SCREENS = new Set();
 for (const { routes = {} } of Object.values(screenModules)) {
     SCREENS.push(...(routes.screens ?? []));
     Object.assign(DETAILS, routes.details);
@@ -60,7 +58,6 @@ for (const { routes = {} } of Object.values(screenModules)) {
     Object.assign(SCREEN_PATHS, routes.paths);
     (routes.query ?? []).forEach((name) => QUERY_SCREENS.add(name));
     REWRITES.push(...(routes.rewrites ?? []));
-    (routes.light ?? []).forEach((name) => LIGHT_SCREENS.add(name));
 }
 
 // Laadscherm voor een serverpagina in de vorm van die pagina (index.html, "Naar een serverpagina"):
@@ -299,7 +296,6 @@ Alpine.store('os', {
             return;
         }
         document.documentElement.dataset.sec = SECTIONS[route] ?? route;
-        this.applyTheme();
         window.scrollTo(0, 0);
         setTimeout(() => window.dispatchEvent(new Event('renovion-top-changed')), 50);
     },
@@ -365,7 +361,7 @@ Alpine.store('os', {
     },
 
     applyTheme() {
-        const dark = !LIGHT_SCREENS.has(this.route) && (this.theme === 'donker' || (this.theme === 'telefoon' && darkQuery.matches));
+        const dark = this.theme === 'donker' || (this.theme === 'telefoon' && darkQuery.matches);
         document.documentElement.classList.toggle('os-dark', dark);
         // De statusbalk volgt de kleur bovenaan (native.js).
         setTimeout(() => window.dispatchEvent(new Event('renovion-top-changed')), 50);
@@ -1048,6 +1044,39 @@ Alpine.data('conversation', (id) => ({
     actionsFor: null,
     timer: null,
     onResize: null,
+    // @-suggesties: het deel na de @ vóór de cursor ("pe" bij "hoi @pe"), of null als je geen naam typt.
+    mentionQuery: null,
+
+    // Na elke toets of tik in het veld: typ je net een @naam, dan de suggesties tonen.
+    trackMention() {
+        const field = this.$refs.input;
+        const before = field ? this.input.slice(0, field.selectionStart ?? this.input.length) : this.input;
+        const match = before.match(/(?:^|\s)@([\wÀ-ÿ-]*)$/u);
+        this.mentionQuery = match ? match[1] : null;
+    },
+    // Collega's (en Nova voor kantoor) die passen bij wat je na de @ typt; de voornaam is wat de server herkent.
+    get mentionOptions() {
+        if (this.mentionQuery === null || !this.data) return [];
+        const query = this.mentionQuery.toLocaleLowerCase('nl');
+        const people = [...(this.data.people ?? [])];
+        if (this.data.nova) people.push({ mention: 'Nova', name: 'Nova, je assistent', initial: 'N', nova: true });
+        return people
+            .filter((person) => !query || person.mention.toLocaleLowerCase('nl').startsWith(query) || person.name.toLocaleLowerCase('nl').includes(query))
+            .slice(0, 6);
+    },
+    // De gekozen naam afmaken: "@pe" wordt "@Peter ", de cursor erachter, het toetsenbord blijft open.
+    pickMention(person) {
+        const field = this.$refs.input;
+        const caret = field?.selectionStart ?? this.input.length;
+        const before = this.input.slice(0, caret).replace(/@([\wÀ-ÿ-]*)$/u, `@${person.mention} `);
+        const after = this.input.slice(caret).replace(/^\s+/, '');
+        this.input = before + after;
+        this.mentionQuery = null;
+        this.$nextTick(() => {
+            field?.focus();
+            field?.setSelectionRange(before.length, before.length);
+        });
+    },
 
     init() {
         const cached = cache.read(this.cacheName);
@@ -1165,6 +1194,7 @@ Alpine.data('conversation', (id) => ({
         if (!text || this.busy) return;
         this.busy = true;
         this.input = '';
+        this.mentionQuery = null;
         try {
             const { messages } = await api(`chat/${id}/berichten`, { method: 'POST', body: { body: text } });
             this.append(messages);
@@ -1625,16 +1655,34 @@ async function printPart(element, title) {
     sheet.append(element.cloneNode(true));
     document.body.append(sheet);
     root.classList.add('os-print');
+    // Op papier altijd licht, ook in de donkere weergave (de printdialoog dekt de app zolang hij openstaat).
+    const dark = root.classList.contains('os-dark');
+    root.classList.remove('os-dark');
     document.title = title;
-    // De printdialoog leest de pagina zolang hij openstaat (ook bij een ander papierformaat). os-print werkt
-    // alleen bij afdrukken, dus het blijft staan tot de gebruiker weer in de app tikt of het scherm verlaat.
+    // De printdialoog leest de pagina zolang hij openstaat (ook bij een ander papierformaat). Daarom blijft dit
+    // staan tot de app weer in beeld komt, de gebruiker weer in de app tikt of het scherm verlaat.
+    let away = false;
+    let finished = false;
     const done = () => {
+        if (finished) return;
+        finished = true;
         root.classList.remove('os-print');
+        if (dark) Alpine.store('os').applyTheme();
         sheet.remove();
         document.title = previous;
         window.removeEventListener('pointerdown', done, true);
         window.removeEventListener('hashchange', done);
+        document.removeEventListener('visibilitychange', seen);
+        resumed.then((handle) => handle?.remove());
     };
+    const seen = () => {
+        if (document.visibilityState === 'hidden') away = true;
+        else if (away) done();
+    };
+    document.addEventListener('visibilitychange', seen);
+    // Op Android blijft de webview "zichtbaar" onder de printdialoog; de app krijgt wel 'resume' als hij sluit.
+    const resumed = Promise.resolve(capacitor().App?.addListener?.('resume', done)).catch(() => null);
+    // Pas na de tik op de PDF-knop zelf, anders sluit die het meteen weer af.
     setTimeout(() => {
         window.addEventListener('pointerdown', done, true);
         window.addEventListener('hashchange', done);

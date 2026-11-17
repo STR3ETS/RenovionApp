@@ -60,6 +60,32 @@ class AppChatTest extends TestCase
             ->assertOk()->assertJsonCount(1, 'messages')->assertJsonPath('messages.0.body', '@Peter kun jij bellen?');
     }
 
+    public function test_the_conversation_suggests_who_can_be_mentioned_and_only_they_get_a_notification(): void
+    {
+        Notification::fake();
+        $me = User::factory()->create(['name' => 'Imad', 'role' => UserRole::Admin]);
+        $peter = User::factory()->create(['name' => 'Peter de Vries']);
+        $mehmet = User::factory()->uitvoerder()->create(['name' => 'Mehmet']);
+        User::factory()->create(['name' => 'Karin Klant', 'role' => UserRole::Klant]);
+        $project = Project::factory()->create();
+        $channel = ChatChannel::where('project_id', $project->id)->firstOrFail();
+        $token = $this->tokenFor($me);
+
+        // Projectchat: de uitvoerder die niet op het project staat, de klant en jijzelf staan er niet bij.
+        $this->withToken($token)->getJson(route('api.app.chat.show', $channel))->assertOk()
+            ->assertJsonPath('people', [['mention' => 'Peter', 'name' => 'Peter de Vries', 'initial' => 'P']])
+            ->assertJsonPath('nova', true);
+
+        $project->craftsmen()->attach($mehmet);
+        $this->withToken($token)->getJson(route('api.app.chat.show', $channel))->assertOk()
+            ->assertJsonPath('people.*.mention', ['Mehmet', 'Peter']);
+
+        // De voornaam uit de suggestie, met tekst erachter: beiden een melding, ik niet.
+        $this->withToken($token)->postJson(route('api.app.chat.messages.store', $channel), ['body' => '@Peter en @Mehmet morgen om 8 uur?'])->assertOk();
+        Notification::assertSentTo([$peter, $mehmet], ChatMention::class);
+        Notification::assertNotSentTo($me, ChatMention::class);
+    }
+
     public function test_a_photo_from_the_app_gets_a_signed_address_that_works_without_a_token(): void
     {
         Storage::fake('local');

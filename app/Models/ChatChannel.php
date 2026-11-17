@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -58,6 +59,23 @@ class ChatChannel extends Model
         return $this->isProjectChannel()
             ? ($this->project?->isAccessibleBy($user) ?? false)
             : true;
+    }
+
+    /**
+     * Wie je met @voornaam kunt noemen: collega's die dit kanaal mogen zien (geen klanten), zonder jezelf.
+     * Gedeeld door de meldingen (ChatMessage::mentionedUsers) en de suggesties in de app.
+     *
+     * @return Collection<int, User>
+     */
+    public function mentionableUsers(?User $except = null): Collection
+    {
+        return User::query()
+            ->where('role', '!=', UserRole::Klant)
+            ->when($except, fn (Builder $query) => $query->whereKeyNot($except->id))
+            ->orderBy('name')
+            ->get()
+            ->filter(fn (User $user) => $this->isAccessibleBy($user))
+            ->values();
     }
 
     /**

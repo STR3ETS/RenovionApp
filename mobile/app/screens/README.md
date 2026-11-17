@@ -13,9 +13,7 @@ export const routes = {
     sections: { klussen: 'uitvoering', klus: 'uitvoering' }, // sectiekleur (native-app.css, data-sec)
     paths: { '/klussen': 'klussen' },           // serverpad zonder id => scherm
     query: ['klus'],                            // schermen die een pad mét query overnemen: go('/klussen/5?tab=x') => #/klus/5?tab=x
-    rewrites: [(pathname, params) => null],     // pad => andere hash, bijv. (p, q) => q.get('tab') === 'fotos' && p.match(/^\/projecten\/(\d+)$/) ? `#/fotos/${…}` : null
-    light: ['klus'],                            // altijd licht, ook in de donkere weergave (bijv. een document)
-};
+    rewrites: [(pathname, params) => null],     // pad => andere hash, bijv. (p, q) => q.get('tab') === 'fotos' && p.match(/^\/projecten\/(\d+)$/) ? `#/fotos/${…}` : null};
 // De query staat in $store.os.query (object), bijv. $store.os.query.aanvraag. Zonder 'query' opent een pad met
 // query nog als serverpagina.
 

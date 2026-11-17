@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\App;
 use App\Http\Controllers\Controller;
 use App\Models\ChatChannel;
 use App\Models\ChatMessage;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -61,6 +62,12 @@ class ChatController extends Controller
             'subtitle' => $channel->isProjectChannel() ? 'Projectchat, intern: de klant leest niet mee' : 'Teamkanaal',
             'project_path' => $channel->isProjectChannel() && $channel->project ? route('projects.show', $channel->project, false) : null,
             'nova' => $user->can('manage-crm'),
+            // Suggesties bij @ in het invoerveld: wie je hier kunt noemen (en dus een melding krijgt).
+            'people' => $channel->mentionableUsers($user)->map(fn (User $person) => [
+                'mention' => str($person->name)->before(' ')->toString(),
+                'name' => $person->name,
+                'initial' => str($person->name)->substr(0, 1)->upper()->toString(),
+            ])->values(),
             'messages' => $messages->map(fn (ChatMessage $message) => $message->toChatArray($user, forApp: true)),
         ]);
     }

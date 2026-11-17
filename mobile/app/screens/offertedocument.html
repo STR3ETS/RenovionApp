@@ -16,7 +16,7 @@
                 </nav>
 
                 <div data-enter class="app-ph">
-                    <p class="sec-eye"><span x-icon="'document-text'"></span> Zo ziet de klant het</p>
+                    <p class="sec-eye"><span x-icon="'document-text'"></span> Offerte</p>
                     <h1><span x-text="data?.title ?? ''"></span><span x-show="!data" class="skeleton inline-block h-7 w-2/3 align-middle"></span></h1>
                     <p class="sub" x-text="data ? data.number + ', v' + data.version + ' · ' + data.customer : ''"></p>
                     <div class="app-ph-acts" x-show="data">
@@ -41,18 +41,16 @@
                     <div class="space-y-3">
                         <div class="skeleton h-48 rounded-2xl"></div>
                         <div class="skeleton h-32 rounded-2xl"></div>
-                        <div class="skeleton h-32 rounded-2xl"></div>
                     </div>
                 </template>
 
-                <!-- Het document zelf; precies dit gaat op papier of in de PDF (printPart). -->
-                <div x-ref="doc" x-show="data" class="space-y-4 pb-6">
-                    <div x-show="data?.banner" class="flex items-center gap-2 rounded-2xl px-6 py-3 text-sm font-semibold"
-                         :class="{ ok: 'bg-green-700 text-white', off: 'bg-gray-200 text-gray-600', late: 'bg-amber-100 text-amber-800' }[data?.banner?.tone]">
-                        <span x-show="data?.banner?.tone === 'ok'" x-icon="'check'" class="h-4 w-4"></span>
-                        <span x-text="data?.banner?.text"></span>
-                    </div>
-                    <div x-html="data?.html ?? ''"></div>
+                <!-- Het vel: wat de klant ziet, altijd licht (shadow root, zie offertedocument.js). -->
+                <div x-show="data" class="pb-6">
+                    <p class="os-paper-label">
+                        <span x-icon="'eye'" class="h-4 w-4"></span>
+                        <span x-text="'Zo ziet ' + (data?.customer ?? 'de klant') + ' de offerte'"></span>
+                    </p>
+                    <div x-ref="paper" x-effect="data && $nextTick(() => paint())" class="os-paper"></div>
                 </div>
             </div>
         </template>

@@ -1820,7 +1820,19 @@
                                     </template>
                                 </div>
 
-                                <form @submit.prevent="send()" class="flex shrink-0 items-center gap-2 border-t px-3 pt-2.5 pb-[calc(0.6rem_+_env(safe-area-inset-bottom))]">
+                                <form @submit.prevent="send()" class="relative flex shrink-0 items-center gap-2 border-t px-3 pt-2.5 pb-[calc(0.6rem_+_env(safe-area-inset-bottom))]">
+                                    <!-- @-suggesties: wie je hier kunt noemen. Tikken maakt de naam af; het toetsenbord blijft open. -->
+                                    <div x-show="mentionOptions.length" x-cloak class="chat-mentions" role="listbox" aria-label="Collega noemen">
+                                        <template x-for="person in mentionOptions" :key="person.mention + person.name">
+                                            <button type="button" role="option" @pointerdown.prevent @mousedown.prevent @click="pickMention(person)" class="tap chat-mention">
+                                                <span class="chat-mention-av" :class="person.nova && 'nova'">
+                                                    <span x-show="!person.nova" x-text="person.initial"></span>
+                                                    <span x-show="person.nova" x-icon="'sparkles'" class="h-4 w-4"></span>
+                                                </span>
+                                                <span class="min-w-0 flex-1 truncate text-left"><b x-text="'@' + person.mention"></b> <span class="chat-mention-name" x-show="person.name !== person.mention" x-text="person.name"></span></span>
+                                            </button>
+                                        </template>
+                                    </div>
                                     <label class="tap flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full bg-gray-100 text-gray-600" aria-label="Foto meesturen">
                                         <span x-icon="'camera'" class="h-5 w-5"></span>
                                         <input type="file" accept="image/*" class="hidden" @change="attach($event)" :disabled="busy || !data">
@@ -1829,6 +1841,7 @@
                                         <span x-icon="'microphone'" class="h-5 w-5"></span>
                                     </button>
                                     <input x-ref="input" type="text" x-model="input" maxlength="5000" enterkeyhint="send" :disabled="!data"
+                                           @input="trackMention()" @click="trackMention()" @keyup="trackMention()" @blur="mentionQuery = null"
                                            :placeholder="data?.nova ? 'Bericht, of @Nova' : 'Bericht'" aria-label="Bericht" class="min-w-0 flex-1 !rounded-full">
                                     <button type="submit" :disabled="busy || !input.trim()" class="tap flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-500 text-white disabled:opacity-40" aria-label="Versturen">
                                         <span x-icon="'paper-airplane'" class="h-[18px] w-[18px]"></span>

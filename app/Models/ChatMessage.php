@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -52,12 +51,8 @@ class ChatMessage extends Model
             return new Collection;
         }
 
-        return User::query()
-            ->where('role', '!=', UserRole::Klant)
-            ->whereKeyNot($this->user_id)
-            ->get()
-            ->filter(fn (User $user) => $names->contains(mb_strtolower(str($user->name)->before(' ')->toString()))
-                && $this->channel->isAccessibleBy($user))
+        return $this->channel->mentionableUsers($this->user)
+            ->filter(fn (User $user) => $names->contains(mb_strtolower(str($user->name)->before(' ')->toString())))
             ->values();
     }
 
