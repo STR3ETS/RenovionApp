@@ -360,6 +360,8 @@ Alpine.data('chat', (config) => ({
 
     destroy() {
         clearInterval(this.pollTimer);
+        clearTimeout(this.novaTimer);
+        this.novaSince = null;
     },
 
     get speechSupported() {
@@ -392,7 +394,26 @@ Alpine.data('chat', (config) => ({
             .replace(/\n/g, '<br>');
     },
 
+    // Nova antwoordt na het versturen (de server wacht daar niet op): tot het antwoord er is "Nova denkt na",
+    // en elke 1,5 s kijken in plaats van elke 8 s. Na 90 s geven we het op; het antwoord komt dan gewoon later.
+    novaSince: null,
+    novaTimer: null,
+    waitForNova() {
+        this.novaSince = Date.now();
+        const check = async () => {
+            if (this.novaSince === null) return;
+            if (Date.now() - this.novaSince > 90_000) { this.novaSince = null; return; }
+            await this.poll();
+            if (this.novaSince !== null) this.novaTimer = setTimeout(check, 1500);
+        };
+        clearTimeout(this.novaTimer);
+        this.novaTimer = setTimeout(check, 1500);
+        // Pas na het tekenen staat "Nova denkt na" er; dan pas naar beneden.
+        this.$nextTick(() => requestAnimationFrame(() => this.scrollDown()));
+    },
+
     append(list) {
+        if (this.novaSince !== null && list.some((m) => m.user === null)) this.novaSince = null;
         for (const incoming of list) {
             const index = this.messages.findIndex((m) => m.id === incoming.id);
             if (index >= 0) this.messages.splice(index, 1, incoming);
@@ -419,6 +440,7 @@ Alpine.data('chat', (config) => ({
         try {
             const data = await postJson(config.messagesUrl, { body: text });
             this.append(data.messages);
+            if (data.nova_pending) this.waitForNova();
         } catch (error) {
             this.input = text;
             this.flash(error.message);

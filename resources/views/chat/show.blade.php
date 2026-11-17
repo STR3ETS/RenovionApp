@@ -91,6 +91,12 @@
                         </div>
                     </template>
 
+                    {{-- Nova antwoordt ná het versturen --}}
+                    <div x-show="novaSince !== null" x-cloak class="flex items-center gap-2">
+                        <x-nova-avatar class="h-8 w-8 shrink-0" />
+                        <span class="flex items-center gap-2 rounded-2xl bg-navy-950 px-4 py-2.5 text-xs text-navy-200"><span class="inline-block h-2 w-2 animate-pulse rounded-full bg-brand-500"></span> Nova denkt na</span>
+                    </div>
+
                     <p x-show="messages.length === 0" class="py-10 text-center text-sm text-slate-500">
                         Nog geen berichten - trap af!{{ auth()->user()->can('manage-crm') ? ' Tip: noem @Nova om iets te laten klaarzetten.' : '' }}
                     </p>

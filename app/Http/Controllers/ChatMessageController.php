@@ -10,6 +10,7 @@ use App\Notifications\ChatMention;
 use App\Services\NovaAssistant;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -48,30 +49,53 @@ class ChatMessageController extends Controller
         $validated = $request->validate([
             'body' => ['nullable', 'string', 'max:5000', 'required_without:attachment'],
             'attachment' => ['nullable', 'image', 'max:10240'],
+            // Eigen kenmerk van de app per bericht: verstuurt hij hetzelfde bericht opnieuw (het antwoord kwam
+            // niet aan), dan komt het er niet twee keer in.
+            'client_id' => ['nullable', 'string', 'max:64'],
         ]);
 
+        $user = $request->user();
+        $forApp = $request->is('api/*');
+        $sentBefore = isset($validated['client_id']) ? 'chat-client:'.$user->id.':'.$validated['client_id'] : null;
+        $earlier = $sentBefore !== null && Cache::has($sentBefore) ? $channel->messages()->with('user')->find(Cache::get($sentBefore)) : null;
+
+        if ($earlier !== null) {
+            return response()->json(['messages' => [$earlier->toChatArray($user, $forApp)], 'nova_pending' => false]);
+        }
+
         $message = $channel->messages()->create([
-            'user_id' => $request->user()->id,
+            'user_id' => $user->id,
             'body' => $validated['body'] ?? null,
             'attachment_path' => $request->file('attachment')?->store('chat-attachments'),
             'attachment_name' => $request->file('attachment')?->getClientOriginalName(),
         ]);
 
-        $channel->markReadFor($request->user());
+        $channel->markReadFor($user);
 
-        Notification::send($message->mentionedUsers(), new ChatMention($message));
-
-        $nieuw = collect([$message]);
-
-        // "@nova" in een bericht: Nova denkt mee (alleen voor CRM-rollen, briefing §11/§24).
-        if (str_contains(mb_strtolower($message->body ?? ''), '@nova')
-            && $request->user()->can('manage-crm')
-            && $assistant->isConfigured()) {
-            $nieuw->push($this->novaReply($channel, $message, $assistant, $request));
+        if ($sentBefore !== null) {
+            Cache::put($sentBefore, $message->id, now()->addDay());
         }
 
+        // "@nova" in een bericht: Nova denkt mee (alleen voor CRM-rollen, briefing §11/§24).
+        $novaPending = str_contains(mb_strtolower($message->body ?? ''), '@nova')
+            && $user->can('manage-crm')
+            && $assistant->isConfigured();
+
+        // Pas ná het antwoord: de meldingen (verzoek naar Firebase) en het antwoord van Nova (Claude, enkele
+        // seconden). De afzender ziet zijn bericht zo meteen; Nova's antwoord komt binnen met het ophalen van
+        // nieuwe berichten, en nova_pending zegt dat het eraan komt ("Nova denkt na").
+        defer(function () use ($message, $channel, $assistant, $request, $novaPending) {
+            ignore_user_abort(true);
+            Notification::send($message->mentionedUsers(), new ChatMention($message));
+
+            if ($novaPending) {
+                $this->novaReply($channel, $message, $assistant, $request);
+            }
+        });
+
         return response()->json([
-            'messages' => $nieuw->filter()->map(fn (ChatMessage $bericht) => $bericht->toChatArray($request->user(), $request->is('api/*')))->values(),
+            'messages' => [$message->load('user')->toChatArray($user, $forApp)],
+            'nova_pending' => $novaPending,
         ]);
     }
 

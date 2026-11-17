@@ -142,6 +142,34 @@ async function api(path, { method = 'GET', body, keepalive = false } = {}) {
     return response.status === 204 ? null : response.json();
 }
 
+// Zoals api(), maar met voortgang: fetch meldt niet hoe ver een upload is, XMLHttpRequest wel. Voor foto's in de chat.
+async function upload(path, body, onProgress) {
+    const token = storage.get(TOKEN_KEY);
+    const build = await appBuild;
+    return new Promise((resolve, reject) => {
+        const request = new XMLHttpRequest();
+        request.open('POST', `${API}/api/app/${path}`);
+        request.setRequestHeader('Accept', 'application/json');
+        if (token) request.setRequestHeader('Authorization', `Bearer ${token}`);
+        if (build) request.setRequestHeader('X-App-Build', build);
+        request.upload.onprogress = (event) => event.lengthComputable && onProgress(event.loaded / event.total);
+        request.onerror = () => {
+            Alpine.store('os').offline = true;
+            reject(new TypeError('Geen verbinding'));
+        };
+        request.onload = () => {
+            Alpine.store('os').offline = false;
+            let data = null;
+            try { data = JSON.parse(request.responseText); } catch { /* geen JSON */ }
+            if (request.status === 401 && token) Alpine.store('os').forget();
+            if (request.status === 426) Alpine.store('os').update = data?.update ?? { url: null };
+            if (request.status >= 200 && request.status < 300) resolve(data);
+            else reject(new ApiError(request.status, data));
+        };
+        request.send(body);
+    });
+}
+
 const routeFromHash = () => {
     const [path, search] = location.hash.replace(/^#\/?/, '').split('?');
     const [route, param] = path.split('/');
@@ -1029,9 +1057,13 @@ Alpine.data('chats', () => ({
     },
 }));
 
-// Een gesprek: schermvullend, de laatste berichten meteen uit de opslag, daarna vers en elke 8 s nieuwe.
-// Versturen, foto's (eerst kleiner gemaakt), inspreken, Nova-voorstellen bevestigen en "→ Taak".
-const CHAT_POLL_MS = 8_000;
+// Een gesprek: schermvullend, de laatste berichten meteen uit de opslag, daarna vers. Versturen, foto's (eerst
+// kleiner gemaakt), inspreken, Nova-voorstellen bevestigen en "→ Taak".
+// Nieuwe berichten ophalen: elke 2,5 s zolang er iets gebeurt (jij tikt of typt, of er komt een bericht binnen),
+// na een minuut stilte elke 10 s, meteen bij terugkomen in de app of een pushmelding, en elke 1,5 s zolang Nova
+// een antwoord bedenkt (max. 90 s). Een verzoek is klein ("iets na bericht X?"), dus dat kan voor een klein team.
+const CHAT_POLL = { active: 2_500, quiet: 10_000, nova: 1_500, quietAfter: 60_000, novaMax: 90_000 };
+const newKey = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 Alpine.data('conversation', (id) => ({
     cacheName: `gesprek:${id}`,
@@ -1043,7 +1075,18 @@ Alpine.data('conversation', (id) => ({
     recognition: null,
     actionsFor: null,
     timer: null,
+    gone: false,
+    polling: false,
+    lastActive: Date.now(),
+    // Nova bedenkt een antwoord (sinds wanneer), voor "Nova denkt na".
+    novaSince: null,
+    // Eigen berichten onderweg: staan er meteen, gaan op volgorde naar de server (key = client_id, zodat een
+    // herhaald verzoek er geen tweede maakt). Bewaard, dus ook na een herstart niets kwijt.
+    outbox: [],
+    flushing: false,
     onResize: null,
+    onVisible: null,
+    onPush: null,
     // @-suggesties: het deel na de @ vóór de cursor ("pe" bij "hoi @pe"), of null als je geen naam typt.
     mentionQuery: null,
 
@@ -1081,9 +1124,16 @@ Alpine.data('conversation', (id) => ({
     init() {
         const cached = cache.read(this.cacheName);
         if (cached) this.data = cached.data;
+        this.outbox = (cache.read(`uit:${id}`)?.data ?? []).map((item) => ({ ...item, state: 'waiting' }));
         this.scrollDown(false);
-        this.open();
-        this.timer = setInterval(() => document.visibilityState === 'visible' && !Alpine.store('os').offline && this.poll(), CHAT_POLL_MS);
+        this.open().then(() => this.flush());
+        this.schedule();
+        this.onVisible = () => document.visibilityState === 'visible' && this.pollNow();
+        this.onPush = () => this.pollNow();
+        document.addEventListener('visibilitychange', this.onVisible);
+        window.addEventListener('renovion-push', this.onPush);
+        // Verbinding terug: wat niet verstuurd kon worden, alsnog.
+        this.$watch('$store.os.offline', (offline) => !offline && this.retry());
         // Toetsenbord open of dicht: het gesprek past in wat er zichtbaar is, het nieuwste bericht in beeld.
         this.onResize = () => { this.fit(); this.scrollDown(false); };
         // iOS schuift het zichtbare deel bij het toetsenbord omhoog (scroll op visualViewport), zonder resize.
@@ -1093,7 +1143,10 @@ Alpine.data('conversation', (id) => ({
         this.fit();
     },
     destroy() {
-        clearInterval(this.timer);
+        this.gone = true;
+        clearTimeout(this.timer);
+        document.removeEventListener('visibilitychange', this.onVisible);
+        window.removeEventListener('renovion-push', this.onPush);
         window.visualViewport?.removeEventListener('resize', this.onResize);
         window.visualViewport?.removeEventListener('scroll', this.onShift);
         this.recognition?.stop();
@@ -1156,6 +1209,7 @@ Alpine.data('conversation', (id) => ({
     // Nieuwe of bijgewerkte berichten erbij (bevestigd Nova-voorstel vervangt het oude).
     append(list) {
         if (!this.data || !list.length) return;
+        if (this.novaSince !== null && list.some((message) => message.user === null)) this.novaSince = null;
         const messages = [...this.messages];
         for (const incoming of list) {
             const index = messages.findIndex((message) => message.id === incoming.id);
@@ -1167,14 +1221,37 @@ Alpine.data('conversation', (id) => ({
         this.scrollDown();
     },
     async poll() {
-        if (!this.data) return;
+        if (!this.data || this.polling) return;
+        this.polling = true;
         try {
             const { messages } = await api(`chat/${id}/berichten?after=${this.lastId}`);
             if (messages.length) {
                 this.append(messages);
+                this.lastActive = Date.now(); // er wordt gepraat: vaak blijven kijken
                 fetchedAt.chat = 0;
             }
         } catch { /* de volgende keer weer */ }
+        this.polling = false;
+    },
+    // Volgende keer kijken: snel als Nova bezig is of er iets gebeurt, rustiger na een minuut stilte.
+    schedule() {
+        clearTimeout(this.timer);
+        if (this.gone) return;
+        if (this.novaSince !== null && Date.now() - this.novaSince > CHAT_POLL.novaMax) this.novaSince = null;
+        const quiet = Date.now() - this.lastActive > CHAT_POLL.quietAfter;
+        const delay = this.novaSince !== null ? CHAT_POLL.nova : quiet ? CHAT_POLL.quiet : CHAT_POLL.active;
+        this.timer = setTimeout(() => this.pollNow(), delay);
+    },
+    async pollNow() {
+        clearTimeout(this.timer);
+        if (document.visibilityState === 'visible' && !Alpine.store('os').offline) await this.poll();
+        this.schedule();
+    },
+    // Je tikt, typt of scrolt in het gesprek: na stilte meteen kijken en weer vaak.
+    active() {
+        const quiet = Date.now() - this.lastActive > CHAT_POLL.quietAfter;
+        this.lastActive = Date.now();
+        if (quiet) this.pollNow();
     },
     // Na het tekenen (volgende frame) naar beneden: dan staan alle berichten er.
     scrollDown(smooth = true) {
@@ -1189,38 +1266,76 @@ Alpine.data('conversation', (id) => ({
         if (scroll && scroll.scrollHeight - scroll.scrollTop - scroll.clientHeight < scroll.clientHeight) this.scrollDown(false);
     },
 
-    async send() {
+    // Versturen wacht nergens op: het bericht staat er meteen (klokje) en je kunt direct het volgende typen.
+    send() {
         const text = this.input.trim();
-        if (!text || this.busy) return;
-        this.busy = true;
+        if (!text || !this.data) return;
         this.input = '';
         this.mentionQuery = null;
-        try {
-            const { messages } = await api(`chat/${id}/berichten`, { method: 'POST', body: { body: text } });
-            this.append(messages);
-            fetchedAt.chat = 0;
-        } catch (error) {
-            this.input = text; // niets kwijt: de tekst staat er weer
-            Alpine.store('os').toast(errorText(error, 'Versturen lukte niet. Controleer de verbinding.'));
-        }
-        this.busy = false;
+        this.outbox = [...this.outbox, { key: newKey(), body: text, time: format.time(Date.now()), state: 'waiting' }];
+        this.saveOutbox();
+        this.lastActive = Date.now();
+        this.scrollDown();
+        this.flush();
     },
-    // Tijdens het versturen staat de foto er al, met "Versturen" erop (preview = adres van de foto zelf).
+    saveOutbox() {
+        const items = this.outbox.map(({ key, body, time }) => ({ key, body, time }));
+        cache.write(`uit:${id}`, items, JSON.stringify(items));
+    },
+    // Op volgorde, één tegelijk. Lukt er een niet, dan stopt de rij: de rest blijft wachten tot "Opnieuw" of
+    // tot de verbinding terug is, zodat de volgorde in het gesprek klopt.
+    async flush() {
+        if (this.flushing || !this.data) return;
+        this.flushing = true;
+        let item;
+        while ((item = this.outbox.find((entry) => entry.state === 'waiting'))) {
+            item.state = 'sending';
+            try {
+                const result = await api(`chat/${id}/berichten`, { method: 'POST', body: { body: item.body, client_id: item.key } });
+                this.outbox = this.outbox.filter((entry) => entry.key !== item.key);
+                this.saveOutbox();
+                this.append(result.messages);
+                fetchedAt.chat = 0;
+                if (result.nova_pending) {
+                    this.novaSince = Date.now();
+                    this.schedule();
+                    this.scrollDown(); // "Nova denkt na" in beeld
+                }
+            } catch {
+                item.state = 'failed';
+                this.scrollDown(); // "Niet verstuurd, Opnieuw" in beeld
+                break;
+            }
+        }
+        this.flushing = false;
+    },
+    retry() {
+        this.outbox.forEach((entry) => { if (entry.state === 'failed') entry.state = 'waiting'; });
+        this.flush();
+    },
+    discard(item) {
+        this.outbox = this.outbox.filter((entry) => entry.key !== item.key);
+        this.saveOutbox();
+    },
+    // Tijdens het versturen staat de foto er al, met een balk die volloopt (preview = adres van de foto zelf).
     sending: null,
+    progress: 0,
     async attach(event) {
         const file = event.target.files[0];
         event.target.value = '';
         if (!file || this.busy) return;
         this.busy = true;
+        this.progress = 0;
         this.sending = URL.createObjectURL(file);
+        this.lastActive = Date.now();
         this.scrollDown();
         const body = new FormData();
         body.append('attachment', await shrinkPhoto(file));
         const text = this.input.trim();
         if (text) body.append('body', text);
         try {
-            const { messages } = await api(`chat/${id}/berichten`, { method: 'POST', body });
-            this.input = '';
+            const { messages } = await upload(`chat/${id}/berichten`, body, (part) => { this.progress = part; });
+            if (text && this.input.trim() === text) this.input = '';
             this.append(messages);
         } catch (error) {
             Alpine.store('os').toast(errorText(error, 'De foto versturen lukte niet. Controleer de verbinding.'));

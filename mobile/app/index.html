@@ -1744,7 +1744,7 @@
                                     <span x-icon="'exclamation-triangle'" class="h-4 w-4"></span><span>Geen verbinding. Nieuwe berichten komen als hij terug is.</span>
                                 </div>
 
-                                <div x-ref="scroll" class="chat-scroll min-h-0 flex-1 overflow-y-auto px-3 py-3" @click.self="actionsFor = null">
+                                <div x-ref="scroll" class="chat-scroll min-h-0 flex-1 overflow-y-auto px-3 py-3" @click.self="actionsFor = null" @touchstart.passive="active()">
                                     <template x-if="failed">
                                         <div class="mx-auto mt-10 max-w-xs rounded-xl bg-white p-5 text-center">
                                             <p class="text-sm font-semibold text-navy-900">Geen verbinding met de server</p>
@@ -1805,15 +1805,43 @@
                                         </div>
                                     </template>
 
-                                    <p x-show="data && messages.length === 0 && !sending" class="py-10 text-center text-sm text-gray-500" x-text="'Nog geen berichten, trap af!' + (data?.nova ? ' Tip: noem @Nova om iets te laten klaarzetten.' : '')"></p>
+                                    <!-- Eigen berichten onderweg: meteen te zien, met een klokje tot de server ze heeft -->
+                                    <template x-for="item in outbox" :key="item.key">
+                                        <div class="mt-0.5 flex justify-end">
+                                            <div class="max-w-[82%]">
+                                                <div class="chat-bubble mine" :class="item.state !== 'failed' && 'opacity-75'">
+                                                    <p class="text-[14.5px] leading-snug break-words" x-html="format(item.body)"></p>
+                                                    <p class="mt-0.5 flex items-center justify-end gap-1 text-[10.5px] text-gray-500">
+                                                        <span x-text="item.time"></span>
+                                                        <span x-show="item.state !== 'failed'" x-icon="'clock'" class="h-3 w-3" aria-label="Wordt verstuurd"></span>
+                                                        <span x-show="item.state === 'failed'" x-icon="'exclamation-triangle'" class="h-3.5 w-3.5 text-red-600" aria-label="Niet verstuurd"></span>
+                                                    </p>
+                                                </div>
+                                                <div x-show="item.state === 'failed'" class="mt-1 flex items-center justify-end gap-4 text-xs font-semibold">
+                                                    <span class="text-red-700">Niet verstuurd</span>
+                                                    <button type="button" @click="retry()" class="tap text-brand-700">Opnieuw</button>
+                                                    <button type="button" @click="discard(item)" class="tap text-gray-600">Weghalen</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <!-- Nova bedenkt een antwoord (komt na het versturen binnen) -->
+                                    <div x-show="novaSince !== null" x-cloak class="mt-2.5 flex items-center gap-2">
+                                        <img :src="$store.os.novaUrl" alt="" class="h-8 w-8 shrink-0 rounded-full object-cover">
+                                        <span class="flex items-center gap-2 rounded-2xl bg-navy-950 px-3.5 py-2.5 text-xs text-navy-100"><span class="inline-block h-2 w-2 animate-pulse rounded-full bg-brand-500"></span> Nova denkt na</span>
+                                    </div>
+
+                                    <p x-show="data && messages.length === 0 && !sending && !outbox.length" class="py-10 text-center text-sm text-gray-500" x-text="'Nog geen berichten, trap af!' + (data?.nova ? ' Tip: noem @Nova om iets te laten klaarzetten.' : '')"></p>
 
                                     <!-- Foto onderweg -->
                                     <template x-if="sending">
                                         <div class="mt-2.5 flex justify-end">
                                             <div class="chat-bubble mine relative max-w-[82%]">
                                                 <img :src="sending" alt="Foto wordt verstuurd" class="max-h-64 w-full rounded-lg object-cover opacity-60" @load="photoLoaded()">
-                                                <span class="absolute inset-0 flex items-center justify-center gap-2 text-sm font-semibold text-navy-900">
-                                                    <span class="h-4 w-4 animate-spin rounded-full border-2 border-navy-900/30 border-t-navy-900"></span> Versturen
+                                                <span class="absolute inset-0 flex items-center justify-center text-sm font-semibold text-navy-900" x-text="progress < 1 ? `Versturen ${Math.round(progress * 100)}%` : 'Bijna klaar'"></span>
+                                                <span class="absolute inset-x-4 bottom-4 h-1.5 overflow-hidden rounded-full bg-white/70">
+                                                    <span class="block h-full rounded-full bg-brand-500 transition-[width] duration-200" :style="`width: ${Math.round(progress * 100)}%`"></span>
                                                 </span>
                                             </div>
                                         </div>
@@ -1840,10 +1868,11 @@
                                     <button type="button" x-show="speechSupported" @click="toggleMic()" :class="listening ? 'animate-pulse bg-red-500 text-white' : 'bg-gray-100 text-gray-600'" class="tap flex h-10 w-10 shrink-0 items-center justify-center rounded-full" aria-label="Inspreken">
                                         <span x-icon="'microphone'" class="h-5 w-5"></span>
                                     </button>
-                                    <input x-ref="input" type="text" x-model="input" maxlength="5000" enterkeyhint="send" :disabled="!data"
-                                           @input="trackMention()" @click="trackMention()" @keyup="trackMention()" @blur="mentionQuery = null"
+                                    <input x-ref="input" type="text" x-model="input" maxlength="5000" enterkeyhint="send" :disabled="!data" @focus="active()"
+                                           @input="trackMention(); active()" @click="trackMention()" @keyup="trackMention()" @blur="mentionQuery = null"
                                            :placeholder="data?.nova ? 'Bericht, of @Nova' : 'Bericht'" aria-label="Bericht" class="min-w-0 flex-1 !rounded-full">
-                                    <button type="submit" :disabled="busy || !input.trim()" class="tap flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-500 text-white disabled:opacity-40" aria-label="Versturen">
+                                    <!-- Geen focus wegnemen bij tikken: het toetsenbord blijft open voor het volgende bericht -->
+                                    <button type="submit" @pointerdown.prevent @mousedown.prevent :disabled="!input.trim()" class="tap flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-500 text-white disabled:opacity-40" aria-label="Versturen">
                                         <span x-icon="'paper-airplane'" class="h-[18px] w-[18px]"></span>
                                     </button>
                                 </form>

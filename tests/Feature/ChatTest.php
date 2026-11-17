@@ -186,8 +186,12 @@ class ChatTest extends TestCase
             'body' => '@Nova zet een taak om de klant terug te bellen',
         ]);
 
-        $response->assertOk()->assertJsonCount(2, 'messages');
-        $this->assertSame('Taak: "Klant terugbellen"', $response->json('messages.1.nova.preview'));
+        // Het antwoord heeft alleen je eigen bericht (meteen te zien); Nova antwoordt ná het antwoord en komt
+        // binnen met het ophalen van nieuwe berichten.
+        $response->assertOk()->assertJsonCount(1, 'messages')->assertJsonPath('nova_pending', true);
+        $this->getJson('/chat/'.$kanaal->id.'/berichten?after='.$response->json('messages.0.id'))
+            ->assertJsonCount(1, 'messages')
+            ->assertJsonPath('messages.0.nova.preview', 'Taak: "Klant terugbellen"');
 
         $novaBericht = $kanaal->messages()->whereNull('user_id')->first();
 
@@ -198,6 +202,21 @@ class ChatTest extends TestCase
 
         // Nogmaals bevestigen kan niet.
         $this->actingAs($user)->postJson('/chat/berichten/'.$novaBericht->id.'/nova-bevestigen')->assertUnprocessable();
+    }
+
+    public function test_a_message_sent_again_with_the_same_client_id_is_stored_once(): void
+    {
+        $user = User::factory()->create();
+        $kanaal = ChatChannel::create(['type' => 'team', 'name' => 'Algemeen']);
+
+        $eerste = $this->actingAs($user)->postJson('/chat/'.$kanaal->id.'/berichten', ['body' => 'Steiger staat', 'client_id' => 'abc-1'])
+            ->assertOk()->assertJsonPath('nova_pending', false);
+        // Het antwoord kwam niet aan, de app probeert het opnieuw: hetzelfde bericht terug, geen tweede.
+        $this->postJson('/chat/'.$kanaal->id.'/berichten', ['body' => 'Steiger staat', 'client_id' => 'abc-1'])
+            ->assertOk()->assertJsonPath('messages.0.id', $eerste->json('messages.0.id'));
+        $this->postJson('/chat/'.$kanaal->id.'/berichten', ['body' => 'Steiger staat', 'client_id' => 'abc-2'])->assertOk();
+
+        $this->assertSame(2, $kanaal->messages()->count());
     }
 
     public function test_uitvoerders_do_not_trigger_nova(): void
