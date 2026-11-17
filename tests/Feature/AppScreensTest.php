@@ -66,7 +66,8 @@ class AppScreensTest extends TestCase
         Project::factory()->for($customer)->create(['name' => 'Badkamer Jansen']);
         Lead::factory()->for($customer)->create(['service' => 'Stucwerk']);
         Task::factory()->create(['title' => 'Jansen terugbellen']);
-        Customer::factory()->create(['name' => 'Familie Bakker']);
+        // Vaste gegevens: een willekeurig e-mailadres als "jansen.bakker@..." maakte de test soms rood.
+        Customer::factory()->create(['name' => 'Familie Bakker', 'city' => 'Ede', 'email' => 'bakker@example.test', 'phone' => '0600000000']);
 
         $response = $this->withToken($this->tokenFor($admin))->getJson(route('api.app.search', ['q' => 'jansen']))->assertOk();
 

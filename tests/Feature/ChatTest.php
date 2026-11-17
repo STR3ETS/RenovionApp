@@ -271,8 +271,11 @@ class ChatTest extends TestCase
                 ->andReturn(['type' => 'answer', 'text' => 'Die staat er al.']);
         });
 
-        $this->actingAs($imad)->postJson('/chat/'.$kanaal->id.'/berichten', ['body' => '@Nova zet daar een taak voor'])
+        // Nova antwoordt ná het antwoord (defer) en komt binnen met het ophalen van nieuwe berichten.
+        $response = $this->actingAs($imad)->postJson('/chat/'.$kanaal->id.'/berichten', ['body' => '@Nova zet daar een taak voor'])
             ->assertOk()
-            ->assertJsonPath('messages.1.body', 'Die staat er al.');
+            ->assertJsonPath('nova_pending', true);
+        $this->getJson('/chat/'.$kanaal->id.'/berichten?after='.$response->json('messages.0.id'))
+            ->assertJsonPath('messages.0.body', 'Die staat er al.');
     }
 }
