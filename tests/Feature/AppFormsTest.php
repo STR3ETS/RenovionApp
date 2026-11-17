@@ -49,12 +49,17 @@ class AppFormsTest extends TestCase
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['name', 'email']);
 
+        // Een datum zonder actie gaf "Volgende actie: - (20 nov)".
+        $this->withToken($token)->postJson(route('api.app.forms.leads.store'), ['name' => 'Familie Jansen', 'next_action_at' => '2026-11-20T10:00'])
+            ->assertJsonValidationErrors(['next_action']);
+
         $response = $this->withToken($token)->postJson(route('api.app.forms.leads.store'), [
             'name' => 'Familie Jansen',
             'phone' => '06 12345678',
             'city' => 'Arnhem',
             'service' => 'Badkamerrenovatie',
             'value' => '15000',
+            'next_action' => 'Terugbellen',
             'next_action_at' => '2026-11-20T10:00',
         ])->assertCreated();
 

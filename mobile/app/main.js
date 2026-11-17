@@ -266,7 +266,10 @@ function slideTo(direction, animate, update) {
     const root = document.documentElement;
     root.dataset.nav = direction;
     const transition = document.startViewTransition(update);
-    transition.finished.finally(() => { if (root.dataset.nav === direction) delete root.dataset.nav; });
+    // Snel na elkaar wisselen breekt de vorige overgang af ("Transition was skipped"); dat is geen fout.
+    transition.ready.catch(() => {});
+    transition.updateCallbackDone.catch(() => {});
+    transition.finished.catch(() => {}).finally(() => { if (root.dataset.nav === direction) delete root.dataset.nav; });
 }
 
 Alpine.store('os', {
@@ -1804,6 +1807,8 @@ Alpine.data('nova', () => ({
         this.scrollDown();
         try {
             const data = await api('nova', { method: 'POST', body: { message: text, history } });
+            // Een nieuw voorstel vervangt het vorige: anders kon je het oude (10:00) nog bevestigen na "maak er 11 uur van".
+            if (data.type === 'proposal') this.messages.forEach((message) => { if (message.proposal?.state === 'open') message.proposal.state = 'replaced'; });
             this.messages.push(data.type === 'proposal'
                 ? { role: 'nova', text: 'Dit zet ik voor je klaar. Akkoord?', proposal: { action: data.action, preview: data.preview, viaVoice, state: 'open' } }
                 : { role: 'nova', text: data.text });

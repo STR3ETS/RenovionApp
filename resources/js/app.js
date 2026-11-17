@@ -546,9 +546,11 @@ Alpine.data('nova', (proposeUrl, executeUrl) => ({
         try {
             const data = await postJson(proposeUrl, { message: text, history });
             if (data.type === 'proposal') {
+                // Een nieuw voorstel vervangt het vorige: anders kon je het oude (10:00) nog bevestigen na "maak er 11 uur van".
+                this.messages.forEach((message) => { if (message.proposal?.state === 'open') message.proposal.state = 'replaced'; });
                 this.messages.push({
                     role: 'nova',
-                    text: 'Dit zet ik voor je klaar — akkoord?',
+                    text: 'Dit zet ik voor je klaar. Akkoord?',
                     proposal: { action: data.action, preview: data.preview, viaVoice, state: 'open' },
                 });
             } else {

@@ -30,7 +30,7 @@ class StoreLeadRequest extends FormRequest
             'value' => ['nullable', 'numeric', 'min:0'],
             'desired_start' => ['nullable', 'string', 'max:100'],
             'assigned_to' => ['nullable', 'exists:users,id'],
-            'next_action' => ['nullable', 'string', 'max:255'],
+            'next_action' => ['nullable', 'string', 'max:255', 'required_with:next_action_at'],
             'next_action_at' => ['nullable', 'date'],
         ];
     }

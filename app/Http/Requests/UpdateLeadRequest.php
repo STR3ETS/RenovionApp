@@ -33,7 +33,7 @@ class UpdateLeadRequest extends FormRequest
             'desired_start' => ['nullable', 'string', 'max:100'],
             'assigned_to' => ['nullable', 'exists:users,id'],
             'last_contact_at' => ['nullable', 'date'],
-            'next_action' => ['nullable', 'string', 'max:255'],
+            'next_action' => ['nullable', 'string', 'max:255', 'required_with:next_action_at'],
             'next_action_at' => ['nullable', 'date'],
         ];
     }

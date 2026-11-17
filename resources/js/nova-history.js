@@ -3,7 +3,7 @@
 // ermee gebeurd is; de server houdt de laatste NovaAssistant::HISTORY_LIMIT berichten.
 const LIMIT = 12;
 const MAX_TEXT = 2000;
-const OUTCOME = { done: ' (uitgevoerd)', cancelled: ' (niet uitgevoerd)' };
+const OUTCOME = { done: ' (uitgevoerd)', cancelled: ' (niet uitgevoerd)', replaced: ' (vervangen door het volgende voorstel)' };
 
 export default function novaHistory(messages) {
     return messages

@@ -326,6 +326,7 @@
                                         </div>
                                         <p x-show="message.proposal.state === 'done'" class="mt-2 flex items-center gap-1 text-xs font-semibold text-green-300"><x-icon name="check" class="h-3.5 w-3.5" /> Uitgevoerd</p>
                                         <p x-show="message.proposal.state === 'cancelled'" class="mt-2 text-xs font-semibold text-slate-500">Geannuleerd</p>
+                                        <p x-show="message.proposal.state === 'replaced'" class="mt-2 text-xs font-semibold text-slate-500">Vervangen door het nieuwe voorstel</p>
                                     </div>
                                 </template>
                             </div>

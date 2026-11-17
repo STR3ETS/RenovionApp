@@ -79,7 +79,7 @@
                             @error('signed_name')<p class="mt-1 text-xs font-medium text-red-600">{{ $message }}</p>@enderror
                         </div>
                         <label class="flex items-start gap-2 text-sm text-gray-600">
-                            <input type="checkbox" name="agree" value="1" required class="mt-0.5 rounded border-gray-300 text-brand-700 focus:ring-brand-500">
+                            <input type="checkbox" name="agree" value="1" required @checked(old('agree')) class="mt-0.5 rounded border-gray-300 text-brand-700 focus:ring-brand-500">
                             Ik heb de offerte gelezen en ga akkoord met de werkzaamheden, het totaalbedrag en de voorwaarden.
                         </label>
                         @error('agree')<p class="text-xs font-medium text-red-600">{{ $message }}</p>@enderror
