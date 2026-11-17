@@ -324,7 +324,8 @@
                                                 Annuleren
                                             </button>
                                         </div>
-                                        <p x-show="message.proposal.state === 'done'" class="mt-2 flex items-center gap-1 text-xs font-semibold text-green-300"><x-icon name="check" class="h-3.5 w-3.5" /> Uitgevoerd</p>
+                                        <p x-show="message.proposal.state === 'done'" class="mt-2 flex items-center gap-1 text-xs font-semibold text-green-300"><x-icon name="check" class="h-3.5 w-3.5" /> Uitgevoerd<a x-show="message.proposal.url" :href="message.proposal.url" class="ml-3 font-semibold text-brand-400 hover:text-brand-500">Bekijken</a></p>
+                                        <p x-show="message.proposal.error && message.proposal.state === 'open'" class="mt-2 text-xs font-semibold text-red-300" x-text="message.proposal.error"></p>
                                         <p x-show="message.proposal.state === 'cancelled'" class="mt-2 text-xs font-semibold text-slate-500">Geannuleerd</p>
                                         <p x-show="message.proposal.state === 'replaced'" class="mt-2 text-xs font-semibold text-slate-500">Vervangen door het nieuwe voorstel</p>
                                     </div>

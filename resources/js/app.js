@@ -580,11 +580,13 @@ Alpine.data('nova', (proposeUrl, executeUrl) => ({
                 action: message.proposal.action,
                 via_voice: message.proposal.viaVoice,
             });
+            // Het resultaat in de kaart zelf ("Uitgevoerd", "Bekijken"), geen nieuw bericht in het gesprek.
             message.proposal.state = 'done';
-            this.messages.push({ role: 'nova', text: data.message, url: data.url });
+            message.proposal.error = null;
+            message.proposal.url = data.url;
         } catch (error) {
             message.proposal.state = 'open';
-            this.messages.push({ role: 'nova', text: error.message });
+            message.proposal.error = error.message;
         }
 
         this.scrollDown();
@@ -593,8 +595,6 @@ Alpine.data('nova', (proposeUrl, executeUrl) => ({
     cancel(message) {
         if (message.proposal.state !== 'open') return;
         message.proposal.state = 'cancelled';
-        this.messages.push({ role: 'nova', text: 'Oké, niet uitgevoerd. Zeg het maar als ik iets anders kan klaarzetten.' });
-        this.scrollDown();
     },
 }));
 

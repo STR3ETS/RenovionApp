@@ -1825,20 +1825,20 @@ Alpine.data('nova', () => ({
         message.proposal.state = 'busy';
         try {
             const data = await api('nova/uitvoeren', { method: 'POST', body: { action: message.proposal.action, via_voice: message.proposal.viaVoice } });
+            // Het resultaat in de kaart zelf ("Uitgevoerd", "Bekijken"), geen nieuw bericht in het gesprek.
             message.proposal.state = 'done';
-            this.messages.push({ role: 'nova', text: data.message, path: data.url ? new URL(data.url, API).pathname : null });
+            message.proposal.error = null;
+            message.proposal.path = data.url ? new URL(data.url, API).pathname : null;
             Object.keys(fetchedAt).forEach((name) => { fetchedAt[name] = 0; }); // lijsten bij openen opnieuw
         } catch (error) {
             message.proposal.state = 'open';
-            this.messages.push({ role: 'nova', text: (error.status >= 500 ? null : error.data?.message) ?? 'Uitvoeren lukte niet. Probeer het opnieuw.' });
+            message.proposal.error = (error.status >= 500 ? null : error.data?.message) ?? 'Uitvoeren lukte niet. Probeer het opnieuw.';
         }
         this.scrollDown();
     },
     cancel(message) {
         if (message.proposal.state !== 'open') return;
         message.proposal.state = 'cancelled';
-        this.messages.push({ role: 'nova', text: 'Oké, niet uitgevoerd. Zeg het maar als ik iets anders kan klaarzetten.' });
-        this.scrollDown();
     },
 }));
 

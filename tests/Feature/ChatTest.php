@@ -198,7 +198,11 @@ class ChatTest extends TestCase
         $this->actingAs($user)->postJson('/chat/berichten/'.$novaBericht->id.'/nova-bevestigen')
             ->assertOk()
             ->assertJsonPath('messages.0.nova.executed', true)
-            ->assertJsonPath('messages.1.body', 'Taak aangemaakt: "Klant terugbellen".');
+            ->assertJsonPath('messages.0.nova.result', 'Taak aangemaakt: "Klant terugbellen".')
+            ->assertJsonPath('messages.0.nova.confirmed_by', $user->name)
+            ->assertJsonCount(1, 'messages');
+        // Geen apart bevestigingsbericht meer: het resultaat staat in het voorstel zelf.
+        $this->assertSame(1, $kanaal->messages()->whereNull('user_id')->count());
 
         // Nogmaals bevestigen kan niet.
         $this->actingAs($user)->postJson('/chat/berichten/'.$novaBericht->id.'/nova-bevestigen')->assertUnprocessable();

@@ -53,10 +53,10 @@
                                                     <button type="button" @click="$refs.chatInput.focus()"
                                                             class="rounded-lg border border-navy-700 px-4 py-1.5 text-xs font-semibold text-navy-200 transition hover:bg-navy-800">Eerst aanpassen</button>
                                                 </div>
-                                                <p x-show="message.nova.executed" class="mt-2 flex items-center gap-1 text-xs font-semibold text-green-400"><x-icon name="check" class="h-3.5 w-3.5" /> Uitgevoerd</p>
+                                                <p x-show="message.nova.executed" class="mt-2 flex flex-wrap items-center gap-x-1 text-xs font-semibold text-green-400"><x-icon name="check" class="h-3.5 w-3.5" /> <span x-text="message.nova.confirmed_by ? 'Uitgevoerd door ' + message.nova.confirmed_by : 'Uitgevoerd'"></span><a x-show="message.nova.url" :href="message.nova.url" class="ml-2 font-semibold text-brand-300 hover:text-brand-200">Bekijken</a></p>
                                             </div>
                                         </template>
-                                        <template x-if="message.nova?.url && message.nova?.executed">
+                                        <template x-if="message.nova?.url && message.nova?.executed && !message.nova?.preview">
                                             <a :href="message.nova.url" class="mt-1.5 block text-xs font-semibold text-brand-300 hover:text-brand-200">Bekijken →</a>
                                         </template>
                                         <p class="mt-1.5 text-[10px] text-navy-400" x-text="message.time"></p>

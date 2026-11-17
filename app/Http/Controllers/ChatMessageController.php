@@ -115,19 +115,18 @@ class ChatMessageController extends Controller
 
         $result = $assistant->execute($nova['action'], $request->user(), ActionSource::Nova);
 
-        $message->update(['nova' => [...$nova, 'executed' => true, 'url' => $result['url']]]);
-
-        $bevestiging = $message->channel->messages()->create([
-            'user_id' => null,
-            'body' => $result['message'],
-            'nova' => ['executed' => true, 'url' => $result['url']],
-        ]);
+        // Het resultaat komt in het voorstel zelf ("Uitgevoerd door Imad: Taak aangemaakt"), niet als nieuw bericht:
+        // dat maakte het gesprek alleen langer. Iedereen in het kanaal ziet het in de kaart.
+        $message->update(['nova' => [
+            ...$nova,
+            'executed' => true,
+            'url' => $result['url'],
+            'result' => $result['message'],
+            'confirmed_by' => $request->user()->name,
+        ]]);
 
         return response()->json([
-            'messages' => [
-                $message->fresh('user')->toChatArray($request->user(), $request->is('api/*')),
-                $bevestiging->toChatArray($request->user(), $request->is('api/*')),
-            ],
+            'messages' => [$message->fresh('user')->toChatArray($request->user(), $request->is('api/*'))],
         ]);
     }
 

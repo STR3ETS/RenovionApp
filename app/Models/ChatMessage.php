@@ -72,6 +72,9 @@ class ChatMessage extends Model
                 'action' => $this->nova['action'] ?? null,
                 'executed' => (bool) ($this->nova['executed'] ?? false),
                 'url' => $this->nova['url'] ?? null,
+                // Wat er gebeurde en wie het bevestigde, in de kaart zelf (geen apart bericht meer).
+                'result' => $this->nova['result'] ?? null,
+                'confirmed_by' => $this->nova['confirmed_by'] ?? null,
             ] : null,
             'user' => $this->isFromNova() ? null : [
                 'name' => $this->user?->name ?? 'Verwijderde gebruiker',
