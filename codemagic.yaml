@@ -45,6 +45,12 @@ workflows:
         script: npx cap sync ios
       - name: Ondertekening instellen
         script: xcode-project use-profiles
+      - name: Swift-pakketten ophalen
+        # Een kapotte SwiftPM-cache op de buildmachine liet build 9 falen ("Could not resolve package
+        # dependencies"); daarom eerst leeg en de pakketten (Capacitor, Firebase) vers ophalen.
+        script: |
+          rm -rf ~/Library/Caches/org.swift.swiftpm ~/Library/org.swift.swiftpm
+          xcodebuild -resolvePackageDependencies -project "$XCODE_PROJECT" -scheme "$XCODE_SCHEME"
       - name: IPA bouwen
         script: |
           BUILD=$(jq -r .build mobile/release.json)
