@@ -26,7 +26,7 @@
                     <div class="flex items-center gap-2 text-sm">
                         <x-icon name="x-mark" class="h-4 w-4 shrink-0 text-red-500" />
                         <span class="text-gray-700">{{ $item['label'] }}</span>
-                        <span class="ml-auto text-xs text-gray-400">{{ CertificateCatalogue::stateLabel($item['state']) }}</span>
+                        <span class="ml-auto shrink-0 text-xs text-gray-500">{{ CertificateCatalogue::stateLabel($item['state']) }}</span>
                     </div>
                 @endforeach
             </div>
@@ -54,14 +54,18 @@
                            class="w-full rounded-xl border-gray-300 py-2 text-sm focus:border-brand-500 focus:ring-brand-500">
                 </div>
 
-                <div class="flex flex-wrap items-center gap-2">
-                    <label class="flex cursor-pointer items-center gap-1.5 rounded-xl border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700">
-                        <x-icon name="paper-clip" class="h-4 w-4" /> Bestand kiezen
-                        <input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png" hidden>
+                <div class="flex flex-wrap items-center gap-2" x-data="{ bestand: '' }">
+                    <label class="flex min-w-0 cursor-pointer items-center gap-1.5 rounded-xl border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700">
+                        <x-icon name="paper-clip" class="h-4 w-4 shrink-0" />
+                        {{-- De gekozen naam, anders zie je niet of er iets klaarstaat. --}}
+                        <span class="truncate" x-text="bestand || 'Bestand kiezen'">Bestand kiezen</span>
+                        <input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png" hidden @change="bestand = $event.target.files[0]?.name ?? ''">
                     </label>
                     <button type="submit" class="rounded-xl bg-brand-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-600">
                         Aanleveren
                     </button>
+                    @error('file')<p class="w-full text-xs font-medium text-red-600">{{ $message }}</p>@enderror
+                    @error('type')<p class="w-full text-xs font-medium text-red-600">{{ $message }}</p>@enderror
                 </div>
             </form>
         </section>

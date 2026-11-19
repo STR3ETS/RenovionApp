@@ -95,13 +95,15 @@ class PartnerPortalController extends Controller
 
         abort_unless($partner->id === $subcontractor->id, 403);
 
+        // Een overeenkomst teken je door hem in te sturen; een document (KvK, VCA, polis) bestaat alleen met het
+        // bestand erbij. Zonder die eis vinkte een partner zijn dossier af zonder iets aan te leveren.
+        $isAgreement = array_key_exists((string) $request->input('type'), CertificateCatalogue::PARTNER_AGREEMENTS);
+
         $validated = $request->validate([
             'type' => ['required', 'string', 'max:120'],
             'valid_until' => ['nullable', 'date'],
-            'file' => ['nullable', 'file', 'max:10240', 'mimes:pdf,jpg,jpeg,png'],
-        ]);
-
-        $isAgreement = array_key_exists($validated['type'], CertificateCatalogue::PARTNER_AGREEMENTS);
+            'file' => [$isAgreement ? 'nullable' : 'required', 'file', 'max:10240', 'mimes:pdf,jpg,jpeg,png'],
+        ], ['file.required' => 'Kies het bestand dat u wilt aanleveren.']);
 
         SubcontractorDocument::updateOrCreate(
             ['subcontractor_id' => $partner->id, 'type' => $validated['type']],

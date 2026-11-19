@@ -10,6 +10,8 @@ use App\Models\Subcontractor;
 use App\Models\User;
 use App\Support\CertificateCatalogue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class PartnerPortalTest extends TestCase
@@ -73,10 +75,19 @@ class PartnerPortalTest extends TestCase
     public function test_a_partner_can_deliver_a_document_himself(): void
     {
         [$partner, $user] = $this->partnerWithLogin(complete: false);
+        Storage::fake();
+
+        // Zonder bestand geen document: eerder vinkte dit het dossier af zonder dat er iets was aangeleverd.
+        $this->actingAs($user)->post(route('partner.document', $partner), [
+            'type' => 'KvK-uittreksel',
+            'valid_until' => today()->addYear()->toDateString(),
+        ])->assertSessionHasErrors('file');
+        $this->assertDatabaseMissing('subcontractor_documents', ['subcontractor_id' => $partner->id, 'type' => 'KvK-uittreksel']);
 
         $this->actingAs($user)->post(route('partner.document', $partner), [
             'type' => 'KvK-uittreksel',
             'valid_until' => today()->addYear()->toDateString(),
+            'file' => UploadedFile::fake()->create('kvk.pdf', 120, 'application/pdf'),
         ])->assertSessionHas('success');
 
         $this->assertDatabaseHas('subcontractor_documents', [

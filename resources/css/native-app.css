@@ -950,7 +950,8 @@ form + .app-li {
 }
 
 /* Laden mislukt (de kaart met failText uit screen()): geen grijze blokken meer van een titel die niet komt. */
-.native-app main :has(> .app-card > p[x-text*='failText']) .skeleton {
+/* Ook de formulieren: "Je rol heeft geen toegang tot dit formulier" (x-text="unavailable"). */
+.native-app main :has(> .app-card > p:is([x-text*='failText'], [x-text='unavailable'])) .skeleton {
     display: none;
 }
 

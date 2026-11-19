@@ -364,10 +364,21 @@ Alpine.store('os', {
             }
         }
         if (!this.token) return;
+        // Een klant of partner hoort niet in de app voor het team, ook niet na een herstart (eerder alleen
+        // direct na inloggen): meteen door naar het eigen portaal.
+        if (this.toPortal()) return;
         // Bewaarde gegevens van vorige keer staan er al; nu alles vers, Vandaag eerst.
         preload(this.crm);
         await this.refreshProfile();
+        if (this.toPortal()) return;
         this.registerPush();
+    },
+
+    // Klant naar het klantportaal, onderaannemer naar het partnerportaal (/portaal gaf hem "geen toegang").
+    toPortal() {
+        if (!this.profile || this.profile.can?.internal !== false) return false;
+        this.openWeb(this.profile.user?.role === 'onderaannemer' ? '/partner' : '/portaal');
+        return true;
     },
 
     navigate() {
@@ -443,10 +454,7 @@ Alpine.store('os', {
         storage.set(TOKEN_KEY, token);
         secure.set(token);
         this.setProfile(profile);
-        if (!profile.can.internal) {
-            this.openWeb('/portaal');
-            return;
-        }
+        if (this.toPortal()) return;
         preload(this.crm);
         this.registerPush();
     },
