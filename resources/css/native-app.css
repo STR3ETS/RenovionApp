@@ -955,6 +955,14 @@ form + .app-li {
     display: none;
 }
 
+/* Bestaat niet (meer) of je rol mag het niet openen (os-gone: 403/404, failGone in screen()): alleen de kop en
+   de melding. Knoppen, filters, tabs en lege kaarten eromheen kunnen nergens heen. Kruimelpad en dossierkop
+   blijven, dat is de weg terug. Bij geen verbinding blijft alles staan (dan komt het nog). */
+.native-app main :has(> .os-gone) > :not(.os-gone, .app-ph, .app-crumbs, .app-band, template),
+.native-app main :has(> .os-gone) > .app-ph :is(.app-ph-acts, .sub) {
+    display: none !important;
+}
+
 /* Een lange titel als laatste stap maakt alleen zichzelf korter: de knop terug en het pijltje houden hun maat
    (anders schoof het pijltje over de knop). */
 .app-crumbs > :is(a, button) {

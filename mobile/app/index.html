@@ -133,7 +133,7 @@
                         </section>
 
                         <template x-if="failed">
-                            <div class="app-card p-5 text-center">
+                            <div class="app-card p-5 text-center" :class="$data.failGone && 'os-gone'">
                                 <p class="text-sm font-semibold text-navy-900" x-text="$data.failText ?? 'Geen verbinding met de server'">Geen verbinding met de server</p>
                                 <button type="button" @click="load()" x-show="!$data.failGone" class="app-btn mt-3">Opnieuw proberen</button>
                             </div>
@@ -366,7 +366,7 @@
                         </div>
 
                         <template x-if="failed">
-                            <div class="app-card p-5 text-center">
+                            <div class="app-card p-5 text-center" :class="$data.failGone && 'os-gone'">
                                 <p class="text-sm font-semibold text-navy-900" x-text="$data.failText ?? 'Geen verbinding met de server'">Geen verbinding met de server</p>
                                 <button type="button" @click="load()" x-show="!$data.failGone" class="app-btn mt-3">Opnieuw proberen</button>
                             </div>
@@ -429,7 +429,7 @@
                         </div>
 
                         <template x-if="failed">
-                            <div class="app-card p-5 text-center">
+                            <div class="app-card p-5 text-center" :class="$data.failGone && 'os-gone'">
                                 <p class="text-sm font-semibold text-navy-900" x-text="$data.failText ?? 'Geen verbinding met de server'">Geen verbinding met de server</p>
                                 <button type="button" @click="load()" x-show="!$data.failGone" class="app-btn mt-3">Opnieuw proberen</button>
                             </div>
@@ -602,7 +602,7 @@
                         </div>
 
                         <template x-if="failed">
-                            <div class="app-card p-5 text-center">
+                            <div class="app-card p-5 text-center" :class="$data.failGone && 'os-gone'">
                                 <p class="text-sm font-semibold text-navy-900" x-text="$data.failText ?? 'Geen verbinding met de server'">Geen verbinding met de server</p>
                                 <button type="button" @click="load()" x-show="!$data.failGone" class="app-btn mt-3">Opnieuw proberen</button>
                             </div>
@@ -671,7 +671,7 @@
                         </div>
 
                         <template x-if="failed">
-                            <div class="app-card p-5 text-center">
+                            <div class="app-card p-5 text-center" :class="$data.failGone && 'os-gone'">
                                 <p class="text-sm font-semibold text-navy-900" x-text="$data.failText ?? 'Geen verbinding met de server'">Geen verbinding met de server</p>
                                 <button type="button" @click="load()" x-show="!$data.failGone" class="app-btn mt-3">Opnieuw proberen</button>
                             </div>
@@ -799,7 +799,7 @@
                                 </section>
 
                                 <template x-if="failed">
-                                    <div class="app-card p-5 text-center">
+                                    <div class="app-card p-5 text-center" :class="$data.failGone && 'os-gone'">
                                         <p class="text-sm font-semibold text-navy-900" x-text="$data.failText ?? 'Geen verbinding met de server'">Geen verbinding met de server</p>
                                         <button type="button" @click="load()" x-show="!$data.failGone" class="app-btn mt-3">Opnieuw proberen</button>
                                     </div>
@@ -955,7 +955,7 @@
                                 </div>
 
                                 <template x-if="failed">
-                                    <div class="app-card mb-3 p-5 text-center">
+                                    <div class="app-card mb-3 p-5 text-center" :class="$data.failGone && 'os-gone'">
                                         <p class="text-sm font-semibold text-navy-900" x-text="$data.failText ?? 'Geen verbinding met de server'">Geen verbinding met de server</p>
                                         <button type="button" @click="load()" x-show="!$data.failGone" class="app-btn mt-3">Opnieuw proberen</button>
                                     </div>
@@ -1103,7 +1103,7 @@
                         </div>
 
                         <template x-if="failed">
-                            <div class="app-card p-5 text-center">
+                            <div class="app-card p-5 text-center" :class="$data.failGone && 'os-gone'">
                                 <p class="text-sm font-semibold text-navy-900" x-text="$data.failText ?? 'Geen verbinding met de server'">Geen verbinding met de server</p>
                                 <button type="button" @click="load()" x-show="!$data.failGone" class="app-btn mt-3">Opnieuw proberen</button>
                             </div>
@@ -1148,7 +1148,7 @@
                         </div>
 
                         <template x-if="failed">
-                            <div class="app-card p-5 text-center">
+                            <div class="app-card p-5 text-center" :class="$data.failGone && 'os-gone'">
                                 <p class="text-sm font-semibold text-navy-900" x-text="$data.failText ?? 'Geen verbinding met de server'">Geen verbinding met de server</p>
                                 <button type="button" @click="load()" x-show="!$data.failGone" class="app-btn mt-3">Opnieuw proberen</button>
                             </div>
@@ -1243,7 +1243,7 @@
                         </form>
 
                         <template x-if="failed">
-                            <div class="app-card p-5 text-center">
+                            <div class="app-card p-5 text-center" :class="$data.failGone && 'os-gone'">
                                 <p class="text-sm font-semibold text-navy-900">Zoeken lukt nu niet</p>
                                 <p class="mt-0.5 text-xs text-gray-500">Zonder verbinding kan de app niet zoeken.</p>
                                 <button type="button" @click="run()" class="app-btn mt-3">Opnieuw proberen</button>
@@ -1309,7 +1309,7 @@
                         </div>
 
                         <template x-if="failed">
-                            <div class="app-card p-5 text-center">
+                            <div class="app-card p-5 text-center" :class="$data.failGone && 'os-gone'">
                                 <p class="text-sm font-semibold text-navy-900" x-text="$data.failText ?? 'Geen verbinding met de server'">Geen verbinding met de server</p>
                                 <button type="button" @click="load()" x-show="!$data.failGone" class="app-btn mt-3">Opnieuw proberen</button>
                             </div>
@@ -1362,7 +1362,7 @@
                                 </div>
 
                                 <template x-if="failed">
-                                    <div class="app-card p-5 text-center">
+                                    <div class="app-card p-5 text-center" :class="$data.failGone && 'os-gone'">
                                         <p class="text-sm font-semibold text-navy-900" x-text="$data.failText ?? 'Geen verbinding met de server'">Geen verbinding met de server</p>
                                         <button type="button" @click="load()" x-show="!$data.failGone" class="app-btn mt-3">Opnieuw proberen</button>
                                     </div>
@@ -1461,7 +1461,7 @@
                         </div>
 
                         <template x-if="failed">
-                            <div class="app-card p-5 text-center">
+                            <div class="app-card p-5 text-center" :class="$data.failGone && 'os-gone'">
                                 <p class="text-sm font-semibold text-navy-900" x-text="$data.failText ?? 'Geen verbinding met de server'">Geen verbinding met de server</p>
                                 <button type="button" @click="load()" x-show="!$data.failGone" class="app-btn mt-3">Opnieuw proberen</button>
                             </div>
@@ -1523,7 +1523,7 @@
                                 </div>
 
                                 <template x-if="failed">
-                                    <div class="app-card p-5 text-center">
+                                    <div class="app-card p-5 text-center" :class="$data.failGone && 'os-gone'">
                                         <p class="text-sm font-semibold text-navy-900" x-text="$data.failText ?? 'Geen verbinding met de server'">Geen verbinding met de server</p>
                                         <button type="button" @click="load()" x-show="!$data.failGone" class="app-btn mt-3">Opnieuw proberen</button>
                                     </div>

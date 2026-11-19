@@ -16,11 +16,11 @@ class OnboardingContent
     public static function hero(bool $crm): array
     {
         return $crm ? [
-            'subtitle' => 'Zo werkt Renovion Dash, en dit moet er staan voordat het team er elke dag mee werkt.',
+            'subtitle' => 'Zo werkt Renovion OS, en dit moet er staan voordat het team er elke dag mee werkt.',
             'title' => 'Van aanvraag tot nazorg, zonder losse lijstjes',
             'intro' => 'Aanvraag, calculatie, offerte, akkoord, projectfasen, uitvoering met foto-bewijs, oplevering en nazorg zitten in één systeem. Het laat zelf zien wat vandaag aandacht vraagt. Nova automatiseert en stelt voor, jij houdt de regie. Hieronder lees je hoe de keten werkt, wat er nog ingesteld moet worden en waar je alles vindt.',
         ] : [
-            'subtitle' => 'Zo werk je met Renovion Dash op het werk.',
+            'subtitle' => 'Zo werk je met Renovion OS op het werk.',
             'title' => 'Jouw werk, zonder gedoe',
             'intro' => 'Je ziet alleen wat voor jou is: je planning, je projecten en je taken. Op het werk vink je de checklist af en maak je foto\'s. Kantoor ziet direct waar je staat, zonder dat je hoeft te bellen. Hieronder lees je hoe dat werkt.',
         ];

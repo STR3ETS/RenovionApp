@@ -33,7 +33,7 @@
         </div>
 
         <template x-if="failed">
-            <div class="app-card p-5 text-center">
+            <div class="app-card p-5 text-center" :class="$data.failGone && 'os-gone'">
                 <p class="text-sm font-semibold text-navy-900" x-text="$data.failText ?? 'Geen verbinding met de server'">Geen verbinding met de server</p>
                 <button type="button" x-show="!$data.failGone" @click="load()" class="app-btn mt-3 min-h-11">Opnieuw proberen</button>
             </div>
