@@ -157,6 +157,20 @@ class PartnerPortalTest extends TestCase
 
         $this->assertSame(1, $rfq->bids()->count());
         $this->assertSame('3400.00', $bid->fresh()->price);
+
+        // Een fout staat bij dit formulier, in het Nederlands ("vandaag", niet "today"), met de ingevulde waarden.
+        $this->actingAs($user)->from(route('partner.index'))->post(route('partner.bid', $rfq), [
+            '_rfq' => $rfq->id,
+            'price' => 3300,
+            'can_start_on' => today()->subDay()->toDateString(),
+        ])->assertSessionHasErrors(['can_start_on' => 'Startdatum moet een datum op of na vandaag zijn.']);
+
+        $this->followRedirects($this->actingAs($user)->from(route('partner.index'))->post(route('partner.bid', $rfq), [
+            '_rfq' => $rfq->id,
+            'price' => -5,
+        ]))->assertSee('id="bieding-fout-'.$rfq->id.'"', false)->assertSee('value="-5"', false);
+
+        $this->assertSame('3400.00', $bid->fresh()->price);
     }
 
     public function test_a_partner_cannot_bid_on_a_request_he_was_not_invited_for(): void

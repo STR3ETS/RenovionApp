@@ -109,29 +109,52 @@
 
                         @if ($own)
                             <div class="mt-3 rounded-xl bg-green-50 p-3 text-sm text-gray-700">
-                                <b>Uw bieding staat vast:</b> {{ $eur((float) $own->price) }}@if ($own->can_start_on), start {{ $own->can_start_on->translatedFormat('j F') }} @endif.
+                                <b>Uw bieding staat vast:</b> {{ $eur((float) $own->price) }}{{ $own->can_start_on ? ', start '.$own->can_start_on->translatedFormat('j F') : '' }}.
                                 U kunt hem hieronder nog aanpassen zolang wij niet hebben besloten.
                             </div>
                         @endif
 
+                        {{-- Labels boven de velden (een placeholder verdwijnt zodra er iets staat) en de fouten bij dit formulier:
+                             de pagina kan meer aanvragen hebben, _rfq zegt welk formulier verstuurd is. --}}
+                        @php($dezeFout = $errors->any() && (int) old('_rfq') === $rfq->id)
                         <form method="POST" action="{{ route('partner.bid', $rfq) }}" class="mt-3 space-y-2 border-t border-gray-200 pt-3">
                             @csrf
-                            <div class="grid grid-cols-1 gap-2 sm:grid-cols-4">
-                                <input type="number" step="0.01" min="0" name="price" required
-                                       value="{{ $own?->price }}" placeholder="Uw prijs"
-                                       class="w-full rounded-xl border-gray-300 py-2 text-sm focus:border-brand-500 focus:ring-brand-500">
-                                <input type="date" name="can_start_on" value="{{ $own?->can_start_on?->toDateString() }}" title="Kan starten op"
-                                       class="w-full rounded-xl border-gray-300 py-2 text-sm focus:border-brand-500 focus:ring-brand-500">
-                                <input type="number" min="1" name="days" value="{{ $own?->days }}" placeholder="Dagen"
-                                       class="w-full rounded-xl border-gray-300 py-2 text-sm focus:border-brand-500 focus:ring-brand-500">
-                                <input type="number" min="0" max="100" name="completeness" value="{{ $own?->completeness ?? 100 }}"
-                                       title="Hoeveel procent van het gevraagde heeft u geprijsd"
-                                       class="w-full rounded-xl border-gray-300 py-2 text-sm focus:border-brand-500 focus:ring-brand-500">
+                            <input type="hidden" name="_rfq" value="{{ $rfq->id }}">
+                            <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                                <label class="block min-w-0">
+                                    <span class="mb-1 block text-xs font-semibold text-gray-600">Uw prijs (€, excl. btw)</span>
+                                    <input type="number" step="0.01" min="0" name="price" required @if ($dezeFout) autofocus @endif
+                                           value="{{ $dezeFout ? old('price') : $own?->price }}"
+                                           class="w-full rounded-xl border-gray-300 py-2 text-sm focus:border-brand-500 focus:ring-brand-500">
+                                </label>
+                                <label class="block min-w-0">
+                                    <span class="mb-1 block text-xs font-semibold text-gray-600">Kan starten op</span>
+                                    <input type="date" name="can_start_on" value="{{ $dezeFout ? old('can_start_on') : $own?->can_start_on?->toDateString() }}"
+                                           class="w-full rounded-xl border-gray-300 py-2 text-sm focus:border-brand-500 focus:ring-brand-500">
+                                </label>
+                                <label class="block min-w-0">
+                                    <span class="mb-1 block text-xs font-semibold text-gray-600">Aantal werkdagen</span>
+                                    <input type="number" min="1" name="days" value="{{ $dezeFout ? old('days') : $own?->days }}"
+                                           class="w-full rounded-xl border-gray-300 py-2 text-sm focus:border-brand-500 focus:ring-brand-500">
+                                </label>
+                                <label class="block min-w-0">
+                                    <span class="mb-1 block text-xs font-semibold text-gray-600">Geprijsd (%)</span>
+                                    <input type="number" min="0" max="100" name="completeness" value="{{ $dezeFout ? old('completeness') : ($own?->completeness ?? 100) }}"
+                                           title="Hoeveel procent van het gevraagde heeft u geprijsd"
+                                           class="w-full rounded-xl border-gray-300 py-2 text-sm focus:border-brand-500 focus:ring-brand-500">
+                                </label>
                             </div>
 
-                            <input type="text" name="conditions" value="{{ $own?->conditions }}"
-                                   placeholder="Voorwaarden, bijvoorbeeld: exclusief steiger en afvoer"
-                                   class="w-full rounded-xl border-gray-300 py-2 text-sm focus:border-brand-500 focus:ring-brand-500">
+                            <label class="block">
+                                <span class="mb-1 block text-xs font-semibold text-gray-600">Voorwaarden</span>
+                                <input type="text" name="conditions" value="{{ $dezeFout ? old('conditions') : $own?->conditions }}"
+                                       placeholder="Bijvoorbeeld: exclusief steiger en afvoer"
+                                       class="w-full rounded-xl border-gray-300 py-2 text-sm focus:border-brand-500 focus:ring-brand-500">
+                            </label>
+
+                            @if ($dezeFout)
+                                <p class="text-xs font-medium text-red-600" id="bieding-fout-{{ $rfq->id }}">{{ $errors->first() }}</p>
+                            @endif
 
                             <button type="submit" class="rounded-xl bg-brand-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-600">
                                 {{ $own ? 'Bieding bijwerken' : 'Bieding insturen' }}

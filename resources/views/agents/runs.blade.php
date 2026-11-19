@@ -72,7 +72,7 @@
 
                         <span class="shrink-0 text-right">
                             @if ($run->duration() !== null)
-                                <small class="block text-xs text-slate-500">{{ $run->duration() }} seconden</small>
+                                <small class="block text-xs text-slate-500">{{ $run->durationLabel() }}</small>
                             @endif
                             @if ((float) $run->cost > 0)
                                 <small class="block text-xs text-slate-500">€ {{ number_format((float) $run->cost, 2, ',', '.') }}</small>

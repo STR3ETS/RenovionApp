@@ -226,6 +226,24 @@ class AgentTest extends TestCase
         $this->assertStringContainsString('Badkamer Peters', $item['subtitle']);
     }
 
+    public function test_the_duration_of_a_run_reads_like_a_human_wrote_it(): void
+    {
+        $this->travelTo(now()->startOfMinute());
+
+        $label = fn (?int $seconds, bool $finished = true) => (new AgentRun([
+            'started_at' => $seconds === null ? null : now()->subSeconds($seconds),
+            'finished_at' => $finished && $seconds !== null ? now() : null,
+        ]))->durationLabel();
+
+        $this->assertNull($label(null));
+        $this->assertSame('1 seconde', $label(1));
+        $this->assertSame('14 seconden', $label(14));
+        $this->assertSame('3 minuten', $label(200));
+        $this->assertSame('5 uur', $label(5 * 3600 + 20));
+        // Een uitvoering die op goedkeuring wacht, loopt door tot nu: twee dagen, niet 172800 seconden.
+        $this->assertSame('2 dagen', $label(2 * 86400 + 50, finished: false));
+    }
+
     public function test_the_agent_screens_open(): void
     {
         $directie = User::factory()->create(['role' => UserRole::Directie]);

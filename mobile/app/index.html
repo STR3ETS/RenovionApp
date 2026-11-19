@@ -818,7 +818,7 @@
                                     </div>
                                 </section>
 
-                                <section data-enter class="app-card mb-3 cursor-pointer p-4 select-none" x-data="{ open: false }" @click="if (data && !$event.target.closest('a, button, select, input, textarea, label, form')) open = !open" :aria-expanded="open">
+                                <section data-enter class="app-card mb-3 cursor-pointer p-4 select-none" x-show="data || !failed" x-data="{ open: false }" @click="if (data && !$event.target.closest('a, button, select, input, textarea, label, form')) open = !open" :aria-expanded="open">
                                     <div class="mb-2 flex items-center justify-between">
                                         <h2 class="text-sm font-bold text-navy-900">Projectvoortgang</h2>
                                         <span class="text-xs font-semibold text-gray-500" x-text="data ? data.progress + '%' : ''"></span>
@@ -859,7 +859,7 @@
                                     </ol>
                                 </section>
 
-                                <section data-enter class="app-card mb-3 grid grid-cols-3 gap-2 p-4">
+                                <section data-enter class="app-card mb-3 grid grid-cols-3 gap-2 p-4" x-show="data || !failed">
                                     <template x-for="tile in [['Uitvoering', 'clipboard-check', 'execution', data ? (data.open_work ? data.open_work + ' open' : (data.work?.length ? 'Alles af' : 'Nog geen werk')) : ''], ['Foto\'s', 'photo', 'photos', data ? data.photos + ' totaal' : ''], ['Chat', 'chat-bubble', 'chat', 'Projectchat']]" :key="tile[0]">
                                         <button type="button" @click="tile[2] === 'execution' && data?.work.length ? $refs.work.scrollIntoView({ behavior: 'smooth', block: 'start' }) : (data?.links[tile[2]] && $store.os.go(data.links[tile[2]]))" class="flex min-w-0 flex-col items-center gap-1 rounded-xl py-1 text-center active:bg-gray-50">
                                             <span class="flex h-12 w-12 items-center justify-center rounded-2xl border border-gray-200 bg-white text-navy-900 shadow-sm"><span x-icon="tile[1]" class="h-6 w-6"></span></span>
@@ -962,7 +962,7 @@
                                 </template>
 
                                 <!-- Checklist: de hele rij is de afvinkknop -->
-                                <section data-enter class="app-card mb-3">
+                                <section data-enter class="app-card mb-3" x-show="data || !failed">
                                     <div class="app-card-h"><h3>Checklist</h3><span class="text-xs font-semibold text-gray-500" x-show="data?.items.length" x-text="doneCount + '/' + (data?.items.length ?? 0)"></span></div>
                                     <div class="app-card-b">
                                         <template x-if="!data"><div class="p-1"><span class="skeleton mb-3 block h-10 w-full"></span><span class="skeleton block h-10 w-full"></span></div></template>
@@ -1005,7 +1005,7 @@
                                 </section>
 
                                 <!-- Foto's -->
-                                <section data-enter class="app-card mb-3">
+                                <section data-enter class="app-card mb-3" x-show="data || !failed">
                                     <div class="app-card-h"><h3>Foto's</h3><span class="text-xs font-semibold text-gray-500" x-text="data ? data.photos.length : ''"></span></div>
                                     <div class="app-card-b">
                                         <div x-show="uploads.length || data?.photos.length" class="mb-3 grid grid-cols-3 gap-2">
@@ -1738,7 +1738,7 @@
                                     <span class="min-w-0 flex-1">
                                         <span class="block truncate text-[15px] font-bold text-navy-950" x-text="data?.name ?? ''"></span>
                                         <span class="block truncate text-xs text-gray-500" x-text="data?.subtitle ?? ''"></span>
-                                        <span x-show="!data" class="skeleton block h-4 w-1/2"></span>
+                                        <span x-show="!data && !failed" class="skeleton block h-4 w-1/2"></span>
                                     </span>
                                     <button type="button" x-show="data?.project_path" @click="$store.os.go(data.project_path)" class="app-btn shrink-0 !px-3 text-xs">Project</button>
                                 </header>
@@ -1751,7 +1751,7 @@
                                     <template x-if="failed">
                                         <div class="mx-auto mt-10 max-w-xs rounded-xl bg-white p-5 text-center">
                                             <p class="text-sm font-semibold text-navy-900" x-text="$data.failText ?? 'Geen verbinding met de server'">Geen verbinding met de server</p>
-                                            <button type="button" @click="open()" class="app-btn mt-3">Opnieuw proberen</button>
+                                            <button type="button" @click="open()" x-show="!failGone" class="app-btn mt-3">Opnieuw proberen</button>
                                         </div>
                                     </template>
                                     <template x-for="i in (data || failed ? 0 : 4)" :key="i">
@@ -1856,7 +1856,7 @@
                                     </template>
                                 </div>
 
-                                <form @submit.prevent="send()" class="relative flex shrink-0 items-center gap-2 border-t px-3 pt-2.5 pb-[calc(0.6rem_+_env(safe-area-inset-bottom))]">
+                                <form @submit.prevent="send()" x-show="data || !failGone" class="relative flex shrink-0 items-center gap-2 border-t px-3 pt-2.5 pb-[calc(0.6rem_+_env(safe-area-inset-bottom))]">
                                     <!-- @-suggesties: wie je hier kunt noemen. Tikken maakt de naam af; het toetsenbord blijft open. -->
                                     <div x-show="mentionOptions.length" x-cloak class="chat-mentions" role="listbox" aria-label="Collega noemen">
                                         <template x-for="person in mentionOptions" :key="person.mention + person.name">

@@ -1164,6 +1164,8 @@ Alpine.data('conversation', (id) => ({
     cacheName: `gesprek:${id}`,
     data: null,
     failed: false,
+    failText: 'Geen verbinding met de server',
+    failGone: false,
     input: '',
     busy: false,
     listening: false,
@@ -1266,7 +1268,15 @@ Alpine.data('conversation', (id) => ({
             fetchedAt.chat = 0;
             Alpine.store('os').refreshProfile();
         } catch (error) {
-            if (error.status !== 401) this.failed = this.data === null;
+            if (error.status === 401) return;
+            // Zelfde meldingen als de andere schermen: een kanaal dat weg is, is geen verbindingsprobleem.
+            const status = error.status ?? 0;
+            this.failGone = status === 404 || status === 403;
+            this.failText = status === 404 ? 'Dit gesprek bestaat niet (meer).'
+                : status === 403 ? 'Hier heb je geen toegang toe.'
+                : status >= 500 ? SERVER_ERROR
+                : 'Geen verbinding met de server';
+            this.failed = this.data === null;
         }
     },
     save() {

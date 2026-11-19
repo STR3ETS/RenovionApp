@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\AgentRegistry;
+use App\Support\Tally;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
@@ -170,6 +171,23 @@ class AgentRun extends Model
         }
 
         return (int) $this->started_at->diffInSeconds($this->finished_at ?? now());
+    }
+
+    /**
+     * De duur voor mensen: "14 seconden", "3 minuten", "2 dagen". Een uitvoering die op goedkeuring wacht,
+     * loopt door tot nu, en "184250 seconden" zegt niemand iets.
+     */
+    public function durationLabel(): ?string
+    {
+        $seconds = $this->duration();
+
+        return match (true) {
+            $seconds === null => null,
+            $seconds < 60 => Tally::of($seconds, 'seconde', 'seconden'),
+            $seconds < 3600 => Tally::of(intdiv($seconds, 60), 'minuut', 'minuten'),
+            $seconds < 86400 => intdiv($seconds, 3600).' uur',
+            default => Tally::of(intdiv($seconds, 86400), 'dag', 'dagen'),
+        };
     }
 
     /**

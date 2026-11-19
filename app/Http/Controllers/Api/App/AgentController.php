@@ -122,6 +122,7 @@ class AgentController extends Controller
                         $run->created_at->diffForHumans(),
                     ])->filter()->implode(', '),
                     'duration' => $run->duration(),
+                    'duration_label' => $run->durationLabel(),
                     'cost' => (float) $run->cost > 0 ? (float) $run->cost : null,
                     'steps' => collect($run->steps ?? [])->map(fn (array $step) => ['description' => $step['description'], 'at' => $step['at']])->values(),
                     'about' => $skill ? [

@@ -107,6 +107,14 @@ class AppServiceProvider extends ServiceProvider
         foreach (['min' => ':min', 'max' => ':max'] as $rule => $placeholder) {
             Validator::replacer($rule, fn (string $message, string $attribute, string $r, array $parameters) => str_replace($placeholder, str_replace('.', ',', $parameters[0] ?? ''), $message));
         }
+        // "moet een datum op of na today zijn": Laravel zet het Engelse woord uit de regel erin.
+        foreach (['after', 'after_or_equal', 'before', 'before_or_equal'] as $rule) {
+            Validator::replacer($rule, fn (string $message, string $attribute, string $r, array $parameters) => str_replace(
+                ':date',
+                ['today' => 'vandaag', 'tomorrow' => 'morgen', 'yesterday' => 'gisteren', 'now' => 'nu'][$parameters[0] ?? ''] ?? (trans('validation.attributes.'.($parameters[0] ?? '')) !== 'validation.attributes.'.($parameters[0] ?? '') ? trans('validation.attributes.'.$parameters[0]) : ($parameters[0] ?? '')),
+                $message,
+            ));
+        }
         Validator::replacer('between', fn (string $message, string $attribute, string $r, array $parameters) => str_replace(
             [':min', ':max'],
             [str_replace('.', ',', $parameters[0] ?? ''), str_replace('.', ',', $parameters[1] ?? '')],

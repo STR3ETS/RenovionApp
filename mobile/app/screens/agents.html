@@ -180,7 +180,7 @@
                             <b class="block text-sm font-semibold text-navy-900" x-text="run.skill"></b>
                             <span class="mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-bold" :class="run.status.classes" x-text="run.status.label"></span>
                             <small class="mt-1 block text-xs text-gray-500" x-text="run.sub"></small>
-                            <small x-show="run.duration !== null || run.cost" class="block text-xs text-gray-500" x-text="[run.duration !== null ? run.duration + ' seconden' : null, run.cost ? osFormat.euro(run.cost, 2) : null].filter(Boolean).join(', ')"></small>
+                            <small x-show="run.duration !== null || run.cost" class="block text-xs text-gray-500" x-text="[run.duration !== null ? (run.duration_label ?? run.duration + ' seconden') : null,run.cost ? osFormat.euro(run.cost, 2) : null].filter(Boolean).join(', ')"></small>
                         </span>
                         <span x-icon="'chevron-down'" class="mt-2 h-4 w-4 shrink-0 text-gray-500 transition" :class="open === run.id && 'rotate-180'"></span>
                     </button>
