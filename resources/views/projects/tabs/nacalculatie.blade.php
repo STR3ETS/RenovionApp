@@ -1,8 +1,8 @@
 @php
-    $eur = fn (float $v) => 'EUR '.number_format($v, 0, ',', '.');
+    $eur = fn (float $v) => '€ '.number_format($v, 0, ',', '.');
     $num = fn (float $v, int $d = 1) => rtrim(rtrim(number_format($v, $d, ',', '.'), '0'), ',');
     $pill = fn (?float $v) => $v === null
-        ? 'bg-white/10 text-slate-400'
+        ? 'bg-ink/10 text-muted'
         : ($v > 5 ? 'bg-red-500/15 text-red-300' : ($v > 0 ? 'bg-amber-500/15 text-amber-300' : 'bg-green-500/15 text-green-300'));
 @endphp
 
@@ -22,8 +22,8 @@
 
         <section class="overflow-hidden rounded-2xl border border-surface-700 bg-surface-800">
             <div class="border-b border-surface-700 p-5">
-                <h2 class="text-sm font-bold text-white">Per <span class="text-brand-500">kostensoort</span></h2>
-                <p class="mt-0.5 text-xs text-slate-500">
+                <h2 class="text-sm font-bold text-ink">Per <span class="text-brand-500">kostensoort</span></h2>
+                <p class="mt-0.5 text-xs text-faint">
                     Voortgang {{ $review['progress'] }}%, {{ $num($review['hours_actual']) }} van {{ $num($review['hours_budgeted']) }} begrote uren geboekt.
                     Urenfactor {{ $num($review['efficiency'], 2) }}, boven één is meer uren dan begroot.
                 </p>
@@ -32,7 +32,7 @@
             <div class="overflow-x-auto p-5">
                 <table class="w-full text-sm">
                     <thead>
-                        <tr class="border-b border-surface-700 text-[10px] font-bold tracking-wider text-slate-500 uppercase">
+                        <tr class="border-b border-surface-700 text-[10px] font-bold tracking-wider text-faint uppercase">
                             <th class="pb-2 text-left">Kostensoort</th>
                             <th class="pb-2 text-right">Begroot</th>
                             <th class="pb-2 text-right">Werkelijk</th>
@@ -44,16 +44,16 @@
                     <tbody>
                         @foreach ($review['rows'] as $row)
                             <tr class="border-b border-surface-700/60">
-                                <td class="py-2.5 font-semibold text-slate-200">{{ $row['name'] }}</td>
-                                <td class="py-2.5 text-right text-slate-400">{{ $eur($row['budgeted']) }}</td>
-                                <td class="py-2.5 text-right text-white">{{ $eur($row['actual']) }}</td>
-                                <td class="py-2.5 text-right font-semibold text-white">{{ $eur($row['expected']) }}</td>
+                                <td class="py-2.5 font-semibold text-ink">{{ $row['name'] }}</td>
+                                <td class="py-2.5 text-right text-muted">{{ $eur($row['budgeted']) }}</td>
+                                <td class="py-2.5 text-right text-ink">{{ $eur($row['actual']) }}</td>
+                                <td class="py-2.5 text-right font-semibold text-ink">{{ $eur($row['expected']) }}</td>
                                 <td class="py-2.5 text-right">
                                     <span class="rounded-full px-2 py-0.5 text-xs font-bold {{ $pill($row['variance']) }}">
                                         {{ $row['variance'] === null ? 'n.v.t.' : (($row['variance'] > 0 ? '+' : '').$num($row['variance']).'%') }}
                                     </span>
                                 </td>
-                                <td class="py-2.5 pl-4 text-xs text-slate-500">{{ $row['note'] }}</td>
+                                <td class="py-2.5 pl-4 text-xs text-faint">{{ $row['note'] }}</td>
                             </tr>
                         @endforeach
                     </tbody>

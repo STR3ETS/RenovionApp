@@ -28,7 +28,7 @@ enum JobStatus: string
     public function badgeClasses(): string
     {
         return match ($this) {
-            self::Gepland => 'bg-white/10 text-slate-300',
+            self::Gepland => 'bg-ink/10 text-ink2',
             self::Onderweg => 'bg-lead-500/15 text-lead-300',
             self::Bezig => 'bg-brand-500/15 text-brand-300',
             self::Pauze => 'bg-amber-500/15 text-amber-300',

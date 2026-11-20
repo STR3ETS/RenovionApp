@@ -27,8 +27,8 @@
         <section class="rounded-2xl border border-surface-700 bg-surface-800">
             <div class="flex flex-wrap items-center justify-between gap-3 border-b border-surface-700 px-5 py-4">
                 <div>
-                    <h2 class="text-sm font-bold text-white">Aanmelding <span class="text-brand-500">bouw</span></h2>
-                    <p class="mt-0.5 text-xs text-slate-500">Wie er op de bouw komt, moet vooraf zijn aangemeld. Vul de datum in zodra een aanmelding is gedaan.</p>
+                    <h2 class="text-sm font-bold text-ink">Aanmelding <span class="text-brand-500">bouw</span></h2>
+                    <p class="mt-0.5 text-xs text-faint">Wie er op de bouw komt, moet vooraf zijn aangemeld. Vul de datum in zodra een aanmelding is gedaan.</p>
                 </div>
                 <span class="rounded-full px-3 py-1 text-xs font-bold {{ $klaar === count(SiteRegistration::STEPS) ? 'bg-green-500/15 text-green-300' : 'bg-amber-500/15 text-amber-300' }}">
                     {{ $klaar }} van {{ count(SiteRegistration::STEPS) }} gedaan
@@ -42,12 +42,12 @@
                 <div class="space-y-2">
                     @foreach (SiteRegistration::STEPS as $field => [$label, $uitleg])
                         <div class="flex flex-wrap items-center gap-3 rounded-xl border border-surface-700 bg-surface-850 p-3">
-                            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full {{ $registration->{$field} ? 'bg-green-500/15 text-green-300' : 'bg-surface-700 text-slate-500' }}">
+                            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full {{ $registration->{$field} ? 'bg-green-500/15 text-green-300' : 'bg-surface-700 text-faint' }}">
                                 <x-icon name="check" class="h-4 w-4" />
                             </span>
                             <span class="min-w-0 flex-1">
-                                <span class="block text-sm font-semibold text-white">{{ $label }}</span>
-                                <span class="block text-xs text-slate-500">{{ $uitleg }}</span>
+                                <span class="block text-sm font-semibold text-ink">{{ $label }}</span>
+                                <span class="block text-xs text-faint">{{ $uitleg }}</span>
                             </span>
                             <input type="date" name="{{ $field }}" value="{{ old($field, $registration->{$field}?->toDateString()) }}" aria-label="Datum {{ $label }}"
                                    class="rounded-xl border-surface-600 text-sm">
@@ -56,20 +56,20 @@
                 </div>
 
                 <div class="grid gap-3 sm:grid-cols-2">
-                    <label class="block text-xs text-slate-400">Contactpersoon op de bouw
+                    <label class="block text-xs text-muted">Contactpersoon op de bouw
                         <input type="text" name="contact_name" value="{{ old('contact_name', $registration->contact_name) }}" maxlength="255" class="mt-1 w-full rounded-xl border-surface-600 text-sm">
                     </label>
-                    <label class="block text-xs text-slate-400">Telefoon
+                    <label class="block text-xs text-muted">Telefoon
                         <input type="text" name="contact_phone" value="{{ old('contact_phone', $registration->contact_phone) }}" maxlength="50" class="mt-1 w-full rounded-xl border-surface-600 text-sm">
                     </label>
                 </div>
 
-                <label class="block text-xs text-slate-400">Bijzonderheden
+                <label class="block text-xs text-muted">Bijzonderheden
                     <textarea name="notes" rows="2" maxlength="2000" class="mt-1 w-full rounded-xl border-surface-600 text-sm">{{ old('notes', $registration->notes) }}</textarea>
                 </label>
 
                 <div class="flex justify-end">
-                    <button type="submit" class="rounded-full bg-brand-500 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600">Opslaan</button>
+                    <button type="submit" class="btn pri">Opslaan</button>
                 </div>
             </form>
         </section>
@@ -77,14 +77,14 @@
         {{-- Overeenkomst per onderaannemer --}}
         <section class="rounded-2xl border border-surface-700 bg-surface-800">
             <div class="border-b border-surface-700 px-5 py-4">
-                <h2 class="text-sm font-bold text-white">Overeen<span class="text-brand-500">komsten</span></h2>
-                <p class="mt-0.5 text-xs text-slate-500">
+                <h2 class="text-sm font-bold text-ink">Overeen<span class="text-brand-500">komsten</span></h2>
+                <p class="mt-0.5 text-xs text-faint">
                     Per onderaannemer een overeenkomst voor dit project. Hij staat hier zodra er gegund is, en is rond als de getekende versie binnen is.
                 </p>
             </div>
 
             @if ($agreements->isEmpty())
-                <p class="p-5 text-sm text-slate-500">Nog geen onderaannemers op dit project. Zodra een prijsaanvraag is gegund, staat de overeenkomst hier klaar.</p>
+                <p class="p-5 text-sm text-faint">Nog geen onderaannemers op dit project. Zodra een prijsaanvraag is gegund, staat de overeenkomst hier klaar.</p>
             @else
                 <div class="tw">
                     <table class="t">
@@ -112,10 +112,10 @@
                                     </td>
                                     <td>
                                         @if ($agreement->rfq)
-                                            <a href="{{ route('rfqs.show', $agreement->rfq) }}" class="hover:text-white">{{ $agreement->rfq->order_number ?? $agreement->rfq->number }}</a>
+                                            <a href="{{ route('rfqs.show', $agreement->rfq) }}" class="hover:text-ink">{{ $agreement->rfq->order_number ?? $agreement->rfq->number }}</a>
                                             <span class="sub">{{ $agreement->rfq->title }}</span>
                                         @else
-                                            <span class="text-slate-500">geen aanvraag</span>
+                                            <span class="text-faint">geen aanvraag</span>
                                         @endif
                                     </td>
                                     <td>
@@ -123,12 +123,12 @@
                                     </td>
                                     <td>
                                         @if ($raam)
-                                            <span class="{{ $raam->daysLeft() <= 31 ? 'text-amber-300' : 'text-slate-300' }}">t/m {{ $raam->ends_on->translatedFormat('j M Y') }}</span>
+                                            <span class="{{ $raam->daysLeft() <= 31 ? 'text-amber-300' : 'text-ink2' }}">t/m {{ $raam->ends_on->translatedFormat('j M Y') }}</span>
                                             @if ($raam->daysLeft() <= 31)
                                                 <span class="sub">loopt over {{ $raam->daysLeft() }} dagen af</span>
                                             @endif
                                         @else
-                                            <span class="text-slate-500">geen lopende raamovereenkomst</span>
+                                            <span class="text-faint">geen lopende raamovereenkomst</span>
                                         @endif
                                     </td>
                                     <td>
@@ -139,7 +139,7 @@
                                             <form method="POST" action="{{ route('project-agreements.record', $agreement) }}"
                                                   onsubmit="return confirm('Vastleggen dat de getekende overeenkomst binnen is?')">
                                                 @csrf
-                                                <button type="submit" class="rounded-full border border-surface-600 px-3.5 py-1.5 text-xs font-semibold text-slate-200 transition hover:border-brand-500 hover:text-white">Vastleggen</button>
+                                                <button type="submit" class="btn sm">Vastleggen</button>
                                             </form>
                                         @endif
                                     </td>
@@ -155,24 +155,24 @@
     {{-- Het mailpakket --}}
     <div class="space-y-4">
         <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
-            <h2 class="mb-1 text-sm font-bold text-white">Mail<span class="text-brand-500">pakket</span></h2>
-            <p class="text-xs text-slate-500">
+            <h2 class="mb-1 text-sm font-bold text-ink">Mail<span class="text-brand-500">pakket</span></h2>
+            <p class="text-xs text-faint">
                 Alle documenten van deze bouw in één mail naar {{ $wkaEmail }}. De mail opent in je eigen mailprogramma met de tekst al ingevuld:
                 voeg de documenten toe en verstuur hem. Leg daarna hier vast dat hij weg is.
             </p>
 
             <ul class="mt-3 space-y-1.5 text-sm">
                 @forelse ($documents as $document)
-                    <li class="flex items-center gap-2 text-slate-300">
-                        <x-icon name="document-text" class="h-4 w-4 shrink-0 text-slate-500" />
-                        <a href="{{ route('documents.show', $document) }}" class="min-w-0 truncate hover:text-white">{{ $document->name }}</a>
+                    <li class="flex items-center gap-2 text-ink2">
+                        <x-icon name="document-text" class="h-4 w-4 shrink-0 text-faint" />
+                        <a href="{{ route('documents.show', $document) }}" class="min-w-0 truncate hover:text-ink">{{ $document->name }}</a>
                     </li>
                 @empty
-                    <li class="text-slate-500">Nog geen documenten bij dit project.</li>
+                    <li class="text-faint">Nog geen documenten bij dit project.</li>
                 @endforelse
             </ul>
 
-            <a href="{{ $mailto }}" class="mt-4 flex w-full items-center justify-center gap-1.5 rounded-full bg-brand-500 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600">
+            <a href="{{ $mailto }}" class="btn pri mt-4 w-full">
                 <x-icon name="envelope" class="h-4 w-4" /> Mail opstellen
             </a>
 
@@ -184,7 +184,7 @@
 
             <form method="POST" action="{{ route('site-registrations.package', $project) }}" class="mt-2">
                 @csrf
-                <button type="submit" class="w-full rounded-full border border-surface-600 py-2 text-sm font-semibold text-slate-200 transition hover:text-white">
+                <button type="submit" class="w-full rounded-full border border-surface-600 py-2 text-sm font-semibold text-ink transition hover:text-ink">
                     {{ $registration->package_sent_at ? 'Opnieuw verstuurd, datum bijwerken' : 'Pakket is verstuurd' }}
                 </button>
             </form>

@@ -1,65 +1,60 @@
 @props(['project', 'health' => null])
 
 @php
-    /** Fotokaart per project (mockup §18): handmatige omslag of het laatste klantzichtbare foto-bewijs. */
-    $phase = $project->relationLoaded('phases') ? $project->currentPhase() : null;
-    $hasCover = $project->cover_photo_path !== null || ($project->photos_count ?? 0) > 0;
+    /** Projectkaart in de dossierlijst (pcard in het prototype): nummer en status, stoplichten, naam, soort en waarde, voortgang. */
+    $tone = fn (\App\Enums\HealthLight $light) => match ($light) {
+        \App\Enums\HealthLight::Rood => 'r',
+        \App\Enums\HealthLight::Oranje => 'o',
+        \App\Enums\HealthLight::Groen => 'g',
+        default => 'n',
+    };
+
+    $hasLights = $health && $health->overall !== \App\Enums\HealthLight::Grijs;
+    $leader = $project->projectLeader ?? ($project->relationLoaded('craftsmen') ? $project->craftsmen->first() : null);
+    $initials = $leader ? str($leader->name)->explode(' ')->filter()->take(2)->map(fn ($part) => mb_strtoupper(mb_substr($part, 0, 1)))->implode('') : null;
 @endphp
 
-<a href="{{ route('projects.show', $project) }}"
-   class="motion-lift group flex flex-col overflow-hidden rounded-2xl border border-surface-700 bg-surface-800 transition hover:border-brand-400 hover:shadow-md">
-    <div class="relative h-28 overflow-hidden bg-gradient-to-br from-navy-700 via-navy-900 to-navy-950">
-        @if ($hasCover)
-            <img src="{{ route('projects.cover', $project) }}" alt="{{ $project->name }}" loading="lazy"
-                 class="h-full w-full object-cover transition duration-300 group-hover:scale-105">
-        @else
-            <span class="flex h-full items-center justify-center">
-                <x-icon name="building-office" class="h-9 w-9 text-navy-500 transition group-hover:text-navy-400" />
-            </span>
-        @endif
-        <span class="absolute top-2.5 right-2.5"><x-status-badge :status="$project->status" /></span>
-        @if ($health && $health->overall !== \App\Enums\HealthLight::Grijs)
-            <span class="absolute top-2.5 left-2.5 flex items-center gap-1.5 rounded-full bg-surface-950/85 backdrop-blur px-2 py-1 text-[10px] font-bold {{ $health->overall->textClasses() }}"
-                  title="{{ $health->biggestBlocker ?? 'Alle stoplichten groen' }}">
-                <x-signal-dot :color="$health->overall->dotColor()" />
-                {{ $health->overall->label() }}
-            </span>
-        @endif
+<a href="{{ route('projects.show', $project) }}" class="pcard">
+    <div class="flex items-center justify-between gap-2">
+        <span class="id">{{ $project->number() }}</span>
+        <x-status-badge :status="$project->status" />
     </div>
 
-    <div class="flex flex-1 flex-col p-4">
-        <p class="truncate text-sm font-bold text-white">{{ $project->name }}</p>
-        <p class="mt-0.5 truncate text-xs text-slate-400">{{ $project->customer->name }}{{ $project->city ? ', '.$project->city : '' }}</p>
-
-        <div class="mt-3 h-1.5 overflow-hidden rounded-full bg-surface-750">
-            <div class="h-full rounded-full bg-brand-500" style="width: {{ $project->progress }}%"></div>
-        </div>
-        <div class="mt-1.5 flex items-center justify-between gap-2">
-            <span class="flex min-w-0 items-center gap-1.5 text-xs font-medium text-slate-400">
-                <x-signal-dot :color="$project->isOverdue() ? 'red' : ($phase?->status->dotColor() ?? 'gray')" />
-                <span class="truncate">{{ $phase?->name ?? $project->status->label() }}</span>
+    @if ($hasLights)
+        <div class="pc-h flex items-center justify-between gap-2" title="{{ $health->biggestBlocker ?? 'Alle stoplichten groen' }}">
+            <span class="text-xs text-muted">Planning, budget, kwaliteit, klant</span>
+            <span class="hls">
+                @foreach ($health->signals as $signal)
+                    <span class="hl hl-{{ $tone($signal->light) }}" title="{{ $signal->label }}: {{ $signal->reason }}"></span>
+                @endforeach
             </span>
-            <span class="shrink-0 text-xs font-semibold text-slate-500">{{ $project->progress }}%</span>
         </div>
+    @endif
 
-        <div class="mt-3 flex items-center justify-between gap-2">
-            @if ($project->relationLoaded('craftsmen') && $project->craftsmen->isNotEmpty())
-                <span class="flex -space-x-1.5">
-                    @foreach ($project->craftsmen->take(3) as $member)
-                        <span class="flex h-6 w-6 items-center justify-center rounded-full bg-brand-500/15 text-[10px] font-bold text-brand-300 ring-2 ring-white" title="{{ $member->name }}">
-                            {{ str($member->name)->substr(0, 1)->upper() }}
-                        </span>
-                    @endforeach
-                    @if ($project->craftsmen->count() > 3)
-                        <span class="flex h-6 w-6 items-center justify-center rounded-full bg-surface-750 text-[10px] font-bold text-slate-400 ring-2 ring-white">+{{ $project->craftsmen->count() - 3 }}</span>
-                    @endif
-                </span>
-            @else
-                <span></span>
-            @endif
-            @can('manage-crm')
-                <span class="shrink-0 text-xs font-semibold text-white">€ {{ number_format((float) $project->value, 0, ',', '.') }}</span>
-            @endcan
-        </div>
+    <div class="min-w-0">
+        <h4 class="truncate">{{ $project->name }}</h4>
+        <span class="block truncate text-muted">{{ $project->customer->name }}{{ $project->city ? ', '.$project->city : '' }}</span>
     </div>
+
+    <div class="flex items-center justify-between gap-2">
+        <span class="truncate text-muted">{{ $project->type ?: 'Project' }}</span>
+        @can('manage-crm')
+            <b class="shrink-0 tabular-nums">€ {{ number_format((float) $project->value, 0, ',', '.') }}</b>
+        @endcan
+    </div>
+
+    @if ($project->status === \App\Enums\ProjectStatus::Voorbereiding && $project->progress === 0 && $leader)
+        <div class="flex items-center gap-2 text-xs">
+            <span class="av sm" title="{{ $leader->name }}">{{ $initials }}</span>
+            <span class="truncate text-muted">{{ $leader->name }}</span>
+        </div>
+    @else
+        <div>
+            <div class="flex items-center justify-between text-xs">
+                <span class="text-muted">Voortgang</span>
+                <span class="tabular-nums {{ $project->isOverdue() ? 'dn' : '' }}">{{ $project->progress }}%</span>
+            </div>
+            <div class="bar mt-1"><i style="width: {{ $project->progress }}%"></i></div>
+        </div>
+    @endif
 </a>

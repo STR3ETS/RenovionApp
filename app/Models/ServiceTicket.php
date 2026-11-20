@@ -133,7 +133,7 @@ class ServiceTicket extends Model
             self::STATUS_PLANNED => 'bg-lead-500/15 text-lead-300',
             self::STATUS_IN_PROGRESS => 'bg-brand-500/15 text-brand-300',
             self::STATUS_RESOLVED => 'bg-green-500/15 text-green-300',
-            default => 'bg-white/10 text-slate-400',
+            default => 'bg-ink/10 text-muted',
         };
     }
 

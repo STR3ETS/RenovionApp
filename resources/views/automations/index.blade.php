@@ -1,19 +1,19 @@
 <x-layouts.app title="Automations">
 
-    <x-page-header eyebrow="Nova" title="Automations" subtitle="Per regel instelbaar: alleen signaleren, eerst bevestigen of automatisch uitvoeren. Draait elke 15 minuten." />
+    <x-page-header title="Automations" subtitle="Per regel instelbaar: alleen signaleren, eerst bevestigen of automatisch uitvoeren. Draait elke 15 minuten." />
 
     <div class="space-y-2">
         @foreach ($automations as $automation)
             <div class="flex flex-wrap items-center gap-3 rounded-xl border bg-surface-800 p-4 {{ $automation['mode'] === \App\Enums\AutomationMode::Uit ? 'border-surface-700 opacity-60' : 'border-surface-700' }}">
-                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full {{ $automation['mode'] === \App\Enums\AutomationMode::Automatisch ? 'bg-green-500/15 text-green-300' : 'bg-white/10 text-slate-200' }}">
+                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full {{ $automation['mode'] === \App\Enums\AutomationMode::Automatisch ? 'bg-green-500/15 text-green-300' : 'bg-ink/10 text-ink' }}">
                     <x-icon name="bolt" class="h-4.5 w-4.5" />
                 </span>
                 <span class="min-w-0 flex-1">
-                    <span class="block text-sm font-semibold text-white">{{ $automation['name'] }}</span>
-                    <span class="block text-xs text-slate-400">{{ $automation['description'] }}</span>
-                    <span class="mt-0.5 block text-[11px] text-slate-500">{{ $automation['mode']->description() }}</span>
+                    <span class="block text-sm font-semibold text-ink">{{ $automation['name'] }}</span>
+                    <span class="block text-xs text-muted">{{ $automation['description'] }}</span>
+                    <span class="mt-0.5 block text-[11px] text-faint">{{ $automation['mode']->description() }}</span>
                 </span>
-                <span class="text-right text-xs whitespace-nowrap text-slate-500">
+                <span class="text-right text-xs whitespace-nowrap text-faint">
                     {{ $automation['runs'] }}× uitgevoerd
                     @if ($automation['last_run_at'])
                         <span class="block">laatst {{ $automation['last_run_at']->translatedFormat('j M H:i') }}</span>
@@ -40,14 +40,14 @@
                 <x-icon name="check" class="h-4.5 w-4.5" />
             </span>
             <span class="min-w-0 flex-1">
-                <span class="block text-sm font-semibold text-white">Offerte akkoord → project aanmaken</span>
-                <span class="block text-xs text-slate-400">Ingebouwd in de offerteflow: bij akkoord wordt automatisch een project aangemaakt en springt de lead naar "Project".</span>
+                <span class="block text-sm font-semibold text-ink">Offerte akkoord → project aanmaken</span>
+                <span class="block text-xs text-muted">Ingebouwd in de offerteflow: bij akkoord wordt automatisch een project aangemaakt en springt de lead naar "Project".</span>
             </span>
-            <span class="text-xs whitespace-nowrap text-slate-500">altijd actief</span>
+            <span class="text-xs whitespace-nowrap text-faint">altijd actief</span>
         </div>
     </div>
 
-    <p class="mt-4 text-xs text-slate-500">
+    <p class="mt-4 text-xs text-faint">
         Bij "signaleren" en "eerst bevestigen" meldt Nova zich in het teamkanaal Algemeen. Automations voor WhatsApp en reviewflow volgen later.
     </p>
 

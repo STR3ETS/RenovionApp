@@ -120,7 +120,7 @@ class CertificateCatalogue
             'calc' => 'bg-calc-500/15 text-calc-300',
             'klant' => 'bg-klant-500/15 text-klant-300',
             'planning' => 'bg-planning-500/15 text-planning-300',
-            default => 'bg-white/10 text-slate-300',
+            default => 'bg-ink/10 text-ink2',
         };
     }
 }

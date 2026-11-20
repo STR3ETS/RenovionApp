@@ -63,7 +63,7 @@ class ExtraWorkController extends Controller
         $extraWork->project->customer?->recordEvent(
             TimelineEventType::Offerte,
             "Meerwerk {$extraWork->number} ter akkoord aangeboden",
-            $extraWork->description.', EUR '.number_format((float) $extraWork->amount, 2, ',', '.'),
+            $extraWork->description.', € '.number_format((float) $extraWork->amount, 2, ',', '.'),
             $extraWork->project,
         );
 
@@ -207,7 +207,7 @@ class ExtraWorkController extends Controller
         $extraWork->project->customer?->recordEvent(
             TimelineEventType::Offerte,
             "Akkoord op meerwerk {$extraWork->number}",
-            $name.', EUR '.number_format((float) $extraWork->amount, 2, ',', '.'),
+            $name.', € '.number_format((float) $extraWork->amount, 2, ',', '.'),
             $extraWork->project,
             $source,
         );

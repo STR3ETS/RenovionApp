@@ -1,17 +1,17 @@
 <x-layouts.app title="Nieuw project">
 
-    <x-page-header eyebrow="Projecten" category="project" title="Nieuw project" />
+    <x-page-header category="project" title="Nieuw project" />
 
     <form method="POST" action="{{ route('projects.store') }}" enctype="multipart/form-data" class="max-w-2xl space-y-5"
           x-data="{ bestaand: true }">
         @csrf
 
         <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
-            <h2 class="mb-4 text-sm font-bold text-white">Klant</h2>
+            <h2 class="mb-4 text-sm font-bold text-ink">Klant</h2>
 
             <div class="mb-4 flex rounded-lg border border-surface-600 p-0.5 text-xs font-semibold">
-                <button type="button" @click="bestaand = true" :class="bestaand ? 'bg-navy-900 text-white' : 'text-slate-300'" class="flex-1 rounded-md px-3 py-2">Bestaande klant</button>
-                <button type="button" @click="bestaand = false" :class="!bestaand ? 'bg-navy-900 text-white' : 'text-slate-300'" class="flex-1 rounded-md px-3 py-2">Nieuwe klant</button>
+                <button type="button" @click="bestaand = true" :class="bestaand ? 'bg-navy-900 text-white' : 'text-ink2'" class="flex-1 rounded-md px-3 py-2">Bestaande klant</button>
+                <button type="button" @click="bestaand = false" :class="!bestaand ? 'bg-navy-900 text-white' : 'text-ink2'" class="flex-1 rounded-md px-3 py-2">Nieuwe klant</button>
             </div>
 
             <div x-show="bestaand">
@@ -50,7 +50,7 @@
         </section>
 
         <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
-            <h2 class="mb-4 text-sm font-bold text-white">Project</h2>
+            <h2 class="mb-4 text-sm font-bold text-ink">Project</h2>
             <div class="grid gap-4 sm:grid-cols-2">
                 <x-field label="Projectnaam *" name="name" class="sm:col-span-2">
                     <input type="text" name="name" id="name" value="{{ old('name') }}" required placeholder="Badkamer Jansen" class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
@@ -93,31 +93,31 @@
                 </x-field>
                 <x-field label="Omslagfoto" name="cover_photo" class="sm:col-span-2">
                     <input type="file" name="cover_photo" id="cover_photo" accept="image/*"
-                           class="w-full text-sm text-slate-400 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-500/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-brand-300 hover:file:bg-brand-500/15">
-                    <p class="mt-1 text-xs text-slate-500">Deze foto verschijnt op de projectkaarten (jpg/png, max 5 MB).</p>
+                           class="w-full text-sm text-muted file:mr-3 file:rounded-lg file:border-0 file:bg-brand-500/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-brand-300 hover:file:bg-brand-500/15">
+                    <p class="mt-1 text-xs text-faint">Deze foto verschijnt op de projectkaarten (jpg/png, max 5 MB).</p>
                 </x-field>
             </div>
         </section>
 
         <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
-            <h2 class="mb-4 text-sm font-bold text-white">Uitvoerders op dit project</h2>
+            <h2 class="mb-4 text-sm font-bold text-ink">Uitvoerders op dit project</h2>
             <div class="grid gap-2 sm:grid-cols-2">
                 @forelse ($uitvoerders as $uitvoerder)
-                    <label class="flex items-center gap-2 rounded-xl border border-surface-700 p-3 text-sm font-medium text-white transition has-checked:border-brand-400 has-checked:bg-brand-500/10">
+                    <label class="flex items-center gap-2 rounded-xl border border-surface-700 p-3 text-sm font-medium text-ink transition has-checked:border-brand-400 has-checked:bg-brand-500/10">
                         <input type="checkbox" name="craftsmen[]" value="{{ $uitvoerder->id }}"
                                @checked(in_array($uitvoerder->id, old('craftsmen', [])))
                                class="rounded border-surface-600 text-brand-400 focus:ring-brand-500">
                         {{ $uitvoerder->name }}
                     </label>
                 @empty
-                    <p class="text-sm text-slate-500 sm:col-span-2">Nog geen uitvoerders - voeg ze toe via Team.</p>
+                    <p class="text-sm text-faint sm:col-span-2">Nog geen uitvoerders - voeg ze toe via Team.</p>
                 @endforelse
             </div>
         </section>
 
         <div class="flex gap-2">
-            <button type="submit" class="rounded-xl bg-brand-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-brand-500">Project aanmaken</button>
-            <a href="{{ route('projects.index') }}" class="rounded-xl border border-surface-600 bg-surface-800 px-6 py-3 text-sm font-semibold text-slate-300 transition hover:bg-surface-850">Annuleren</a>
+            <button type="submit" class="btn pri lg">Project aanmaken</button>
+            <a href="{{ route('projects.index') }}" class="rounded-xl border border-surface-600 bg-surface-800 px-6 py-3 text-sm font-semibold text-ink2 transition hover:bg-surface-850">Annuleren</a>
         </div>
     </form>
 

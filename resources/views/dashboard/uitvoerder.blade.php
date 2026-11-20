@@ -5,14 +5,14 @@
         <a href="{{ route('onboarding') }}" class="group mb-4 flex items-center gap-3 rounded-2xl border border-brand-500/30 bg-brand-500/10 p-4 transition hover:border-brand-300 hover:shadow-sm">
             <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-500 text-white"><x-icon name="sparkles" class="h-5 w-5" /></span>
             <span class="min-w-0 flex-1">
-                <span class="block text-sm font-semibold text-white">Aan de slag: zo werkt het op het werk</span>
+                <span class="block text-sm font-semibold text-ink">Aan de slag: zo werkt het op het werk</span>
                 <span class="block text-xs text-brand-300/70">Planning, werkpakketten, checklist afvinken en foto's maken. In vijf stappen uitgelegd.</span>
             </span>
             <x-icon name="chevron-right" class="h-5 w-5 shrink-0 text-brand-400 transition group-hover:translate-x-0.5" />
         </a>
     @endif
 
-    <section class="mb-5 rounded-2xl bg-gradient-to-br from-navy-950 to-navy-900 p-5 text-white lg:p-6">
+    <section class="mb-5 rounded-2xl bg-gradient-to-br from-navy-950 to-navy-900 p-5 text-ink lg:p-6">
         <p class="text-[11px] font-bold tracking-widest text-navy-300 uppercase">{{ now()->translatedFormat('l j F') }}</p>
         <h1 class="mt-1 text-xl font-bold lg:text-2xl">
             {{ now()->hour < 12 ? 'Goedemorgen' : (now()->hour < 18 ? 'Goedemiddag' : 'Goedenavond') }} {{ str(auth()->user()->name)->before(' ') }}.
@@ -29,7 +29,7 @@
 
     <section class="mb-6">
         <p class="text-[11px] font-bold tracking-widest text-planning-400 uppercase">Planning</p>
-        <h2 class="mt-0.5 mb-3 text-base font-bold text-white">Jouw week</h2>
+        <h2 class="mt-0.5 mb-3 text-base font-bold text-ink">Jouw week</h2>
         @if ($planningWeek->isEmpty())
             <x-empty-state title="Geen planning deze week" icon="calendar" category="planning" />
         @else
@@ -57,7 +57,7 @@
 
     <section>
         <p class="text-[11px] font-bold tracking-widest text-planning-400 uppercase">Taken</p>
-        <h2 class="mt-0.5 mb-3 text-base font-bold text-white">Jouw taken</h2>
+        <h2 class="mt-0.5 mb-3 text-base font-bold text-ink">Jouw taken</h2>
         @if ($taken->isEmpty())
             <x-empty-state title="Geen open taken" icon="clipboard-check" category="planning" />
         @else
@@ -70,8 +70,8 @@
                             class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-surface-600 transition hover:border-green-500 hover:bg-green-500/10"
                             title="Afronden"></button>
                         <span class="min-w-0 flex-1">
-                            <span class="block truncate text-sm font-semibold text-white">{{ $task->title }}</span>
-                            <span class="block text-xs text-slate-400">
+                            <span class="block truncate text-sm font-semibold text-ink">{{ $task->title }}</span>
+                            <span class="block text-xs text-muted">
                                 {{ $task->project?->name ?? $task->customer?->name ?? 'Algemeen' }}
                                 @if ($task->deadline), {{ $task->deadline->isToday() ? 'vandaag' : $task->deadline->translatedFormat('j M') }} @endif
                             </span>

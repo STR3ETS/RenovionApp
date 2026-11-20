@@ -59,7 +59,7 @@ class InvoiceReminderAutomation extends BaseAutomation
                 continue;
             }
 
-            $amount = 'EUR '.number_format($invoice->openAmount(), 2, ',', '.');
+            $amount = '€ '.number_format($invoice->openAmount(), 2, ',', '.');
 
             $this->act(
                 "Factuur {$invoice->number} van {$invoice->customer->name} ({$amount}) is {$invoice->daysOverdue()} dagen over de vervaldatum.",

@@ -1,6 +1,6 @@
 @php
     use App\Support\CertificateCatalogue;
-    $eur = fn (float $v) => 'EUR '.number_format($v, 2, ',', '.');
+    $eur = fn (float $v) => '€ '.number_format($v, 2, ',', '.');
 @endphp
 
 <x-layouts.portal title="Overzicht" portal="Partnerportaal" home="partner.index">

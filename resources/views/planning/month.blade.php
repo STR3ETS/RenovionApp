@@ -11,19 +11,19 @@
 @endphp
 
 <x-layouts.app title="Planning per maand">
-    <x-page-header title="Planning" eyebrow="Uitvoering" category="planning"
+    <x-page-header title="Planning" category="planning"
                    :subtitle="$month->translatedFormat('F Y').', '.$days.' dagen'">
         @include('planning.partials.view-switch', ['view' => $view])
     </x-page-header>
 
     <div class="mb-4 flex items-center gap-2">
         <a href="{{ route('planning.index', ['weergave' => 'maand', 'maand' => $month->copy()->subMonth()->format('Y-m')]) }}"
-           class="flex h-9 w-9 items-center justify-center rounded-full border border-surface-700 text-slate-400 transition hover:text-white">
+           class="flex h-9 w-9 items-center justify-center rounded-full border border-surface-700 text-muted transition hover:text-ink">
             <x-icon name="chevron-left" class="h-4 w-4" />
         </a>
-        <span class="text-sm font-semibold text-white">{{ $month->translatedFormat('F Y') }}</span>
+        <span class="text-sm font-semibold text-ink">{{ $month->translatedFormat('F Y') }}</span>
         <a href="{{ route('planning.index', ['weergave' => 'maand', 'maand' => $month->copy()->addMonth()->format('Y-m')]) }}"
-           class="flex h-9 w-9 items-center justify-center rounded-full border border-surface-700 text-slate-400 transition hover:text-white">
+           class="flex h-9 w-9 items-center justify-center rounded-full border border-surface-700 text-muted transition hover:text-ink">
             <x-icon name="chevron-right" class="h-4 w-4" />
         </a>
     </div>
@@ -35,13 +35,13 @@
         <div class="overflow-hidden rounded-2xl border border-surface-700 bg-surface-800">
             {{-- De dagen als kop --}}
             <div class="flex border-b border-surface-700 bg-surface-850">
-                <div class="w-36 shrink-0 border-r border-surface-700 px-3 py-2 text-[10px] font-bold tracking-wider text-slate-500 uppercase">
+                <div class="w-36 shrink-0 border-r border-surface-700 px-3 py-2 text-[10px] font-bold tracking-wider text-faint uppercase">
                     Medewerker
                 </div>
                 <div class="flex min-w-0 flex-1">
                     @foreach (range(1, $days) as $day)
                         @php($date = $month->copy()->day($day))
-                        <div class="flex-1 py-2 text-center text-[10px] {{ $date->isWeekend() ? 'bg-surface-900/50 text-slate-600' : 'text-slate-500' }} {{ $date->isToday() ? 'bg-brand-500/10 font-bold text-brand-300' : '' }}">
+                        <div class="flex-1 py-2 text-center text-[10px] {{ $date->isWeekend() ? 'bg-surface-900/50 text-faint' : 'text-faint' }} {{ $date->isToday() ? 'bg-brand-500/10 font-bold text-brand-300' : '' }}">
                             {{ $day }}
                         </div>
                     @endforeach
@@ -51,8 +51,8 @@
             @foreach ($rows as $row)
                 <div class="flex border-b border-surface-700 last:border-b-0">
                     <div class="w-36 shrink-0 border-r border-surface-700 px-3 py-3">
-                        <p class="truncate text-sm font-semibold text-white">{{ $row['person']->name }}</p>
-                        <p class="truncate text-xs text-slate-500">{{ $row['person']->job_title ?: $row['person']->role->label() }}</p>
+                        <p class="truncate text-sm font-semibold text-ink">{{ $row['person']->name }}</p>
+                        <p class="truncate text-xs text-faint">{{ $row['person']->job_title ?: $row['person']->role->label() }}</p>
                     </div>
 
                     <div class="relative min-w-0 flex-1 py-2">
@@ -69,7 +69,7 @@
                                    class="relative block h-6 rounded {{ $barClass($bar['entry']) }} transition hover:brightness-125"
                                    style="margin-left: {{ $bar['left'] }}%; width: {{ $bar['width'] }}%"
                                    title="{{ $bar['entry']->displayTitle() }}, {{ $bar['entry']->date->translatedFormat('j M') }}">
-                                    <span class="absolute inset-0 flex items-center truncate px-2 text-[11px] font-semibold text-white">
+                                    <span class="absolute inset-0 flex items-center truncate px-2 text-[11px] font-semibold text-ink">
                                         {{ $bar['entry']->displayTitle() }}
                                     </span>
                                 </a>

@@ -1,26 +1,26 @@
 <x-layouts.app title="Team">
 
-    <x-page-header eyebrow="Teambeheer" title="Team" subtitle="{{ $users->count() }} teamleden">
-        <a href="{{ route('team.create') }}" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-500">+ Teamlid</a>
+    <x-page-header title="Team" subtitle="{{ $users->count() }} teamleden">
+        <a href="{{ route('team.create') }}" class="btn pri">+ Teamlid</a>
     </x-page-header>
 
     <div class="space-y-2">
         @foreach ($users as $user)
             <div class="flex items-center gap-3 rounded-xl border border-surface-700 bg-surface-800 p-3">
-                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-sm font-bold text-slate-200">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ink/10 text-sm font-bold text-ink">
                     {{ str($user->name)->substr(0, 1)->upper() }}
                 </span>
                 <span class="min-w-0 flex-1">
                     <span class="flex items-center gap-2">
-                        <span class="truncate text-sm font-semibold text-white">{{ $user->name }}</span>
+                        <span class="truncate text-sm font-semibold text-ink">{{ $user->name }}</span>
                         @if ($user->is(auth()->user()))
-                            <span class="rounded-full bg-surface-750 px-2 py-0.5 text-[10px] font-semibold text-slate-400">jij</span>
+                            <span class="rounded-full bg-surface-750 px-2 py-0.5 text-[10px] font-semibold text-muted">jij</span>
                         @endif
                         @unless ($user->active)
                             <span class="rounded-full bg-red-500/15 px-2 py-0.5 text-[10px] font-semibold text-red-300">gedeactiveerd</span>
                         @endunless
                     </span>
-                    <span class="block truncate text-xs text-slate-400">
+                    <span class="block truncate text-xs text-muted">
                         {{ $user->email }}{{ $user->phone ? ', '.$user->phone : '' }}
                         @if ($user->role === \App\Enums\UserRole::Uitvoerder)
                            , {{ $user->projects_count }} {{ $user->projects_count === 1 ? 'project' : 'projecten' }}
@@ -31,7 +31,7 @@
                 <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap {{ $user->role->badgeClasses() }}">
                     {{ $user->role->label() }}
                 </span>
-                <a href="{{ route('team.edit', $user) }}" class="rounded-lg border border-surface-600 bg-surface-800 px-3 py-1.5 text-xs font-semibold text-slate-300 transition hover:bg-surface-850">Bewerken</a>
+                <a href="{{ route('team.edit', $user) }}" class="btn sm">Bewerken</a>
             </div>
         @endforeach
     </div>
@@ -41,13 +41,13 @@
     <section x-data="{ open: false }" class="mt-6">
         <div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-surface-700 bg-surface-800 px-5 py-4">
             <div>
-                <h2 class="text-sm font-bold text-white">Rechten<span class="text-brand-500">matrix</span></h2>
-                <p class="mt-0.5 text-xs text-slate-400">
+                <h2 class="text-sm font-bold text-ink">Rechten<span class="text-brand-500">matrix</span></h2>
+                <p class="mt-0.5 text-xs text-muted">
                     {{ count($roles) }} rollen tegenover {{ collect($sections)->sum(fn ($s) => count($s['items'])) }} schermen.
                 </p>
             </div>
             <button @click="open = !open"
-                    class="rounded-full border border-surface-600 px-4 py-2 text-xs font-semibold text-slate-300 transition hover:text-white">
+                    class="btn sm">
                 <span x-text="open ? 'Verberg matrix' : 'Toon matrix'"></span>
             </button>
         </div>
@@ -56,11 +56,11 @@
             <table class="w-full text-sm">
                 <thead>
                     <tr class="border-b border-surface-700 bg-surface-850">
-                        <th class="sticky left-0 z-10 bg-surface-850 px-4 py-3 text-left text-[10px] font-bold tracking-wider text-slate-500 uppercase">
+                        <th class="sticky left-0 z-10 bg-surface-850 px-4 py-3 text-left text-[10px] font-bold tracking-wider text-faint uppercase">
                             Scherm
                         </th>
                         @foreach ($roles as $role)
-                            <th class="px-2 py-3 text-center text-[10px] font-bold tracking-wider text-slate-500 uppercase">
+                            <th class="px-2 py-3 text-center text-[10px] font-bold tracking-wider text-faint uppercase">
                                 <span class="block max-w-16 truncate" title="{{ $role->label() }}">{{ $role->label() }}</span>
                             </th>
                         @endforeach
@@ -69,16 +69,16 @@
                 <tbody>
                     @foreach ($sections as $id => $section)
                         <tr class="border-b border-surface-700 bg-surface-850/60">
-                            <td colspan="{{ count($roles) + 1 }}" class="px-4 py-2 text-[10px] font-bold tracking-widest text-slate-500 uppercase">
+                            <td colspan="{{ count($roles) + 1 }}" class="px-4 py-2 text-[10px] font-bold tracking-widest text-faint uppercase">
                                 {{ $section['group'] }}, {{ $section['label'] }}
                             </td>
                         </tr>
                         @foreach ($section['items'] as $module => [$label, $route])
                             <tr class="border-b border-surface-700/60 last:border-b-0">
                                 <td class="sticky left-0 z-10 bg-surface-800 px-4 py-2">
-                                    <span class="block truncate text-slate-200">{{ $label }}</span>
+                                    <span class="block truncate text-ink">{{ $label }}</span>
                                     @if (in_array($module, $managementOnly, true))
-                                        <span class="text-[10px] text-slate-500">alleen directie</span>
+                                        <span class="text-[10px] text-faint">alleen directie</span>
                                     @endif
                                 </td>
                                 @foreach ($roles as $role)

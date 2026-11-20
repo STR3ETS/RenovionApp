@@ -1,12 +1,12 @@
 <x-layouts.app title="Kwaliteit en oplevering">
-    <x-page-header title="Kwaliteit en oplevering" eyebrow="Projecten" category="project"
+    <x-page-header title="Kwaliteit en oplevering" category="project"
                    subtitle="Acht stappen van werk afgerond tot nazorg. Elke stap heeft een harde voorwaarde." />
 
     @if ($openSnagsTotal > 0)
         <div class="mb-4 flex items-start gap-3 rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4">
             <x-icon name="exclamation-triangle" class="h-5 w-5 shrink-0 text-amber-300" />
-            <p class="text-sm text-slate-200">
-                <b class="text-white">{{ $openSnagsTotal }} {{ $openSnagsTotal === 1 ? 'restpunt staat' : 'restpunten staan' }} open.</b>
+            <p class="text-sm text-ink">
+                <b class="text-ink">{{ $openSnagsTotal }} {{ $openSnagsTotal === 1 ? 'restpunt staat' : 'restpunten staan' }} open.</b>
                 Zolang die er zijn, kun je niet naar de klantinspectie.
             </p>
         </div>
@@ -33,8 +33,8 @@
                             </span>
 
                             <span class="min-w-0 flex-1">
-                                <b class="block truncate text-sm font-bold text-white">{{ $project->name }}</b>
-                                <small class="block truncate text-xs text-slate-400">
+                                <b class="block truncate text-sm font-bold text-ink">{{ $project->name }}</b>
+                                <small class="block truncate text-xs text-muted">
                                     {{ $project->customer?->name }},
                                     voortgang {{ $project->progress }}%,
                                     stap {{ $step + 1 }} van {{ count($flow) }}: {{ $flow[$step][0] }}

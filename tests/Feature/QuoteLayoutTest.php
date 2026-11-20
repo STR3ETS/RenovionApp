@@ -70,7 +70,7 @@ class QuoteLayoutTest extends TestCase
 
         $html = $this->get('/offerte/'.$quote->public_token)->assertOk()->getContent();
 
-        $this->assertStringContainsString('quote-doc @container', $html);
+        $this->assertStringContainsString('quote-doc paper @container', $html);
         $this->assertSame(2, substr_count($html, 'class="quote-chapter"'));
         // De ondertitel van de kop staat erbij.
         $this->assertStringContainsString('Velperweg 12 in Arnhem', $html);

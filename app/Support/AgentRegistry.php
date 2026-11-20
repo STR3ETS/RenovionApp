@@ -244,7 +244,7 @@ class AgentRegistry
             'planning' => 'bg-planning-500/15 text-planning-300',
             'amber' => 'bg-amber-500/15 text-amber-300',
             'green' => 'bg-green-500/15 text-green-300',
-            default => 'bg-white/10 text-slate-300',
+            default => 'bg-ink/10 text-ink2',
         };
     }
 }

@@ -9,7 +9,7 @@
         'offerte' => ['card' => 'border-offerte-500/30 bg-offerte-500/10', 'chip' => 'bg-offerte-500 text-white', 'label' => 'text-offerte-300', 'sub' => 'text-offerte-300/60'],
         'project' => ['card' => 'border-project-500/30 bg-project-500/10', 'chip' => 'bg-project-500 text-white', 'label' => 'text-project-300', 'sub' => 'text-project-300/60'],
         'planning' => ['card' => 'border-planning-500/30 bg-planning-500/10', 'chip' => 'bg-planning-500 text-white', 'label' => 'text-planning-300', 'sub' => 'text-planning-300/60'],
-        default => ['card' => 'border-surface-700 bg-surface-800', 'chip' => 'bg-navy-950 text-white', 'label' => 'text-slate-400', 'sub' => 'text-slate-500'],
+        default => ['card' => 'border-surface-700 bg-surface-800', 'chip' => 'bg-navy-950 text-white', 'label' => 'text-muted', 'sub' => 'text-faint'],
     };
 @endphp
 
@@ -23,7 +23,7 @@
             </span>
         @endif
     </div>
-    <p class="mt-1 text-2xl font-bold text-white lg:text-3xl">{{ $value }}</p>
+    <p class="mt-1 text-2xl font-bold text-ink lg:text-3xl">{{ $value }}</p>
     @if ($sub)
         <p class="mt-0.5 text-xs font-medium {{ $alert ? 'text-red-400' : $styles['sub'] }}">{{ $sub }}</p>
     @endif

@@ -9,7 +9,7 @@
         'offerte' => 'bg-offerte-500/15 text-offerte-400',
         'project' => 'bg-project-500/15 text-project-400',
         'planning' => 'bg-planning-500/15 text-planning-400',
-        default => 'bg-surface-750 text-slate-500',
+        default => 'bg-surface-750 text-faint',
     };
 @endphp
 
@@ -19,9 +19,9 @@
             <x-icon :name="$icon" class="h-5 w-5" />
         </span>
     @endif
-    <p class="text-sm font-semibold text-white">{{ $title }}</p>
+    <p class="text-sm font-semibold text-ink">{{ $title }}</p>
     @if ($subtitle)
-        <p class="mt-1 text-xs text-slate-500">{{ $subtitle }}</p>
+        <p class="mt-1 text-xs text-faint">{{ $subtitle }}</p>
     @endif
     @if (trim($slot))
         <div class="mt-4">{{ $slot }}</div>

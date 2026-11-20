@@ -83,7 +83,7 @@ class AttentionExtras
                 'severity' => $invoice->daysOverdue() >= 14 ? 'rood' : 'oranje',
                 'icon' => 'currency-euro',
                 'label' => 'Factuur te laat',
-                'title' => $invoice->customer->name.', EUR '.number_format($invoice->openAmount(), 0, ',', '.'),
+                'title' => $invoice->customer->name.', € '.number_format($invoice->openAmount(), 0, ',', '.'),
                 'subtitle' => $invoice->number.', '.$invoice->daysOverdue().' dagen over de vervaldatum, '
                     .($invoice->customer->reminders ? 'herinnering mag' : 'klant wil geen herinnering, bel zelf'),
                 'url' => route('invoices.show', $invoice),
@@ -201,7 +201,7 @@ class AttentionExtras
                 'severity' => 'oranje',
                 'icon' => 'currency-euro',
                 'label' => $extra->status === ExtraWork::STATUS_APPROVED ? 'Meerwerk factureren' : 'Meerwerk wacht op akkoord',
-                'title' => $extra->number.', EUR '.number_format((float) $extra->amount, 0, ',', '.'),
+                'title' => $extra->number.', € '.number_format((float) $extra->amount, 0, ',', '.'),
                 'subtitle' => collect([
                     $extra->description,
                     $extra->project?->customer?->name,

@@ -48,13 +48,13 @@ enum LeadStatus: string
     {
         return match ($this) {
             self::Nieuw => 'bg-brand-500/15 text-brand-300',
-            self::Contact => 'bg-steel-100 text-steel-800',
-            self::Intake => 'bg-steel-100 text-steel-800',
+            self::Contact => 'bg-offerte-500/15 text-offerte-300',
+            self::Intake => 'bg-calc-500/15 text-calc-300',
             self::Offerte => 'bg-amber-500/15 text-amber-300',
             self::Akkoord => 'bg-green-500/15 text-green-300',
-            self::Project => 'bg-white/10 text-slate-200',
+            self::Project => 'bg-ink/10 text-ink',
             self::Verloren => 'bg-red-500/15 text-red-300',
-            self::OnHold => 'bg-white/10 text-slate-300',
+            self::OnHold => 'bg-ink/10 text-ink2',
         };
     }
 

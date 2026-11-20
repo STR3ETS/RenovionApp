@@ -326,6 +326,30 @@ class Navigation
     }
 
     /**
+     * De sectie waar de gebruiker nu staat: voor het label en het icoon boven
+     * de paginakop en voor de sectiekleur. Null buiten het menu (zoeken, een
+     * foutpagina).
+     *
+     * @return array{id: string, label: string, icon: string}|null
+     */
+    public static function currentSection(User $user): ?array
+    {
+        foreach (self::forUser($user) as $sections) {
+            foreach ($sections as $section) {
+                if ($section['active']) {
+                    return [
+                        'id' => $section['id'],
+                        'label' => self::sections()[$section['id']]['label'],
+                        'icon' => $section['icon'],
+                    ];
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * De tabbladen van de sectie waar de gebruiker nu staat. Leeg als die sectie
      * maar één scherm heeft.
      *

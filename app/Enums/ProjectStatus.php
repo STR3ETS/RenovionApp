@@ -24,8 +24,8 @@ enum ProjectStatus: string
     public function badgeClasses(): string
     {
         return match ($this) {
-            self::Voorbereiding => 'bg-white/10 text-slate-300',
-            self::Gepland => 'bg-steel-100 text-steel-800',
+            self::Voorbereiding => 'bg-offerte-500/15 text-offerte-300',
+            self::Gepland => 'bg-calc-500/15 text-calc-300',
             self::Uitvoering => 'bg-brand-500/15 text-brand-300',
             self::Oplevering => 'bg-amber-500/15 text-amber-300',
             self::Afgerond => 'bg-green-500/15 text-green-300',

@@ -1,11 +1,11 @@
 @php
     use App\Models\Project;
-    $eur = fn (float $v) => 'EUR '.number_format($v, 0, ',', '.');
+    $eur = fn (float $v) => '€ '.number_format($v, 0, ',', '.');
     $num = fn (float $v) => rtrim(rtrim(number_format($v, 2, ',', '.'), '0'), ',');
 @endphp
 
 <x-layouts.app title="Urenstaten">
-    <x-page-header title="Urenstaten" eyebrow="Geld" category="offerte"
+    <x-page-header title="Urenstaten" category="offerte"
                    subtitle="Alle urenstaten op een rij. Regie rekenen we af zodra de uren zijn afgetekend, bij aangenomen werk staan ze er ter informatie." />
 
     <x-kpi-row>
@@ -52,7 +52,7 @@
                                 <span class="sub">{{ $project->number() }}, {{ $project->customer?->name }}</span>
                             </td>
                             <td>
-                                <span class="rounded-full px-2 py-0.5 text-[10px] font-bold {{ $statement->isRegie() ? 'bg-planning-500/15 text-planning-300' : 'bg-white/10 text-slate-300' }}">
+                                <span class="rounded-full px-2 py-0.5 text-[10px] font-bold {{ $statement->isRegie() ? 'bg-planning-500/15 text-planning-300' : 'bg-ink/10 text-ink2' }}">
                                     {{ Project::FORMS[$project->contract_form] ?? $project->contract_form }}
                                 </span>
                             </td>
@@ -73,12 +73,12 @@
                                 @if ($statement->isRegie())
                                     <b>{{ $eur($statement->toInvoice()) }}</b>
                                 @else
-                                    <span class="text-slate-500">ter informatie</span>
+                                    <span class="text-faint">ter informatie</span>
                                 @endif
                             </td>
                             <td class="r">
                                 <a href="{{ route('hours.print', $project) }}" target="_blank" rel="noopener" onclick="event.stopPropagation()"
-                                   class="rounded-full border border-surface-600 px-3 py-1.5 text-xs font-semibold text-slate-300 transition hover:text-white">Uitdraaien</a>
+                                   class="btn sm">Uitdraaien</a>
                             </td>
                         </tr>
                     @endforeach

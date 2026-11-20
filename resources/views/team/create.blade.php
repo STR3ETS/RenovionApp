@@ -1,6 +1,6 @@
 <x-layouts.app title="Nieuw teamlid">
 
-    <x-page-header eyebrow="Teambeheer" title="Nieuw teamlid" />
+    <x-page-header title="Nieuw teamlid" />
 
     <form method="POST" action="{{ route('team.store') }}" class="max-w-xl space-y-5">
         @csrf
@@ -30,8 +30,8 @@
         </section>
 
         <div class="flex gap-2">
-            <button type="submit" class="rounded-xl bg-brand-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-brand-500">Teamlid toevoegen</button>
-            <a href="{{ route('team.index') }}" class="rounded-xl border border-surface-600 bg-surface-800 px-6 py-3 text-sm font-semibold text-slate-300 transition hover:bg-surface-850">Annuleren</a>
+            <button type="submit" class="btn pri lg">Teamlid toevoegen</button>
+            <a href="{{ route('team.index') }}" class="rounded-xl border border-surface-600 bg-surface-800 px-6 py-3 text-sm font-semibold text-ink2 transition hover:bg-surface-850">Annuleren</a>
         </div>
     </form>
 

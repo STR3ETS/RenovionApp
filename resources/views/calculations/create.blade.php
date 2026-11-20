@@ -1,6 +1,6 @@
 <x-layouts.app title="Nieuwe calculatie">
 
-    <x-page-header eyebrow="Calculaties" category="calc" title="Nieuwe calculatie" subtitle="Maak een calculatie op basis van een opname, omschrijving of AI-voorstel." />
+    <x-page-header category="calc" title="Nieuwe calculatie" subtitle="Maak een calculatie op basis van een opname, omschrijving of AI-voorstel." />
 
     <form method="POST" action="{{ route('calculations.store') }}"
           x-data="calcCreate(@js(route('calculations.propose')), @js(old('description', $lead?->description)), @js($sources->pluck('source')->values()))"
@@ -35,13 +35,13 @@
             <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
                 <div class="mb-4 grid grid-cols-3 gap-2 text-sm font-semibold">
                     <button type="button" @click="mode = 'handmatig'"
-                            :class="mode === 'handmatig' ? 'bg-brand-500 text-white' : 'bg-surface-750 text-slate-300 hover:bg-surface-700'"
+                            :class="mode === 'handmatig' ? 'bg-brand-500 text-white' : 'bg-surface-750 text-ink2 hover:bg-surface-700'"
                             class="rounded-xl px-3 py-2.5 transition">Handmatig</button>
                     <button type="button" @click="mode = 'ai'"
-                            :class="mode === 'ai' ? 'bg-brand-500 text-white' : 'bg-surface-750 text-slate-300 hover:bg-surface-700'"
+                            :class="mode === 'ai' ? 'bg-brand-500 text-white' : 'bg-surface-750 text-ink2 hover:bg-surface-700'"
                             class="rounded-xl px-3 py-2.5 transition">AI (spraak/tekst)</button>
                     <button type="button" disabled title="PDF-import volgt in een volgende versie"
-                            class="cursor-not-allowed rounded-xl bg-surface-850 px-3 py-2.5 text-slate-600">PDF import</button>
+                            class="cursor-not-allowed rounded-xl bg-surface-850 px-3 py-2.5 text-faint">PDF import</button>
                 </div>
 
                 <div class="relative">
@@ -49,7 +49,7 @@
                               placeholder="Beschrijf het project… Bijv. 'Badkamer 6 m2 volledig renoveren: strippen, leidingwerk verleggen, vloer- en wandtegels, inloopdouche, wandcloset, stucwerk plafond, elektra met spots.'"
                               class="w-full rounded-xl border-surface-600 pr-12 text-sm focus:border-brand-500 focus:ring-brand-500"></textarea>
                     <button type="button" @click="toggleMic()" x-show="speechSupported"
-                            :class="listening ? 'bg-red-500 text-white animate-pulse' : 'bg-surface-750 text-slate-400 hover:bg-surface-700'"
+                            :class="listening ? 'bg-red-500 text-white animate-pulse' : 'bg-surface-750 text-muted hover:bg-surface-700'"
                             class="absolute right-2.5 bottom-2.5 flex h-9 w-9 items-center justify-center rounded-full transition"
                             :title="listening ? 'Stop met luisteren' : 'Spreek de opname in'">
                         <x-icon name="microphone" class="h-4.5 w-4.5" />
@@ -58,8 +58,8 @@
 
                 {{-- Handmatig --}}
                 <div x-show="mode === 'handmatig'" class="mt-4">
-                    <p class="mb-3 text-xs text-slate-500">Je maakt een calculatie aan en voegt daarna zelf regels toe vanuit de prijsbibliotheek.</p>
-                    <button type="submit" class="rounded-xl bg-brand-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-brand-600">Calculatie aanmaken</button>
+                    <p class="mb-3 text-xs text-faint">Je maakt een calculatie aan en voegt daarna zelf regels toe vanuit de prijsbibliotheek.</p>
+                    <button type="submit" class="btn pri lg">Calculatie aanmaken</button>
                 </div>
 
                 {{-- AI --}}
@@ -78,12 +78,12 @@
                     <div x-show="proposal" x-cloak class="mt-4 rounded-xl border border-brand-500/30 bg-brand-500/10/50">
                         <div class="flex items-center gap-2 border-b border-brand-500/20 px-4 py-3">
                             <x-nova-avatar class="h-6 w-6" />
-                            <p class="text-sm font-semibold text-white">Voorstel van Nova - controleer de regels voordat je bevestigt</p>
+                            <p class="text-sm font-semibold text-ink">Voorstel van Nova - controleer de regels voordat je bevestigt</p>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm">
                                 <thead>
-                                    <tr class="text-left text-xs font-bold text-slate-400 uppercase">
+                                    <tr class="text-left text-xs font-bold text-muted uppercase">
                                         <th class="px-4 py-2">Type</th>
                                         <th class="px-4 py-2">Omschrijving</th>
                                         <th class="px-4 py-2 text-right">Aantal</th>
@@ -96,14 +96,14 @@
                                 <tbody>
                                     <template x-for="(line, index) in proposal?.lines ?? []" :key="index">
                                         <tr class="border-t border-brand-500/20">
-                                            <td class="px-4 py-2 text-xs font-semibold text-slate-400 capitalize" x-text="line.type"></td>
-                                            <td class="px-4 py-2 font-medium text-white" x-text="line.description"></td>
+                                            <td class="px-4 py-2 text-xs font-semibold text-muted capitalize" x-text="line.type"></td>
+                                            <td class="px-4 py-2 font-medium text-ink" x-text="line.description"></td>
                                             <td class="px-4 py-2 text-right" x-text="line.quantity"></td>
-                                            <td class="px-4 py-2 text-slate-400" x-text="line.unit ?? '-'"></td>
+                                            <td class="px-4 py-2 text-muted" x-text="line.unit ?? '-'"></td>
                                             <td class="px-4 py-2 text-right" x-text="'€ ' + euro(line.unit_price)"></td>
                                             <td class="px-4 py-2 text-right font-semibold" x-text="'€ ' + euro(lineTotal(line))"></td>
                                             <td class="px-2 py-2">
-                                                <button type="button" @click="removeLine(index)" class="rounded p-1 text-slate-600 transition hover:text-red-500" title="Regel weglaten">
+                                                <button type="button" @click="removeLine(index)" class="rounded p-1 text-faint transition hover:text-red-500" title="Regel weglaten">
                                                     <x-icon name="x-mark" class="h-3.5 w-3.5" />
                                                 </button>
                                             </td>
@@ -112,15 +112,15 @@
                                 </tbody>
                                 <tfoot>
                                     <tr class="border-t border-brand-500/30">
-                                        <td colspan="5" class="px-4 py-2.5 text-right text-xs font-bold text-slate-400 uppercase">Subtotaal (excl. onvoorzien/marge/btw)</td>
-                                        <td class="px-4 py-2.5 text-right font-bold text-white" x-text="'€ ' + euro(proposalTotal)"></td>
+                                        <td colspan="5" class="px-4 py-2.5 text-right text-xs font-bold text-muted uppercase">Subtotaal (excl. onvoorzien/marge/btw)</td>
+                                        <td class="px-4 py-2.5 text-right font-bold text-ink" x-text="'€ ' + euro(proposalTotal)"></td>
                                         <td></td>
                                     </tr>
                                 </tfoot>
                             </table>
                         </div>
-                        <p x-show="proposal?.note" class="border-t border-brand-500/20 px-4 py-3 text-xs text-slate-400">
-                            <span class="font-semibold text-white">Aannames:</span> <span x-text="proposal?.note"></span>
+                        <p x-show="proposal?.note" class="border-t border-brand-500/20 px-4 py-3 text-xs text-muted">
+                            <span class="font-semibold text-ink">Aannames:</span> <span x-text="proposal?.note"></span>
                         </p>
                     </div>
 
@@ -129,7 +129,7 @@
                     </template>
 
                     <button type="submit" x-show="proposal" x-cloak
-                            class="mt-4 rounded-xl bg-brand-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-brand-600">
+                            class="btn pri lg mt-4">
                         Calculatie aanmaken met <span x-text="proposal?.lines.length"></span> regels
                     </button>
                 </div>
@@ -139,15 +139,15 @@
         {{-- Kostendatabase (mockup §18: bron-toggles) --}}
         <div>
             <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
-                <h2 class="mb-1 text-sm font-bold text-white">Geselecteerde kostendatabase</h2>
-                <p class="mb-4 text-xs text-slate-500">Nova gebruikt alleen prijzen uit de ingeschakelde bronnen.</p>
+                <h2 class="mb-1 text-sm font-bold text-ink">Geselecteerde kostendatabase</h2>
+                <p class="mb-4 text-xs text-faint">Nova gebruikt alleen prijzen uit de ingeschakelde bronnen.</p>
 
                 <div class="space-y-3">
                     @foreach ($sources as $source)
                         <label class="flex cursor-pointer items-center justify-between gap-3">
                             <span class="min-w-0">
-                                <span class="block truncate text-sm font-medium text-white">{{ $source->source }}</span>
-                                <span class="block text-xs text-slate-500">Editie {{ $source->edition }}</span>
+                                <span class="block truncate text-sm font-medium text-ink">{{ $source->source }}</span>
+                                <span class="block text-xs text-faint">Editie {{ $source->edition }}</span>
                             </span>
                             <input type="checkbox" class="peer sr-only" :checked="sources.includes(@js($source->source))" @change="toggleSource(@js($source->source))">
                             <span class="relative h-5 w-9 shrink-0 rounded-full bg-surface-700 transition peer-checked:bg-brand-500 after:absolute after:top-0.5 after:left-0.5 after:h-4 after:w-4 after:rounded-full after:bg-surface-800 after:shadow after:transition peer-checked:after:translate-x-4"></span>
@@ -158,8 +158,8 @@
                         @continue($sources->contains('source', $pending))
                         <div class="flex items-center justify-between gap-3 opacity-50" title="Wordt geladen zodra de Archidat-licentie rond is">
                             <span class="min-w-0">
-                                <span class="block truncate text-sm font-medium text-slate-400">{{ $pending }}</span>
-                                <span class="block text-xs text-slate-500">Nog niet geladen (licentie vereist)</span>
+                                <span class="block truncate text-sm font-medium text-muted">{{ $pending }}</span>
+                                <span class="block text-xs text-faint">Nog niet geladen (licentie vereist)</span>
                             </span>
                             <span class="relative h-5 w-9 shrink-0 rounded-full bg-surface-750 after:absolute after:top-0.5 after:left-0.5 after:h-4 after:w-4 after:rounded-full after:bg-surface-800 after:shadow"></span>
                         </div>
@@ -169,9 +169,9 @@
 
             @if ($lead)
                 <section class="mt-4 rounded-2xl border border-surface-700 bg-surface-800 p-5">
-                    <h2 class="mb-2 text-sm font-bold text-white">Gekoppelde aanvraag</h2>
-                    <p class="text-sm font-medium text-white">{{ $lead->customer->name }}</p>
-                    <p class="text-xs text-slate-400">{{ $lead->service ?? 'Aanvraag' }}, {{ $lead->customer->city ?? '-' }}</p>
+                    <h2 class="mb-2 text-sm font-bold text-ink">Gekoppelde aanvraag</h2>
+                    <p class="text-sm font-medium text-ink">{{ $lead->customer->name }}</p>
+                    <p class="text-xs text-muted">{{ $lead->service ?? 'Aanvraag' }}, {{ $lead->customer->city ?? '-' }}</p>
                 </section>
             @endif
         </div>

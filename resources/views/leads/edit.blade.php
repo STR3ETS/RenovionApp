@@ -1,13 +1,13 @@
 <x-layouts.app title="Aanvraag bewerken">
 
-    <x-page-header eyebrow="Aanvragen" category="lead" :title="'Bewerken: '.$lead->customer->name" />
+    <x-page-header category="lead" :title="'Bewerken: '.$lead->customer->name" />
 
     <form method="POST" action="{{ route('leads.update', $lead) }}" class="max-w-2xl space-y-5">
         @csrf
         @method('PATCH')
 
         <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
-            <h2 class="mb-4 text-sm font-bold text-white">Klantgegevens</h2>
+            <h2 class="mb-4 text-sm font-bold text-ink">Klantgegevens</h2>
             <div class="grid gap-4 sm:grid-cols-2">
                 <x-field label="Naam" name="name" class="sm:col-span-2">
                     <input type="text" name="name" id="name" value="{{ old('name', $lead->customer->name) }}" class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
@@ -33,7 +33,7 @@
         </section>
 
         <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
-            <h2 class="mb-4 text-sm font-bold text-white">Aanvraag</h2>
+            <h2 class="mb-4 text-sm font-bold text-ink">Aanvraag</h2>
             <div class="grid gap-4 sm:grid-cols-2">
                 <x-field label="Dienst" name="service">
                     <input type="text" name="service" id="service" value="{{ old('service', $lead->service) }}" class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
@@ -75,8 +75,8 @@
         </section>
 
         <div class="flex gap-2">
-            <button type="submit" class="rounded-xl bg-brand-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-brand-500">Opslaan</button>
-            <a href="{{ route('leads.show', $lead) }}" class="rounded-xl border border-surface-600 bg-surface-800 px-6 py-3 text-sm font-semibold text-slate-300 transition hover:bg-surface-850">Annuleren</a>
+            <button type="submit" class="btn pri lg">Opslaan</button>
+            <a href="{{ route('leads.show', $lead) }}" class="rounded-xl border border-surface-600 bg-surface-800 px-6 py-3 text-sm font-semibold text-ink2 transition hover:bg-surface-850">Annuleren</a>
         </div>
     </form>
 

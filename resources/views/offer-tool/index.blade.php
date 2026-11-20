@@ -1,6 +1,6 @@
 @php
     $statuses = [
-        'concept' => ['Concept', 'bg-white/10 text-slate-300'],
+        'concept' => ['Concept', 'bg-ink/10 text-ink2'],
         'preview' => ['Preview', 'bg-amber-500/15 text-amber-300'],
         'verzonden' => ['Verzonden', 'bg-lead-500/15 text-lead-300'],
         'getekend' => ['Getekend', 'bg-green-500/15 text-green-300'],
@@ -8,15 +8,15 @@
 @endphp
 
 <x-layouts.app title="Offertetool">
-    <x-page-header title="Offertetool" eyebrow="Calculatie en offertes" category="offerte"
+    <x-page-header title="Offertetool" category="offerte"
                    subtitle="Begroting en offerte in één scherm. De klant opent de offerte met zijn mobiele nummer en een toegangscode, en tekent digitaal.">
         @if ($canCreate)
             <form method="POST" action="{{ route('offer-tool.store') }}" class="flex flex-wrap items-center gap-2">
                 @csrf
                 <input type="text" name="number" value="{{ old('number', $offers->isEmpty() ? '23102' : '') }}" required maxlength="40"
                        placeholder="Offertenummer" aria-label="Offertenummer"
-                       class="w-40 rounded-full border-surface-700 bg-surface-850 py-2.5 text-sm text-white placeholder:text-slate-500 focus:border-brand-500 focus:ring-brand-500">
-                <button type="submit" class="flex items-center gap-1.5 rounded-full bg-brand-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600">
+                       class="w-40 rounded-full border-surface-700 bg-surface-850 py-2.5 text-sm text-ink placeholder:text-faint focus:border-brand-500 focus:ring-brand-500">
+                <button type="submit" class="btn pri">
                     <x-icon name="plus" class="h-4 w-4" /> Nieuwe offerte
                 </button>
             </form>
@@ -46,7 +46,7 @@
                 <tbody>
                     @foreach ($offers as $offer)
                         @php
-                            [$statusLabel, $statusClass] = $statuses[$offer->status()] ?? ['Alleen begroting', 'bg-white/10 text-slate-400'];
+                            [$statusLabel, $statusClass] = $statuses[$offer->status()] ?? ['Alleen begroting', 'bg-ink/10 text-muted'];
                             $open = $offer->openAccessCount();
                             $signature = $offer->signatures->first();
                         @endphp
@@ -82,12 +82,12 @@
                                 <span x-data="{ copied: false }" class="inline-flex items-center gap-2">
                                     <button type="button"
                                             @click="navigator.clipboard.writeText(@js(route('offer-tool.client', $offer))).then(() => { copied = true; setTimeout(() => copied = false, 2000) })"
-                                            class="rounded-full border border-surface-600 px-3.5 py-2 text-xs font-semibold text-slate-300 transition hover:border-surface-500 hover:text-white">
+                                            class="btn sm">
                                         <span x-show="!copied">Klantlink kopiëren</span>
                                         <span x-show="copied" x-cloak>Gekopieerd</span>
                                     </button>
                                     <a href="{{ route('offer-tool.show', $offer) }}"
-                                       class="rounded-full bg-brand-500 px-4 py-2 text-xs font-bold text-white transition hover:bg-brand-600">
+                                       class="btn pri sm">
                                         Openen
                                     </a>
                                 </span>
@@ -98,7 +98,7 @@
             </table>
         </div>
 
-        <p class="mt-3 text-xs text-slate-500">
+        <p class="mt-3 text-xs text-faint">
             Toegangscodes maak je in de tool zelf, met de knop Toegang. De code staat nergens opgeslagen, alleen een controlegetal:
             geef hem dus direct door aan de klant.
         </p>
@@ -106,8 +106,8 @@
         @unless ($canCreate)
             <div class="mt-4 flex items-start gap-3 rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4">
                 <x-icon name="exclamation-triangle" class="h-5 w-5 shrink-0 text-amber-300" />
-                <p class="text-sm text-slate-200">
-                    <b class="text-white">De tool staat op één offerte.</b>
+                <p class="text-sm text-ink">
+                    <b class="text-ink">De tool staat op één offerte.</b>
                     In de broncode van de tool staan nog de voorbeeldgegevens van dit project. Een klant van een ander project
                     zou die kunnen lezen, dus een tweede offerte kan pas als de tool is opgeschoond.
                 </p>

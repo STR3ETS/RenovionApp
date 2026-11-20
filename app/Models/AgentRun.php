@@ -131,8 +131,8 @@ class AgentRun extends Model
             self::STATUS_RUNNING => 'bg-lead-500/15 text-lead-300',
             self::STATUS_FAILED => 'bg-red-500/15 text-red-300',
             self::STATUS_WAITING_APPROVAL => 'bg-amber-500/15 text-amber-300',
-            self::STATUS_CANCELLED => 'bg-white/10 text-slate-400',
-            default => $this->isWaiting() ? 'bg-amber-500/15 text-amber-300' : 'bg-white/10 text-slate-300',
+            self::STATUS_CANCELLED => 'bg-ink/10 text-muted',
+            default => $this->isWaiting() ? 'bg-amber-500/15 text-amber-300' : 'bg-ink/10 text-ink2',
         };
     }
 

@@ -2,18 +2,18 @@
 
     <div x-data="{ tab: 'overzicht' }">
 
-        <x-page-header eyebrow="Offerte" category="offerte" :title="$quote->number.', v'.$quote->version" :subtitle="$quote->customer->name.', aangemaakt '.$quote->created_at->translatedFormat('j M Y')">
+        <x-page-header category="offerte" :title="$quote->number.', v'.$quote->version" :subtitle="$quote->customer->name.', aangemaakt '.$quote->created_at->translatedFormat('j M Y')">
             <x-status-badge :status="$quote->status" class="text-sm" />
             @if ($quote->status === \App\Enums\QuoteStatus::Concept)
-                <a href="{{ route('quotes.builder', $quote) }}" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-600">Offerte bouwen</a>
-                <a href="{{ route('quotes.edit', $quote) }}" class="rounded-lg border border-surface-600 bg-surface-800 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-surface-850">Posten bewerken</a>
+                <a href="{{ route('quotes.builder', $quote) }}" class="btn pri">Offerte bouwen</a>
+                <a href="{{ route('quotes.edit', $quote) }}" class="btn">Posten bewerken</a>
             @endif
         </x-page-header>
 
         {{-- Tabs (mockup §18) --}}
         <div class="mb-5 flex gap-1 rounded-xl border border-surface-700 bg-surface-800 p-1 text-sm font-semibold">
-            <button type="button" @click="tab = 'overzicht'" :class="tab === 'overzicht' ? 'bg-navy-950 text-white' : 'text-slate-300 hover:bg-surface-850'" class="flex-1 rounded-lg px-4 py-2 transition">Overzicht</button>
-            <button type="button" @click="tab = 'preview'" :class="tab === 'preview' ? 'bg-navy-950 text-white' : 'text-slate-300 hover:bg-surface-850'" class="flex-1 rounded-lg px-4 py-2 transition">Preview (klant)</button>
+            <button type="button" @click="tab = 'overzicht'" :class="tab === 'overzicht' ? 'bg-navy-950 text-white' : 'text-ink2 hover:bg-surface-850'" class="flex-1 rounded-lg px-4 py-2 transition">Overzicht</button>
+            <button type="button" @click="tab = 'preview'" :class="tab === 'preview' ? 'bg-navy-950 text-white' : 'text-ink2 hover:bg-surface-850'" class="flex-1 rounded-lg px-4 py-2 transition">Preview (klant)</button>
         </div>
 
         {{-- ===== Tab: Overzicht ===== --}}
@@ -37,7 +37,7 @@
                                 - vandaag opvolgen.
                             </p>
                             @if ($quote->customer->phone)
-                                <a href="tel:{{ $quote->customer->phone }}" class="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-600"><x-icon name="phone" /> {{ $quote->customer->name }} bellen</a>
+                                <a href="tel:{{ $quote->customer->phone }}" class="btn pri mt-2"><x-icon name="phone" /> {{ $quote->customer->name }} bellen</a>
                             @endif
                         </div>
                     @endif
@@ -45,10 +45,10 @@
                     {{-- Klantlink --}}
                     @if ($quote->status !== \App\Enums\QuoteStatus::Concept)
                         <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5" x-data="{ copied: false }">
-                            <h2 class="mb-2 text-sm font-bold text-white">Klantlink</h2>
-                            <p class="mb-3 text-xs text-slate-500">Via deze privélink bekijkt en ondertekent de klant de offerte. Elke keer dat de klant kijkt, zie je dat hier terug.</p>
+                            <h2 class="mb-2 text-sm font-bold text-ink">Klantlink</h2>
+                            <p class="mb-3 text-xs text-faint">Via deze privélink bekijkt en ondertekent de klant de offerte. Elke keer dat de klant kijkt, zie je dat hier terug.</p>
                             <div class="flex gap-2">
-                                <input type="text" readonly value="{{ $quote->publicUrl() }}" class="flex-1 rounded-xl border-surface-700 bg-surface-850 text-xs text-slate-300">
+                                <input type="text" readonly value="{{ $quote->publicUrl() }}" class="flex-1 rounded-xl border-surface-700 bg-surface-850 text-xs text-ink2">
                                 <button type="button"
                                         @click="navigator.clipboard.writeText(@js($quote->publicUrl())).then(() => { copied = true; setTimeout(() => copied = false, 2000) })"
                                         class="rounded-xl bg-navy-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-navy-900">
@@ -57,7 +57,7 @@
                                 </button>
                                 @if ($quote->customer->email)
                                     <a href="mailto:{{ $quote->customer->email }}?subject={{ rawurlencode('Offerte '.$quote->number.' - Renovion') }}&body={{ rawurlencode("Beste {$quote->customer->name},\n\nHierbij ontvangt u onze offerte. U kunt hem bekijken en digitaal ondertekenen via:\n{$quote->publicUrl()}\n\nMet vriendelijke groet,\nRenovion") }}"
-                                       class="rounded-xl border border-surface-600 bg-surface-800 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-surface-850">Mailen</a>
+                                       class="rounded-xl border border-surface-600 bg-surface-800 px-4 py-2 text-sm font-semibold text-ink2 transition hover:bg-surface-850">Mailen</a>
                                 @endif
                             </div>
                         </section>
@@ -65,51 +65,51 @@
 
                     {{-- Posten --}}
                     <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
-                        <h2 class="mb-4 text-sm font-bold text-white">Investering</h2>
+                        <h2 class="mb-4 text-sm font-bold text-ink">Investering</h2>
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm">
                                 <tbody>
                                     @foreach ($quote->lines as $line)
                                         <tr class="border-b border-surface-700">
-                                            <td class="py-2.5 font-medium text-white">
+                                            <td class="py-2.5 font-medium text-ink">
                                                 {{ $line->description }}
                                                 @if ($line->is_estimate)
                                                     <span class="ml-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-300">stelpost</span>
                                                 @endif
                                             </td>
-                                            <td class="py-2.5 text-right text-slate-300">{{ rtrim(rtrim(number_format((float) $line->quantity, 2, ',', '.'), '0'), ',') }} {{ $line->unit }}</td>
-                                            <td class="py-2.5 text-right font-semibold text-white">€ {{ number_format((float) $line->total, 2, ',', '.') }}</td>
+                                            <td class="py-2.5 text-right text-ink2">{{ rtrim(rtrim(number_format((float) $line->quantity, 2, ',', '.'), '0'), ',') }} {{ $line->unit }}</td>
+                                            <td class="py-2.5 text-right font-semibold text-ink">€ {{ number_format((float) $line->total, 2, ',', '.') }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>
                             </table>
                         </div>
                         <dl class="mt-4 ml-auto w-full max-w-xs space-y-1 text-sm">
-                            <div class="flex justify-between"><dt class="text-slate-400">Subtotaal</dt><dd class="font-semibold">€ {{ number_format((float) $quote->subtotal, 2, ',', '.') }}</dd></div>
-                            <div class="flex justify-between"><dt class="text-slate-400">Btw</dt><dd class="font-semibold">€ {{ number_format((float) $quote->vat_amount, 2, ',', '.') }}</dd></div>
-                            <div class="flex justify-between border-t border-surface-700 pt-1 text-base"><dt class="font-bold text-white">Totaal</dt><dd class="font-bold text-white">€ {{ number_format((float) $quote->total, 2, ',', '.') }}</dd></div>
+                            <div class="flex justify-between"><dt class="text-muted">Subtotaal</dt><dd class="font-semibold">€ {{ number_format((float) $quote->subtotal, 2, ',', '.') }}</dd></div>
+                            <div class="flex justify-between"><dt class="text-muted">Btw</dt><dd class="font-semibold">€ {{ number_format((float) $quote->vat_amount, 2, ',', '.') }}</dd></div>
+                            <div class="flex justify-between border-t border-surface-700 pt-1 text-base"><dt class="font-bold text-ink">Totaal</dt><dd class="font-bold text-ink">€ {{ number_format((float) $quote->total, 2, ',', '.') }}</dd></div>
                         </dl>
                     </section>
 
                     {{-- Versies --}}
                     <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
-                        <h2 class="mb-3 text-sm font-bold text-white">Versies</h2>
+                        <h2 class="mb-3 text-sm font-bold text-ink">Versies</h2>
                         <div class="space-y-2">
                             <div class="flex items-center gap-3 rounded-lg border border-brand-500/30 bg-brand-500/10/50 p-2.5 text-sm">
-                                <span class="font-bold text-white">v{{ $quote->version }}</span>
-                                <span class="flex-1 text-slate-300">Huidige versie, {{ $quote->status->label() }}</span>
+                                <span class="font-bold text-ink">v{{ $quote->version }}</span>
+                                <span class="flex-1 text-ink2">Huidige versie, {{ $quote->status->label() }}</span>
                             </div>
                             @forelse ($quote->versions->reject(fn ($version) => $version->version === $quote->version) as $version)
                                 <div class="flex items-center gap-3 rounded-lg border border-surface-700 p-2.5 text-sm">
-                                    <span class="font-bold text-slate-400">v{{ $version->version }}</span>
+                                    <span class="font-bold text-muted">v{{ $version->version }}</span>
                                     <span class="min-w-0 flex-1">
-                                        <span class="block truncate text-slate-300">{{ $version->note ?? 'Verstuurde versie' }}</span>
-                                        <span class="text-xs text-slate-500">{{ $version->created_at->translatedFormat('j M Y H:i') }}{{ $version->creator ? ', '.$version->creator->name : '' }}</span>
+                                        <span class="block truncate text-ink2">{{ $version->note ?? 'Verstuurde versie' }}</span>
+                                        <span class="text-xs text-faint">{{ $version->created_at->translatedFormat('j M Y H:i') }}{{ $version->creator ? ', '.$version->creator->name : '' }}</span>
                                     </span>
-                                    <span class="text-xs font-semibold whitespace-nowrap text-slate-400">€ {{ number_format((float) ($version->snapshot['total'] ?? 0), 0, ',', '.') }}</span>
+                                    <span class="text-xs font-semibold whitespace-nowrap text-muted">€ {{ number_format((float) ($version->snapshot['total'] ?? 0), 0, ',', '.') }}</span>
                                 </div>
                             @empty
-                                <p class="text-xs text-slate-500">Nog geen eerdere versies - bij versturen wordt de inhoud bevroren als v{{ $quote->version }}.</p>
+                                <p class="text-xs text-faint">Nog geen eerdere versies - bij versturen wordt de inhoud bevroren als v{{ $quote->version }}.</p>
                             @endforelse
                         </div>
 
@@ -119,15 +119,15 @@
                                 @csrf
                                 <input type="text" name="note" required maxlength="255" placeholder="Wat wijzigt er in deze versie? (wijzigingslog)"
                                        class="flex-1 rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
-                                <button type="submit" class="rounded-xl border border-surface-600 bg-surface-800 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-surface-850">Nieuwe versie</button>
+                                <button type="submit" class="btn">Nieuwe versie</button>
                             </form>
                         @endif
                     </section>
 
                     @if ($quote->notes)
                         <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
-                            <h2 class="mb-2 text-sm font-bold text-white">Opmerkingen (intern)</h2>
-                            <p class="text-sm whitespace-pre-line text-slate-300">{{ $quote->notes }}</p>
+                            <h2 class="mb-2 text-sm font-bold text-ink">Opmerkingen (intern)</h2>
+                            <p class="text-sm whitespace-pre-line text-ink2">{{ $quote->notes }}</p>
                         </section>
                     @endif
                 </div>
@@ -135,20 +135,20 @@
                 <div class="space-y-4">
                     {{-- Statusacties --}}
                     <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
-                        <h2 class="mb-3 text-sm font-bold text-white">Acties</h2>
+                        <h2 class="mb-3 text-sm font-bold text-ink">Acties</h2>
 
                         @if ($quote->status->isOpen())
                             <div class="space-y-2">
                                 @if ($quote->status === \App\Enums\QuoteStatus::Concept)
                                     <form method="POST" action="{{ route('quotes.status', $quote) }}">
                                         @csrf @method('PATCH')
-                                        <button type="submit" name="status" value="verstuurd" class="flex w-full items-center justify-center gap-1.5 rounded-xl bg-brand-500 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600"><x-icon name="paper-airplane" /> Versturen (versie bevriezen)</button>
+                                        <button type="submit" name="status" value="verstuurd" class="btn pri w-full"><x-icon name="paper-airplane" /> Versturen (versie bevriezen)</button>
                                     </form>
-                                    <p class="text-xs text-slate-500">Versturen bevriest v{{ $quote->version }} en activeert de klantlink. Daarna deel je de link met de klant.</p>
+                                    <p class="text-xs text-faint">Versturen bevriest v{{ $quote->version }} en activeert de klantlink. Daarna deel je de link met de klant.</p>
                                 @else
                                     <form method="POST" action="{{ route('quotes.status', $quote) }}">
                                         @csrf @method('PATCH')
-                                        <button type="submit" name="status" value="opvolgen" class="flex w-full items-center justify-center gap-1.5 rounded-xl border border-surface-600 bg-surface-800 py-2.5 text-sm font-semibold text-white transition hover:border-brand-400"><x-icon name="bell" /> Markeren als opvolgen</button>
+                                        <button type="submit" name="status" value="opvolgen" class="flex w-full items-center justify-center gap-1.5 rounded-xl border border-surface-600 bg-surface-800 py-2.5 text-sm font-semibold text-ink transition hover:border-brand-400"><x-icon name="bell" /> Markeren als opvolgen</button>
                                     </form>
                                 @endif
 
@@ -166,7 +166,7 @@
                         @elseif ($quote->project)
                             <a href="{{ route('projects.show', $quote->project) }}" class="block rounded-xl bg-navy-950 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-navy-900">→ Naar project</a>
                         @else
-                            <p class="text-sm text-slate-500">Deze offerte is afgehandeld.</p>
+                            <p class="text-sm text-faint">Deze offerte is afgehandeld.</p>
                         @endif
                     </section>
 
@@ -181,29 +181,29 @@
 
                     {{-- Verloop --}}
                     <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
-                        <h2 class="mb-3 text-sm font-bold text-white">Verloop</h2>
+                        <h2 class="mb-3 text-sm font-bold text-ink">Verloop</h2>
                         <dl class="space-y-2 text-sm">
-                            <div><dt class="text-slate-400">Aangemaakt</dt><dd class="font-medium">{{ $quote->created_at->translatedFormat('j M Y H:i') }}</dd></div>
-                            <div><dt class="text-slate-400">Verstuurd</dt><dd class="font-medium">{{ $quote->sent_at?->translatedFormat('j M Y H:i') ?? '-' }}</dd></div>
-                            <div><dt class="text-slate-400">Laatst bekeken</dt><dd class="font-medium">{{ $quote->viewed_at?->translatedFormat('j M Y H:i') ?? '-' }} @if ($quote->viewed_count > 0) ({{ $quote->viewed_count }}×) @endif</dd></div>
-                            <div><dt class="text-slate-400">Geldig tot</dt><dd class="font-medium {{ $quote->isExpired() && $quote->status->isOpen() ? 'text-red-400' : '' }}">{{ $quote->valid_until?->translatedFormat('j M Y') ?? '-' }}</dd></div>
+                            <div><dt class="text-muted">Aangemaakt</dt><dd class="font-medium">{{ $quote->created_at->translatedFormat('j M Y H:i') }}</dd></div>
+                            <div><dt class="text-muted">Verstuurd</dt><dd class="font-medium">{{ $quote->sent_at?->translatedFormat('j M Y H:i') ?? '-' }}</dd></div>
+                            <div><dt class="text-muted">Laatst bekeken</dt><dd class="font-medium">{{ $quote->viewed_at?->translatedFormat('j M Y H:i') ?? '-' }} @if ($quote->viewed_count > 0) ({{ $quote->viewed_count }}×) @endif</dd></div>
+                            <div><dt class="text-muted">Geldig tot</dt><dd class="font-medium {{ $quote->isExpired() && $quote->status->isOpen() ? 'text-red-400' : '' }}">{{ $quote->valid_until?->translatedFormat('j M Y') ?? '-' }}</dd></div>
                             @if ($quote->accepted_at)
-                                <div><dt class="text-slate-400">Akkoord op</dt><dd class="font-medium text-green-300">{{ $quote->accepted_at->translatedFormat('j M Y H:i') }}</dd></div>
+                                <div><dt class="text-muted">Akkoord op</dt><dd class="font-medium text-green-300">{{ $quote->accepted_at->translatedFormat('j M Y H:i') }}</dd></div>
                             @endif
                             @if ($quote->rejected_at)
-                                <div><dt class="text-slate-400">Afgewezen op</dt><dd class="font-medium text-red-300">{{ $quote->rejected_at->translatedFormat('j M Y H:i') }}</dd></div>
+                                <div><dt class="text-muted">Afgewezen op</dt><dd class="font-medium text-red-300">{{ $quote->rejected_at->translatedFormat('j M Y H:i') }}</dd></div>
                             @endif
                             @if ($quote->calculation)
-                                <div><dt class="text-slate-400">Calculatie</dt><dd class="font-medium"><a href="{{ route('calculations.show', $quote->calculation) }}" class="text-brand-400 hover:text-brand-500">{{ $quote->calculation->title }}</a></dd></div>
+                                <div><dt class="text-muted">Calculatie</dt><dd class="font-medium"><a href="{{ route('calculations.show', $quote->calculation) }}" class="text-brand-400 hover:text-brand-500">{{ $quote->calculation->title }}</a></dd></div>
                             @endif
                         </dl>
                     </section>
 
                     {{-- Klant --}}
                     <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
-                        <h2 class="mb-3 text-sm font-bold text-white">Klant</h2>
-                        <p class="text-sm font-semibold text-white">{{ $quote->customer->name }}</p>
-                        <p class="text-sm text-slate-400">{{ $quote->customer->city ?? '-' }}</p>
+                        <h2 class="mb-3 text-sm font-bold text-ink">Klant</h2>
+                        <p class="text-sm font-semibold text-ink">{{ $quote->customer->name }}</p>
+                        <p class="text-sm text-muted">{{ $quote->customer->city ?? '-' }}</p>
                         <a href="{{ route('customers.show', $quote->customer) }}" class="mt-2 inline-block text-xs font-semibold text-brand-400 hover:text-brand-500">Klantdossier →</a>
                     </section>
 
@@ -222,7 +222,7 @@
             <div class="mx-auto max-w-3xl">
                 @include('quotes.partials.document', ['quote' => $quote])
             </div>
-            <p class="mt-3 text-center text-xs text-slate-500">Zo ziet de klant de offerte via de klantlink (inclusief knoppen voor ondertekenen, aanpassing aanvragen en afwijzen).</p>
+            <p class="mt-3 text-center text-xs text-faint">Zo ziet de klant de offerte via de klantlink (inclusief knoppen voor ondertekenen, aanpassing aanvragen en afwijzen).</p>
         </div>
 
     </div>

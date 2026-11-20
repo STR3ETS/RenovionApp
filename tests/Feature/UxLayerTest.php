@@ -110,4 +110,40 @@ class UxLayerTest extends TestCase
         // Precies één scherm is het scherm waar je nu bent, of geen als je er niet in staat.
         $this->assertLessThanOrEqual(1, collect($sales['screens'])->where('active', true)->count());
     }
+
+    public function test_the_theme_follows_the_system_until_the_user_picks_one(): void
+    {
+        $user = User::factory()->create();
+
+        // Standaard volgt de schil het besturingssysteem, net als het prototype.
+        $this->actingAs($user)->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('data-theme-pref="auto"', false);
+
+        $this->actingAs($user)->post(route('preferences.theme'), ['theme' => 'dark'])->assertRedirect();
+        $this->assertSame('dark', $user->fresh()->theme);
+
+        $this->actingAs($user->fresh())->get(route('dashboard'))
+            ->assertSee('data-theme="dark" data-theme-pref="dark"', false);
+
+        $this->actingAs($user)->post(route('preferences.theme'), ['theme' => 'light'])->assertRedirect();
+        $this->actingAs($user->fresh())->get(route('dashboard'))
+            ->assertSee('data-theme="light" data-theme-pref="light"', false);
+
+        // Iets anders dan auto, licht of donker komt er niet in.
+        $this->actingAs($user)->post(route('preferences.theme'), ['theme' => 'roze'])->assertSessionHasErrors('theme');
+        $this->assertSame('light', $user->fresh()->theme);
+    }
+
+    public function test_the_page_header_carries_the_section_label_and_colour(): void
+    {
+        $admin = User::factory()->create();
+
+        // De sectie staat op de body (voor de sectiekleur) en als label boven de kop.
+        $this->actingAs($admin)->get(route('invoices.index'))
+            ->assertOk()
+            ->assertSee('data-sec="geld"', false)
+            ->assertSee('class="sec-eye"', false)
+            ->assertSeeInOrder(['Factu', '<em>ratie</em>'], false);
+    }
 }

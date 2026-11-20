@@ -145,7 +145,7 @@ class PurchaseOrder extends Model
             self::STATUS_SENT => 'bg-lead-500/15 text-lead-300',
             self::STATUS_CONFIRMED => 'bg-calc-500/15 text-calc-300',
             self::STATUS_DELIVERED => 'bg-green-500/15 text-green-300',
-            default => 'bg-white/10 text-slate-300',
+            default => 'bg-ink/10 text-ink2',
         };
     }
 

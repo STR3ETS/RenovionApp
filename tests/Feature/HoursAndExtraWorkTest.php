@@ -230,7 +230,7 @@ class HoursAndExtraWorkTest extends TestCase
         $this->get(route('extra-works.public', $extra->public_token))
             ->assertOk()
             ->assertSee('Extra wandcontactdozen')
-            ->assertSee('EUR 1.250,00')
+            ->assertSee('€ 1.250,00')
             ->assertSee('Akkoord geven');
 
         // Zonder vinkje geen akkoord.

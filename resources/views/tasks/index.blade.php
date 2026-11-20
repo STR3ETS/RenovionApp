@@ -1,8 +1,8 @@
 <x-layouts.app title="Taken">
 
     <div x-data="{ nieuw: false }">
-        <x-page-header eyebrow="Werk organiseren" category="planning" title="Taken" subtitle="{{ $tasks->total() }} taken in deze weergave">
-            <button @click="nieuw = !nieuw" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-500">+ Taak</button>
+        <x-page-header category="planning" title="Taken" subtitle="{{ $tasks->total() }} taken in deze weergave">
+            <button @click="nieuw = !nieuw" class="btn pri">+ Taak</button>
         </x-page-header>
 
         {{-- Quick add --}}
@@ -42,12 +42,12 @@
         </form>
 
         {{-- Filters --}}
-        <div class="mb-4 flex flex-wrap gap-1.5">
+        <div class="tabs mb-4">
             <a href="{{ route('tasks.index') }}"
-               class="rounded-full px-3 py-1.5 text-xs font-semibold {{ $status === null ? 'bg-navy-900 text-white' : 'bg-surface-800 text-slate-300 border border-surface-600' }}">Open</a>
+               class="tab {{ $status === null ? 'on' : '' }}">Open</a>
             @foreach (\App\Enums\TaskStatus::cases() as $statusOption)
                 <a href="{{ route('tasks.index', ['status' => $statusOption->value]) }}"
-                   class="rounded-full px-3 py-1.5 text-xs font-semibold {{ $status === $statusOption ? 'bg-navy-900 text-white' : 'bg-surface-800 text-slate-300 border border-surface-600' }}">{{ $statusOption->label() }}</a>
+                   class="tab {{ $status === $statusOption ? 'on' : '' }}">{{ $statusOption->label() }}</a>
             @endforeach
         </div>
 
@@ -66,8 +66,8 @@
                     @endif
 
                     <span class="min-w-0 flex-1">
-                        <span class="block truncate text-sm font-semibold {{ $task->status->isOpen() ? 'text-white' : 'text-slate-500 line-through' }}">{{ $task->title }}</span>
-                        <span class="block text-xs text-slate-400">
+                        <span class="block truncate text-sm font-semibold {{ $task->status->isOpen() ? 'text-ink' : 'text-faint line-through' }}">{{ $task->title }}</span>
+                        <span class="block text-xs text-muted">
                             @if ($task->customer)@can('manage-crm')<a href="{{ route('customers.show', $task->customer) }}" class="font-medium text-klant-400">{{ $task->customer->name }}</a>@else{{ $task->customer->name }}@endcan, @endif
                             @if ($task->project)<a href="{{ route('projects.show', $task->project) }}" class="font-medium text-project-400">{{ $task->project->name }}</a>, @endif
                             {{ $task->owner?->name ?? 'geen eigenaar' }}
@@ -82,7 +82,7 @@
                         <select
                             x-data
                             @change="patchJson('{{ route('tasks.status', $task) }}', { status: $event.target.value }).then(() => window.location.reload())"
-                            class="hidden rounded-lg border-surface-700 py-1 pr-7 pl-2 text-xs text-slate-300 focus:border-brand-500 focus:ring-brand-500 sm:block">
+                            class="hidden rounded-lg border-surface-700 py-1 pr-7 pl-2 text-xs text-ink2 focus:border-brand-500 focus:ring-brand-500 sm:block">
                             @foreach (\App\Enums\TaskStatus::cases() as $statusOption)
                                 <option value="{{ $statusOption->value }}" @selected($statusOption === $task->status)>{{ $statusOption->label() }}</option>
                             @endforeach

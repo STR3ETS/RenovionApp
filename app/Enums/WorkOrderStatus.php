@@ -33,7 +33,7 @@ enum WorkOrderStatus: string
     public function badgeClasses(): string
     {
         return match ($this) {
-            self::Concept, self::Afgesloten => 'bg-white/10 text-slate-300',
+            self::Concept, self::Afgesloten => 'bg-ink/10 text-ink2',
             self::Gepland => 'bg-lead-500/15 text-lead-300',
             self::Uitgegeven => 'bg-calc-500/15 text-calc-300',
             self::Uitvoering => 'bg-brand-500/15 text-brand-300',

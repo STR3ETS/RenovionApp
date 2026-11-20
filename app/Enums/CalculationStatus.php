@@ -18,7 +18,7 @@ enum CalculationStatus: string
     public function badgeClasses(): string
     {
         return match ($this) {
-            self::Concept => 'bg-white/10 text-slate-400',
+            self::Concept => 'bg-ink/10 text-muted',
             self::Definitief => 'bg-green-500/15 text-green-300',
         };
     }

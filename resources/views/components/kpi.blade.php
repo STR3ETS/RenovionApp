@@ -11,23 +11,25 @@
 
 @php
     $tag = $href ? 'a' : 'div';
-    $classes = $dark
-        ? 'border-navy-900 bg-navy-950'
-        : 'border-surface-700 bg-surface-800';
+
+    // Op de navy kaart is het valutateken oranje, zoals in het prototype.
+    $waarde = e(trim((string) $value));
+
+    if ($dark) {
+        $waarde = preg_replace('/^(?:EUR|€)\s*(.*)$/u', '<b>€</b> <span data-count>$1</span>', $waarde, 1, $geld) ?? $waarde;
+    } else {
+        $waarde = preg_replace('/^EUR\s*/u', '€ ', $waarde) ?? $waarde;
+    }
 @endphp
 
 <{{ $tag }} @if ($href) href="{{ $href }}" @endif
-    {{ $attributes->merge(['class' => 'motion-lift flex flex-col gap-1 rounded-2xl border px-4 py-4 transition '.$classes.($href ? ' hover:border-surface-600' : '')]) }}>
+    {{ $attributes->merge(['class' => 'kpi motion-lift'.($dark ? ' dark on-navy' : '')]) }}>
 
-    <span class="text-[11px] font-semibold tracking-wide {{ $dark ? 'text-slate-400' : 'text-slate-500' }}">{{ $label }}</span>
+    <span class="lbl">{{ $label }}</span>
 
-    <span data-count class="text-2xl leading-none font-semibold tracking-tight text-white tabular-nums {{ $dark ? 'lg:text-3xl' : '' }}">
-        {{ $value }}
-    </span>
+    <span @if (empty($geld)) data-count @endif class="v">{!! $waarde !!}</span>
 
     @if ($sub)
-        <span class="flex items-center gap-1.5 text-xs {{ $alert ? 'text-red-400' : ($dark ? 'text-slate-400' : 'text-slate-500') }}">
-            {{ $sub }}
-        </span>
+        <span class="s {{ $alert ? 'alert' : '' }}">{{ $sub }}</span>
     @endif
 </{{ $tag }}>

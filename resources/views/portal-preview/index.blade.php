@@ -1,5 +1,5 @@
 <x-layouts.app title="Klantportaal">
-    <x-page-header title="Klantportaal" eyebrow="Projecten" category="klant"
+    <x-page-header title="Klantportaal" category="klant"
                    subtitle="Wat de klant ziet, van binnenuit te openen. Handig voordat je iets vrijgeeft." />
 
     @if ($rows->isEmpty())
@@ -17,7 +17,7 @@
 
                     <span class="min-w-0 flex-1">
                         <span class="flex flex-wrap items-center gap-2">
-                            <b class="truncate text-sm font-bold text-white">{{ $project->name }}</b>
+                            <b class="truncate text-sm font-bold text-ink">{{ $project->name }}</b>
                             @unless ($row['hasAccount'])
                                 <span class="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold text-amber-300">Geen portaalaccount</span>
                             @endunless
@@ -27,7 +27,7 @@
                                 </span>
                             @endif
                         </span>
-                        <small class="mt-0.5 block truncate text-xs text-slate-400">
+                        <small class="mt-0.5 block truncate text-xs text-muted">
                             {{ $project->customer?->name }},
                             voortgang {{ $project->progress }}%,
                             {{ $project->client_photos_count }} {{ $project->client_photos_count === 1 ? 'foto' : "foto's" }} zichtbaar
@@ -37,7 +37,7 @@
                         </small>
                     </span>
 
-                    <x-icon name="chevron-right" class="h-4 w-4 shrink-0 text-slate-500" />
+                    <x-icon name="chevron-right" class="h-4 w-4 shrink-0 text-faint" />
                 </a>
             @endforeach
         </div>

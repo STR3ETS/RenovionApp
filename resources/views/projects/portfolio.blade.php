@@ -1,7 +1,7 @@
 <x-layouts.app title="Portfolio">
 
-    <x-page-header eyebrow="Overzicht" category="project" title="Portfolio" subtitle="{{ $rows->count() }} lopende {{ $rows->count() === 1 ? 'project' : 'projecten' }} met stoplichten">
-        <a href="{{ route('projects.index') }}" class="rounded-lg border border-surface-600 bg-surface-800 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-surface-850">Projectenlijst</a>
+    <x-page-header category="project" title="Portfolio" subtitle="{{ $rows->count() }} lopende {{ $rows->count() === 1 ? 'project' : 'projecten' }} met stoplichten">
+        <a href="{{ route('projects.index') }}" class="btn">Projectenlijst</a>
     </x-page-header>
 
     {{-- Tellers per licht, meteen als filter --}}
@@ -11,7 +11,7 @@
                class="flex items-center gap-3 rounded-2xl border p-3.5 transition hover:shadow-sm {{ $filter === $light ? 'ring-2 ring-navy-950 ring-offset-1' : '' }} {{ $light->cardClasses() }}">
                 <x-signal-dot :color="$light->dotColor()" class="h-3 w-3" />
                 <span class="min-w-0">
-                    <span class="block text-xl leading-tight font-bold text-white">{{ $counts[$light->value] ?? 0 }}</span>
+                    <span class="block text-xl leading-tight font-bold text-ink">{{ $counts[$light->value] ?? 0 }}</span>
                     <span class="block truncate text-xs font-medium {{ $light->textClasses() }}">{{ $light->label() }}</span>
                 </span>
             </a>
@@ -20,10 +20,10 @@
 
     {{-- Sortering --}}
     <div class="mb-4 flex flex-wrap items-center gap-1.5">
-        <span class="mr-1 text-xs font-semibold text-slate-500">Sorteer op</span>
+        <span class="mr-1 text-xs font-semibold text-faint">Sorteer op</span>
         @foreach (['gezondheid' => 'Gezondheid', 'oplevering' => 'Opleverdatum', 'voortgang' => 'Voortgang', 'waarde' => 'Waarde'] as $key => $label)
             <a href="{{ route('portfolio', array_filter(['licht' => $filter?->value, 'sorteer' => $key])) }}"
-               class="rounded-full px-3 py-1.5 text-xs font-semibold {{ $sort === $key ? 'bg-navy-900 text-white' : 'border border-surface-600 bg-surface-800 text-slate-300' }}">{{ $label }}</a>
+               class="tab {{ $sort === $key ? 'on' : '' }}">{{ $label }}</a>
         @endforeach
     </div>
 
@@ -37,10 +37,10 @@
                     <div class="min-w-0 flex-1">
                         <div class="flex items-center gap-2">
                             <x-signal-dot :color="$health->overall->dotColor()" class="h-2.5 w-2.5" />
-                            <p class="truncate text-sm font-bold text-white">{{ $project->name }}</p>
+                            <p class="truncate text-sm font-bold text-ink">{{ $project->name }}</p>
                             <span class="rounded-full px-2 py-0.5 text-[10px] font-bold {{ $health->overall->badgeClasses() }}">{{ $health->overall->label() }}</span>
                         </div>
-                        <p class="mt-0.5 truncate text-xs text-slate-400">
+                        <p class="mt-0.5 truncate text-xs text-muted">
                             {{ $project->customer->name }}{{ $project->city ? ', '.$project->city : '' }}
                             @if ($project->projectLeader), {{ $project->projectLeader->name }} @endif
                         </p>
@@ -52,17 +52,17 @@
                     <x-progress-vs-plan :health="$health" class="lg:col-span-1" />
 
                     <div class="text-xs">
-                        <p class="font-semibold text-slate-400">Volgende mijlpaal</p>
-                        <p class="mt-1 font-bold text-white">{{ $health->nextMilestone ?? 'Alles gereed' }}</p>
-                        <p class="text-slate-500">{{ $health->nextMilestoneDue ?? 'geen datum gepland' }}</p>
+                        <p class="font-semibold text-muted">Volgende mijlpaal</p>
+                        <p class="mt-1 font-bold text-ink">{{ $health->nextMilestone ?? 'Alles gereed' }}</p>
+                        <p class="text-faint">{{ $health->nextMilestoneDue ?? 'geen datum gepland' }}</p>
                     </div>
 
                     <div class="text-xs">
-                        <p class="font-semibold text-slate-400">Grootste blokkade</p>
+                        <p class="font-semibold text-muted">Grootste blokkade</p>
                         @if ($health->biggestBlocker)
                             <p class="mt-1 leading-relaxed font-medium {{ $health->overall->textClasses() }}">{{ $health->biggestBlocker }}</p>
                         @else
-                            <p class="mt-1 text-slate-500">Geen, alles loopt.</p>
+                            <p class="mt-1 text-faint">Geen, alles loopt.</p>
                         @endif
                     </div>
                 </div>

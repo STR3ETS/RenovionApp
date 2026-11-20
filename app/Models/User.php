@@ -16,7 +16,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 #[Fillable([
-    'name', 'email', 'password', 'role', 'phone', 'customer_id', 'motion_enabled',
+    'name', 'email', 'password', 'role', 'phone', 'customer_id', 'motion_enabled', 'theme',
     'job_title', 'trades', 'hourly_rate', 'weekly_capacity', 'plannable', 'started_on', 'active',
 ])]
 #[Hidden(['password', 'remember_token'])]
@@ -24,6 +24,9 @@ class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+
+    /** Het thema van de interne omgeving: het besturingssysteem volgen, of vast licht of donker. */
+    public const THEMES = ['auto', 'light', 'dark'];
 
     /**
      * Spiegelt de databasedefault zodat ongepersisteerde/verse modellen ook een rol hebben.
@@ -33,6 +36,7 @@ class User extends Authenticatable
     protected $attributes = [
         'role' => 'uitvoerder',
         'motion_enabled' => true,
+        'theme' => 'auto',
     ];
 
     /**

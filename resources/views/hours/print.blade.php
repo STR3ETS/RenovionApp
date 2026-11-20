@@ -1,7 +1,7 @@
 @php
     use App\Models\Project;
     use App\Models\Setting;
-    $eur = fn (float $v) => 'EUR '.number_format($v, 2, ',', '.');
+    $eur = fn (float $v) => '€ '.number_format($v, 2, ',', '.');
     $num = fn (float $v) => rtrim(rtrim(number_format($v, 2, ',', '.'), '0'), ',');
     $regie = $statement->isRegie();
 @endphp
@@ -13,7 +13,7 @@
     <meta name="robots" content="noindex, nofollow">
     <title>Urenstaat {{ $project->number() }} - Renovion</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=inter-tight:400,500,600,700,800" rel="stylesheet">
+    <link href="https://fonts.bunny.net/css?family=outfit:400,500,600,700|plus-jakarta-sans:400,500,600,700" rel="stylesheet">
     @vite(['resources/css/app.css'])
 </head>
 {{-- Bewust licht: dit gaat op papier en ter tekening naar de opdrachtgever --}}

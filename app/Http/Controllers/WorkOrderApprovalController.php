@@ -28,7 +28,7 @@ class WorkOrderApprovalController extends Controller
         return back()->with('success', sprintf(
             '%s uur geboekt (%s), voortgang %d naar %d procent.',
             rtrim(rtrim(number_format($result['hours'], 2, ',', '.'), '0'), ','),
-            'EUR '.number_format($result['cost'], 2, ',', '.'),
+            '€ '.number_format($result['cost'], 2, ',', '.'),
             $result['progress_before'],
             $result['progress_after'],
         ));

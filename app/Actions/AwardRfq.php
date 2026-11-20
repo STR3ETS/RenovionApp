@@ -112,7 +112,7 @@ class AwardRfq
 
             // Het logboek van elke partij die meedeed: gekozen en niet gekozen.
             SubcontractorLog::note($subcontractor, sprintf(
-                'Gegund: %s %s, EUR %s, opdracht %s',
+                'Gegund: %s %s, € %s, opdracht %s',
                 $rfq->number,
                 $rfq->title,
                 number_format((float) $bid->price, 2, ',', '.'),
@@ -136,7 +136,7 @@ class AwardRfq
             // De opdrachtbevestiging moet getekend terugkomen voordat er iemand start.
             Task::create([
                 'title' => "Opdrachtbevestiging {$rfq->order_number} laten tekenen",
-                'note' => $subcontractor->name.', EUR '.number_format((float) $bid->price, 2, ',', '.').', inkooporder '.$order->number,
+                'note' => $subcontractor->name.', € '.number_format((float) $bid->price, 2, ',', '.').', inkooporder '.$order->number,
                 'project_id' => $rfq->project_id,
                 'owner_id' => $user->id,
                 'deadline' => today()->addDays(2),
@@ -161,7 +161,7 @@ class AwardRfq
                 TimelineEventType::Wijziging,
                 "{$rfq->number} gegund aan {$subcontractor->name}",
                 sprintf(
-                    'EUR %s tegenover EUR %s begroot. Opdracht %s, inkooporder %s.',
+                    '€ %s tegenover € %s begroot. Opdracht %s, inkooporder %s.',
                     number_format((float) $bid->price, 2, ',', '.'),
                     number_format((float) $rfq->budget, 2, ',', '.'),
                     $rfq->order_number,
@@ -171,7 +171,7 @@ class AwardRfq
             );
 
             $message = sprintf(
-                'Gegund aan %s voor EUR %s. Dat is EUR %s %s de begroting. Inkooporder %s met fotoplicht staat klaar en telt als verplichting in de prognose.',
+                'Gegund aan %s voor € %s. Dat is € %s %s de begroting. Inkooporder %s met fotoplicht staat klaar en telt als verplichting in de prognose.',
                 $subcontractor->name,
                 number_format((float) $bid->price, 2, ',', '.'),
                 number_format(abs($savings ?? 0), 2, ',', '.'),

@@ -33,7 +33,7 @@
                     <span class="relative z-10 flex h-7 w-7 items-center justify-center rounded-full border-2 text-[11px] font-bold transition
                         {{ $isGereed ? 'border-brand-500 bg-brand-500 text-white' : '' }}
                         {{ $isActief && ! $isGereed ? ($isGeblokkeerd ? 'border-red-500 bg-surface-800 text-red-400 ring-4 ring-red-500/20' : 'border-brand-500 bg-surface-800 text-brand-400 ring-4 ring-brand-500/20') : '' }}
-                        {{ ! $isGereed && ! $isActief ? 'border-surface-600 bg-surface-800 text-slate-500' : '' }}"
+                        {{ ! $isGereed && ! $isActief ? 'border-surface-600 bg-surface-800 text-faint' : '' }}"
                           title="{{ $phase->name }}, {{ $phase->status->label() }}">
                         @if ($isGereed)
                             <x-icon name="check" class="h-3.5 w-3.5" />
@@ -43,7 +43,7 @@
                     </span>
 
                     <span class="text-center text-[11px] leading-tight font-semibold
-                        {{ $isActief ? 'text-brand-400' : ($isGereed ? 'text-slate-200' : 'text-slate-500') }}">
+                        {{ $isActief ? 'text-brand-400' : ($isGereed ? 'text-ink' : 'text-faint') }}">
                         {{ $phase->name }}
                     </span>
 

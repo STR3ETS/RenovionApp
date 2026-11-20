@@ -19,15 +19,15 @@
 
                 {{-- Kop --}}
                 <div class="flex items-center gap-3 border-b border-surface-700 px-4 py-3">
-                    <a href="{{ route('chat.index') }}" class="rounded-lg p-1.5 text-slate-500 transition hover:bg-surface-750 lg:hidden" title="Alle kanalen">
+                    <a href="{{ route('chat.index') }}" class="rounded-lg p-1.5 text-faint transition hover:bg-surface-750 lg:hidden" title="Alle kanalen">
                         <x-icon name="chevron-right" class="h-4 w-4 rotate-180" />
                     </a>
                     <span class="min-w-0 flex-1">
-                        <span class="block truncate text-sm font-bold text-white">{{ $channel->displayName() }}</span>
-                        <span class="block text-xs text-slate-500">{{ $channel->isProjectChannel() ? 'Projectchat - intern, de klant leest niet mee' : 'Teamkanaal' }}</span>
+                        <span class="block truncate text-sm font-bold text-ink">{{ $channel->displayName() }}</span>
+                        <span class="block text-xs text-faint">{{ $channel->isProjectChannel() ? 'Projectchat - intern, de klant leest niet mee' : 'Teamkanaal' }}</span>
                     </span>
                     @if ($channel->isProjectChannel() && $channel->project)
-                        <a href="{{ route('projects.show', $channel->project) }}" class="rounded-lg border border-surface-600 bg-surface-800 px-3 py-1.5 text-xs font-semibold text-slate-300 transition hover:bg-surface-850">Project →</a>
+                        <a href="{{ route('projects.show', $channel->project) }}" class="btn sm">Project →</a>
                     @endif
                 </div>
 
@@ -47,7 +47,7 @@
                                                 <p class="text-xs text-navy-100" x-text="message.nova.preview"></p>
                                                 <div class="mt-2.5 flex gap-2" x-show="!message.nova.executed">
                                                     <button type="button" @click="confirmNova(message)"
-                                                            class="rounded-lg bg-brand-500 px-4 py-1.5 text-xs font-bold text-white transition hover:bg-brand-600">Ja, doe maar</button>
+                                                            class="btn pri sm">Ja, doe maar</button>
                                                     <button type="button" @click="$refs.chatInput.focus()"
                                                             class="rounded-lg border border-navy-700 px-4 py-1.5 text-xs font-semibold text-navy-200 transition hover:bg-navy-800">Eerst aanpassen</button>
                                                 </div>
@@ -66,11 +66,11 @@
                             <template x-if="message.nova === null && message.user !== null">
                                 <div class="flex gap-2" :class="message.mine ? 'flex-row-reverse' : ''">
                                     <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold"
-                                          :class="message.mine ? 'bg-brand-500/15 text-brand-300' : 'bg-white/10 text-slate-200'"
+                                          :class="message.mine ? 'bg-brand-500/15 text-brand-300' : 'bg-ink/10 text-ink'"
                                           x-text="message.user.initial"></span>
                                     <div class="group max-w-[85%]">
-                                        <div class="rounded-2xl px-4 py-2.5 text-sm" :class="message.mine ? 'bg-navy-950 text-white' : 'bg-surface-750 text-white'">
-                                            <p class="mb-0.5 text-xs font-bold" :class="message.mine ? 'text-navy-300' : 'text-slate-400'" x-text="message.user.name"></p>
+                                        <div class="rounded-2xl px-4 py-2.5 text-sm" :class="message.mine ? 'bg-navy-950 text-white' : 'bg-surface-750 text-ink'">
+                                            <p class="mb-0.5 text-xs font-bold" :class="message.mine ? 'text-navy-300' : 'text-muted'" x-text="message.user.name"></p>
                                             <p x-show="message.body" x-html="format(message.body)"></p>
                                             <template x-if="message.attachment_url">
                                                 <a :href="message.attachment_url" target="_blank">
@@ -79,9 +79,9 @@
                                             </template>
                                         </div>
                                         <div class="mt-0.5 flex items-center gap-2 px-1" :class="message.mine ? 'justify-end' : ''">
-                                            <span class="text-[10px] text-slate-500" x-text="message.time"></span>
+                                            <span class="text-[10px] text-faint" x-text="message.time"></span>
                                             <button type="button" x-show="message.body" @click="toTask(message)"
-                                                    class="text-[10px] font-semibold text-slate-500 opacity-0 transition group-hover:opacity-100 hover:text-brand-400">→ Taak</button>
+                                                    class="text-[10px] font-semibold text-faint opacity-0 transition group-hover:opacity-100 hover:text-brand-400">→ Taak</button>
                                         </div>
                                     </div>
                                 </div>
@@ -89,7 +89,7 @@
                         </div>
                     </template>
 
-                    <p x-show="messages.length === 0" class="py-10 text-center text-sm text-slate-500">
+                    <p x-show="messages.length === 0" class="py-10 text-center text-sm text-faint">
                         Nog geen berichten - trap af!{{ auth()->user()->can('manage-crm') ? ' Tip: noem @Nova om iets te laten klaarzetten.' : '' }}
                     </p>
                 </div>
@@ -99,12 +99,12 @@
 
                 {{-- Invoer --}}
                 <form @submit.prevent="send()" class="flex items-center gap-2 border-t border-surface-700 p-3">
-                    <label class="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full bg-surface-750 text-slate-400 transition hover:bg-surface-700" title="Foto meesturen">
+                    <label class="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full bg-surface-750 text-muted transition hover:bg-surface-700" title="Foto meesturen">
                         <x-icon name="camera" class="h-5 w-5" />
                         <input type="file" accept="image/*" capture="environment" class="hidden" @change="attach($event)">
                     </label>
                     <button type="button" @click="toggleMic()" x-show="speechSupported"
-                            :class="listening ? 'bg-red-500 text-white animate-pulse' : 'bg-surface-750 text-slate-400 hover:bg-surface-700'"
+                            :class="listening ? 'bg-red-500 text-white animate-pulse' : 'bg-surface-750 text-muted hover:bg-surface-700'"
                             class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition" title="Inspreken">
                         <x-icon name="microphone" class="h-5 w-5" />
                     </button>

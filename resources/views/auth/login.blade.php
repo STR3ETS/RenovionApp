@@ -5,14 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Inloggen - {{ config('app.name') }}</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=inter-tight:400,500,600,700,800" rel="stylesheet">
+    <link href="https://fonts.bunny.net/css?family=outfit:400,500,600,700|plus-jakarta-sans:400,500,600,700" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="app-shell flex min-h-screen items-center justify-center bg-surface-950 px-4 font-sans antialiased">
     <div class="w-full max-w-sm">
         <div class="mb-8 text-center">
-            <img src="{{ asset('images/renovion-logo.svg') }}" alt="Renovion" class="mx-auto h-20 w-auto">
-            <p class="mt-2 text-[11px] font-bold tracking-widest text-brand-400 uppercase">Renovion Dash</p>
+            <x-logo class="mx-auto w-60" />
         </div>
 
         <form method="POST" action="{{ route('login.store') }}" class="space-y-4 rounded-2xl border border-surface-700 bg-surface-800 p-6 shadow-2xl shadow-black/40">
@@ -28,18 +27,18 @@
                        class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
             </x-field>
 
-            <label class="flex items-center gap-2 text-sm text-slate-300">
+            <label class="flex items-center gap-2 text-sm text-ink2">
                 <input type="checkbox" name="remember" value="1" class="rounded border-surface-600 text-brand-600 focus:ring-brand-500">
                 Ingelogd blijven
             </label>
 
             <button type="submit"
-                    class="w-full rounded-xl bg-brand-600 py-3 text-sm font-bold text-white transition hover:bg-brand-500">
+                    class="btn pri lg w-full">
                 Inloggen
             </button>
         </form>
 
-        <p class="mt-6 text-center text-xs text-slate-500">Innovatieve oplossingen voor elke renovatie</p>
+        <p class="mt-6 text-center text-xs text-faint">Innovatieve oplossingen voor elke renovatie</p>
     </div>
 </body>
 </html>

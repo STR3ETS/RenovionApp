@@ -54,7 +54,7 @@ enum HealthLight: string
             self::Groen => 'bg-green-500/15 text-green-300',
             self::Oranje => 'bg-amber-500/15 text-amber-300',
             self::Rood => 'bg-red-500/15 text-red-300',
-            self::Grijs => 'bg-white/10 text-slate-400',
+            self::Grijs => 'bg-ink/10 text-muted',
         };
     }
 
@@ -64,7 +64,7 @@ enum HealthLight: string
             self::Groen => 'border-green-500/30 bg-green-500/10',
             self::Oranje => 'border-amber-500/30 bg-amber-500/10',
             self::Rood => 'border-red-500/30 bg-red-500/10',
-            self::Grijs => 'border-surface-700 bg-white/5',
+            self::Grijs => 'border-surface-700 bg-ink/5',
         };
     }
 
@@ -84,7 +84,7 @@ enum HealthLight: string
             self::Groen => 'text-green-300',
             self::Oranje => 'text-amber-300',
             self::Rood => 'text-red-300',
-            self::Grijs => 'text-slate-400',
+            self::Grijs => 'text-muted',
         };
     }
 

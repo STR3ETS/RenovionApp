@@ -25,9 +25,9 @@ enum CalculationLineType: string
     {
         return match ($this) {
             self::Arbeid => 'bg-brand-500/15 text-brand-300',
-            self::Materiaal => 'bg-white/10 text-slate-200',
+            self::Materiaal => 'bg-ink/10 text-ink',
             self::Onderaannemer => 'bg-amber-500/15 text-amber-300',
-            self::Materieel => 'bg-white/10 text-slate-300',
+            self::Materieel => 'bg-ink/10 text-ink2',
             self::Stelpost => 'bg-calc-500/15 text-calc-300',
         };
     }

@@ -1,6 +1,6 @@
 <x-layouts.app title="Nieuwe offerte">
 
-    <x-page-header eyebrow="Offertes" category="offerte" title="Nieuwe offerte" :subtitle="$lead ? 'Voor aanvraag van '.$lead->customer->name : 'Je start zo meteen direct in de offerte-builder'" />
+    <x-page-header category="offerte" title="Nieuwe offerte" :subtitle="$lead ? 'Voor aanvraag van '.$lead->customer->name : 'Je start zo meteen direct in de offerte-builder'" />
 
     <form method="POST" action="{{ route('quotes.store') }}" class="max-w-xl space-y-5">
         @csrf
@@ -25,14 +25,14 @@
             </x-field>
         </section>
 
-        <section class="rounded-2xl border border-surface-700 bg-surface-850 p-4 text-sm text-slate-300">
-            <p class="font-semibold text-white">Zo werkt het</p>
+        <section class="rounded-2xl border border-surface-700 bg-surface-800 p-4 text-sm text-ink2">
+            <p class="font-semibold text-ink">Zo werkt het</p>
             <p class="mt-1">De offerte opent direct in de builder: daar bouw je het document uit blokken, met templates en Nova. De posten en bedragen komen uit de calculatie, of voeg je daarna toe via "Posten bewerken".</p>
         </section>
 
         <div class="flex gap-2">
-            <button type="submit" class="rounded-xl bg-brand-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-brand-600">Start de offerte-builder</button>
-            <a href="{{ route('quotes.index') }}" class="rounded-xl border border-surface-600 bg-surface-800 px-6 py-3 text-sm font-semibold text-slate-300 transition hover:bg-surface-850">Annuleren</a>
+            <button type="submit" class="btn pri lg">Start de offerte-builder</button>
+            <a href="{{ route('quotes.index') }}" class="rounded-xl border border-surface-600 bg-surface-800 px-6 py-3 text-sm font-semibold text-ink2 transition hover:bg-surface-850">Annuleren</a>
         </div>
     </form>
 

@@ -2,13 +2,13 @@
 
     <div x-data="{ nieuw: {{ $errors->any() ? 'true' : 'false' }}, bewerk: null }">
 
-        <x-page-header eyebrow="Kostendatabase" category="calc" title="Prijslijst" subtitle="{{ $items->count() }} artikelen, Nova gebruikt deze lijst voor calculaties en offertes">
+        <x-page-header category="calc" title="Prijslijst" subtitle="{{ $items->count() }} artikelen, Nova gebruikt deze lijst voor calculaties en offertes">
             <form method="GET" action="{{ route('price-items.index') }}">
                 @if ($type)<input type="hidden" name="type" value="{{ $type->value }}">@endif
                 <input type="search" name="q" value="{{ $q }}" placeholder="Zoek op naam of artikelnummer…"
                        class="w-64 rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
             </form>
-            <button @click="nieuw = !nieuw" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-600">+ Artikel</button>
+            <button @click="nieuw = !nieuw" class="btn pri">+ Artikel</button>
         </x-page-header>
 
         {{-- Nieuw artikel --}}
@@ -39,27 +39,27 @@
             @error('code')<p class="text-xs text-red-400 sm:col-span-2 lg:col-span-6">{{ $message }}</p>@enderror
             @error('name')<p class="text-xs text-red-400 sm:col-span-2 lg:col-span-6">{{ $message }}</p>@enderror
             @error('unit_price')<p class="text-xs text-red-400 sm:col-span-2 lg:col-span-6">{{ $message }}</p>@enderror
-            <p class="text-xs text-slate-400 sm:col-span-2 lg:col-span-6">Zonder eigen artikelnummer kent het systeem er een toe (ARB, MAT, MTR, OND of STP plus volgnummer).</p>
+            <p class="text-xs text-muted sm:col-span-2 lg:col-span-6">Zonder eigen artikelnummer kent het systeem er een toe (ARB, MAT, MTR, OND of STP plus volgnummer).</p>
         </form>
 
         {{-- Typefilter --}}
-        <div class="mb-4 flex flex-wrap gap-1.5">
+        <div class="tabs mb-4">
             <a href="{{ route('price-items.index', array_filter(['q' => $q])) }}"
-               class="rounded-full px-3 py-1.5 text-xs font-semibold {{ $type === null ? 'bg-navy-900 text-white' : 'border border-surface-600 bg-surface-800 text-slate-300' }}">Alle</a>
+               class="tab {{ $type === null ? 'on' : '' }}">Alle</a>
             @foreach (\App\Enums\CalculationLineType::cases() as $lineType)
                 <a href="{{ route('price-items.index', array_filter(['type' => $lineType->value, 'q' => $q])) }}"
-                   class="rounded-full px-3 py-1.5 text-xs font-semibold {{ $type === $lineType ? 'bg-navy-900 text-white' : 'border border-surface-600 bg-surface-800 text-slate-300' }}">{{ $lineType->label() }}</a>
+                   class="tab {{ $type === $lineType ? 'on' : '' }}">{{ $lineType->label() }}</a>
             @endforeach
         </div>
 
         @if ($groups->isNotEmpty())
             <div class="mb-4 flex flex-wrap items-center gap-1.5">
-                <span class="mr-1 text-[10.5px] font-semibold tracking-[0.1em] text-slate-500 uppercase">Groep</span>
+                <span class="mr-1 text-[10.5px] font-semibold tracking-[0.1em] text-faint uppercase">Groep</span>
                 <a href="{{ route('price-items.index', array_filter(['type' => $type?->value, 'q' => $q])) }}"
-                   class="rounded-full px-3 py-1.5 text-xs font-semibold {{ $group === '' ? 'bg-navy-900 text-white' : 'border border-surface-600 bg-surface-800 text-slate-300' }}">Alle</a>
+                   class="tab {{ $group === '' ? 'on' : '' }}">Alle</a>
                 @foreach ($groups as $name)
                     <a href="{{ route('price-items.index', array_filter(['type' => $type?->value, 'groep' => $name, 'q' => $q])) }}"
-                       class="rounded-full px-3 py-1.5 text-xs font-semibold {{ $group === $name ? 'bg-navy-900 text-white' : 'border border-surface-600 bg-surface-800 text-slate-300' }}">{{ $name }}</a>
+                       class="tab {{ $group === $name ? 'on' : '' }}">{{ $name }}</a>
                 @endforeach
             </div>
         @endif
@@ -77,21 +77,21 @@
                     <div x-show="bewerk !== {{ $item->id }}" class="flex flex-wrap items-center gap-3 p-3">
                         <span class="w-20 shrink-0 rounded-lg bg-calc-500/15 py-1 text-center font-mono text-xs font-bold text-calc-300">{{ $item->code }}</span>
                         <span class="min-w-0 flex-1">
-                            <span class="block truncate text-sm font-semibold text-white">{{ $item->name }}</span>
-                            <span class="block text-xs text-slate-400">
+                            <span class="block truncate text-sm font-semibold text-ink">{{ $item->name }}</span>
+                            <span class="block text-xs text-muted">
                                 {{ $item->group ? $item->group.', ' : '' }}{{ $item->source }} ({{ $item->edition }}){{ (float) $item->surcharge_pct > 0 ? ', opslag '.rtrim(rtrim(number_format((float) $item->surcharge_pct, 2, ',', '.'), '0'), ',').'%' : '' }}
                             </span>
                         </span>
                         <span class="rounded-full px-2.5 py-0.5 text-xs font-semibold {{ $item->type->badgeClasses() }}">{{ $item->type->label() }}</span>
-                        <span class="w-24 text-right text-sm font-bold whitespace-nowrap text-white">€ {{ number_format($item->effectivePrice(), 2, ',', '.') }} <span class="text-xs font-medium text-slate-500">/ {{ $item->unit }}</span></span>
-                        <button type="button" @click="bewerk = {{ $item->id }}" class="rounded-lg border border-surface-600 bg-surface-800 px-3 py-1.5 text-xs font-semibold text-slate-300 transition hover:bg-surface-850">Bewerken</button>
+                        <span class="w-24 text-right text-sm font-bold whitespace-nowrap text-ink">€ {{ number_format($item->effectivePrice(), 2, ',', '.') }} <span class="text-xs font-medium text-faint">/ {{ $item->unit }}</span></span>
+                        <button type="button" @click="bewerk = {{ $item->id }}" class="btn sm">Bewerken</button>
                         <form method="POST" action="{{ route('price-items.update', $item) }}">
                             @csrf
                             @method('PATCH')
                             <input type="hidden" name="toggle" value="1">
                             <input type="hidden" name="q" value="{{ $q }}">
                             @if ($type)<input type="hidden" name="type" value="{{ $type->value }}">@endif
-                            <button type="submit" class="rounded-lg px-3 py-1.5 text-xs font-semibold transition {{ $item->active ? 'bg-project-500/15 text-project-300 hover:bg-project-500/25' : 'bg-surface-750 text-slate-400 hover:bg-surface-700' }}"
+                            <button type="submit" class="rounded-lg px-3 py-1.5 text-xs font-semibold transition {{ $item->active ? 'bg-project-500/15 text-project-300 hover:bg-project-500/25' : 'bg-surface-750 text-muted hover:bg-surface-700' }}"
                                     title="{{ $item->active ? 'Actief: klik om uit te zetten' : 'Uit: klik om weer te activeren' }}">
                                 {{ $item->active ? 'Actief' : 'Uit' }}
                             </button>
@@ -123,7 +123,7 @@
                         </div>
                         <div class="flex gap-2">
                             <button type="submit" class="flex-1 rounded-xl bg-navy-950 py-2 text-sm font-semibold text-white transition hover:bg-navy-900">Opslaan</button>
-                            <button type="button" @click="bewerk = null" class="rounded-xl border border-surface-600 px-3 text-sm font-semibold text-slate-300 transition hover:bg-surface-850">Annuleren</button>
+                            <button type="button" @click="bewerk = null" class="rounded-xl border border-surface-600 px-3 text-sm font-semibold text-ink2 transition hover:bg-surface-850">Annuleren</button>
                         </div>
                     </form>
                 </div>

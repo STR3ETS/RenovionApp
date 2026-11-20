@@ -59,7 +59,7 @@ class BudgetTerm extends Model
             self::STATUS_PAID => 'bg-green-500/15 text-green-300',
             self::STATUS_INVOICED => 'bg-lead-500/15 text-lead-300',
             self::STATUS_DUE => 'bg-amber-500/15 text-amber-300',
-            default => 'bg-white/10 text-slate-300',
+            default => 'bg-ink/10 text-ink2',
         };
     }
 }

@@ -15,7 +15,7 @@
     <span class="block p-4">
         <span class="mb-2 flex items-center justify-between gap-2">
             <span class="rounded-full px-2.5 py-1 text-[11px] font-bold {{ $status->badgeClasses() }}">{{ $status->label() }}</span>
-            <small class="text-xs text-slate-500">
+            <small class="text-xs text-faint">
                 {{ $entry->date->translatedFormat('j M') }}@if (! $einde->isSameDay($entry->date)) t/m {{ $einde->translatedFormat('j M') }}@endif
                 @if ($job?->dayLabel() && $einde->greaterThanOrEqualTo(today()))
                     , {{ $job->dayLabel() }}
@@ -23,11 +23,11 @@
             </small>
         </span>
 
-        <b class="block truncate text-sm font-bold text-white">{{ $entry->displayTitle() }}</b>
-        <span class="mt-0.5 block truncate text-xs text-slate-400">{{ $project?->name }}</span>
+        <b class="block truncate text-sm font-bold text-ink">{{ $entry->displayTitle() }}</b>
+        <span class="mt-0.5 block truncate text-xs text-muted">{{ $project?->name }}</span>
 
         @if ($project?->address)
-            <span class="mt-1.5 flex items-center gap-1 text-xs text-slate-500">
+            <span class="mt-1.5 flex items-center gap-1 text-xs text-faint">
                 <x-icon name="map-pin" class="h-3.5 w-3.5" />
                 <span class="truncate">{{ collect([$project->address, $project->city])->filter()->join(', ') }}</span>
             </span>
@@ -38,7 +38,7 @@
                 <span class="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-700">
                     <span class="block h-full rounded-full bg-brand-500" style="width: {{ $job->progress() }}%"></span>
                 </span>
-                <small class="w-9 text-right text-xs font-bold text-slate-300">{{ $job->progress() }}%</small>
+                <small class="w-9 text-right text-xs font-bold text-ink2">{{ $job->progress() }}%</small>
             </span>
         @endif
 

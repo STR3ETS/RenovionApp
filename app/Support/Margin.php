@@ -51,7 +51,7 @@ final class Margin
             self::RED => 'bg-red-500/15 text-red-300',
             self::AMBER => 'bg-amber-500/15 text-amber-300',
             self::GREEN => 'bg-green-500/15 text-green-300',
-            default => 'bg-white/10 text-slate-400',
+            default => 'bg-ink/10 text-muted',
         };
     }
 

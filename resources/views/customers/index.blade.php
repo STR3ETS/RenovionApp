@@ -1,17 +1,17 @@
 @php
     use App\Enums\CustomerType;
-    $eur = fn (float $v) => 'EUR '.number_format($v, 0, ',', '.');
+    $eur = fn (float $v) => '€ '.number_format($v, 0, ',', '.');
 @endphp
 
 <x-layouts.app title="Klanten">
 
-    <x-page-header eyebrow="Relaties" category="klant" title="Klanten" subtitle="Particulieren laten een klus doen, zakelijke klanten zijn de partijen voor wie we werken.">
+    <x-page-header category="klant" title="Klanten" subtitle="Particulieren laten een klus doen, zakelijke klanten zijn de partijen voor wie we werken.">
         <form method="GET" action="{{ route('customers.index') }}">
             @if ($type)
                 <input type="hidden" name="soort" value="{{ $type->value }}">
             @endif
             <input type="search" name="q" value="{{ $search }}" placeholder="Zoek op naam, klantnummer of plaats"
-                   class="w-64 rounded-full border-surface-700 bg-surface-850 py-2.5 text-sm text-white placeholder:text-slate-500 focus:border-brand-500 focus:ring-brand-500">
+                   class="w-64 rounded-full border-surface-700 bg-surface-850 py-2.5 text-sm text-ink placeholder:text-faint focus:border-brand-500 focus:ring-brand-500">
         </form>
     </x-page-header>
 

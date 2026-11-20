@@ -32,14 +32,14 @@
 
         @if ($item['kind'] === 'bellen' && $canCrm)
             <button type="button" @click.stop="bel({{ $item['lead_id'] }})" title="Belpoging vastleggen"
-                    class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20" aria-label="Belpoging vastleggen voor {{ $item['title'] }}">
+                    class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-ink/10 transition hover:bg-ink/20" aria-label="Belpoging vastleggen voor {{ $item['title'] }}">
                 <x-icon name="phone" class="h-3.5 w-3.5" />
             </button>
         @elseif ($item['kind'] === 'afspraak')
             <form method="POST" action="{{ route('agenda.done', $item['entry_id']) }}" class="shrink-0">
                 @csrf
                 <button type="submit" title="{{ $item['done'] ? 'Weer openzetten' : 'Afvinken' }}"
-                        class="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20" aria-label="{{ $item['done'] ? 'Afspraak weer openzetten' : 'Afspraak afvinken' }}">
+                        class="flex h-7 w-7 items-center justify-center rounded-full bg-ink/10 transition hover:bg-ink/20" aria-label="{{ $item['done'] ? 'Afspraak weer openzetten' : 'Afspraak afvinken' }}">
                     <x-icon name="check" class="h-3.5 w-3.5" />
                 </button>
             </form>

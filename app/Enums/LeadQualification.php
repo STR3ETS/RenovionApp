@@ -34,8 +34,8 @@ enum LeadQualification: string
     public function badgeClasses(): string
     {
         return match ($this) {
-            self::Onbeoordeeld => 'bg-white/10 text-slate-400',
-            self::Koud => 'bg-white/10 text-slate-300',
+            self::Onbeoordeeld => 'bg-ink/10 text-muted',
+            self::Koud => 'bg-ink/10 text-ink2',
             self::Warm => 'bg-amber-500/15 text-amber-300',
             self::Heet => 'bg-green-500/15 text-green-300',
         };

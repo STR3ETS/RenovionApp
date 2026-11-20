@@ -1,5 +1,6 @@
-{{-- De tabbalk uit het prototype: één pilgroep met een rand eromheen, de
-     actieve tab is een oranje pil. Horizontaal scrollbaar op mobiel. --}}
-<nav {{ $attributes->merge(['class' => 'scrollbar-none mb-4 flex gap-1 overflow-x-auto rounded-full border border-surface-700 bg-surface-850 p-1 lg:w-fit lg:max-w-full']) }}>
+{{-- De pilbalk uit het prototype: één groep met een rand eromheen. De actieve
+     tab is navy in het lichte thema en oranje in het donkere. Horizontaal
+     scrollbaar op mobiel. --}}
+<nav {{ $attributes->merge(['class' => 'tabs mb-4']) }}>
     {{ $slot }}
 </nav>

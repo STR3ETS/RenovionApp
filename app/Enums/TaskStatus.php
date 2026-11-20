@@ -22,7 +22,7 @@ enum TaskStatus: string
     public function badgeClasses(): string
     {
         return match ($this) {
-            self::TeDoen => 'bg-white/10 text-slate-300',
+            self::TeDoen => 'bg-ink/10 text-ink2',
             self::Bezig => 'bg-brand-500/15 text-brand-300',
             self::WachtOp => 'bg-amber-500/15 text-amber-300',
             self::Afgerond => 'bg-green-500/15 text-green-300',

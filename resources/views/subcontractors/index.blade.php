@@ -3,11 +3,11 @@
 @endphp
 
 <x-layouts.app title="Onderaannemers">
-    <x-page-header title="Onderaannemers" eyebrow="Mensen en partners" category="klant"
+    <x-page-header title="Onderaannemers" category="klant"
                    subtitle="Zolang het dossier niet rond is, krijgt een partij geen uitnodiging en geen opdracht.">
         <div x-data="{ open: false }" class="relative">
             <button @click="open = !open" @click.outside="open = false"
-                    class="flex items-center gap-1.5 rounded-full bg-brand-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600">
+                    class="btn pri">
                 <x-icon name="plus" class="h-4 w-4" /> Partner aanmelden
             </button>
 
@@ -16,34 +16,34 @@
                 @csrf
                 <x-field label="Bedrijfsnaam" name="name">
                     <input type="text" name="name" id="name" required
-                           class="w-full rounded-xl border-surface-600 bg-surface-850 text-sm text-white focus:border-brand-500 focus:ring-brand-500">
+                           class="w-full rounded-xl border-surface-600 bg-surface-850 text-sm text-ink focus:border-brand-500 focus:ring-brand-500">
                 </x-field>
                 <x-field label="Contactpersoon" name="contact_name">
                     <input type="text" name="contact_name" id="contact_name"
-                           class="w-full rounded-xl border-surface-600 bg-surface-850 text-sm text-white focus:border-brand-500 focus:ring-brand-500">
+                           class="w-full rounded-xl border-surface-600 bg-surface-850 text-sm text-ink focus:border-brand-500 focus:ring-brand-500">
                 </x-field>
                 <x-field label="E-mailadres" name="email">
                     <input type="email" name="email" id="email"
-                           class="w-full rounded-xl border-surface-600 bg-surface-850 text-sm text-white focus:border-brand-500 focus:ring-brand-500">
+                           class="w-full rounded-xl border-surface-600 bg-surface-850 text-sm text-ink focus:border-brand-500 focus:ring-brand-500">
                 </x-field>
                 <x-field label="Plaats" name="city">
                     <input type="text" name="city" id="city"
-                           class="w-full rounded-xl border-surface-600 bg-surface-850 text-sm text-white focus:border-brand-500 focus:ring-brand-500">
+                           class="w-full rounded-xl border-surface-600 bg-surface-850 text-sm text-ink focus:border-brand-500 focus:ring-brand-500">
                 </x-field>
-                <button type="submit" class="w-full rounded-xl bg-brand-500 py-2.5 text-sm font-bold text-white">Aanmelden</button>
+                <button type="submit" class="btn pri w-full">Aanmelden</button>
             </form>
         </div>
     </x-page-header>
 
     <form method="GET" class="scrollbar-none mb-4 flex gap-2 overflow-x-auto">
         <div class="relative min-w-0 flex-1 sm:max-w-xs">
-            <x-icon name="magnifying-glass" class="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-slate-500" />
+            <x-icon name="magnifying-glass" class="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-faint" />
             <input type="search" name="q" value="{{ $zoek }}" placeholder="Zoek op naam of plaats"
-                   class="w-full rounded-full border-surface-700 bg-surface-850 py-2 pl-10 text-sm text-white placeholder:text-slate-500 focus:border-brand-500 focus:ring-brand-500">
+                   class="w-full rounded-full border-surface-700 bg-surface-850 py-2 pl-10 text-sm text-ink placeholder:text-faint focus:border-brand-500 focus:ring-brand-500">
         </div>
 
         <select name="vak" onchange="this.form.submit()"
-                class="shrink-0 rounded-full border-surface-700 bg-surface-850 py-2 text-sm text-white focus:border-brand-500 focus:ring-brand-500">
+                class="shrink-0 rounded-full border-surface-700 bg-surface-850 py-2 text-sm text-ink focus:border-brand-500 focus:ring-brand-500">
             <option value="">Alle vakken</option>
             @foreach ($trades as $vak)
                 <option value="{{ $vak }}" @selected($trade === $vak)>{{ ucfirst($vak) }}</option>
@@ -74,18 +74,18 @@
 
                     <span class="block p-4">
                         <span class="mb-2 flex items-start justify-between gap-2">
-                            <b class="min-w-0 truncate text-sm font-bold text-white">{{ $sub->name }}</b>
+                            <b class="min-w-0 truncate text-sm font-bold text-ink">{{ $sub->name }}</b>
                             <span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold {{ $sub->badgeClasses() }}">{{ $sub->statusLabel() }}</span>
                         </span>
 
-                        <span class="block truncate text-xs text-slate-400">
+                        <span class="block truncate text-xs text-muted">
                             {{ collect([$sub->contact_name, $sub->city])->filter()->join(', ') ?: 'geen contactgegevens' }}
                         </span>
 
                         @if (filled($sub->trades))
                             <span class="mt-2 flex flex-wrap gap-1">
                                 @foreach (array_slice($sub->trades, 0, 4) as $vak)
-                                    <span class="rounded bg-surface-700 px-1.5 py-0.5 text-[10px] font-semibold text-slate-300">{{ $vak }}</span>
+                                    <span class="rounded bg-surface-700 px-1.5 py-0.5 text-[10px] font-semibold text-ink2">{{ $vak }}</span>
                                 @endforeach
                             </span>
                         @endif
@@ -94,7 +94,7 @@
                             <span class="text-xs {{ $dossier['complete'] ? 'text-green-400' : 'text-amber-300' }}">
                                 {{ $dossier['complete'] ? 'Dossier rond' : count($dossier['open']).' '.(count($dossier['open']) === 1 ? 'punt' : 'punten').' open' }}
                             </span>
-                            <span class="text-xs text-slate-500">
+                            <span class="text-xs text-faint">
                                 {{ $sub->assignments }} {{ $sub->assignments === 1 ? 'opdracht' : 'opdrachten' }}
                                 @if ($sub->rating)
                                     , {{ $sub->rating }} van 5

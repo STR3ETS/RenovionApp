@@ -161,7 +161,6 @@ function frequentScreens(nav) {
         const link = document.createElement('a');
         link.href = screen.url;
         link.textContent = screen.label;
-        link.className = 'motion-lift rounded-full border border-surface-700 bg-surface-800 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-brand-500 hover:text-white';
         list.appendChild(link);
     });
 

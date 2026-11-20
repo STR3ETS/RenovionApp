@@ -1,5 +1,7 @@
 @props(['status'])
 
-<span {{ $attributes->merge(['class' => 'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap '.$status->badgeClasses()]) }}>
-    {{ $status->label() }}
+{{-- Statuspil uit het prototype: zacht vlak, dunne rand in dezelfde kleur en
+     een stipje ervoor. De kleur komt van de status zelf (badgeClasses). --}}
+<span {{ $attributes->merge(['class' => 'pill '.$status->badgeClasses()]) }}>
+    <span class="d"></span>{{ $status->label() }}
 </span>

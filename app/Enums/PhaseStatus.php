@@ -40,7 +40,7 @@ enum PhaseStatus: string
     public function badgeClasses(): string
     {
         return match ($this) {
-            self::NietGestart => 'bg-white/10 text-slate-400',
+            self::NietGestart => 'bg-ink/10 text-muted',
             self::Bezig => 'bg-brand-500/15 text-brand-300',
             self::WachtOpKlant, self::WachtOpLeverancier => 'bg-amber-500/15 text-amber-300',
             self::Geblokkeerd => 'bg-red-500/15 text-red-300',

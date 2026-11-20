@@ -36,7 +36,7 @@ enum AutomationMode: string
     public function badgeClasses(): string
     {
         return match ($this) {
-            self::Uit => 'bg-white/10 text-slate-400',
+            self::Uit => 'bg-ink/10 text-muted',
             self::Signaleren => 'bg-amber-500/15 text-amber-300',
             self::Bevestigen => 'bg-brand-500/15 text-brand-300',
             self::Automatisch => 'bg-green-500/15 text-green-300',

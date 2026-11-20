@@ -1,6 +1,6 @@
 <x-layouts.app :title="'Offerte '.$quote->number">
 
-    <x-page-header eyebrow="Posten bewerken" category="offerte" :title="'Bewerken: '.$quote->number" :subtitle="$quote->customer->name" />
+    <x-page-header category="offerte" :title="'Bewerken: '.$quote->number" :subtitle="$quote->customer->name" />
 
     <form method="POST" action="{{ route('quotes.update', $quote) }}" class="max-w-4xl space-y-5">
         @csrf
@@ -15,7 +15,7 @@
         </section>
 
         <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
-            <h2 class="mb-4 text-sm font-bold text-white">Werkzaamheden</h2>
+            <h2 class="mb-4 text-sm font-bold text-ink">Werkzaamheden</h2>
             @include('quotes.partials.line-editor', [
                 'proposeUrl' => route('quotes.lines.propose', $quote),
                 'initialLines' => old('lines', $quote->lines->map(fn ($line) => [
@@ -36,8 +36,8 @@
         </section>
 
         <div class="flex gap-2">
-            <button type="submit" class="rounded-xl bg-brand-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-brand-500">Opslaan</button>
-            <a href="{{ route('quotes.show', $quote) }}" class="rounded-xl border border-surface-600 bg-surface-800 px-6 py-3 text-sm font-semibold text-slate-300 transition hover:bg-surface-850">Annuleren</a>
+            <button type="submit" class="btn pri lg">Opslaan</button>
+            <a href="{{ route('quotes.show', $quote) }}" class="rounded-xl border border-surface-600 bg-surface-800 px-6 py-3 text-sm font-semibold text-ink2 transition hover:bg-surface-850">Annuleren</a>
         </div>
     </form>
 

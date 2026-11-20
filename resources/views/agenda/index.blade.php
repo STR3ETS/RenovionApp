@@ -29,13 +29,13 @@
 
         <x-page-header title="Agenda" :subtitle="ucfirst($periode)">
             <a href="{{ route('agenda.index', $query(['datum' => $date->copy()->subDays($step)->toDateString()])) }}"
-               class="flex h-10 w-10 items-center justify-center rounded-full border border-surface-600 text-slate-300 transition hover:text-white" aria-label="Vorige periode">
+               class="flex h-10 w-10 items-center justify-center rounded-full border border-surface-600 text-ink2 transition hover:text-ink" aria-label="Vorige periode">
                 <x-icon name="chevron-left" class="h-4 w-4" />
             </a>
             <a href="{{ route('agenda.index', $query(['datum' => null])) }}"
-               class="rounded-full border border-surface-600 px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:text-white">Vandaag</a>
+               class="btn">Vandaag</a>
             <a href="{{ route('agenda.index', $query(['datum' => $date->copy()->addDays($step)->toDateString()])) }}"
-               class="flex h-10 w-10 items-center justify-center rounded-full border border-surface-600 text-slate-300 transition hover:text-white" aria-label="Volgende periode">
+               class="flex h-10 w-10 items-center justify-center rounded-full border border-surface-600 text-ink2 transition hover:text-ink" aria-label="Volgende periode">
                 <x-icon name="chevron-right" class="h-4 w-4" />
             </a>
 
@@ -44,7 +44,7 @@
                     <input type="hidden" name="weergave" value="{{ $view }}">
                     <input type="hidden" name="datum" value="{{ $date->toDateString() }}">
                     <select name="medewerker" onchange="this.form.submit()" aria-label="Medewerker"
-                            class="rounded-full border-surface-700 bg-surface-850 py-2.5 text-sm text-white focus:border-brand-500 focus:ring-brand-500">
+                            class="rounded-full border-surface-700 bg-surface-850 py-2.5 text-sm text-ink focus:border-brand-500 focus:ring-brand-500">
                         @foreach ($team as $member)
                             <option value="{{ $member->id }}" @selected($member->id === $subject->id)>{{ $member->name }}</option>
                         @endforeach
@@ -53,7 +53,7 @@
             @endif
 
             <button type="button" @click="nieuw(@js($date->toDateString()), '', @js($subject->id))"
-                    class="flex items-center gap-1.5 rounded-full bg-brand-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600">
+                    class="btn pri">
                 <x-icon name="plus" class="h-4 w-4" /> Nieuw
             </button>
         </x-page-header>
@@ -65,7 +65,7 @@
             @endforeach
         </x-tabs>
 
-        <div class="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400">
+        <div class="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
             <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-lead-400"></span> Afspraak</span>
             <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-calc-400"></span> Taak</span>
             <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-klant-400"></span> Bellen en opvolgen</span>

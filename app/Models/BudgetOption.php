@@ -53,7 +53,7 @@ class BudgetOption extends Model
     {
         return match ($this->status) {
             self::STATUS_APPROVED => 'bg-green-500/15 text-green-300',
-            self::STATUS_DECLINED => 'bg-white/10 text-slate-400',
+            self::STATUS_DECLINED => 'bg-ink/10 text-muted',
             default => 'bg-calc-500/15 text-calc-300',
         };
     }

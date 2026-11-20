@@ -1,5 +1,5 @@
 @php
-    $eur = fn (float $v, int $d = 0) => 'EUR '.number_format($v, $d, ',', '.');
+    $eur = fn (float $v, int $d = 0) => '€ '.number_format($v, $d, ',', '.');
     $num = fn (float $v, int $d = 2) => rtrim(rtrim(number_format($v, $d, ',', '.'), '0'), ',');
     $labels = [
         'arbeid' => ['Arbeid', 'bg-brand-500'],
@@ -14,14 +14,14 @@
 
 <x-layouts.app :title="$budget->name">
     <div class="mb-4">
-        <a href="{{ route('budgets.index') }}" class="flex items-center gap-1 text-sm font-semibold text-slate-400 transition hover:text-white">
+        <a href="{{ route('budgets.index') }}" class="flex items-center gap-1 text-sm font-semibold text-muted transition hover:text-ink">
             <x-icon name="chevron-left" class="h-4 w-4" /> Begrotingen
         </a>
     </div>
 
     <x-page-header :title="$budget->name" :eyebrow="$budget->number.', versie '.$budget->version" category="calc"
                    :subtitle="collect([$budget->project?->name, $budget->location, $budget->author])->filter()->join(', ')">
-        <span class="rounded-full px-3 py-1.5 text-xs font-bold {{ $budget->isDraft() ? 'bg-white/10 text-slate-300' : 'bg-green-500/15 text-green-300' }}">
+        <span class="rounded-full px-3 py-1.5 text-xs font-bold {{ $budget->isDraft() ? 'bg-ink/10 text-ink2' : 'bg-green-500/15 text-green-300' }}">
             {{ $budget->isDraft() ? 'Concept' : 'Definitief' }}
         </span>
 
@@ -29,7 +29,7 @@
             <form method="POST" action="{{ route('budgets.preset', $budget) }}">
                 @csrf
                 <button type="submit" title="Vaste prijzen uit de raamovereenkomst toevoegen"
-                        class="flex items-center gap-1.5 rounded-full border border-surface-600 px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:border-brand-500 hover:text-white">
+                        class="btn">
                     Preset toepassen
                 </button>
             </form>
@@ -38,14 +38,14 @@
         @if ($budget->isDraft())
             <form method="POST" action="{{ route('budgets.finalise', $budget) }}">
                 @csrf
-                <button type="submit" class="flex items-center gap-1.5 rounded-full bg-brand-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600">
+                <button type="submit" class="btn pri">
                     <x-icon name="lock-closed" class="h-4 w-4" /> Definitief maken
                 </button>
             </form>
         @else
             <form method="POST" action="{{ route('budgets.reopen', $budget) }}">
                 @csrf
-                <button type="submit" class="flex items-center gap-1.5 rounded-full border border-surface-600 px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:text-white">
+                <button type="submit" class="btn">
                     <x-icon name="arrow-path" class="h-4 w-4" /> Heropenen
                 </button>
             </form>
@@ -66,8 +66,8 @@
     @if ($totals->incompleteLines > 0)
         <div class="mb-4 flex items-start gap-3 rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4">
             <x-icon name="exclamation-triangle" class="h-5 w-5 shrink-0 text-amber-300" />
-            <p class="text-sm text-slate-200">
-                <b class="text-white">{{ $totals->incompleteLines }} {{ $totals->incompleteLines === 1 ? 'regel heeft' : 'regels hebben' }} een hoeveelheid zonder prijs.</b>
+            <p class="text-sm text-ink">
+                <b class="text-ink">{{ $totals->incompleteLines }} {{ $totals->incompleteLines === 1 ? 'regel heeft' : 'regels hebben' }} een hoeveelheid zonder prijs.</b>
                 Die tellen nu voor nul mee. Definitief maken lukt pas als ze gevuld zijn.
             </p>
         </div>
@@ -81,7 +81,7 @@
         <div class="space-y-4">
             {{-- Waar het geld zit --}}
             <div class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
-                <h2 class="mb-4 text-sm font-bold text-white">Waar het <span class="text-brand-500">geld zit</span></h2>
+                <h2 class="mb-4 text-sm font-bold text-ink">Waar het <span class="text-brand-500">geld zit</span></h2>
 
                 <div class="mb-4 flex h-2 overflow-hidden rounded-full bg-surface-700">
                     @foreach ($labels as $key => [$label, $colour])
@@ -95,9 +95,9 @@
                     @foreach ($labels as $key => [$label, $colour])
                         <div class="flex items-center gap-2.5 text-sm">
                             <span class="h-2.5 w-2.5 shrink-0 rounded-full {{ $colour }}"></span>
-                            <span class="flex-1 text-slate-300">{{ $label }}</span>
-                            <span class="font-semibold text-white">{{ $eur($totals->categories[$key]) }}</span>
-                            <span class="w-12 text-right text-xs text-slate-500">{{ $num($shares[$key], 0) }}%</span>
+                            <span class="flex-1 text-ink2">{{ $label }}</span>
+                            <span class="font-semibold text-ink">{{ $eur($totals->categories[$key]) }}</span>
+                            <span class="w-12 text-right text-xs text-faint">{{ $num($shares[$key], 0) }}%</span>
                         </div>
                     @endforeach
                 </div>

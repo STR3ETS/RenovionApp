@@ -72,14 +72,14 @@ enum UserRole: string
     public function badgeClasses(): string
     {
         return match ($this) {
-            self::Admin, self::Directie => 'bg-white/10 text-slate-200',
+            self::Admin, self::Directie => 'bg-ink/10 text-ink',
             self::Sales => 'bg-lead-500/15 text-lead-300',
             self::Calculator => 'bg-calc-500/15 text-calc-300',
             self::Projectleider => 'bg-brand-500/15 text-brand-300',
             self::Werkvoorbereider => 'bg-amber-500/15 text-amber-300',
             self::Inkoper => 'bg-offerte-500/15 text-offerte-300',
             self::Administratie => 'bg-planning-500/15 text-planning-300',
-            self::Uitvoerder => 'bg-white/10 text-slate-300',
+            self::Uitvoerder => 'bg-ink/10 text-ink2',
             self::Onderaannemer => 'bg-klant-500/15 text-klant-300',
             self::Klant => 'bg-green-500/15 text-green-300',
         };

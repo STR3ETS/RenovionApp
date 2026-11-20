@@ -75,6 +75,7 @@ use App\Http\Controllers\SubcontractorController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TaskStatusController;
 use App\Http\Controllers\TeamController;
+use App\Http\Controllers\ThemePreferenceController;
 use App\Http\Controllers\WorkforceController;
 use App\Http\Controllers\WorkOrderApprovalController;
 use App\Http\Controllers\WorkOrderController;
@@ -85,6 +86,7 @@ Route::get('/login', [LoginController::class, 'create'])->name('login');
 Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:login')->name('login.store');
 Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 Route::post('/voorkeuren/beweging', MotionPreferenceController::class)->middleware('auth')->name('preferences.motion');
+Route::post('/voorkeuren/thema', ThemePreferenceController::class)->middleware('auth')->name('preferences.theme');
 
 // Klantview van de offerte: privélink zonder inlog (briefing §6).
 if (config('renovion.modules.quotes')) {

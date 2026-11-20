@@ -266,7 +266,7 @@ class RfqController extends Controller
             'bedrag' => $bid->saleTotal(),
         ]);
 
-        return back()->with('success', "Overgenomen in offerte {$quote->number}: {$rfq->title}, EUR ".number_format($bid->saleTotal(), 2, ',', '.').'.');
+        return back()->with('success', "Overgenomen in offerte {$quote->number}: {$rfq->title}, € ".number_format($bid->saleTotal(), 2, ',', '.').'.');
     }
 
     /**

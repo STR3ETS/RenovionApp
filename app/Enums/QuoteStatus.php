@@ -26,8 +26,8 @@ enum QuoteStatus: string
     public function badgeClasses(): string
     {
         return match ($this) {
-            self::Concept => 'bg-white/10 text-slate-300',
-            self::Verstuurd => 'bg-steel-100 text-steel-800',
+            self::Concept => 'bg-ink/10 text-ink2',
+            self::Verstuurd => 'bg-offerte-500/15 text-offerte-300',
             self::Bekeken => 'bg-amber-500/15 text-amber-300',
             self::Opvolgen => 'bg-brand-500/15 text-brand-300',
             self::Akkoord => 'bg-green-500/15 text-green-300',

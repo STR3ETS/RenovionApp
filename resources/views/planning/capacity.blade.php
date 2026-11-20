@@ -5,26 +5,26 @@
         $pct > 100 => ['bg-red-500', 'text-red-400'],
         $pct >= 80 => ['bg-green-500', 'text-green-400'],
         $pct > 0 => ['bg-brand-500', 'text-brand-400'],
-        default => ['bg-surface-600', 'text-slate-500'],
+        default => ['bg-surface-600', 'text-faint'],
     };
 @endphp
 
 <x-layouts.app title="Capaciteit">
-    <x-page-header title="Capaciteit" eyebrow="Uitvoering" category="planning"
+    <x-page-header title="Capaciteit" category="planning"
                    subtitle="Bezetting per week. Boven honderd procent staat er meer ingepland dan iemand kan doen.">
         @include('planning.partials.view-switch', ['view' => $view])
     </x-page-header>
 
     <div class="mb-4 flex items-center gap-2">
         <a href="{{ route('planning.index', ['weergave' => 'capaciteit', 'week' => $start->copy()->subWeeks(4)->toDateString()]) }}"
-           class="flex h-9 w-9 items-center justify-center rounded-full border border-surface-700 text-slate-400 transition hover:text-white">
+           class="flex h-9 w-9 items-center justify-center rounded-full border border-surface-700 text-muted transition hover:text-ink">
             <x-icon name="chevron-left" class="h-4 w-4" />
         </a>
-        <span class="text-sm font-semibold text-white">
+        <span class="text-sm font-semibold text-ink">
             Week {{ $start->isoWeek() }} tot {{ $start->copy()->addWeeks(3)->isoWeek() }}
         </span>
         <a href="{{ route('planning.index', ['weergave' => 'capaciteit', 'week' => $start->copy()->addWeeks(4)->toDateString()]) }}"
-           class="flex h-9 w-9 items-center justify-center rounded-full border border-surface-700 text-slate-400 transition hover:text-white">
+           class="flex h-9 w-9 items-center justify-center rounded-full border border-surface-700 text-muted transition hover:text-ink">
             <x-icon name="chevron-right" class="h-4 w-4" />
         </a>
     </div>
@@ -36,7 +36,7 @@
         <div class="overflow-x-auto rounded-2xl border border-surface-700 bg-surface-800">
             <table class="w-full text-sm">
                 <thead>
-                    <tr class="border-b border-surface-700 bg-surface-850 text-[10px] font-bold tracking-wider text-slate-500 uppercase">
+                    <tr class="border-b border-surface-700 bg-surface-850 text-[10px] font-bold tracking-wider text-faint uppercase">
                         <th class="px-4 py-3 text-left">Medewerker</th>
                         @foreach ($weeks as $week)
                             <th class="px-4 py-3 text-center">
@@ -50,8 +50,8 @@
                     @foreach ($rows as $row)
                         <tr class="border-b border-surface-700 last:border-b-0">
                             <td class="px-4 py-3">
-                                <p class="truncate text-sm font-semibold text-white">{{ $row['person']->name }}</p>
-                                <p class="truncate text-xs text-slate-500">
+                                <p class="truncate text-sm font-semibold text-ink">{{ $row['person']->name }}</p>
+                                <p class="truncate text-xs text-faint">
                                     {{ $row['person']->job_title ?: $row['person']->role->label() }},
                                     {{ $row['person']->weekly_capacity }} uur per week
                                 </p>
@@ -64,7 +64,7 @@
                                     <span class="mx-auto mt-1 block h-1.5 w-full max-w-24 overflow-hidden rounded-full bg-surface-700">
                                         <span class="block h-full rounded-full {{ $bar }}" style="width: {{ min(100, $week['percentage']) }}%"></span>
                                     </span>
-                                    <p class="mt-1 text-center text-[11px] text-slate-500">
+                                    <p class="mt-1 text-center text-[11px] text-faint">
                                         {{ $week['planned'] }} van {{ $week['available'] }} uur
                                         @if ($week['absent'] > 0)
                                             <span class="block text-amber-400">{{ $week['absent'] }} dagen weg</span>
@@ -78,7 +78,7 @@
             </table>
         </div>
 
-        <div class="mt-4 flex flex-wrap gap-4 text-xs text-slate-400">
+        <div class="mt-4 flex flex-wrap gap-4 text-xs text-muted">
             <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-brand-500"></span> Ruimte over</span>
             <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-green-500"></span> Goed bezet</span>
             <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-red-500"></span> Overvol, iets moet eruit</span>

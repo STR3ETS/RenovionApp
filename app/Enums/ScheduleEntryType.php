@@ -24,11 +24,11 @@ enum ScheduleEntryType: string
     public function blockClasses(): string
     {
         return match ($this) {
-            self::Project => 'bg-brand-500/15 text-brand-900 border-brand-300',
-            self::Afspraak => 'bg-steel-100 text-steel-900 border-steel-300',
-            self::Terugbel => 'bg-amber-500/15 text-amber-900 border-amber-300',
-            self::Intake => 'bg-purple-500/15 text-purple-900 border-purple-300',
-            self::Overig => 'bg-white/10 text-slate-200 border-surface-600',
+            self::Project => 'bg-brand-500/15 text-brand-300 border-brand-300',
+            self::Afspraak => 'bg-offerte-500/15 text-offerte-300 border-offerte-300',
+            self::Terugbel => 'bg-amber-500/15 text-amber-300 border-amber-300',
+            self::Intake => 'bg-calc-500/15 text-calc-300 border-calc-300',
+            self::Overig => 'bg-ink/10 text-ink border-surface-600',
         };
     }
 }

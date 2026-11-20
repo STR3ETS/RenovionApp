@@ -7,7 +7,7 @@
     $documentBlocks = QuoteBlockRegistry::ensureTyped($quote->blocks, $quote);
 @endphp
 
-<div class="quote-doc @container space-y-4">
+<div class="quote-doc paper @container space-y-4">
     @foreach ($documentBlocks as $block)
         @continue(! view()->exists('quotes.blocks.'.$block['type']))
         @php

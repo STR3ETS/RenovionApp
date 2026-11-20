@@ -7,7 +7,7 @@
 
 <x-layouts.app :title="$tour['title']">
     <div class="mb-4">
-        <a href="{{ route('academy.index') }}" class="flex items-center gap-1 text-sm font-semibold text-slate-400 transition hover:text-white">
+        <a href="{{ route('academy.index') }}" class="flex items-center gap-1 text-sm font-semibold text-muted transition hover:text-ink">
             <x-icon name="chevron-left" class="h-4 w-4" /> Academy
         </a>
     </div>
@@ -32,35 +32,35 @@
         <div class="lg:col-span-2">
             <article class="rounded-2xl border border-surface-700 bg-surface-800 p-6 lg:p-8">
                 <p class="text-[11px] font-bold tracking-widest text-calc-400 uppercase">Stap {{ $step + 1 }}</p>
-                <h1 class="mt-2 text-xl font-bold text-white lg:text-2xl">{{ $current['title'] }}</h1>
-                <p class="mt-4 text-base leading-relaxed text-slate-300">{{ $current['body'] }}</p>
+                <h1 class="mt-2 text-xl font-bold text-ink lg:text-2xl">{{ $current['title'] }}</h1>
+                <p class="mt-4 text-base leading-relaxed text-ink2">{{ $current['body'] }}</p>
 
                 @if (isset($current['route']))
                     <a href="{{ route($current['route']) }}" target="_blank" rel="noopener"
-                       class="mt-5 inline-flex items-center gap-1.5 rounded-xl bg-brand-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600">
+                       class="btn pri mt-5">
                         <x-icon name="arrow-right" class="h-4 w-4" /> Open dit scherm
                     </a>
-                    <p class="mt-2 text-xs text-slate-500">Opent in een nieuw tabblad, zodat je deze uitleg erbij houdt.</p>
+                    <p class="mt-2 text-xs text-faint">Opent in een nieuw tabblad, zodat je deze uitleg erbij houdt.</p>
                 @endif
             </article>
 
             <div class="mt-4 flex flex-wrap items-center gap-2">
                 @if ($step > 0)
                     <a href="{{ route('academy.show', [$id, 'stap' => $step - 1]) }}"
-                       class="flex items-center gap-1.5 rounded-full border border-surface-600 px-4 py-2.5 text-sm font-semibold text-slate-300 transition hover:text-white">
+                       class="btn">
                         <x-icon name="chevron-left" class="h-4 w-4" /> Vorige
                     </a>
                 @endif
 
                 @if (! $last)
                     <a href="{{ route('academy.show', [$id, 'stap' => $step + 1]) }}"
-                       class="flex items-center gap-1.5 rounded-full bg-brand-500 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600">
+                       class="btn pri">
                         Volgende <x-icon name="chevron-right" class="h-4 w-4" />
                     </a>
                 @else
                     <form method="POST" action="{{ route('academy.complete', $id) }}">
                         @csrf
-                        <button type="submit" class="flex items-center gap-1.5 rounded-full bg-brand-500 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600">
+                        <button type="submit" class="btn pri">
                             <x-icon name="check" class="h-4 w-4" /> Rondleiding afronden
                         </button>
                     </form>
@@ -70,17 +70,17 @@
 
         {{-- Alle stappen in deze rondleiding --}}
         <div class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
-            <h2 class="mb-3 text-sm font-bold text-white">In deze <span class="text-brand-500">rondleiding</span></h2>
+            <h2 class="mb-3 text-sm font-bold text-ink">In deze <span class="text-brand-500">rondleiding</span></h2>
 
             <ol class="space-y-1">
                 @foreach ($tour['steps'] as $index => $s)
                     <li>
                         <a href="{{ route('academy.show', [$id, 'stap' => $index]) }}"
-                           class="flex items-start gap-2.5 rounded-lg px-2 py-2 transition {{ $index === $step ? 'bg-white/5' : 'hover:bg-white/5' }}">
-                            <span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold {{ $index < $step ? 'bg-green-500/20 text-green-300' : ($index === $step ? 'bg-calc-500 text-white' : 'bg-surface-700 text-slate-500') }}">
+                           class="flex items-start gap-2.5 rounded-lg px-2 py-2 transition {{ $index === $step ? 'bg-ink/5' : 'hover:bg-ink/5' }}">
+                            <span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold {{ $index < $step ? 'bg-green-500/20 text-green-300' : ($index === $step ? 'bg-calc-500 text-white' : 'bg-surface-700 text-faint') }}">
                                 {{ $index + 1 }}
                             </span>
-                            <span class="min-w-0 text-sm {{ $index === $step ? 'font-semibold text-white' : 'text-slate-300' }}">{{ $s['title'] }}</span>
+                            <span class="min-w-0 text-sm {{ $index === $step ? 'font-semibold text-ink' : 'text-ink2' }}">{{ $s['title'] }}</span>
                         </a>
                     </li>
                 @endforeach

@@ -1,17 +1,17 @@
 <x-layouts.app title="Nieuwe aanvraag">
 
-    <x-page-header eyebrow="Aanvragen" category="lead" title="Nieuwe aanvraag" />
+    <x-page-header category="lead" title="Nieuwe aanvraag" />
 
     <form method="POST" action="{{ route('leads.store') }}" class="max-w-2xl space-y-5"
           x-data="{ bestaand: {{ $selectedCustomerId ? 'true' : 'false' }} }">
         @csrf
 
         <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
-            <h2 class="mb-4 text-sm font-bold text-white">Klant</h2>
+            <h2 class="mb-4 text-sm font-bold text-ink">Klant</h2>
 
             <div class="mb-4 flex rounded-lg border border-surface-600 p-0.5 text-xs font-semibold">
-                <button type="button" @click="bestaand = false" :class="!bestaand ? 'bg-navy-900 text-white' : 'text-slate-300'" class="flex-1 rounded-md px-3 py-2">Nieuwe klant</button>
-                <button type="button" @click="bestaand = true" :class="bestaand ? 'bg-navy-900 text-white' : 'text-slate-300'" class="flex-1 rounded-md px-3 py-2">Bestaande klant</button>
+                <button type="button" @click="bestaand = false" :class="!bestaand ? 'bg-navy-900 text-white' : 'text-ink2'" class="flex-1 rounded-md px-3 py-2">Nieuwe klant</button>
+                <button type="button" @click="bestaand = true" :class="bestaand ? 'bg-navy-900 text-white' : 'text-ink2'" class="flex-1 rounded-md px-3 py-2">Bestaande klant</button>
             </div>
 
             <div x-show="bestaand" x-cloak>
@@ -50,7 +50,7 @@
         </section>
 
         <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
-            <h2 class="mb-4 text-sm font-bold text-white">Aanvraag</h2>
+            <h2 class="mb-4 text-sm font-bold text-ink">Aanvraag</h2>
             <div class="grid gap-4 sm:grid-cols-2">
                 <x-field label="Dienst" name="service">
                     <input type="text" name="service" id="service" value="{{ old('service') }}" placeholder="Complete renovatie" list="diensten" class="w-full rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
@@ -91,8 +91,8 @@
         </section>
 
         <div class="flex gap-2">
-            <button type="submit" class="rounded-xl bg-brand-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-brand-500">Aanvraag opslaan</button>
-            <a href="{{ route('leads.index') }}" class="rounded-xl border border-surface-600 bg-surface-800 px-6 py-3 text-sm font-semibold text-slate-300 transition hover:bg-surface-850">Annuleren</a>
+            <button type="submit" class="btn pri lg">Aanvraag opslaan</button>
+            <a href="{{ route('leads.index') }}" class="rounded-xl border border-surface-600 bg-surface-800 px-6 py-3 text-sm font-semibold text-ink2 transition hover:bg-surface-850">Annuleren</a>
         </div>
     </form>
 

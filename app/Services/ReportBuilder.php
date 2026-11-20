@@ -84,7 +84,7 @@ class ReportBuilder
             'title' => 'Weekrapport week '.$from->isoWeek(),
             'period' => $from->translatedFormat('j M').' tot '.$until->translatedFormat('j M Y'),
             'kpis' => [
-                $this->kpi('Gefactureerd', 'EUR '.number_format((float) $invoiced->sum('amount'), 0, ',', '.')),
+                $this->kpi('Gefactureerd', '€ '.number_format((float) $invoiced->sum('amount'), 0, ',', '.')),
                 $this->kpi('Goedgekeurde uren', $this->hours((float) $orders->sum('hours'))),
                 $this->kpi('Werkbonnen ter controle', (string) $pending->count(), $pending->count() > 0),
                 $this->kpi('Projecten over de datum', (string) $behind->count(), $behind->count() > 0),
@@ -158,8 +158,8 @@ class ReportBuilder
             ])->filter()->join(' tot '),
             'kpis' => [
                 $this->kpi('Voortgang', $project->progress.'%'),
-                $this->kpi('Aanneemsom', 'EUR '.number_format((float) $project->value, 0, ',', '.')),
-                $this->kpi('Verwachte kosten', $review === null ? 'geen begroting' : 'EUR '.number_format($review['expected'], 0, ',', '.')),
+                $this->kpi('Aanneemsom', '€ '.number_format((float) $project->value, 0, ',', '.')),
+                $this->kpi('Verwachte kosten', $review === null ? 'geen begroting' : '€ '.number_format($review['expected'], 0, ',', '.')),
                 $this->kpi(
                     'Marge verwacht',
                     $review === null ? 'onbekend' : number_format($review['margin_expected'], 1, ',', '.').'%',
@@ -171,7 +171,7 @@ class ReportBuilder
                 [
                     'title' => 'Financieel',
                     'lines' => [
-                        $this->line('Gefactureerd: EUR '.number_format((float) $project->invoices->sum('amount'), 0, ',', '.')),
+                        $this->line('Gefactureerd: € '.number_format((float) $project->invoices->sum('amount'), 0, ',', '.')),
                         $this->line('Goedgekeurde uren: '.$this->hours((float) $orders->sum('hours'))),
                         $review === null
                             ? $this->line('Geen begroting om tegen af te zetten', true)
@@ -226,7 +226,7 @@ class ReportBuilder
                     'title' => 'Per fase',
                     'lines' => $open->groupBy(fn (Lead $l) => $l->status->label())
                         ->map(fn ($set, $label) => $this->line(sprintf(
-                            '%s: %d, samen EUR %s',
+                            '%s: %d, samen € %s',
                             $label,
                             $set->count(),
                             number_format((float) $set->sum('value'), 0, ',', '.'),
@@ -260,17 +260,17 @@ class ReportBuilder
             'title' => 'Financieel maandrapport '.now()->translatedFormat('F Y'),
             'period' => 'stand op '.today()->translatedFormat('j F Y'),
             'kpis' => [
-                $this->kpi('Omzet dit jaar', 'EUR '.number_format($finance['revenue_year'], 0, ',', '.')),
-                $this->kpi('Werkvoorraad', 'EUR '.number_format($finance['order_book'], 0, ',', '.')),
-                $this->kpi('Debiteuren', 'EUR '.number_format($finance['debtors'], 0, ',', '.')),
-                $this->kpi('Te laat', 'EUR '.number_format($finance['debtors_overdue'], 0, ',', '.'), $finance['debtors_overdue'] > 0),
-                $this->kpi('Crediteuren', 'EUR '.number_format($finance['creditors'], 0, ',', '.')),
+                $this->kpi('Omzet dit jaar', '€ '.number_format($finance['revenue_year'], 0, ',', '.')),
+                $this->kpi('Werkvoorraad', '€ '.number_format($finance['order_book'], 0, ',', '.')),
+                $this->kpi('Debiteuren', '€ '.number_format($finance['debtors'], 0, ',', '.')),
+                $this->kpi('Te laat', '€ '.number_format($finance['debtors_overdue'], 0, ',', '.'), $finance['debtors_overdue'] > 0),
+                $this->kpi('Crediteuren', '€ '.number_format($finance['creditors'], 0, ',', '.')),
             ],
             'sections' => [
                 [
                     'title' => 'Cashflowprognose',
                     'lines' => collect($finance['cashflow'])->map(fn (array $m) => $this->line(sprintf(
-                        '%s: binnen EUR %s, uit EUR %s, saldo EUR %s',
+                        '%s: binnen € %s, uit € %s, saldo € %s',
                         $m['label'],
                         number_format($m['in'], 0, ',', '.'),
                         number_format($m['out'], 0, ',', '.'),
@@ -281,7 +281,7 @@ class ReportBuilder
                     'title' => 'Facturen over de vervaldatum',
                     'lines' => $finance['debtor_invoices']->filter->isOverdue()
                         ->map(fn (Invoice $i) => $this->line(sprintf(
-                            '%s: %s, EUR %s, %d dagen te laat',
+                            '%s: %s, € %s, %d dagen te laat',
                             $i->number,
                             $i->customer->name,
                             number_format($i->openAmount(), 0, ',', '.'),

@@ -1,7 +1,7 @@
 @php
     use App\Models\ExtraWork;
     use App\Support\InvoicePlan;
-    $eur = fn (float $v) => 'EUR '.number_format($v, 2, ',', '.');
+    $eur = fn (float $v) => '€ '.number_format($v, 2, ',', '.');
     $num = fn (float $v) => rtrim(rtrim(number_format($v, 2, ',', '.'), '0'), ',');
     $canInvoice = auth()->user()->can('module', 'facturatie');
     $akkoord = $extras->filter->isApproved();
@@ -19,15 +19,15 @@
     {{-- Meerwerk als eigen opdracht --}}
     <section class="rounded-2xl border border-surface-700 bg-surface-800">
         <div class="border-b border-surface-700 px-5 py-4">
-            <h2 class="text-sm font-bold text-white">Meer<span class="text-brand-500">werk</span></h2>
-            <p class="mt-0.5 text-xs text-slate-500">
+            <h2 class="text-sm font-bold text-ink">Meer<span class="text-brand-500">werk</span></h2>
+            <p class="mt-0.5 text-xs text-faint">
                 Elk meerwerk is een eigen opdracht onder {{ $project->number() }}. Pas uitvoeren en factureren na akkoord van de klant.
                 De factuur staat los van de termijnen, dus de hoofdfactuur wacht er nooit op.
             </p>
         </div>
 
         @if ($extras->isEmpty())
-            <p class="p-5 text-sm text-slate-500">Nog geen meerwerk op dit project.</p>
+            <p class="p-5 text-sm text-faint">Nog geen meerwerk op dit project.</p>
         @else
             <div class="tw">
                 <table class="t">
@@ -57,7 +57,7 @@
                                         <span class="sub">naar de klant op {{ $extra->sent_at->translatedFormat('j M Y') }}</span>
                                     @endif
                                     @if ($extra->invoice)
-                                        <a href="{{ route('invoices.show', $extra->invoice) }}" class="sub hover:text-white">Factuur {{ $extra->invoice->number }}</a>
+                                        <a href="{{ route('invoices.show', $extra->invoice) }}" class="sub hover:text-ink">Factuur {{ $extra->invoice->number }}</a>
                                     @endif
                                 </td>
                                 <td class="r"><b>{{ $eur((float) $extra->amount) }}</b></td>
@@ -66,12 +66,12 @@
                                         @if ($extra->status === ExtraWork::STATUS_DRAFT)
                                             <form method="POST" action="{{ route('extra-works.send', $extra) }}">
                                                 @csrf
-                                                <button type="submit" class="rounded-full bg-brand-500 px-3.5 py-1.5 text-xs font-bold text-white transition hover:bg-brand-600">Naar de klant</button>
+                                                <button type="submit" class="btn pri sm">Naar de klant</button>
                                             </form>
                                             <form method="POST" action="{{ route('extra-works.destroy', $extra) }}">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="rounded-full border border-surface-600 px-3 py-1.5 text-xs font-semibold text-slate-400 transition hover:text-red-300">Verwijderen</button>
+                                                <button type="submit" class="btn sm">Verwijderen</button>
                                             </form>
                                         @endif
 
@@ -79,7 +79,7 @@
                                             <span x-data="{ copied: false }">
                                                 <button type="button"
                                                         @click="navigator.clipboard.writeText(@js($extra->publicUrl())).then(() => { copied = true; setTimeout(() => copied = false, 2000) })"
-                                                        class="rounded-full border border-surface-600 px-3 py-1.5 text-xs font-semibold text-slate-200 transition hover:border-brand-500 hover:text-white">
+                                                        class="btn sm">
                                                     <span x-show="!copied">Link kopiëren</span>
                                                     <span x-show="copied" x-cloak>Gekopieerd</span>
                                                 </button>
@@ -89,14 +89,14 @@
                                                 @csrf
                                                 <input type="text" name="approved_name" required maxlength="200" placeholder="Wie gaf akkoord" aria-label="Wie gaf akkoord"
                                                        class="w-36 rounded-full border-surface-600 py-1.5 text-xs">
-                                                <button type="submit" class="rounded-full border border-surface-600 px-3 py-1.5 text-xs font-semibold text-slate-200 transition hover:text-white">Akkoord vastleggen</button>
+                                                <button type="submit" class="btn sm">Akkoord vastleggen</button>
                                             </form>
                                         @endif
 
                                         @if ($extra->status === ExtraWork::STATUS_APPROVED && $canInvoice)
                                             <form method="POST" action="{{ route('extra-works.invoice', $extra) }}">
                                                 @csrf
-                                                <button type="submit" class="rounded-full bg-brand-500 px-3.5 py-1.5 text-xs font-bold text-white transition hover:bg-brand-600">Factureren</button>
+                                                <button type="submit" class="btn pri sm">Factureren</button>
                                             </form>
                                         @endif
                                     </div>
@@ -110,15 +110,15 @@
 
         <form method="POST" action="{{ route('extra-works.store', $project) }}" class="grid gap-3 border-t border-surface-700 p-5 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_auto] sm:items-end">
             @csrf
-            <label class="block text-xs text-slate-400">Wat is het meerwerk
+            <label class="block text-xs text-muted">Wat is het meerwerk
                 <input type="text" name="description" value="{{ old('description') }}" required maxlength="255" placeholder="Bijvoorbeeld extra wandcontactdozen keuken"
                        class="mt-1 w-full rounded-xl border-surface-600 text-sm">
             </label>
-            <label class="block text-xs text-slate-400">Bedrag excl. btw
+            <label class="block text-xs text-muted">Bedrag excl. btw
                 <input type="text" inputmode="decimal" name="amount" value="{{ old('amount') }}" required placeholder="1.250,00" class="mt-1 w-full rounded-xl border-surface-600 text-sm">
             </label>
-            <button type="submit" class="rounded-full bg-brand-500 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600">Meerwerk opstellen</button>
-            <label class="block text-xs text-slate-400 sm:col-span-3">Toelichting voor de klant
+            <button type="submit" class="btn pri">Meerwerk opstellen</button>
+            <label class="block text-xs text-muted sm:col-span-3">Toelichting voor de klant
                 <textarea name="details" rows="2" maxlength="5000" class="mt-1 w-full rounded-xl border-surface-600 text-sm">{{ old('details') }}</textarea>
             </label>
             @error('amount')<p class="text-xs font-medium text-red-400 sm:col-span-3">{{ $message }}</p>@enderror
@@ -128,8 +128,8 @@
     {{-- Factuurplan --}}
     <section class="rounded-2xl border border-surface-700 bg-surface-800">
         <div class="border-b border-surface-700 px-5 py-4">
-            <h2 class="text-sm font-bold text-white">Factuur<span class="text-brand-500">plan</span></h2>
-            <p class="mt-0.5 text-xs text-slate-500">
+            <h2 class="text-sm font-bold text-ink">Factuur<span class="text-brand-500">plan</span></h2>
+            <p class="mt-0.5 text-xs text-faint">
                 @if ($plan->source === InvoicePlan::SOURCE_BUDGET)
                     De termijnen uit begroting {{ $plan->reference }}. Het bedrag van elke factuur komt uit de termijn, zodat opdracht en facturen nooit uit elkaar lopen.
                 @elseif ($plan->source === InvoicePlan::SOURCE_QUOTE)
@@ -141,7 +141,7 @@
         </div>
 
         @if ($plan->isEmpty())
-            <p class="p-5 text-sm text-slate-500">Nog geen factuurplan voor dit project.</p>
+            <p class="p-5 text-sm text-faint">Nog geen factuurplan voor dit project.</p>
         @else
             <div class="tw">
                 <table class="t">
@@ -164,17 +164,17 @@
                                 <td class="r">{{ $eur($row['amount']) }}</td>
                                 <td>
                                     @if ($row['invoice'])
-                                        <a href="{{ route('invoices.show', $row['invoice']) }}" class="hover:text-white">{{ $row['invoice']->number }}</a>
+                                        <a href="{{ route('invoices.show', $row['invoice']) }}" class="hover:text-ink">{{ $row['invoice']->number }}</a>
                                         <span class="ml-1 rounded-full px-2 py-0.5 text-[10px] font-bold {{ $row['invoice']->status->badgeClasses() }}">{{ $row['invoice']->status->label() }}</span>
                                     @else
-                                        <span class="text-slate-500">nog niet gefactureerd</span>
+                                        <span class="text-faint">nog niet gefactureerd</span>
                                     @endif
                                 </td>
                                 <td class="r">
                                     @if ($row['term'] && ! $row['invoice'] && $plan->invoiceable && $canInvoice)
                                         <form method="POST" action="{{ route('invoices.term', $row['term']) }}">
                                             @csrf
-                                            <button type="submit" class="rounded-full border border-surface-600 px-3.5 py-1.5 text-xs font-semibold text-slate-200 transition hover:border-brand-500 hover:text-white">Factuur maken</button>
+                                            <button type="submit" class="btn sm">Factuur maken</button>
                                         </form>
                                     @endif
                                 </td>

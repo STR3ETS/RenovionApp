@@ -26,7 +26,7 @@ enum InvoiceStatus: string
     public function badgeClasses(): string
     {
         return match ($this) {
-            self::Concept => 'bg-white/10 text-slate-300',
+            self::Concept => 'bg-ink/10 text-ink2',
             self::Verzonden => 'bg-lead-500/15 text-lead-300',
             self::Betaald => 'bg-green-500/15 text-green-300',
             self::Oninbaar => 'bg-red-500/15 text-red-300',

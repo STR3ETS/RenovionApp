@@ -28,7 +28,7 @@ class StyleguideTest extends TestCase
         // De koppen staan opgesplitst in de opmaak: "Nu <span>doen</span>".
         $this->actingAs($admin)->get('/')
             ->assertOk()
-            ->assertSeeInOrder(['Nu ', 'doen', 'Vandaag ', 'gepland'], escape: false);
+            ->assertSeeInOrder(['Nu ', 'doen', 'Jouw ', 'dag'], escape: false);
     }
 
     public function test_uitvoerder_cannot_view_the_styleguide(): void

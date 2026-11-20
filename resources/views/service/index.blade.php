@@ -3,7 +3,7 @@
 @endphp
 
 <x-layouts.app title="Nazorg en service">
-    <x-page-header title="Nazorg en service" eyebrow="Projecten" category="project"
+    <x-page-header title="Nazorg en service" category="project"
                    subtitle="Meldingen na de oplevering. De eerste vraag is altijd of het onder garantie valt." />
 
     <x-kpi-row>
@@ -40,7 +40,7 @@
 
                                     <div class="min-w-0 flex-1">
                                         <div class="flex flex-wrap items-center gap-2">
-                                            <b class="truncate text-sm font-bold text-white">{{ $ticket->title }}</b>
+                                            <b class="truncate text-sm font-bold text-ink">{{ $ticket->title }}</b>
                                             <span class="rounded-full px-2 py-0.5 text-[10px] font-bold {{ $ticket->badgeClasses() }}">{{ $ticket->statusLabel() }}</span>
                                             @if ($ticket->priority === 'spoed')
                                                 <span class="rounded-full bg-red-500/15 px-2 py-0.5 text-[10px] font-bold text-red-300">Spoed</span>
@@ -50,9 +50,9 @@
                                             </span>
                                         </div>
 
-                                        <p class="mt-1 text-sm text-slate-300">{{ $ticket->description }}</p>
+                                        <p class="mt-1 text-sm text-ink2">{{ $ticket->description }}</p>
 
-                                        <p class="mt-1.5 text-xs text-slate-500">
+                                        <p class="mt-1.5 text-xs text-faint">
                                             {{ $ticket->number }}, {{ $ticket->customer->name }}@if ($ticket->project), {{ $ticket->project->name }} @endif,
                                             {{ ServiceTicket::CHANNELS[$ticket->reported_via] ?? $ticket->reported_via }},
                                             {{ $ticket->daysOpen() }} {{ $ticket->daysOpen() === 1 ? 'dag' : 'dagen' }}
@@ -63,11 +63,11 @@
                                         </p>
 
                                         @if ($ticket->warranty_note)
-                                            <p class="mt-1 text-xs {{ $ticket->warranty ? 'text-slate-500' : 'text-amber-300' }}">{{ $ticket->warranty_note }}</p>
+                                            <p class="mt-1 text-xs {{ $ticket->warranty ? 'text-faint' : 'text-amber-300' }}">{{ $ticket->warranty_note }}</p>
                                         @endif
 
                                         @if ($ticket->resolution)
-                                            <p class="mt-2 rounded-lg bg-surface-850 p-3 text-xs text-slate-300">{{ $ticket->resolution }}</p>
+                                            <p class="mt-2 rounded-lg bg-surface-850 p-3 text-xs text-ink2">{{ $ticket->resolution }}</p>
                                         @endif
                                     </div>
                                 </div>
@@ -79,30 +79,30 @@
                                             @method('PATCH')
 
                                             <div class="grid gap-2 sm:grid-cols-3">
-                                                <select name="status" class="w-full rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-white focus:border-brand-500 focus:ring-brand-500">
+                                                <select name="status" class="w-full rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-ink focus:border-brand-500 focus:ring-brand-500">
                                                     @foreach (ServiceTicket::STATUSES as $key => $label)
                                                         <option value="{{ $key }}" @selected($ticket->status === $key)>{{ $label }}</option>
                                                     @endforeach
                                                 </select>
-                                                <select name="assigned_to" class="w-full rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-white focus:border-brand-500 focus:ring-brand-500">
+                                                <select name="assigned_to" class="w-full rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-ink focus:border-brand-500 focus:ring-brand-500">
                                                     <option value="">Niemand toegewezen</option>
                                                     @foreach ($people as $person)
                                                         <option value="{{ $person->id }}" @selected($ticket->assigned_to === $person->id)>{{ $person->name }}</option>
                                                     @endforeach
                                                 </select>
                                                 <input type="date" name="planned_on" value="{{ $ticket->planned_on?->toDateString() }}" title="Gepland op"
-                                                       class="w-full rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-white focus:border-brand-500 focus:ring-brand-500">
+                                                       class="w-full rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-ink focus:border-brand-500 focus:ring-brand-500">
                                             </div>
 
                                             <div class="flex flex-wrap items-center gap-2">
                                                 <input type="text" name="resolution" value="{{ $ticket->resolution }}" placeholder="Wat is er gedaan of afgesproken?"
-                                                       class="min-w-0 flex-1 rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-white placeholder:text-slate-500 focus:border-brand-500 focus:ring-brand-500">
-                                                <label class="flex shrink-0 items-center gap-2 text-sm text-slate-300">
+                                                       class="min-w-0 flex-1 rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-ink placeholder:text-faint focus:border-brand-500 focus:ring-brand-500">
+                                                <label class="flex shrink-0 items-center gap-2 text-sm text-ink2">
                                                     <input type="checkbox" name="warranty" value="1" @checked($ticket->warranty)
                                                            class="rounded border-surface-600 bg-surface-750 text-brand-500 focus:ring-brand-500">
                                                     Garantie
                                                 </label>
-                                                <button type="submit" class="shrink-0 rounded-xl bg-brand-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-600">Opslaan</button>
+                                                <button type="submit" class="btn pri shrink-0">Opslaan</button>
                                             </div>
                                         </form>
                                     @endif
@@ -118,12 +118,12 @@
         <div>
             <form method="POST" action="{{ route('service.store') }}" class="space-y-3 rounded-2xl border border-surface-700 bg-surface-800 p-5">
                 @csrf
-                <h2 class="text-sm font-bold text-white">Melding <span class="text-brand-500">aannemen</span></h2>
-                <p class="text-xs text-slate-400">Het systeem rekent zelf uit of het nog binnen de garantietermijn valt.</p>
+                <h2 class="text-sm font-bold text-ink">Melding <span class="text-brand-500">aannemen</span></h2>
+                <p class="text-xs text-muted">Het systeem rekent zelf uit of het nog binnen de garantietermijn valt.</p>
 
                 <x-field label="Project" name="project_id">
                     <select name="project_id" id="project_id"
-                            class="w-full rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-white focus:border-brand-500 focus:ring-brand-500">
+                            class="w-full rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-ink focus:border-brand-500 focus:ring-brand-500">
                         <option value="">Geen project, alleen een klant</option>
                         @foreach ($projects as $project)
                             <option value="{{ $project->id }}">{{ $project->name }}{{ $project->customer ? ', '.$project->customer->name : '' }}</option>
@@ -133,7 +133,7 @@
 
                 <x-field label="Of een klant" name="customer_id">
                     <select name="customer_id" id="customer_id"
-                            class="w-full rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-white focus:border-brand-500 focus:ring-brand-500">
+                            class="w-full rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-ink focus:border-brand-500 focus:ring-brand-500">
                         <option value="">Kies een klant</option>
                         @foreach ($customers as $customer)
                             <option value="{{ $customer->id }}">{{ $customer->name }}</option>
@@ -143,18 +143,18 @@
 
                 <x-field label="Wat is er aan de hand?" name="title">
                     <input type="text" name="title" id="title" required
-                           class="w-full rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-white focus:border-brand-500 focus:ring-brand-500">
+                           class="w-full rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-ink focus:border-brand-500 focus:ring-brand-500">
                 </x-field>
 
                 <x-field label="Toelichting" name="description">
                     <textarea name="description" id="description" rows="3" required
-                              class="w-full rounded-xl border-surface-600 bg-surface-850 text-sm text-white focus:border-brand-500 focus:ring-brand-500"></textarea>
+                              class="w-full rounded-xl border-surface-600 bg-surface-850 text-sm text-ink focus:border-brand-500 focus:ring-brand-500"></textarea>
                 </x-field>
 
                 <div class="grid gap-2 sm:grid-cols-2">
                     <x-field label="Prioriteit" name="priority">
                         <select name="priority" id="priority" required
-                                class="w-full rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-white focus:border-brand-500 focus:ring-brand-500">
+                                class="w-full rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-ink focus:border-brand-500 focus:ring-brand-500">
                             @foreach (ServiceTicket::PRIORITIES as $key => $label)
                                 <option value="{{ $key }}" @selected($key === 'normaal')>{{ $label }}</option>
                             @endforeach
@@ -162,7 +162,7 @@
                     </x-field>
                     <x-field label="Hoe binnengekomen" name="reported_via">
                         <select name="reported_via" id="reported_via" required
-                                class="w-full rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-white focus:border-brand-500 focus:ring-brand-500">
+                                class="w-full rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-ink focus:border-brand-500 focus:ring-brand-500">
                             @foreach (ServiceTicket::CHANNELS as $key => $label)
                                 <option value="{{ $key }}">{{ $label }}</option>
                             @endforeach
@@ -170,7 +170,7 @@
                     </x-field>
                 </div>
 
-                <button type="submit" class="w-full rounded-xl bg-brand-500 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600">Aannemen</button>
+                <button type="submit" class="btn pri w-full">Aannemen</button>
             </form>
         </div>
     </div>

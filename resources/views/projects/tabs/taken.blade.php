@@ -15,12 +15,12 @@
                 <x-signal-dot :color="! $isAf && $task->deadline?->isPast() ? 'red' : ($task->priority === TaskPriority::Hoog ? 'amber' : 'gray')" />
 
                 <span class="min-w-0 flex-1">
-                    <span class="block truncate text-sm font-semibold text-white {{ $isAf ? 'line-through' : '' }}">{{ $task->title }}</span>
-                    <span class="block truncate text-xs text-slate-400">
+                    <span class="block truncate text-sm font-semibold text-ink {{ $isAf ? 'line-through' : '' }}">{{ $task->title }}</span>
+                    <span class="block truncate text-xs text-muted">
                         {{ $task->owner?->name ?? 'niet toegewezen' }}@if ($task->deadline), {{ $task->deadline->translatedFormat('j M') }} @endif, {{ $task->source->label() }}
                     </span>
                     @if ($task->note)
-                        <span class="mt-0.5 block text-xs text-slate-500">{{ $task->note }}</span>
+                        <span class="mt-0.5 block text-xs text-faint">{{ $task->note }}</span>
                     @endif
                 </span>
 
@@ -33,7 +33,7 @@
                             @method('PATCH')
                             <input type="hidden" name="status" value="{{ TaskStatus::Afgerond->value }}">
                             <button type="submit" title="Afronden"
-                                    class="flex h-8 w-8 items-center justify-center rounded-full border border-surface-600 text-slate-400 transition hover:text-green-400">
+                                    class="flex h-8 w-8 items-center justify-center rounded-full border border-surface-600 text-muted transition hover:text-green-400">
                                 <x-icon name="check" class="h-4 w-4" />
                             </button>
                         </form>

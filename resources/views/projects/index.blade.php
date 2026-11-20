@@ -1,21 +1,24 @@
 <x-layouts.app title="Projecten">
 
-    <x-page-header eyebrow="Uitvoering" category="project" title="Projecten" subtitle="{{ $projects->total() }} projecten">
+    <x-page-header title="Projectdossiers" subtitle="Elk project is een dossier, van aanvraag tot nazorg.">
+        @if (Route::has('portfolio') && auth()->user()->can('module', 'portfolio'))
+            <a href="{{ route('portfolio') }}" class="btn"><x-icon name="chart-bar" />Portfolio met stoplichten</a>
+        @endif
         @can('manage-crm')
-            <a href="{{ route('projects.create') }}" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-500">+ Project</a>
+            <a href="{{ route('projects.create') }}" class="btn pri"><x-icon name="plus" />Nieuw projectdossier</a>
         @endcan
     </x-page-header>
 
-    <div class="mb-4 flex flex-wrap gap-1.5">
+    <div class="tabs mb-[22px]">
         <a href="{{ route('projects.index') }}"
-           class="rounded-full px-3 py-1.5 text-xs font-semibold {{ $status === null ? 'bg-navy-900 text-white' : 'bg-surface-800 text-slate-300 border border-surface-600' }}">Lopend</a>
+           class="tab {{ $status === null ? 'on' : '' }}">Lopend</a>
         @foreach (\App\Enums\ProjectStatus::cases() as $statusOption)
             <a href="{{ route('projects.index', ['status' => $statusOption->value]) }}"
-               class="rounded-full px-3 py-1.5 text-xs font-semibold {{ $status === $statusOption ? 'bg-navy-900 text-white' : 'bg-surface-800 text-slate-300 border border-surface-600' }}">{{ $statusOption->label() }}</a>
+               class="tab {{ $status === $statusOption ? 'on' : '' }}">{{ $statusOption->label() }}</a>
         @endforeach
     </div>
 
-    <div data-motion-fan class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+    <div data-motion-fan class="grid grid-cols-1 gap-[14px] sm:grid-cols-2 xl:grid-cols-3">
         @forelse ($projects as $project)
             <x-project-card :project="$project" :health="$health[$project->id] ?? null" />
         @empty

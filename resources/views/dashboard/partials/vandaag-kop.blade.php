@@ -2,27 +2,43 @@
     $groet = now()->hour < 12 ? 'Goedemorgen' : (now()->hour < 18 ? 'Goedemiddag' : 'Goedenavond');
 @endphp
 
-{{-- Fotokop met begroeting (briefing hoofdstuk 6) --}}
-<section class="relative mb-4 overflow-hidden rounded-2xl">
-    {{-- Vaste bannerfoto. De linkerkant is al donker, dus een licht verloop houdt de tekst leesbaar. --}}
-    <img src="{{ asset('images/dashboard-banner.jpg') }}" alt="" class="absolute inset-0 h-full w-full object-cover object-right">
-    <div class="absolute inset-0 bg-gradient-to-r from-surface-950/85 via-surface-950/50 to-transparent"></div>
-
-    <div class="relative px-6 py-10 lg:px-10 lg:py-14">
-        <p class="text-[11px] font-bold tracking-widest text-slate-300 uppercase">{{ now()->translatedFormat('l j F Y') }}</p>
-        <span class="mt-2 block h-1 w-12 rounded-full bg-brand-500"></span>
-        <h1 class="mt-3 text-3xl font-bold text-white lg:text-5xl">
-            {{ $groet }}, <span class="text-brand-500">{{ str(auth()->user()->name)->before(' ') }}</span>
-        </h1>
-        <p class="mt-3 max-w-xl text-sm text-slate-300">Van aanvraag tot nazorg, alles in een systeem.</p>
+{{-- Merkband met begroeting: navy met de bannerfoto rechts erachter --}}
+<section class="band on-navy mb-[22px]">
+    <img src="{{ asset('images/dashboard-banner.jpg') }}" alt="" aria-hidden="true" class="bimg">
+    <div class="grid gap-1.5">
+        <span class="eyebrow">{{ now()->translatedFormat('l j F Y') }}</span>
+        <h1>{{ $groet }}, <em>{{ str(auth()->user()->name)->before(' ') }}</em></h1>
+        <div class="rule"></div>
     </div>
+    <p>Van aanvraag tot nazorg, alles in een systeem.</p>
 </section>
 
-{{-- Nova vat de inbox samen --}}
-<section class="mb-4 flex flex-wrap items-center gap-4 rounded-2xl border border-brand-500/25 bg-brand-500/10 px-5 py-4">
-    <x-nova-avatar class="h-10 w-10 shrink-0 ring-2 ring-brand-500" />
+{{-- De schermen die je zelf het meest opent, hooguit vijf (ux.js vult de lijst) --}}
+<section data-veelgebruikt hidden class="ux-quick mb-[22px]" aria-label="Snel naar">
+    <span>Snel naar</span>
+    <div data-veelgebruikt-lijst class="contents"></div>
+</section>
 
-    <div class="min-w-0 flex-1" x-data="{
+@if ($onboarding)
+    {{-- Aan de slag: uitleg en checklist, tot de gebruiker hem zelf weghaalt --}}
+    <section class="ac-welcome mb-[22px]">
+        <span class="ac-pi"><x-icon name="academic-cap" /></span>
+        <div>
+            <b>{{ $onboarding['complete'] ? 'Aan de slag: alles staat klaar om te beginnen' : 'Aan de slag: '.$onboarding['open'].' '.($onboarding['open'] === 1 ? 'stap' : 'stappen').' nog te doen' }}</b>
+            <small>Lees hoe het systeem werkt en loop de checklist door. {{ $onboarding['done'] }} van {{ $onboarding['total'] }} stappen zijn klaar.</small>
+        </div>
+        <a href="{{ route('onboarding') }}" class="btn pri sm"><x-icon name="play" />Aan de slag</a>
+        @if (Route::has('academy.index'))
+            <a href="{{ route('academy.index') }}" class="btn sm">Academy</a>
+        @endif
+    </section>
+@endif
+
+{{-- Nova vat de inbox samen --}}
+<section class="novaline mb-[22px]">
+    <x-nova-avatar class="h-9 w-9 shrink-0 ring-2 ring-brand-500 ring-offset-2 ring-offset-surface-800" />
+
+    <div class="tekst" x-data="{
             briefing: null,
             loading: false,
             async load(refresh = false) {
@@ -34,25 +50,22 @@
                 this.loading = false;
             },
          }" x-init="load()">
-        <div x-show="loading && !briefing" class="max-w-2xl"><x-skeleton :lines="2" dark /></div>
+        <div x-show="loading && !briefing" class="max-w-2xl"><x-skeleton :lines="2" /></div>
 
-        <p class="text-sm leading-relaxed text-slate-200" x-show="!briefing && !loading">
+        <p x-show="!briefing && !loading">
             @if ($aandachtTotaal > 0)
-                Je inbox heeft <span class="font-bold text-white">{{ $attentionCount }} {{ $attentionCount === 1 ? 'punt' : 'punten' }}</span>.
+                Je inbox heeft <b>{{ $attentionCount }} {{ $attentionCount === 1 ? 'punt' : 'punten' }}</b>.
                 Vandaag {{ $aandachtTotaal === 1 ? 'vraagt 1 zaak' : "vragen {$aandachtTotaal} zaken" }} je aandacht.
             @else
                 Alles loopt op schema. Geen openstaande acties voor vandaag.
             @endif
         </p>
-        <p class="text-sm leading-relaxed whitespace-pre-line text-slate-200" x-show="briefing" x-text="briefing" x-cloak></p>
+        <p class="whitespace-pre-line" x-show="briefing" x-text="briefing" x-cloak></p>
         <button x-show="briefing && !loading" x-cloak @click="load(true)"
-                class="mt-1 text-xs font-semibold text-slate-400 transition hover:text-white">Briefing vernieuwen</button>
+                class="mt-1 text-xs font-semibold text-muted transition hover:text-ink">Briefing vernieuwen</button>
     </div>
 
-    <a href="{{ route('attention.index') }}"
-       class="flex shrink-0 items-center gap-1.5 rounded-full bg-brand-500 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600">
-        Naar inbox <x-icon name="chevron-right" class="h-4 w-4" />
-    </a>
+    <a href="{{ route('attention.index') }}" class="btn sm soft">Naar inbox <x-icon name="chevron-right" /></a>
 </section>
 
 @php
@@ -61,7 +74,7 @@
     $kpis = collect([
         [
             'label' => 'Werkvoorraad excl. btw',
-            'value' => 'EUR '.number_format($stats['omzet_lopend'], 0, ',', '.'),
+            'value' => '€ '.number_format($stats['omzet_lopend'], 0, ',', '.'),
             'sub' => $stats['actieve_projecten'].' '.($stats['actieve_projecten'] === 1 ? 'project' : 'projecten').' in opdracht',
             'dark' => true,
             'url' => route('projects.index'),
@@ -97,7 +110,7 @@
     ])->filter()->values();
 @endphp
 
-<x-kpi-row class="mb-4 {{ $kpis->count() === 5 ? 'xl:grid-cols-[1.5fr_repeat(4,minmax(0,1fr))]' : '' }}">
+<x-kpi-row class="{{ $kpis->count() === 5 ? 'five' : '' }}">
     @foreach ($kpis as $kpi)
         <x-kpi :label="$kpi['label']" :value="(string) $kpi['value']" :sub="$kpi['sub']"
                :dark="$kpi['dark'] ?? false" :alert="$kpi['alert'] ?? false" :href="$kpi['url']" />
@@ -106,25 +119,24 @@
 
 {{-- MT-signalen: de uitzonderingen die het MT wil zien, ingeklapt --}}
 @if ($aandachtItems->isNotEmpty())
-    <section x-data="{ open: false }" class="mb-6 rounded-2xl border border-surface-700 bg-surface-800 px-5 py-4">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-            <p class="text-sm font-bold text-white">MT<span class="text-brand-500">-signalen</span>
-                <span class="ml-2 text-xs font-medium text-slate-400">{{ $attentionCount }} {{ $attentionCount === 1 ? 'signaal' : 'signalen' }} op de radar</span>
-            </p>
-            <button type="button" @click="open = !open"
-                    class="rounded-full border border-surface-600 px-4 py-1.5 text-xs font-semibold text-slate-300 transition hover:border-surface-600 hover:text-white">
-                <span x-text="open ? 'Verberg signalen' : 'Toon signalen'"></span>
+    <section x-data="{ open: false }" class="card mb-[22px]">
+        <div class="card-h" :class="open || 'border-b-0'">
+            <h3>MT-<em>signalen</em></h3>
+            <span class="ml-auto text-[12.5px] text-muted">{{ $attentionCount }} {{ $attentionCount === 1 ? 'signaal' : 'signalen' }} op de radar</span>
+            <button type="button" @click="open = !open" class="btn xs">
+                <span x-text="open ? 'Verberg signalen' : 'Toon signalen'">Toon signalen</span>
             </button>
         </div>
 
-        <div x-show="open" x-cloak class="mt-4 space-y-2 border-t border-surface-700 pt-4">
+        <div x-show="open" x-cloak class="card-b" style="padding-block: 4px">
             @foreach ($aandachtItems as $item)
-                <a href="{{ $item['url'] }}" class="flex items-center gap-3 rounded-xl border border-surface-700 border-l-4 bg-surface-850 p-3 transition hover:border-surface-600 {{ $item['severity'] === 'rood' ? 'border-l-red-500' : 'border-l-amber-400' }}">
-                    <span class="min-w-0 flex-1">
-                        <span class="block truncate text-sm font-semibold text-white">{{ $item['title'] }}</span>
-                        <span class="block truncate text-xs text-slate-400">{{ $item['label'] }}</span>
+                <a href="{{ $item['url'] }}" class="li">
+                    <span class="dotk {{ $item['severity'] === 'rood' ? 'bad' : 'or' }}"></span>
+                    <span class="tx">
+                        <b class="truncate">{{ $item['title'] }}</b>
+                        <small class="truncate">{{ $item['label'] }}</small>
                     </span>
-                    <x-signal-dot :color="$item['severity'] === 'rood' ? 'red' : 'amber'" />
+                    <x-icon name="chevron-right" class="h-4 w-4 text-faint" />
                 </a>
             @endforeach
         </div>

@@ -1,6 +1,6 @@
 @php
     use App\Models\Setting;
-    $eur = fn (float $v) => 'EUR '.number_format($v, 2, ',', '.');
+    $eur = fn (float $v) => '€ '.number_format($v, 2, ',', '.');
     $btw = round((float) $extra->amount * $vatPct / 100, 2);
 @endphp
 <!DOCTYPE html>
@@ -11,7 +11,7 @@
     <meta name="robots" content="noindex, nofollow">
     <title>Meerwerk {{ $extra->number }} - Renovion</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=inter-tight:400,500,600,700,800" rel="stylesheet">
+    <link href="https://fonts.bunny.net/css?family=outfit:400,500,600,700|plus-jakarta-sans:400,500,600,700" rel="stylesheet">
     @vite(['resources/css/app.css'])
 </head>
 {{-- Bewust licht: dit is voor de klant --}}
