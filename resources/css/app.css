@@ -2180,6 +2180,133 @@ html[data-theme='dark'] [data-sec='organisatie'] { --h: #9aaabf; }
     }
 }
 
+/* ---------- Dossier: de negen stappen als doorlopende lijn ---------- */
+@layer components {
+    .dsteps {
+        padding: 22px 16px 18px;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .dsteps::-webkit-scrollbar {
+        display: none;
+    }
+
+    .dsteps ol {
+        display: flex;
+        min-width: 720px;
+    }
+
+    .dsteps li {
+        position: relative;
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+    }
+
+    /* De lijn naar deze stap toe en van deze stap af. */
+    .dsteps li::before,
+    .dsteps li::after {
+        content: '';
+        position: absolute;
+        top: 13px;
+        height: 2px;
+        background: var(--border);
+    }
+
+    .dsteps li::before {
+        right: 50%;
+        left: 0;
+    }
+
+    .dsteps li::after {
+        right: 0;
+        left: 50%;
+    }
+
+    .dsteps li:first-child::before,
+    .dsteps li:last-child::after {
+        display: none;
+    }
+
+    .dsteps li.done::before,
+    .dsteps li.done::after,
+    .dsteps li.current::before {
+        background: var(--orange);
+    }
+
+    .dsteps .dot {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        border: 1.5px solid var(--border-strong);
+        border-radius: 50%;
+        background: var(--card);
+        color: var(--ink2);
+        font-family: var(--font-display);
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .dsteps .dot svg {
+        width: 14px;
+        height: 14px;
+        stroke-width: 2.4;
+    }
+
+    .dsteps li.done .dot {
+        border-color: var(--orange);
+        background: var(--orange);
+        color: #fff;
+    }
+
+    .dsteps li.current .dot {
+        border: 2px solid var(--orange);
+        color: var(--orange-h);
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--orange) 20%, transparent);
+    }
+
+    .dsteps .nm {
+        font-size: 12.5px;
+        font-weight: 600;
+        line-height: 1.2;
+        text-align: center;
+        color: var(--muted);
+    }
+
+    .dsteps li.done .nm {
+        color: var(--text);
+    }
+
+    .dsteps li.current .nm {
+        color: var(--orange-h);
+    }
+
+    /* Cijfers naast elkaar in een kaart (aanneemsom, btw, inclusief). */
+    .figs {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 14px 22px;
+    }
+
+    .figs .v {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        font-size: 15px;
+    }
+
+    .figs .v.big {
+        font-size: 20px;
+    }
+}
+
 /* De pagina: 24 pixels lucht rondom, hooguit 1440 breed. */
 .page {
     width: 100%;

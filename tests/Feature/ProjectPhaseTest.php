@@ -3,9 +3,13 @@
 namespace Tests\Feature;
 
 use App\Enums\PhaseStatus;
+use App\Enums\ProjectStatus;
+use App\Enums\QuoteStatus;
 use App\Models\Project;
 use App\Models\ProjectPhase;
+use App\Models\Quote;
 use App\Models\User;
+use App\Support\Dossier;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -29,12 +33,42 @@ class ProjectPhaseTest extends TestCase
         $user = User::factory()->create();
         $project = Project::factory()->create();
 
+        // Bovenaan het dossier staan de negen stappen van aanvraag tot nazorg.
         // De kop staat opgesplitst in de opmaak: "Project<span>voortgang</span>".
         $this->actingAs($user)->get('/projecten/'.$project->id)
             ->assertOk()
             ->assertSeeInOrder(['Project', 'voortgang'], escape: false)
+            ->assertSeeInOrder(['Aanvraag', 'Intake', 'Begroting', 'Offerte', 'Akkoord', 'Voorbereiding', 'Uitvoering', 'Oplevering', 'Nazorg']);
+
+        // De fasen van de uitvoering zelf staan op het tabblad Uitvoering.
+        $this->actingAs($user)->get('/projecten/'.$project->id.'?tab=uitvoering')
+            ->assertOk()
             ->assertSee('Werkvoorbereiding')
             ->assertSee('Oplevering');
+    }
+
+    public function test_a_request_a_quote_and_a_project_show_the_same_dossier(): void
+    {
+        $user = User::factory()->create();
+        $quote = Quote::factory()->create(['status' => QuoteStatus::Verstuurd]);
+
+        // Een verstuurde offerte staat bij stap vier; een concept is nog rekenwerk.
+        $this->assertSame('Offerte', Dossier::forQuote($quote)->stageLabel());
+        $quote->update(['status' => QuoteStatus::Concept]);
+        $this->assertSame('Begroting', Dossier::forQuote($quote->fresh())->stageLabel());
+
+        $this->actingAs($user)->get(route('quotes.show', $quote))
+            ->assertOk()
+            ->assertSee('Projectdossier')
+            ->assertSee('aria-current="step"', false)
+            ->assertSeeInOrder(['Aanvraag', 'Intake', 'Begroting', 'Offerte', 'Akkoord']);
+
+        // Een project in uitvoering heeft de eerste zes stappen gehad.
+        $project = Project::factory()->create(['status' => ProjectStatus::Uitvoering]);
+        $steps = collect(Dossier::forProject($project)->steps());
+
+        $this->assertSame('Uitvoering', $steps->firstWhere('state', 'current')['label']);
+        $this->assertSame(6, $steps->where('state', 'done')->count());
     }
 
     public function test_moving_a_project_to_a_phase_completes_earlier_phases(): void

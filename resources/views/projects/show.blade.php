@@ -24,10 +24,9 @@
         </div>
     @endunless
 
-    {{-- De negen fasen als doorlopende lijn --}}
-    <section class="mb-4 rounded-2xl border border-surface-700 bg-surface-800 px-5 py-4">
-        <x-phase-stepper :project="$project" />
-    </section>
+    {{-- De negen stappen van het dossier, van aanvraag tot nazorg. De fasen van
+         de uitvoering zelf staan op het tabblad Uitvoering. --}}
+    <x-dossier-steps :dossier="\App\Support\Dossier::forProject($project)" />
 
     {{-- De tabbalk: één pil per onderdeel van het dossier --}}
     <x-tabs>

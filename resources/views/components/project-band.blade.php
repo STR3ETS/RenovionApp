@@ -49,7 +49,7 @@
 
     {{-- Titelblok --}}
     <div class="grid gap-1.5">
-        <span class="eyebrow">Projectdossier @if ($project->type), {{ $project->type }} @endif</span>
+        <span class="eyebrow">Projectdossier{{ $project->type ? ', '.$project->type : '' }}</span>
         <h1>{{ $project->name }}</h1>
         <div class="font-display text-base font-medium text-brand-500 lg:text-xl">
             {{ collect([$project->address, $project->city])->filter()->join(', ') ?: 'Adres nog onbekend' }}

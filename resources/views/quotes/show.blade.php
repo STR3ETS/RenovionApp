@@ -2,19 +2,59 @@
 
     <div x-data="{ tab: 'overzicht' }">
 
-        <x-page-header category="offerte" :title="$quote->number.', v'.$quote->version" :subtitle="$quote->customer->name.', aangemaakt '.$quote->created_at->translatedFormat('j M Y')">
-            <x-status-badge :status="$quote->status" class="text-sm" />
-            @if ($quote->status === \App\Enums\QuoteStatus::Concept)
-                <a href="{{ route('quotes.builder', $quote) }}" class="btn pri">Offerte bouwen</a>
-                <a href="{{ route('quotes.edit', $quote) }}" class="btn">Posten bewerken</a>
-            @endif
-        </x-page-header>
+        @php $dossier = \App\Support\Dossier::forQuote($quote); @endphp
 
-        {{-- Tabs (mockup §18) --}}
-        <div class="mb-5 flex gap-1 rounded-xl border border-surface-700 bg-surface-800 p-1 text-sm font-semibold">
-            <button type="button" @click="tab = 'overzicht'" :class="tab === 'overzicht' ? 'bg-navy-950 text-white' : 'text-ink2 hover:bg-surface-850'" class="flex-1 rounded-lg px-4 py-2 transition">Overzicht</button>
-            <button type="button" @click="tab = 'preview'" :class="tab === 'preview' ? 'bg-navy-950 text-white' : 'text-ink2 hover:bg-surface-850'" class="flex-1 rounded-lg px-4 py-2 transition">Preview (klant)</button>
-        </div>
+        {{-- De offerte is een tabblad van het dossier, net als in het prototype --}}
+        <x-dossier-band :dossier="$dossier" crumb="Offertes" :crumb-url="route('quotes.index')">
+            @if ($quote->status === \App\Enums\QuoteStatus::Concept)
+                <a href="{{ route('quotes.edit', $quote) }}" class="btn onnavy"><x-icon name="pencil" /> Posten bewerken</a>
+                <a href="{{ route('quotes.builder', $quote) }}" class="btn pri">Offerte bouwen <x-icon name="chevron-right" /></a>
+            @elseif ($dossier->project)
+                <a href="{{ route('projects.show', $dossier->project) }}" class="btn pri">Naar het project <x-icon name="chevron-right" /></a>
+            @endif
+        </x-dossier-band>
+
+        <x-dossier-steps :dossier="$dossier" />
+
+        <x-tabs class="mb-[22px]">
+            @foreach ($dossier->tabs('offerte') as $item)
+                <x-tab :href="$item['url']" :active="$item['active']">{{ $item['label'] }}</x-tab>
+            @endforeach
+        </x-tabs>
+
+        {{-- De offerte in cijfers, met de keuze tussen het overzicht en wat de klant ziet --}}
+        <section class="card mb-[14px]">
+            <div class="card-h">
+                <h3>Offerte {{ $quote->number }}, versie {{ $quote->version }}</h3>
+                <div class="flex flex-wrap items-center gap-2">
+                    <x-status-badge :status="$quote->status" />
+                    <div class="tabs">
+                        <button type="button" @click="tab = 'overzicht'" class="tab" :class="tab === 'overzicht' && 'on'">Overzicht</button>
+                        <button type="button" @click="tab = 'preview'" class="tab" :class="tab === 'preview' && 'on'">Voorbeeld klant</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-b">
+                <div class="figs">
+                    <div>
+                        <div class="lbl">Aanneemsom excl. btw</div>
+                        <div class="v big">€ {{ number_format((float) $quote->subtotal, 2, ',', '.') }}</div>
+                    </div>
+                    <div>
+                        <div class="lbl">Btw</div>
+                        <div class="v">€ {{ number_format((float) $quote->vat_amount, 2, ',', '.') }}</div>
+                    </div>
+                    <div>
+                        <div class="lbl">Incl. btw</div>
+                        <div class="v">€ {{ number_format((float) $quote->total, 2, ',', '.') }}</div>
+                    </div>
+                </div>
+                <div class="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-line2 pt-3 text-[13px] text-ink2">
+                    <span>{{ $quote->status->label() }}@if ($quote->viewed_count > 0), {{ $quote->viewed_count }}× bekeken door de klant @endif</span>
+                    <span class="tabular-nums">{{ ($quote->sent_at ?? $quote->created_at)->translatedFormat('j M Y') }}</span>
+                </div>
+            </div>
+        </section>
 
         {{-- ===== Tab: Overzicht ===== --}}
         <div x-show="tab === 'overzicht'">

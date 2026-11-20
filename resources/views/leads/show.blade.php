@@ -1,9 +1,20 @@
 <x-layouts.app :title="$lead->customer->name">
 
-    <x-page-header category="lead" :title="$lead->customer->name" :subtitle="($lead->service ?? 'Aanvraag').', '.($lead->customer->city ?? 'plaats onbekend')">
-        <x-status-badge :status="$lead->status" class="text-sm" />
-        <a href="{{ route('leads.edit', $lead) }}" class="btn">Bewerken</a>
-    </x-page-header>
+    @php $dossier = \App\Support\Dossier::forLead($lead); @endphp
+
+    {{-- De aanvraag is het begin van het dossier: zelfde kop, stappen en tabbalk als verderop --}}
+    <x-dossier-band :dossier="$dossier" crumb="Aanvragen" :crumb-url="route('leads.index')">
+        <x-status-badge :status="$lead->status" />
+        <a href="{{ route('leads.edit', $lead) }}" class="btn onnavy"><x-icon name="pencil" /> Bewerken</a>
+    </x-dossier-band>
+
+    <x-dossier-steps :dossier="$dossier" />
+
+    <x-tabs class="mb-[22px]">
+        @foreach ($dossier->tabs('aanvraag') as $item)
+            <x-tab :href="$item['url']" :active="$item['active']">{{ $item['label'] }}</x-tab>
+        @endforeach
+    </x-tabs>
 
     <div class="grid gap-4 lg:grid-cols-3">
         <div class="space-y-4 lg:col-span-2">
