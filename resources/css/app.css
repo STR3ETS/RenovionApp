@@ -2474,6 +2474,358 @@ html[data-theme='dark'] {
     }
 }
 
+/* ---------- Projectcockpit (prototype ronde 16) ---------- */
+@layer components {
+    .ck {
+        display: grid;
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+
+    .ck-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .ck-head h3 {
+        font-family: var(--font-display);
+        font-size: 20px;
+        font-weight: 600;
+        letter-spacing: -0.2px;
+        color: var(--text);
+    }
+
+    .ck-all {
+        height: auto;
+        gap: 7px;
+        padding: 5px 12px;
+        font-size: 13px;
+    }
+
+    .ck-tiles {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .ck-t {
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        overflow: hidden;
+        padding: 14px 14px 14px 17px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--card);
+    }
+
+    .ck-t::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 5px;
+        background: var(--lc);
+    }
+
+    .ck-t > div {
+        display: grid;
+        gap: 2px;
+        min-width: 0;
+    }
+
+    .ck-t span {
+        font-size: 11.5px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+    }
+
+    .ck-t b {
+        font-family: var(--font-display);
+        font-size: 17px;
+        font-weight: 600;
+    }
+
+    .ck-t small {
+        font-size: 12.5px;
+        line-height: 1.35;
+        color: var(--ink2);
+    }
+
+    .ck-i {
+        display: grid;
+        place-items: center;
+        flex: none;
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        background: color-mix(in srgb, var(--lc) 15%, var(--card));
+        color: var(--lc);
+    }
+
+    .ck-i svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .ck-g { --lc: var(--ok); }
+    .ck-o { --lc: var(--warn-c, #e49b16); }
+    .ck-r { --lc: var(--bad); }
+    .ck-n { --lc: var(--muted); }
+
+    .ck-r {
+        border-color: color-mix(in srgb, var(--bad) 30%, transparent);
+        background: color-mix(in srgb, var(--bad) 5%, var(--card));
+    }
+
+    .ck-o {
+        background: color-mix(in srgb, var(--warn-c, #e49b16) 5%, var(--card));
+    }
+
+    .ck-r b { color: var(--bad); }
+    .ck-o b { color: var(--warn); }
+    .ck-g b { color: var(--ok); }
+
+    .ck-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+        gap: 12px;
+    }
+
+    .ck-c .card-h h3 { font-size: 15px; }
+    .ck-c .card-b { font-size: 13.5px; }
+    .ck-c .li .tx b { font-size: 13px; white-space: normal; }
+    .ck-c .li .tx small { white-space: normal; }
+    .ck-c .li .ic { width: 30px; height: 30px; }
+
+    .ck-bv {
+        display: grid;
+        gap: 10px;
+    }
+
+    .ck-bv .bar {
+        height: 9px;
+        margin-top: 4px;
+    }
+
+    .ck-burn > i { background: var(--blue); }
+    .ck-burn.warn > i { background: var(--warn-c, #e49b16); }
+    .ck-burn.over > i { background: var(--bad); }
+
+    .sumrow {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 7px 0;
+        border-bottom: 1px solid var(--border2);
+        font-size: 13px;
+    }
+
+    .sumrow:last-child {
+        border-bottom: 0;
+    }
+
+    .sumrow span:last-child {
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+    }
+
+    /* De mijlpalen op een lijn, om en om boven en onder, met een stippellijn bij vandaag. */
+    .ck-wide .card-b {
+        padding: 26px 34px 22px;
+        overflow-x: auto;
+    }
+
+    .ck-tl {
+        position: relative;
+        min-width: 560px;
+        height: 96px;
+        margin: 0 46px;
+    }
+
+    .ck-line {
+        position: absolute;
+        top: 44px;
+        right: 0;
+        left: 0;
+        height: 4px;
+        border-radius: 4px;
+        background: var(--border2);
+    }
+
+    .ck-line i {
+        display: block;
+        height: 100%;
+        border-radius: 4px;
+        background: linear-gradient(90deg, var(--h), color-mix(in srgb, var(--h) 70%, #fff));
+    }
+
+    .ck-now {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        z-index: 1;
+        width: 0;
+        border-left: 2px dashed var(--h);
+    }
+
+    .ck-now b {
+        position: absolute;
+        top: -18px;
+        left: 0;
+        padding: 0 4px;
+        background: var(--card);
+        color: var(--h);
+        font-size: 10.5px;
+        white-space: nowrap;
+        transform: translateX(-50%);
+    }
+
+    .ck-ms {
+        position: absolute;
+        top: 36px;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 120px;
+        text-align: center;
+        transform: translateX(-50%);
+    }
+
+    .ck-ms > div {
+        display: grid;
+        margin-top: 6px;
+    }
+
+    .ck-ms b {
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.2;
+    }
+
+    .ck-ms small {
+        font-size: 11px;
+        color: var(--muted);
+    }
+
+    .ck-ms.dn2 {
+        top: auto;
+        bottom: 40px;
+        flex-direction: column-reverse;
+    }
+
+    .ck-ms.dn2 > div {
+        margin: 0 0 6px;
+    }
+
+    .ck-pt {
+        display: grid;
+        place-items: center;
+        width: 20px;
+        height: 20px;
+        border: 3px solid var(--border);
+        border-radius: 50%;
+        background: var(--card);
+        color: #fff;
+    }
+
+    .ck-pt svg {
+        width: 11px;
+        height: 11px;
+        stroke-width: 3;
+    }
+
+    .ck-ms.done .ck-pt {
+        border-color: var(--h);
+        background: var(--h);
+    }
+
+    .ck-ms.late .ck-pt {
+        border-color: var(--bad);
+    }
+
+    .ck-ms.late small {
+        color: var(--bad);
+        font-weight: 600;
+    }
+
+    /* De overige gegevens van het dossier, in te klappen. */
+    .pd-more {
+        margin-bottom: 18px;
+    }
+
+    .pd-more > summary {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+        padding: 14px 16px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--card);
+        box-shadow: var(--shadow-card);
+        list-style: none;
+        cursor: pointer;
+    }
+
+    .pd-more > summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .pd-more > summary > svg:first-child {
+        width: 18px;
+        height: 18px;
+        color: var(--h);
+    }
+
+    .pd-more > summary > span {
+        display: grid;
+        flex: 1;
+    }
+
+    .pd-more > summary b {
+        font-weight: 600;
+    }
+
+    .pd-more > summary small {
+        font-size: 12.5px;
+        color: var(--muted);
+    }
+
+    .pd-more > summary > svg:last-child {
+        width: 16px;
+        height: 16px;
+        color: var(--muted);
+        transition: transform 0.15s;
+    }
+
+    .pd-more[open] > summary > svg:last-child {
+        transform: rotate(180deg);
+    }
+
+    @media (max-width: 1020px) {
+        .ck-tiles {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 700px) {
+        .ck-grid,
+        .ck-tiles {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+}
+
 /* De pagina: 24 pixels lucht rondom, hooguit 1440 breed. */
 .page {
     width: 100%;

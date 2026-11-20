@@ -27,6 +27,7 @@ use App\Models\User;
 use App\Services\CostReviewService;
 use App\Services\ProjectHealthService;
 use App\Support\InvoicePlan;
+use App\Support\ProjectCockpit;
 use App\Support\ProjectTabs;
 use App\Support\RegieStatement;
 use Illuminate\Http\RedirectResponse;
@@ -264,6 +265,7 @@ class ProjectController extends Controller
                 'auditEvents' => AgentEvent::where('project_id', $project->id)->latest('occurred_at')->limit(40)->get(),
             ],
             default => [
+                'cockpit' => ProjectCockpit::for($project),
                 'photos' => $project->photos()->where('client_visible', true)->limit(6)->get(),
                 'tasks' => $project->tasks()->open()->with('owner')->orderByRaw('deadline is null, deadline asc')->limit(6)->get(),
                 'entries' => $project->scheduleEntries()->with('user')->whereDate('date', '>=', today())->orderBy('date')->limit(6)->get(),

@@ -1,35 +1,18 @@
-{{-- Het overzicht: de cockpit uit hoofdstuk 7 met de vier stoplichten, en
-     daaronder de korte lijstjes die je vanaf een dossier wilt kunnen zien. --}}
+{{-- Het overzicht: bovenaan de projectcockpit uit het prototype (stoplichten,
+     mijlpalen, blokkades, budget). De overige gegevens staan eronder, ingeklapt. --}}
+@can('manage-crm')
+    @include('projects.partials.cockpit')
+
+    <details class="pd-more" x-data="{ open: false }" x-init="try { open = localStorage.getItem('dossier-gegevens') === '1' } catch (e) {}; $el.open = open" @toggle="try { localStorage.setItem('dossier-gegevens', $el.open ? '1' : '0') } catch (e) {}">
+        <summary>
+            <x-icon name="folder" />
+            <span><b>Projectgegevens</b><small>Klant, taken, planning, foto's, oplevering en activiteit</small></span>
+            <x-icon name="chevron-down" />
+        </summary>
+@endcan
+
 <div class="space-y-4">
-    @can('manage-crm')
-        <x-health-lights :health="$health" />
-
-        <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
-            <h2 class="mb-4 text-sm font-bold text-ink">Project<span class="text-brand-500">voortgang</span></h2>
-
-            <div class="grid gap-5 lg:grid-cols-3">
-                <x-progress-vs-plan :health="$health" />
-
-                <div>
-                    <p class="text-xs font-semibold text-muted">Volgende mijlpaal</p>
-                    <p class="mt-1 text-sm font-bold text-ink">{{ $health->nextMilestone ?? 'Alle fasen gereed' }}</p>
-                    <p class="text-xs text-faint">{{ $health->nextMilestoneDue ?? 'geen datum gepland' }}</p>
-                </div>
-
-                <div>
-                    <p class="text-xs font-semibold text-muted">Acties en blokkades</p>
-                    @forelse ($health->attentionSignals() as $signal)
-                        <p class="mt-1 flex items-start gap-1.5 text-xs leading-relaxed {{ $signal->light->textClasses() }}">
-                            <x-signal-dot :color="$signal->light->dotColor()" class="mt-1" />
-                            <span><span class="font-semibold">{{ $signal->label }}:</span> {{ $signal->reason }}</span>
-                        </p>
-                    @empty
-                        <p class="mt-1 text-xs text-faint">Niets dat aandacht vraagt.</p>
-                    @endforelse
-                </div>
-            </div>
-        </section>
-    @else
+    @cannot('manage-crm')
         <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
             <div class="mb-2 flex items-center justify-between">
                 <h2 class="text-sm font-bold text-ink">Projectvoortgang</h2>
@@ -39,7 +22,7 @@
                 <div class="h-full rounded-full bg-brand-500" style="width: {{ $project->progress }}%"></div>
             </div>
         </section>
-    @endcan
+    @endcannot
 
     @if ($project->end_date_expected?->isPast() && $project->end_date_actual === null)
         <div class="flex items-center gap-2.5 rounded-2xl border border-amber-500/25 bg-amber-500/10 px-4 py-3">
@@ -205,3 +188,7 @@
         </div>
     </div>
 </div>
+
+@can('manage-crm')
+    </details>
+@endcan

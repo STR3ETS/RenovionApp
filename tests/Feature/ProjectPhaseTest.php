@@ -34,10 +34,10 @@ class ProjectPhaseTest extends TestCase
         $project = Project::factory()->create();
 
         // Bovenaan het dossier staan de negen stappen van aanvraag tot nazorg.
-        // De kop staat opgesplitst in de opmaak: "Project<span>voortgang</span>".
+        // Daaronder de cockpit: stoplichten, blokkades en het budget tegenover de voortgang.
         $this->actingAs($user)->get('/projecten/'.$project->id)
             ->assertOk()
-            ->assertSeeInOrder(['Project', 'voortgang'], escape: false)
+            ->assertSeeInOrder(['Projectcockpit', 'Acties en blokkades', 'Budget tegenover voortgang', 'Projectgegevens'])
             ->assertSeeInOrder(['Aanvraag', 'Intake', 'Begroting', 'Offerte', 'Akkoord', 'Voorbereiding', 'Uitvoering', 'Oplevering', 'Nazorg']);
 
         // De fasen van de uitvoering zelf staan op het tabblad Uitvoering.
