@@ -5,10 +5,12 @@
         @php $dossier = \App\Support\Dossier::forQuote($quote); @endphp
 
         {{-- De offerte is een tabblad van het dossier, net als in het prototype --}}
-        <x-dossier-band :dossier="$dossier" crumb="Offertes" :crumb-url="route('quotes.index')">
+        <x-dossier-band :dossier="$dossier">
             @if ($quote->status === \App\Enums\QuoteStatus::Concept)
                 <a href="{{ route('quotes.edit', $quote) }}" class="btn onnavy"><x-icon name="pencil" /> Posten bewerken</a>
                 <a href="{{ route('quotes.builder', $quote) }}" class="btn pri">Offerte bouwen <x-icon name="chevron-right" /></a>
+            @elseif ($quote->status->isOpen())
+                <button type="button" x-data class="btn onnavy" @click="$dispatch('nova-ask', @js('Maak een opvolging voor offerte '.$quote->number.' van '.$quote->customer->name))"><x-icon name="sparkles" /> Opvolgen met Nova</button>
             @elseif ($dossier->project)
                 <a href="{{ route('projects.show', $dossier->project) }}" class="btn pri">Naar het project <x-icon name="chevron-right" /></a>
             @endif

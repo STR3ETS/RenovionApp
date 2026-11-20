@@ -11,6 +11,7 @@ use App\Models\AuditLog;
 use App\Models\Customer;
 use App\Models\Lead;
 use App\Models\Quote;
+use App\Support\Navigation;
 use App\Support\QuoteBlockRegistry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -91,6 +92,9 @@ class QuoteController extends Controller
     public function show(Quote $quote): View
     {
         $quote->load(['lines', 'customer', 'lead', 'project', 'calculation', 'versions.creator']);
+
+        // Een offerte heeft geen eigen pagina: dit is het tabblad Offerte van het dossier.
+        Navigation::pin('projecten');
 
         return view('quotes.show', ['quote' => $quote]);
     }

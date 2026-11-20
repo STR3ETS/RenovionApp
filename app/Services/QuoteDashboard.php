@@ -41,7 +41,7 @@ class QuoteDashboard
     /**
      * @return array<string, mixed>
      */
-    public function build(string $period = 'jaar', ?int $sellerId = null): array
+    public function build(string $period = 'jaar', ?int $sellerId = null, ?string $type = null): array
     {
         $from = $this->from($period);
 
@@ -54,6 +54,13 @@ class QuoteDashboard
             ->when($sellerId !== null, fn (Collection $c) => $c->filter(
                 fn (Quote $quote) => $quote->lead?->assigned_to === $sellerId,
             ));
+
+        // De soorten werk die in deze periode voorkomen, voor het filter.
+        $types = $quotes->map(fn (Quote $quote) => $this->type($quote))->unique()->sort()->values();
+
+        if ($type !== null) {
+            $quotes = $quotes->filter(fn (Quote $quote) => $this->type($quote) === $type);
+        }
 
         $rows = $quotes->map(fn (Quote $quote) => [
             'quote' => $quote,
@@ -75,10 +82,19 @@ class QuoteDashboard
 
         $value = fn (Collection $set) => round($set->sum(fn (array $row) => (float) $row['quote']->total), 2);
 
+        $opened = $rows->filter(fn (array $row) => $row['quote']->views_count > 0);
+
         return [
             'rows' => $rows,
             'period' => $period,
             'seller' => $sellerId,
+            'type' => $type,
+            'types' => $types,
+            'opened' => $opened,
+            'opened_value' => $value($opened),
+            'months' => $this->months($rows),
+            'by_type' => $this->groups($rows, fn (array $row) => $this->type($row['quote'])),
+            'by_seller' => $this->groups($rows, fn (array $row) => $row['quote']->lead?->assignee?->name ?? 'Niet toegewezen'),
             'count' => $rows->count(),
             'value' => $value($rows),
             'won' => $won,
@@ -128,6 +144,60 @@ class QuoteDashboard
             $quote->views_count >= 1 => self::CHANCE_OPENED,
             default => self::CHANCE_UNOPENED,
         };
+    }
+
+    /** Het soort werk van een offerte: uit de aanvraag, anders uit het project. */
+    public function type(Quote $quote): string
+    {
+        return $quote->lead?->service ?: ($quote->project?->type ?: 'Overig');
+    }
+
+    /**
+     * Verzonden en getekende waarde per maand van dit jaar, tot en met deze maand.
+     *
+     * @param  Collection<int, array<string, mixed>>  $rows
+     * @return list<array{label: string, sent: float, won: float}>
+     */
+    private function months(Collection $rows): array
+    {
+        $out = [];
+
+        foreach (range(1, (int) now()->month) as $month) {
+            $inMonth = $rows->filter(fn (array $row) => $row['quote']->sent_at->isCurrentYear()
+                && (int) $row['quote']->sent_at->month === $month);
+
+            $out[] = [
+                'label' => rtrim(Carbon::create(null, $month, 1)->translatedFormat('M'), '.'),
+                'sent' => round($inMonth->sum(fn (array $row) => (float) $row['quote']->total), 2),
+                'won' => round($inMonth->where('state', 'getekend')->sum(fn (array $row) => (float) $row['quote']->total), 2),
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
+     * Dezelfde cijfers per groep (soort werk, verkoper), grootste waarde eerst.
+     *
+     * @param  Collection<int, array<string, mixed>>  $rows
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function groups(Collection $rows, callable $key): Collection
+    {
+        return $rows->groupBy($key)->map(function (Collection $set, string $name) {
+            $won = $set->where('state', 'getekend');
+            $decided = $set->whereIn('state', ['getekend', 'afgewezen', 'verlopen'])->count();
+
+            return [
+                'name' => $name,
+                'count' => $set->count(),
+                'value' => round($set->sum(fn (array $row) => (float) $row['quote']->total), 2),
+                'won' => $won->count(),
+                'won_value' => round($won->sum(fn (array $row) => (float) $row['quote']->total), 2),
+                'hit_rate' => $decided > 0 ? round($won->count() / $decided * 100, 1) : 0.0,
+                'days_to_sign' => $this->average($won->pluck('days_to_sign')->filter()),
+            ];
+        })->sortByDesc('value')->values();
     }
 
     /**

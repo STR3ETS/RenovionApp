@@ -1,9 +1,13 @@
 <x-layouts.app :title="$lead->customer->name">
 
-    @php $dossier = \App\Support\Dossier::forLead($lead); @endphp
+    @php
+        // De aanvraag is het begin van het dossier en hoort dus onder Projecten.
+        \App\Support\Navigation::pin('projecten');
+        $dossier = \App\Support\Dossier::forLead($lead);
+    @endphp
 
     {{-- De aanvraag is het begin van het dossier: zelfde kop, stappen en tabbalk als verderop --}}
-    <x-dossier-band :dossier="$dossier" crumb="Aanvragen" :crumb-url="route('leads.index')">
+    <x-dossier-band :dossier="$dossier">
         <x-status-badge :status="$lead->status" />
         <a href="{{ route('leads.edit', $lead) }}" class="btn onnavy"><x-icon name="pencil" /> Bewerken</a>
     </x-dossier-band>

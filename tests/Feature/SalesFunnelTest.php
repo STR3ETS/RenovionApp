@@ -220,7 +220,9 @@ class SalesFunnelTest extends TestCase
 
         $this->actingAs($directie)->get(route('quote-dashboard'))
             ->assertOk()
-            ->assertSee('Hitrate op aantal');
+            ->assertSee('Scoringskans')
+            ->assertSee('Open')
+            ->assertSee('Trechter');
     }
 
     public function test_opening_the_customer_link_records_every_visit(): void

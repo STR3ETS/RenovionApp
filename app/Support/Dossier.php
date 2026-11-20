@@ -35,7 +35,9 @@ class Dossier
 
     public static function forLead(Lead $lead): self
     {
-        $quote = $lead->quotes()->latest('id')->first();
+        $quote = $lead->relationLoaded('quotes')
+            ? $lead->quotes->sortByDesc('id')->first()
+            : $lead->quotes()->latest('id')->first();
 
         return new self($lead, $quote, $lead->project, $lead->customer);
     }

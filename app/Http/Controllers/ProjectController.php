@@ -15,6 +15,7 @@ use App\Models\AgentRun;
 use App\Models\AuditLog;
 use App\Models\Customer;
 use App\Models\Intake;
+use App\Models\Lead;
 use App\Models\Project;
 use App\Models\ProjectDeduction;
 use App\Models\ProjectPhase;
@@ -42,9 +43,17 @@ class ProjectController extends Controller
     {
         $request->validate([
             'status' => ['nullable', Rule::enum(ProjectStatus::class)],
+            'fase' => ['nullable', Rule::in(['commercieel'])],
         ]);
 
         $status = $request->filled('status') ? ProjectStatus::from($request->query('status')) : null;
+        $commercial = $request->query('fase') === 'commercieel';
+
+        // Een dossier begint bij de aanvraag. Wat nog in de verkoop zit, is nog
+        // geen project, maar staat wel in de lijst (alleen voor kantoor).
+        $dossiers = $status === null && $request->user()->can('manage-crm') && ($commercial || ! $request->filled('page') || $request->integer('page') === 1)
+            ? Lead::open()->whereDoesntHave('project')->with(['customer', 'assignee', 'quotes', 'project'])->latest('id')->limit(60)->get()
+            : collect();
 
         $projects = Project::with(['customer', 'projectLeader', 'craftsmen', 'phases'])
             ->withCount(['photos' => fn ($query) => $query->where('client_visible', true)])
@@ -53,6 +62,7 @@ class ProjectController extends Controller
             ))
             ->when($status !== null, fn ($query) => $query->where('status', $status))
             ->when($status === null, fn ($query) => $query->active())
+            ->when($commercial, fn ($query) => $query->whereRaw('1 = 0'))
             ->orderByRaw('start_date is null, start_date asc')
             ->paginate(25)
             ->withQueryString();
@@ -60,6 +70,8 @@ class ProjectController extends Controller
         return view('projects.index', [
             'projects' => $projects,
             'status' => $status,
+            'commercial' => $commercial,
+            'dossiers' => $dossiers,
             'health' => $healthService->forMany($projects->getCollection()),
         ]);
     }

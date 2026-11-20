@@ -266,6 +266,13 @@ Alpine.data('nova', (proposeUrl, executeUrl) => ({
         return 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
     },
 
+    // Een knop elders op de pagina legt Nova een vraag voor (bijvoorbeeld Opvolgen bij een offerte).
+    ask(text) {
+        this.openPanel();
+        this.input = text;
+        this.$nextTick(() => this.send());
+    },
+
     openPanel() {
         this.open = true;
         if (this.messages.length === 0) {

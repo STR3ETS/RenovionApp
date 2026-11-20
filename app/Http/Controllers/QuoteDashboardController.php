@@ -19,7 +19,7 @@ class QuoteDashboardController extends Controller
         $period = array_key_exists($period, QuoteDashboard::PERIODS) ? $period : 'jaar';
 
         return view('quotes.dashboard', [
-            'data' => $dashboard->build($period, $request->integer('verkoper') ?: null),
+            'data' => $dashboard->build($period, $request->integer('verkoper') ?: null, $request->string('type')->toString() ?: null),
             'periods' => QuoteDashboard::PERIODS,
             'sellers' => User::query()
                 ->whereIn('role', [UserRole::Sales->value, UserRole::Directie->value, UserRole::Admin->value])

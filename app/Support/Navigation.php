@@ -242,6 +242,16 @@ class Navigation
         return $out;
     }
 
+    /**
+     * Zet voor dit verzoek vast bij welke sectie het scherm hoort. Een aanvraag
+     * en een offerte zijn een dossier en horen dus onder Projecten, ook al
+     * zegt hun route iets anders.
+     */
+    public static function pin(string $section): void
+    {
+        request()->attributes->set('nav.section', $section);
+    }
+
     /** Mag deze rol bij deze module? */
     public static function allows(UserRole $role, string $module): bool
     {
@@ -263,12 +273,20 @@ class Navigation
     public static function forUser(User $user): array
     {
         $groups = [];
+        $pinned = request()->attributes->get('nav.section');
 
         foreach (self::sections() as $id => $section) {
             $items = self::itemsFor($user, $section['items']);
 
             if ($items === []) {
                 continue;
+            }
+
+            // Een vastgezette sectie wint van de route: het eerste scherm is dan actief.
+            if ($pinned !== null) {
+                foreach ($items as $index => $item) {
+                    $items[$index]['active'] = $id === $pinned && $index === 0;
+                }
             }
 
             $groups[$section['group']][] = [

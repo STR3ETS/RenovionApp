@@ -241,7 +241,7 @@
 
     {{-- Nova AI-assistent --}}
     @can('manage-crm')
-    <div x-data="nova('{{ route('nova.propose') }}', '{{ route('nova.execute') }}')">
+    <div x-data="nova('{{ route('nova.propose') }}', '{{ route('nova.execute') }}')" @nova-ask.window="ask($event.detail)">
         <button @click="openPanel()"
                 class="fixed right-4 bottom-24 z-40 rounded-full shadow-lg shadow-navy-950/30 transition hover:scale-105 active:scale-95 lg:bottom-8"
                 title="Nova">
