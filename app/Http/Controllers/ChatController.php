@@ -14,10 +14,17 @@ class ChatController extends Controller
 {
     public function index(Request $request): View
     {
-        return view('chat.index', [
-            'channels' => ChatChannel::forUser($request->user()),
-            'user' => $request->user(),
-        ]);
+        $channels = ChatChannel::forUser($request->user());
+
+        // Op een breed scherm staat het laatst gebruikte gesprek er direct naast;
+        // op een telefoon zie je eerst de lijst.
+        $latest = $channels->sortByDesc('last_message_at')->first();
+
+        if ($latest === null) {
+            return view('chat.index', ['channels' => $channels, 'user' => $request->user()]);
+        }
+
+        return $this->conversation($request, $latest, $channels, listFirst: true);
     }
 
     public function show(Request $request, ChatChannel $channel): View
@@ -26,6 +33,16 @@ class ChatController extends Controller
 
         $channel->markReadFor($request->user());
 
+        return $this->conversation($request, $channel, ChatChannel::forUser($request->user()));
+    }
+
+    /**
+     * Het chatvenster: links de gesprekken, rechts het gekozen gesprek.
+     *
+     * @param  \Illuminate\Support\Collection<int, ChatChannel>  $channels
+     */
+    private function conversation(Request $request, ChatChannel $channel, $channels, bool $listFirst = false): View
+    {
         $messages = $channel->messages()
             ->with('user')
             ->latest('id')
@@ -37,9 +54,10 @@ class ChatController extends Controller
 
         return view('chat.show', [
             'channel' => $channel,
-            'channels' => ChatChannel::forUser($request->user()),
+            'channels' => $channels,
             'messages' => $messages,
             'user' => $request->user(),
+            'listFirst' => $listFirst,
         ]);
     }
 

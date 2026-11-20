@@ -78,7 +78,7 @@ Alpine.data('chat', (config) => ({
         if (!body) return '';
         return body
             .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-            .replace(/@([\wÀ-ÿ-]+)/g, '<span class="font-semibold text-brand-600">@$1</span>')
+            .replace(/@([\wÀ-ÿ-]+)/g, '<span class="wa-at">@$1</span>')
             .replace(/\n/g, '<br>');
     },
 

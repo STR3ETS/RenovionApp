@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Cache;
 
 #[Fillable(['type', 'name', 'project_id', 'created_by'])]
@@ -24,6 +25,12 @@ class ChatChannel extends Model
         return $this->hasMany(ChatMessage::class);
     }
 
+    /** Het laatste bericht, voor de regel onder de naam in de lijst. */
+    public function latestMessage(): HasOne
+    {
+        return $this->hasOne(ChatMessage::class)->latestOfMany();
+    }
+
     public function readers(): BelongsToMany
     {
         return $this->belongsToMany(User::class)->withPivot('last_read_at')->withTimestamps();
@@ -37,6 +44,44 @@ class ChatChannel extends Model
     public function displayName(): string
     {
         return $this->isProjectChannel() ? ($this->project?->name ?? $this->name) : $this->name;
+    }
+
+    /** De naam zoals hij in de chat staat: #algemeen, #pd-0054-badkamer-jansen. */
+    public function handle(): string
+    {
+        $name = $this->isProjectChannel() && $this->project
+            ? $this->project->number().' '.$this->project->name
+            : $this->name;
+
+        return '#'.str($name)->slug();
+    }
+
+    /**
+     * De regel onder de naam: wie het laatst iets zei en wat, plus het moment.
+     *
+     * @return array{text: string, time: string}
+     */
+    public function preview(User $viewer): array
+    {
+        $message = $this->latestMessage;
+
+        if ($message === null) {
+            return ['text' => 'Nog geen berichten', 'time' => ''];
+        }
+
+        $who = match (true) {
+            $message->isFromNova() => 'Nova',
+            $message->user_id === $viewer->id => 'Jij',
+            default => str($message->user?->name ?? 'Iemand')->before(' ')->toString(),
+        };
+        $text = trim((string) $message->body) !== '' ? str($message->body)->squish()->limit(60)->toString() : 'foto';
+
+        return [
+            'text' => $who.': '.$text,
+            'time' => $message->created_at->isToday()
+                ? $message->created_at->format('H:i')
+                : $message->created_at->translatedFormat('j M'),
+        ];
     }
 
     /**
@@ -66,7 +111,7 @@ class ChatChannel extends Model
                 ->where(fn (Builder $inner) => $inner
                     ->where('type', 'team')
                     ->orWhereHas('project.craftsmen', fn ($craftsmen) => $craftsmen->where('users.id', $user->id))))
-            ->with(['project', 'readers' => fn ($query) => $query->where('users.id', $user->id)])
+            ->with(['project', 'latestMessage.user', 'readers' => fn ($query) => $query->where('users.id', $user->id)])
             ->withMax('messages as last_message_at', 'created_at')
             ->orderBy('type')
             ->orderByDesc('last_message_at')

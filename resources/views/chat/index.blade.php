@@ -1,9 +1,14 @@
-<x-layouts.app title="Team">
+<x-layouts.app title="Teamchat">
 
-    <x-page-header title="Team" subtitle="Teamchat en projectcommunicatie - klantberichten blijven hier altijd buiten." />
+    {{-- Alleen als er nog geen enkel gesprek is; anders opent de chat meteen het laatste gesprek --}}
+    <div class="wa showlist">
+        @include('chat.partials.list', ['channels' => $channels, 'user' => $user, 'active' => null])
 
-    <div class="mx-auto max-w-xl rounded-2xl border border-surface-700 bg-surface-800 p-4 lg:mx-0">
-        @include('chat.partials.channels', ['channels' => $channels, 'user' => $user, 'active' => null])
+        <section class="wa-main">
+            <div class="wa-msgs">
+                <div class="wa-sys">Nog geen gesprekken. Maak een kanaal aan met de plus linksboven.</div>
+            </div>
+        </section>
     </div>
 
 </x-layouts.app>

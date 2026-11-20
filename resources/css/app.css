@@ -2826,6 +2826,558 @@ html[data-theme='dark'] {
     }
 }
 
+/* ---------- Teamchat in WhatsApp-stijl (prototype ronde 15) ---------- */
+:root {
+    --wa-l: #e9edf3;
+    --wa-li: #f6f8fb;
+    --wa-m: #f7f6f3;
+    --wa-sh: rgb(13 26 46 / 0.1);
+    --wa-me: #ffe7d6;
+}
+
+html[data-theme='dark'] {
+    --wa-l: #0b1524;
+    --wa-li: #13213a;
+    --wa-m: #16233a;
+    --wa-sh: rgb(0 0 0 / 0.45);
+    --wa-me: #3a2312;
+}
+
+@layer components {
+    .wa {
+        display: grid;
+        grid-template-columns: 340px minmax(0, 1fr);
+        height: calc(100dvh - 57px - 48px);
+        min-height: 520px;
+        margin-bottom: -32px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--wa-l);
+        box-shadow: 0 1px 2px var(--wa-sh), 0 12px 32px -18px var(--wa-sh);
+    }
+
+    .wa-list {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        background: var(--wa-l);
+        box-shadow: 1px 0 0 color-mix(in srgb, var(--border) 70%, transparent), 8px 0 22px -14px var(--wa-sh);
+    }
+
+    .wa-lh {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 14px 8px;
+    }
+
+    .wa-lh h3 {
+        font-family: var(--font-display);
+        font-size: 21px;
+        font-weight: 600;
+        color: var(--text);
+    }
+
+    .wa-search {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 38px;
+        margin: 0 12px;
+        padding: 0 10px;
+        border-radius: 10px;
+        background: var(--card);
+        box-shadow: 0 1px 2px var(--wa-sh);
+    }
+
+    .wa-search svg {
+        width: 15px;
+        height: 15px;
+        color: var(--muted);
+    }
+
+    .app-shell .wa-search input {
+        flex: 1;
+        min-width: 0;
+        height: 36px;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: none;
+        box-shadow: none;
+        font-size: 14px;
+        outline: none;
+    }
+
+    .wa-f {
+        display: flex;
+        gap: 6px;
+        padding: 10px 12px;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .wa-f button {
+        flex: none;
+        padding: 5px 12px;
+        border: 0;
+        border-radius: 99px;
+        background: color-mix(in srgb, var(--card) 70%, transparent);
+        color: var(--ink2);
+        font-size: 12.5px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .wa-f button.on {
+        background: var(--tab-on-bg);
+        color: var(--tab-on-fg);
+    }
+
+    .wa-items {
+        flex: 1;
+        padding: 0 8px 8px;
+        overflow-y: auto;
+    }
+
+    .wa-it {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        margin-bottom: 2px;
+        padding: 10px;
+        border-radius: 12px;
+        color: var(--text);
+        text-align: left;
+        text-decoration: none;
+    }
+
+    .wa-it:hover {
+        background: color-mix(in srgb, var(--card) 55%, transparent);
+    }
+
+    .wa-it.on {
+        background: var(--card);
+        box-shadow: 0 1px 2px var(--wa-sh), 0 6px 16px -8px var(--wa-sh);
+    }
+
+    .wa-it.on::before {
+        content: '';
+        position: absolute;
+        top: 12px;
+        bottom: 12px;
+        left: 0;
+        width: 3px;
+        border-radius: 3px;
+        background: var(--h);
+    }
+
+    .wa-itx {
+        display: grid;
+        flex: 1;
+        gap: 2px;
+        min-width: 0;
+    }
+
+    .wa-itx b {
+        min-width: 0;
+        overflow: hidden;
+        font-size: 14px;
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .wa-itx small {
+        min-width: 0;
+        overflow: hidden;
+        font-size: 12.5px;
+        color: var(--muted);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .wa-itx small.u {
+        color: var(--h);
+        font-weight: 700;
+    }
+
+    .wa-u {
+        display: grid;
+        place-items: center;
+        flex: none;
+        min-width: 20px;
+        height: 20px;
+        padding: 0 6px;
+        border-radius: 99px;
+        background: var(--h);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .wa-av {
+        display: grid;
+        place-items: center;
+        flex: none;
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: color-mix(in srgb, var(--ac, #3e6ba8) 18%, var(--card));
+        color: var(--ac, #3e6ba8);
+    }
+
+    .wa-av svg {
+        width: 19px;
+        height: 19px;
+    }
+
+    .wa-it .wa-av {
+        background: var(--card);
+        box-shadow: 0 1px 2px var(--wa-sh);
+    }
+
+    .wa-it.on .wa-av {
+        background: color-mix(in srgb, var(--ac, #3e6ba8) 14%, var(--card));
+    }
+
+    .wa-main {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        min-height: 0;
+        background: var(--wa-m);
+    }
+
+    .wa-h {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        background: var(--card);
+        box-shadow: 0 1px 0 var(--border), 0 6px 14px -10px var(--wa-sh);
+    }
+
+    .wa-ht {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .wa-ht b {
+        display: block;
+        overflow: hidden;
+        font-weight: 600;
+        color: var(--text);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .wa-ht small {
+        display: block;
+        overflow: hidden;
+        font-size: 12px;
+        color: var(--muted);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .wa-msgs {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        gap: 2px;
+        padding: 14px 6% 18px;
+        overflow-y: auto;
+        background-color: var(--wa-m);
+        background-image: radial-gradient(color-mix(in srgb, var(--ink2) 9%, transparent) 1px, transparent 1px);
+        background-size: 18px 18px;
+    }
+
+    .wa-day {
+        display: flex;
+        justify-content: center;
+        margin: 12px 0 8px;
+    }
+
+    .wa-day span {
+        padding: 3px 10px;
+        border: 1px solid var(--border2);
+        border-radius: 8px;
+        background: var(--card);
+        box-shadow: 0 1px 2px var(--wa-sh);
+        color: var(--ink2);
+        font-size: 11.5px;
+        font-weight: 600;
+    }
+
+    .wa-sys {
+        align-self: center;
+        max-width: 80%;
+        margin: 8px 0;
+        padding: 5px 12px;
+        border-radius: 8px;
+        background: color-mix(in srgb, #ffe9a8 70%, var(--card));
+        color: #5b4a14;
+        font-size: 12.5px;
+        text-align: center;
+    }
+
+    html[data-theme='dark'] .wa-sys {
+        background: #2d2412;
+        color: #f0d79a;
+    }
+
+    .wa-m {
+        position: relative;
+        display: flex;
+        align-items: flex-end;
+        gap: 6px;
+        margin-top: 8px;
+    }
+
+    .wa-m.cont {
+        margin-top: 2px;
+    }
+
+    .wa-m.me {
+        justify-content: flex-end;
+    }
+
+    .wa-b {
+        position: relative;
+        min-width: 90px;
+        max-width: min(560px, 78%);
+        padding: 6px 9px 18px;
+        border-radius: 10px;
+        background: var(--card);
+        box-shadow: 0 1px 1px var(--wa-sh), 0 3px 10px -6px var(--wa-sh);
+        color: var(--text);
+        font-size: 14px;
+        line-height: 1.4;
+    }
+
+    .wa-m.them:not(.cont) .wa-b {
+        border-top-left-radius: 2px;
+    }
+
+    .wa-m.me .wa-b {
+        border-top-right-radius: 2px;
+        background: var(--wa-me);
+    }
+
+    .wa-m.me.cont .wa-b {
+        border-top-right-radius: 10px;
+    }
+
+    .wa-n {
+        display: block;
+        margin-bottom: 2px;
+        font-size: 12.5px;
+        font-weight: 700;
+    }
+
+    .wa-t {
+        overflow-wrap: anywhere;
+        white-space: pre-wrap;
+    }
+
+    .wa-at {
+        font-weight: 700;
+        color: var(--orange-h);
+    }
+
+    .wa-time {
+        position: absolute;
+        right: 8px;
+        bottom: 3px;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 10.5px;
+        color: var(--muted);
+    }
+
+    .wa-tick {
+        margin-left: 2px;
+        font-style: normal;
+        letter-spacing: -3px;
+        color: var(--muted);
+    }
+
+    .wa-tick.read {
+        color: #2b8bd8;
+    }
+
+    .wa-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin: 4px 6px 0 0;
+        font-size: 11.5px;
+        font-weight: 600;
+        color: var(--blue);
+    }
+
+    /* Het voorstel van Nova in een bubbel. */
+    .wa-card {
+        margin-top: 6px;
+        padding: 9px 11px;
+        border: 1px solid var(--orange-line);
+        border-radius: 10px;
+        background: var(--orange-soft);
+        font-size: 13px;
+    }
+
+    .agtag {
+        margin-left: 4px;
+        padding: 0 6px;
+        border: 1px solid var(--border);
+        border-radius: 99px;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    .wa-acts {
+        position: absolute;
+        top: -16px;
+        z-index: 3;
+        display: none;
+        gap: 1px;
+        padding: 2px 4px;
+        border: 1px solid var(--border);
+        border-radius: 99px;
+        background: var(--card);
+        box-shadow: var(--shadow-pop);
+    }
+
+    .wa-m.them .wa-acts { left: 30%; }
+    .wa-m.me .wa-acts { right: 30%; }
+
+    .wa-m:hover .wa-acts,
+    .wa-m:focus-within .wa-acts {
+        display: flex;
+    }
+
+    .wa-acts button {
+        display: grid;
+        place-items: center;
+        width: 30px;
+        height: 30px;
+        border: 0;
+        border-radius: 50%;
+        background: none;
+        color: var(--ink2);
+        cursor: pointer;
+    }
+
+    .wa-acts button:hover {
+        background: var(--card2);
+    }
+
+    .wa-acts svg {
+        width: 15px;
+        height: 15px;
+    }
+
+    .wa-comp {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px 10px;
+        background: var(--card);
+        box-shadow: 0 -1px 0 var(--border), 0 -6px 14px -12px var(--wa-sh);
+    }
+
+    .app-shell .wa-comp input[type='text'] {
+        flex: 1;
+        min-width: 0;
+        height: 42px;
+        padding: 0 16px;
+        border-radius: 21px;
+        background: var(--wa-li);
+        font-size: 14px;
+    }
+
+    .wa-ib,
+    .wa-send {
+        display: grid;
+        place-items: center;
+        flex: none;
+        width: 42px;
+        height: 42px;
+        border: 0;
+        border-radius: 50%;
+        cursor: pointer;
+    }
+
+    .wa-ib {
+        background: none;
+        color: var(--muted);
+    }
+
+    .wa-ib:hover {
+        color: var(--text);
+    }
+
+    .wa-ib.listening {
+        background: var(--bad);
+        color: #fff;
+    }
+
+    .wa-ib svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .wa-send {
+        background: var(--h);
+        color: #fff;
+    }
+
+    .wa-send:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+
+    .wa-send svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    /* Smal scherm: eerst de lijst, dan het gesprek, nooit allebei. */
+    @media (max-width: 1023px) {
+        .wa {
+            grid-template-columns: minmax(0, 1fr);
+            height: calc(100dvh - 56px - 16px - 76px);
+            min-height: 420px;
+            margin-bottom: -96px;
+        }
+
+        .wa.showlist .wa-main,
+        .wa:not(.showlist) .wa-list {
+            display: none;
+        }
+
+        .wa-msgs {
+            padding-inline: 12px;
+        }
+
+        .wa-b {
+            max-width: 86%;
+        }
+    }
+}
+
 /* De pagina: 24 pixels lucht rondom, hooguit 1440 breed. */
 .page {
     width: 100%;
