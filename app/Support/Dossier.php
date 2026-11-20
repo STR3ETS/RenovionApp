@@ -26,6 +26,19 @@ class Dossier
         'Voorbereiding', 'Uitvoering', 'Oplevering', 'Nazorg',
     ];
 
+    /** Tabbladen van het dossier die pas gevuld raken als het project loopt. */
+    public const LATER_TABS = [
+        'planning' => 'Planning',
+        'taken' => 'Taken',
+        'werkbonnen' => 'Werkbonnen',
+        'uren' => 'Urenstaat',
+        'meerwerk' => 'Meerwerk en facturen',
+        'inkoop' => 'Inkoop en partners',
+        'kwaliteit' => 'Kwaliteit',
+        'financien' => 'Financiën',
+        'nacalculatie' => 'Nacalculatie',
+    ];
+
     private function __construct(
         public readonly ?Lead $lead,
         public readonly ?Quote $quote,
@@ -145,14 +158,14 @@ class Dossier
     public function meta(): array
     {
         $owner = $this->project?->projectLeader ?? $this->lead?->assignee;
-        $value = $this->project?->value ?? $this->quote?->subtotal;
+        $value = $this->project?->value ?? $this->quote?->subtotal ?? $this->lead?->value;
 
         return [
-            'Dossier' => $this->number(),
+            'Projectnummer' => $this->number(),
             'Opdrachtgever' => $this->customer?->name ?? 'onbekend',
             'Fase' => $this->stageLabel(),
-            $this->project !== null ? 'Projectleider' : 'Behandelaar' => $owner?->name ?? 'nog niet toegewezen',
-            'Waarde' => $value !== null ? '€ '.number_format((float) $value, 2, ',', '.') : 'nog niet bekend',
+            'Projectleider' => $owner?->name ?? 'nog niet toegewezen',
+            'Projectwaarde' => $value !== null ? '€ '.number_format((float) $value, 2, ',', '.') : 'nog niet bekend',
             'Offerte'.($this->quote ? ' '.$this->quote->number : '') => $this->quote?->status->label() ?? 'nog niet',
         ];
     }
@@ -169,25 +182,33 @@ class Dossier
         $tabs = [];
 
         if ($this->lead !== null) {
-            $tabs[] = ['label' => 'Aanvraag en intake', 'url' => route('leads.show', $this->lead), 'active' => $active === 'aanvraag'];
+            $tabs[] = ['label' => 'Overzicht', 'url' => route('leads.show', $this->lead), 'active' => $active === 'aanvraag'];
+            $tabs[] = ['label' => 'Aanvraag en intake', 'url' => route('leads.show', [$this->lead, 'tab' => 'intake']), 'active' => $active === 'intake'];
         }
 
         $calculation = $this->quote?->calculation ?? $this->lead?->calculations()->latest('id')->first();
 
         if ($calculation !== null && Route::has('calculations.show')) {
             $tabs[] = ['label' => 'Begroting', 'url' => route('calculations.show', $calculation), 'active' => false];
+        } elseif ($this->lead !== null && Route::has('calculations.create')) {
+            $tabs[] = ['label' => 'Begroting', 'url' => route('calculations.create', ['aanvraag' => $this->lead->id]), 'active' => false];
         }
 
         if ($this->quote !== null && Route::has('quotes.show')) {
             $tabs[] = ['label' => 'Offerte', 'url' => route('quotes.show', $this->quote), 'active' => $active === 'offerte'];
+        } elseif ($this->lead !== null && Route::has('quotes.create')) {
+            $tabs[] = ['label' => 'Offerte', 'url' => route('quotes.create', ['aanvraag' => $this->lead->id]), 'active' => false];
         }
-
         if ($this->project !== null) {
             $tabs[] = ['label' => 'Projectdossier', 'url' => route('projects.show', $this->project), 'active' => false];
         }
 
-        if ($this->customer !== null) {
-            $tabs[] = ['label' => 'Klantdossier', 'url' => route('customers.show', $this->customer), 'active' => false];
+        // De tabbladen die pas inhoud krijgen als het project loopt. Ze staan er
+        // wel, zoals in het prototype, zodat je ziet wat er komt.
+        if ($this->project === null && $this->lead !== null) {
+            foreach (self::LATER_TABS as $key => $label) {
+                $tabs[] = ['label' => $label, 'url' => route('leads.show', [$this->lead, 'tab' => $key]), 'active' => $active === $key];
+            }
         }
 
         return $tabs;

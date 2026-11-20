@@ -15,11 +15,18 @@
     <x-dossier-steps :dossier="$dossier" />
 
     <x-tabs class="mb-[22px]">
-        @foreach ($dossier->tabs('aanvraag') as $item)
+        @php $dossierTab = request('tab'); @endphp
+        @foreach ($dossier->tabs($dossierTab === 'intake' ? 'intake' : (isset(\App\Support\Dossier::LATER_TABS[$dossierTab]) ? $dossierTab : 'aanvraag')) as $item)
             <x-tab :href="$item['url']" :active="$item['active']">{{ $item['label'] }}</x-tab>
         @endforeach
     </x-tabs>
 
+    @if (isset(\App\Support\Dossier::LATER_TABS[$dossierTab]))
+        {{-- Dit tabblad vult zich pas als het project loopt --}}
+        <x-empty-state icon="folder" category="project"
+                       :title="\App\Support\Dossier::LATER_TABS[$dossierTab].' komt zodra het project loopt'"
+                       subtitle="Dit dossier staat nog in de verkoop. Na akkoord op de offerte wordt het een project en vult dit tabblad zich vanzelf." />
+    @else
     <div class="grid gap-4 lg:grid-cols-3">
         <div class="space-y-4 lg:col-span-2">
 
@@ -62,7 +69,7 @@
 
             {{-- Contactmoment vastleggen (briefing §4: Nova bewaakt contactmomenten) --}}
             <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
-                <h2 class="mb-3 text-sm font-bold text-ink">Contactmoment vastleggen</h2>
+                <h2 id="contact" class="mb-3 scroll-mt-24 text-sm font-bold text-ink">Contactmoment vastleggen</h2>
                 <form method="POST" action="{{ route('leads.contacts.store', $lead) }}" class="space-y-3">
                     @csrf
                     <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -231,5 +238,7 @@
             </section>
         </div>
     </div>
+
+    @endif
 
 </x-layouts.app>

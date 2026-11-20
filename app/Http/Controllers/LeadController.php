@@ -4,13 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Enums\ActionSource;
 use App\Enums\LeadStatus;
+use App\Enums\QuoteStatus;
 use App\Enums\TimelineEventType;
 use App\Http\Requests\StoreLeadRequest;
 use App\Http\Requests\UpdateLeadRequest;
 use App\Models\AuditLog;
 use App\Models\Customer;
 use App\Models\Lead;
+use App\Models\Quote;
 use App\Models\User;
+use App\Support\Dossier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -20,23 +23,55 @@ class LeadController extends Controller
 {
     public function index(Request $request): View
     {
-        $view = $request->query('view', 'kanban');
-
-        $leads = Lead::with(['customer', 'assignee'])
-            ->withCount('quotes')
+        $leads = Lead::with(['customer', 'assignee', 'quotes', 'project'])
             ->orderBy('position')
             ->orderByDesc('created_at')
             ->get();
 
-        $columns = collect(LeadStatus::pipeline())
-            ->mapWithKeys(fn (LeadStatus $status) => [
-                $status->value => $leads->where('status', $status)->values(),
-            ]);
+        // De verkooptrechter loopt tot en met de offerte; daarna is het een project.
+        $open = $leads
+            ->filter(fn (Lead $lead) => $lead->status->isOpen() && $lead->project === null)
+            ->each(fn (Lead $lead) => $lead->setRelation('dossier', Dossier::forLead($lead)))
+            ->filter(fn (Lead $lead) => $lead->dossier->stage() <= 3)
+            ->values();
+
+        $value = fn (Lead $lead) => (float) ($lead->dossier->quote?->subtotal ?: $lead->value);
+
+        // Per stap de kans dat het een opdracht wordt, en de status die een kaart krijgt als je hem erheen sleept.
+        $steps = [[10, 'contact'], [25, 'intake'], [40, 'offerte'], [60, 'offerte']];
+
+        $columns = collect($steps)->map(fn (array $step, int $index) => [
+            'label' => Dossier::STEPS[$index],
+            'chance' => $step[0],
+            'status' => $step[1],
+            'leads' => $open->filter(fn (Lead $lead) => $lead->dossier->stage() === $index)->values(),
+        ]);
+
+        // Opvolging: te laat eerst, dan niets gepland, dan vandaag, dan later.
+        $rank = ['late' => 0, 'none' => 1, 'today' => 2, 'later' => 3];
+        $follow = $open->map(function (Lead $lead) {
+            $at = $lead->next_action_at;
+            $state = $at === null ? 'none' : ($at->isPast() ? 'late' : ($at->isToday() ? 'today' : 'later'));
+
+            return [
+                'lead' => $lead,
+                'state' => $state,
+                'unreached' => $lead->last_contact_at === null || $lead->isUnreached(),
+                'label' => $at === null
+                    ? 'Niets gepland'
+                    : ucfirst($lead->next_action ?? 'Opvolgen').' '.($at->isToday() ? 'vandaag '.$at->format('H:i') : $at->translatedFormat('D j M H:i')),
+            ];
+        })->sortBy(fn (array $row) => [$rank[$row['state']], $row['lead']->next_action_at?->timestamp ?? PHP_INT_MAX])->values();
 
         return view('leads.index', [
-            'view' => $view,
-            'leads' => $leads,
-            'columns' => $columns,
+            'board' => [
+                'columns' => $columns,
+                'count' => $open->count(),
+                'value' => $open->sum($value),
+                'weighted' => $open->sum(fn (Lead $lead) => $value($lead) * $steps[$lead->dossier->stage()][0] / 100),
+                'won' => (float) Quote::where('status', QuoteStatus::Akkoord)->whereYear('accepted_at', now()->year)->sum('subtotal'),
+            ],
+            'follow' => $follow,
             'inactief' => $leads->whereIn('status', [LeadStatus::Verloren, LeadStatus::OnHold])->values(),
         ]);
     }
