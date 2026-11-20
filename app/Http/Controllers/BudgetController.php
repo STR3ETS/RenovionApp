@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\ApplyFrameworkPreset;
 use App\Models\AuditLog;
 use App\Models\Budget;
 use App\Models\Lead;
@@ -74,7 +75,14 @@ class BudgetController extends Controller
         $project = isset($validated['project_id']) ? Project::find($validated['project_id']) : null;
         $lead = isset($validated['lead_id']) ? Lead::find($validated['lead_id']) : null;
 
-        $budget = DB::transaction(function () use ($validated, $project, $lead, $request) {
+        // Een klant met een lopende raamovereenkomst begint met zijn vaste prijzen
+        // in plaats van met het standaardskelet, tenzij je zelf een sjabloon kiest.
+        $customer = $project?->customer ?? $lead?->customer;
+        $customer?->loadMissing('frameworkAgreements.prices.priceItem');
+        $agreement = isset($validated['template']) ? null : $customer?->activeFramework();
+        $agreement = $agreement?->preset_active ? $agreement : null;
+
+        $budget = DB::transaction(function () use ($validated, $project, $lead, $request, $agreement) {
             $budget = Budget::create([
                 'number' => Budget::nextNumber(),
                 'name' => $validated['name'],
@@ -101,9 +109,11 @@ class BudgetController extends Controller
                 $budget->terms()->create([...$term, 'position' => $position]);
             }
 
-            $skeleton = isset($validated['template'])
-                ? BudgetChapterLibrary::template($validated['template'])
-                : BudgetChapterLibrary::for($project?->type, $validated['name']);
+            $skeleton = match (true) {
+                $agreement !== null => [],
+                isset($validated['template']) => BudgetChapterLibrary::template($validated['template']),
+                default => BudgetChapterLibrary::for($project?->type, $validated['name']),
+            };
 
             $position = 0;
 
@@ -121,6 +131,10 @@ class BudgetController extends Controller
                         'position' => $index,
                     ]);
                 }
+            }
+
+            if ($agreement !== null) {
+                app(ApplyFrameworkPreset::class)->handle($budget, $agreement);
             }
 
             return $budget;
@@ -141,7 +155,7 @@ class BudgetController extends Controller
         $budget->load([
             'chapters.paragraphs.lines.priceItem',
             'markups', 'options', 'terms',
-            'project.customer', 'lead.customer', 'customer',
+            'project.customer', 'lead.customer', 'customer.frameworkAgreements',
         ]);
 
         return view('budgets.show', [

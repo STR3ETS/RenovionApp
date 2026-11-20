@@ -24,6 +24,7 @@ class UpdateTaskRequest extends FormRequest
             'note' => ['nullable', 'string', 'max:5000'],
             'owner_id' => ['nullable', 'exists:users,id'],
             'deadline' => ['nullable', 'date'],
+            'due_time' => ['nullable', 'date_format:H:i'],
             'priority' => ['nullable', Rule::enum(TaskPriority::class)],
         ];
     }

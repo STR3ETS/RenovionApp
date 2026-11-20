@@ -83,7 +83,7 @@ class InvoiceController extends Controller
                 'type' => InvoiceType::Termijn,
                 'description' => $term->description,
                 'date' => today(),
-                'due_date' => today()->addDays(Invoice::PAYMENT_DAYS),
+                'due_date' => Invoice::dueDateFor($project->customer),
                 'amount' => $amount,
                 'vat_pct' => $totals->vatPercentage,
                 'status' => InvoiceStatus::Concept,
@@ -133,7 +133,7 @@ class InvoiceController extends Controller
                 'type' => InvoiceType::Eindafrekening,
                 'description' => 'Eindafrekening '.$project->name,
                 'date' => today(),
-                'due_date' => today()->addDays(Invoice::PAYMENT_DAYS),
+                'due_date' => Invoice::dueDateFor($project->customer),
                 'amount' => $settlement['balance'],
                 'vat_pct' => $settlement['vat_pct'],
                 'retention' => $settlement['retention'],
@@ -215,7 +215,7 @@ class InvoiceController extends Controller
             if ($status === InvoiceStatus::Verzonden && $invoice->sent_at === null) {
                 $validated['sent_at'] = now();
                 $validated['date'] = today();
-                $validated['due_date'] = today()->addDays(Invoice::PAYMENT_DAYS);
+                $validated['due_date'] = Invoice::dueDateFor($invoice->customer);
             }
 
             if ($status === InvoiceStatus::Betaald) {

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\JobChecklistTemplates;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * nacalculatie meetelt, ook al is er nog geen factuur.
  */
 #[Fillable([
-    'number', 'project_id', 'supplier', 'reference', 'status', 'ordered_on',
+    'number', 'project_id', 'supplier', 'subcontractor_id', 'rfq_id', 'photo_required', 'reference', 'status', 'ordered_on',
     'expected_on', 'delivered_on', 'chapter_code', 'category', 'notes', 'created_by',
 ])]
 class PurchaseOrder extends Model
@@ -45,6 +46,7 @@ class PurchaseOrder extends Model
             'ordered_on' => 'date',
             'expected_on' => 'date',
             'delivered_on' => 'date',
+            'photo_required' => 'boolean',
         ];
     }
 
@@ -61,6 +63,46 @@ class PurchaseOrder extends Model
     public function invoices(): HasMany
     {
         return $this->hasMany(PurchaseInvoice::class);
+    }
+
+    public function subcontractor(): BelongsTo
+    {
+        return $this->belongsTo(Subcontractor::class);
+    }
+
+    public function rfq(): BelongsTo
+    {
+        return $this->belongsTo(Rfq::class);
+    }
+
+    /**
+     * Welke foto-momenten nog ontbreken: voor, tijdens en na. De foto's komen
+     * uit de werkweergave van de klussen op dit project, van de onderaannemer
+     * zelf als die een account heeft en anders van iedereen op het project.
+     *
+     * @return list<string>
+     */
+    public function missingPhotoMoments(): array
+    {
+        if (! $this->photo_required) {
+            return [];
+        }
+
+        $worker = $this->subcontractor?->user_id;
+
+        $moments = Photo::query()
+            ->whereNotNull('job_step_id')
+            ->where('project_id', $this->project_id)
+            ->when($worker !== null, fn ($query) => $query->whereHas(
+                'jobStep.job',
+                fn ($job) => $job->where('user_id', $worker),
+            ))
+            ->with('jobStep:id,title')
+            ->get()
+            ->map(fn (Photo $photo) => JobChecklistTemplates::momentFor((string) $photo->jobStep?->title))
+            ->unique();
+
+        return array_values(array_diff(JobChecklistTemplates::MOMENTS, $moments->all()));
     }
 
     public function creator(): BelongsTo

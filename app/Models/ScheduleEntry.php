@@ -8,10 +8,11 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 #[Fillable([
     'user_id', 'project_id', 'lead_id', 'customer_id', 'type',
-    'title', 'date', 'end_date', 'start_time', 'end_time', 'notes',
+    'title', 'date', 'end_date', 'start_time', 'end_time', 'notes', 'done_at',
 ])]
 class ScheduleEntry extends Model
 {
@@ -27,12 +28,19 @@ class ScheduleEntry extends Model
             'type' => ScheduleEntryType::class,
             'date' => 'date',
             'end_date' => 'date',
+            'done_at' => 'datetime',
         ];
     }
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /** Wie er naast de eigenaar van het blok bij de afspraak is. */
+    public function participants(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class)->withTimestamps();
     }
 
     public function project(): BelongsTo

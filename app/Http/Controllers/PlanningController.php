@@ -184,7 +184,11 @@ class PlanningController extends Controller
             $validated['customer_id'] = Project::find($validated['project_id'])?->customer_id;
         }
 
-        ScheduleEntry::create($validated);
+        $participants = $validated['participants'] ?? [];
+        unset($validated['participants']);
+
+        $entry = ScheduleEntry::create($validated);
+        $entry->participants()->sync(array_diff($participants, [$entry->user_id]));
 
         return back()->with('success', 'Planning toegevoegd.');
     }

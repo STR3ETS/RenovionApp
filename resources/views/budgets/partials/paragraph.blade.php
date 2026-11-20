@@ -46,7 +46,7 @@
                                         <input type="text" name="description" value="{{ $line->description }}" onchange="this.form.requestSubmit()"
                                                class="w-full min-w-48 rounded-lg border-0 bg-transparent px-1 py-1 text-sm text-white focus:bg-surface-850 focus:ring-1 focus:ring-brand-500">
                                         @if ($line->source)
-                                            <span class="block px-1 text-[10px] text-slate-500">{{ $line->source }}</span>
+                                            <span class="block px-1 text-[10px] text-slate-500">{{ $line->source }}@include('budgets.partials.line-margin')</span>
                                         @endif
                                     </td>
                                     <td class="px-1 py-1.5">
@@ -82,7 +82,7 @@
                                 <td class="px-3 py-2 text-slate-200">
                                     {{ $line->description }}
                                     @if ($line->source)
-                                        <span class="block text-[10px] text-slate-500">{{ $line->source }}</span>
+                                        <span class="block text-[10px] text-slate-500">{{ $line->source }}@include('budgets.partials.line-margin')</span>
                                     @endif
                                 </td>
                                 <td class="px-2 py-2 text-right text-slate-300">{{ rtrim(rtrim(number_format((float) $line->quantity, 2, ',', '.'), '0'), ',') }}</td>

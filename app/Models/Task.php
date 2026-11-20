@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'title', 'note', 'customer_id', 'project_id', 'lead_id', 'owner_id',
-    'deadline', 'priority', 'status', 'source', 'completed_at',
+    'deadline', 'due_time', 'priority', 'status', 'source', 'completed_at',
 ])]
 class Task extends Model
 {

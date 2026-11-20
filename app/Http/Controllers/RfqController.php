@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Actions\AwardRfq;
+use App\Enums\QuoteStatus;
 use App\Models\AuditLog;
 use App\Models\Budget;
+use App\Models\BudgetLine;
 use App\Models\Project;
+use App\Models\Quote;
 use App\Models\Rfq;
 use App\Models\RfqBid;
 use App\Models\Subcontractor;
@@ -23,7 +26,7 @@ class RfqController extends Controller
 {
     public function index(Request $request): View
     {
-        $rfqs = Rfq::with(['project.customer', 'bids.subcontractor', 'winner', 'invited'])
+        $rfqs = Rfq::with(['project.customer', 'bids.subcontractor.documents', 'winner', 'invited'])
             ->when($request->string('status')->toString(), fn ($q, $s) => $q->where('status', $s))
             ->when($request->integer('project'), fn ($q, $id) => $q->where('project_id', $id))
             ->latest('id')
@@ -87,7 +90,7 @@ class RfqController extends Controller
 
     public function show(Rfq $rfq): View
     {
-        $rfq->load(['project.customer', 'invited.documents', 'bids.subcontractor', 'winner', 'creator']);
+        $rfq->load(['project.customer', 'invited.documents', 'bids.subcontractor.documents', 'bids.purchaseOrder', 'winner', 'creator']);
 
         // Alleen partijen met een rond dossier kunnen we uitnodigen.
         $candidates = Subcontractor::available()
@@ -100,6 +103,9 @@ class RfqController extends Controller
             'rfq' => $rfq,
             'candidates' => $candidates,
             'best' => $rfq->bestComparableBid(),
+            // Wat we er zelf voor vragen is voor elk bod hetzelfde: het laatst ingevulde stelt het volgende voor.
+            'lastSale' => $rfq->bids->whereNotNull('sale_price')->sortByDesc('updated_at')->first(),
+            'canApproveLowMargin' => request()->user()->role->isManagement(),
         ]);
     }
 
@@ -163,9 +169,20 @@ class RfqController extends Controller
 
     public function storeBid(Request $request, Rfq $rfq): RedirectResponse
     {
+        // Ruimhartige invoer: bedragen mogen met komma, punt of valutateken.
+        foreach (['price', 'sale_quantity', 'sale_price'] as $field) {
+            if ($request->filled($field)) {
+                $request->merge([$field => BudgetLine::parseNumber($request->input($field))]);
+            }
+        }
+
         $validated = $request->validate([
             'subcontractor_id' => ['required', 'exists:subcontractors,id'],
             'price' => ['required', 'numeric', 'min:0'],
+            'sale_quantity' => ['nullable', 'numeric', 'min:0'],
+            'sale_unit' => ['nullable', 'string', 'max:20'],
+            'sale_price' => ['nullable', 'numeric', 'min:0'],
+            'via_whatsapp' => ['nullable', 'boolean'],
             'can_start_on' => ['nullable', 'date'],
             'days' => ['nullable', 'integer', 'min:1', 'max:365'],
             'completeness' => ['nullable', 'integer', 'min:0', 'max:100'],
@@ -175,7 +192,12 @@ class RfqController extends Controller
 
         RfqBid::updateOrCreate(
             ['rfq_id' => $rfq->id, 'subcontractor_id' => $validated['subcontractor_id']],
-            [...$validated, 'completeness' => $validated['completeness'] ?? 100, 'received_on' => today()],
+            [
+                ...$validated,
+                'completeness' => $validated['completeness'] ?? 100,
+                'via_whatsapp' => $request->boolean('via_whatsapp'),
+                'received_on' => today(),
+            ],
         );
 
         return back()->with('success', 'Bieding vastgelegd.');
@@ -185,13 +207,66 @@ class RfqController extends Controller
     {
         abort_unless($bid->rfq_id === $rfq->id, 404);
 
+        $validated = $request->validate(['margin_reason' => ['nullable', 'string', 'max:500']]);
+
         try {
-            $message = $action->handle($rfq, $bid, $request->user());
+            $message = $action->handle($rfq, $bid, $request->user(), $validated['margin_reason'] ?? null);
         } catch (\RuntimeException $e) {
             return back()->with('error', $e->getMessage());
         }
 
         return back()->with('success', $message);
+    }
+
+    /**
+     * Het verkoopbedrag van een bod overnemen in onze eigen offerte aan de
+     * klant. Kan alleen zolang die offerte nog een concept is: een verzonden
+     * offerte verandert alleen via een nieuwe versie.
+     */
+    public function adopt(Rfq $rfq, RfqBid $bid): RedirectResponse
+    {
+        abort_unless($bid->rfq_id === $rfq->id, 404);
+
+        if ($bid->saleTotal() === null) {
+            return back()->with('error', 'Vul eerst in waarvoor we dit werk verkopen: hoeveelheid en prijs.');
+        }
+
+        $project = $rfq->project;
+
+        $quote = Quote::query()
+            ->where('status', QuoteStatus::Concept)
+            ->where(fn ($query) => $query
+                ->where('project_id', $project->id)
+                ->when($project->lead_id !== null, fn ($q) => $q->orWhere('lead_id', $project->lead_id)))
+            ->latest('id')
+            ->first();
+
+        if ($quote === null) {
+            return back()->with('error', 'Er is geen conceptofferte voor dit project om het in over te nemen. Maak eerst een offerte of een nieuwe versie.');
+        }
+
+        $quantity = (float) ($bid->sale_quantity ?? 1);
+
+        $quote->lines()->create([
+            'description' => $rfq->title,
+            'quantity' => $quantity,
+            'unit' => $bid->sale_unit ?: 'post',
+            'unit_price' => $bid->sale_price,
+            'vat_rate' => 21,
+            'total' => $bid->saleTotal(),
+            'position' => (int) $quote->lines()->max('position') + 1,
+        ]);
+
+        $quote->unsetRelation('lines');
+        $quote->recalculateTotals();
+
+        AuditLog::record($quote, 'post overgenomen uit prijsaanvraag', [], [
+            'prijsaanvraag' => $rfq->number,
+            'partner' => $bid->subcontractor->name,
+            'bedrag' => $bid->saleTotal(),
+        ]);
+
+        return back()->with('success', "Overgenomen in offerte {$quote->number}: {$rfq->title}, EUR ".number_format($bid->saleTotal(), 2, ',', '.').'.');
     }
 
     /**

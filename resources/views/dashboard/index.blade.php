@@ -17,6 +17,7 @@
     @endif
 
     @include('dashboard.partials.vandaag-kop')
+    @include('dashboard.partials.expiry-popup')
 
     <div class="grid gap-x-4 gap-y-6 lg:grid-cols-3">
 

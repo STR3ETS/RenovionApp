@@ -62,6 +62,21 @@ class PurchaseInvoiceController extends Controller
 
         $old = $purchaseInvoice->only(array_keys($validated));
 
+        // Fotoplicht: een factuur van een onderaannemer keuren we pas goed als de
+        // foto's voor, tijdens en na er zijn. Dat staat ook in de inkooporder.
+        if (in_array($validated['status'] ?? null, [PurchaseInvoice::STATUS_APPROVED, PurchaseInvoice::STATUS_PAID], true)
+            && ! $purchaseInvoice->isBooked()) {
+            $missing = $purchaseInvoice->order?->missingPhotoMoments() ?? [];
+
+            if ($missing !== []) {
+                return back()->with(
+                    'error',
+                    'Fotoplicht: deze factuur kan nog niet worden goedgekeurd. In de werkweergave ontbreken foto\'s van '
+                    .collect($missing)->join(', ', ' en ').' het werk.',
+                );
+            }
+        }
+
         if (($validated['status'] ?? null) === PurchaseInvoice::STATUS_APPROVED) {
             $validated['approved_at'] = now();
             $validated['approved_by'] = $request->user()->id;

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\PhaseStatus;
 use App\Enums\ProjectStatus;
+use App\Enums\QuoteStatus;
 use App\Enums\UserRole;
 use Database\Factories\ProjectFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -24,9 +25,20 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
     'warranty_months',
     'start_date', 'end_date_expected', 'end_date_actual', 'project_leader_id', 'progress', 'notes',
     'cover_photo_path',
+    'contract_form', 'regie_hourly_rate', 'regie_day_rate', 'order_confirmed_at',
 ])]
 class Project extends Model
 {
+    public const FORM_FIXED = 'aangenomen';
+
+    public const FORM_REGIE = 'regie';
+
+    /** @var array<string, string> */
+    public const FORMS = [
+        self::FORM_FIXED => 'Aangenomen werk',
+        self::FORM_REGIE => 'Regie',
+    ];
+
     /** @use HasFactory<ProjectFactory> */
     use HasFactory;
 
@@ -70,6 +82,11 @@ class Project extends Model
             'retention_amount' => 'decimal:2',
             'retention_release_on' => 'date',
             'retention_released_at' => 'datetime',
+            'regie_hourly_rate' => 'decimal:2',
+            'regie_day_rate' => 'decimal:2',
+            'hours_signed_at' => 'datetime',
+            'hours_signed_total' => 'decimal:2',
+            'order_confirmed_at' => 'datetime',
         ];
     }
 
@@ -86,6 +103,74 @@ class Project extends Model
     public function quote(): BelongsTo
     {
         return $this->belongsTo(Quote::class);
+    }
+
+    /** Alle offertes die bij dit project horen, ook latere versies en aanvullingen. */
+    public function quotes(): HasMany
+    {
+        return $this->hasMany(Quote::class);
+    }
+
+    public function timeEntries(): HasMany
+    {
+        return $this->hasMany(TimeEntry::class)->orderBy('date')->orderBy('id');
+    }
+
+    public function regieMaterials(): HasMany
+    {
+        return $this->hasMany(RegieMaterial::class)->orderBy('id');
+    }
+
+    public function extraWorks(): HasMany
+    {
+        return $this->hasMany(ExtraWork::class)->orderBy('number');
+    }
+
+    public function siteRegistration(): HasOne
+    {
+        return $this->hasOne(SiteRegistration::class);
+    }
+
+    public function agreements(): HasMany
+    {
+        return $this->hasMany(ProjectAgreement::class);
+    }
+
+    public function hoursSigner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'hours_signed_by');
+    }
+
+    /** Het projectnummer zoals het op alle stukken staat. */
+    public function number(): string
+    {
+        return 'PD-'.str_pad((string) $this->id, 4, '0', STR_PAD_LEFT);
+    }
+
+    /** Regie: we rekenen uren en materiaal af in plaats van een vaste prijs. */
+    public function isRegie(): bool
+    {
+        return $this->contract_form === self::FORM_REGIE;
+    }
+
+    /**
+     * Zonder opdracht geen uitvoering. Een project is in opdracht als een
+     * offerte is getekend, of als het kantoor heeft vastgelegd dat de opdracht
+     * buiten het systeem om is gegeven. Een project zonder enige offerte in
+     * het systeem is zo'n opdracht: het kantoor maakte het zelf aan.
+     */
+    public function hasOrder(): bool
+    {
+        if ($this->order_confirmed_at !== null) {
+            return true;
+        }
+
+        $quotes = $this->quotes()->get()
+            ->when($this->quote !== null, fn ($quotes) => $quotes->push($this->quote))
+            ->unique('id');
+
+        return $quotes->isEmpty()
+            || $quotes->contains(fn (Quote $quote) => $quote->status === QuoteStatus::Akkoord);
     }
 
     public function projectLeader(): BelongsTo

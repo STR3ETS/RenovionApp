@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Actions\ApplyFrameworkPreset;
+use App\Support\Margin;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -84,6 +86,22 @@ class BudgetLine extends Model
             + $costs['onderaanneming'] + $costs['overig'];
 
         return $costs;
+    }
+
+    /**
+     * De marge op een regel uit een raamovereenkomst: de vaste verkoopprijs per
+     * eenheid tegenover de kostprijs uit de prijslijst. Voor gewone regels is
+     * er geen vaste prijs, dus ook geen marge per regel.
+     */
+    public function frameworkMarginPct(): ?float
+    {
+        if ($this->source !== ApplyFrameworkPreset::SOURCE || $this->priceItem === null) {
+            return null;
+        }
+
+        $sale = (float) $this->material + (float) $this->equipment + (float) $this->subcontracting;
+
+        return Margin::pct($sale, (float) $this->priceItem->unit_price);
     }
 
     /**

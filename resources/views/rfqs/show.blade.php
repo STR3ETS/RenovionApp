@@ -1,5 +1,6 @@
 @php
     use App\Models\Rfq;
+    use App\Support\Margin;
     $eur = fn (float $v) => 'EUR '.number_format($v, 0, ',', '.');
 @endphp
 
@@ -35,74 +36,129 @@
     <div class="grid gap-4 lg:grid-cols-3">
         <div class="space-y-4 lg:col-span-2">
             {{-- Biedingen vergelijken --}}
-            <div class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
-                <h2 class="mb-1 text-sm font-bold text-white">Bie<span class="text-brand-500">dingen</span></h2>
-                <p class="mb-4 text-xs text-slate-500">
-                    Een bieding die niet alle posten prijst, is niet vergelijkbaar. Dat staat in de kolom compleet.
-                </p>
+            @php
+                $open = $rfq->status !== Rfq::STATUS_AWARDED && $rfq->status !== Rfq::STATUS_DONE;
+                // Het beste bod bovenaan; de rest blijft zichtbaar, op prijs.
+                $bids = $rfq->bids->sortBy(fn ($bid) => [$best?->id === $bid->id ? 0 : 1, (float) $bid->price])->values();
+            @endphp
+            <div class="rounded-2xl border border-surface-700 bg-surface-800">
+                <div class="border-b border-surface-700 px-5 py-4">
+                    <h2 class="text-sm font-bold text-white">Bie<span class="text-brand-500">dingen</span></h2>
+                    <p class="mt-0.5 text-xs text-slate-500">
+                        Het beste bod is de hoogste marge bij een complete scope en een goedgekeurd dossier.
+                        Onder {{ Margin::format(Margin::baseline()) }} marge waarschuwen we, onder {{ Margin::format(Margin::floor()) }} kan gunnen alleen met een reden en akkoord van de directie.
+                    </p>
+                </div>
 
-                @if ($rfq->bids->isEmpty())
-                    <p class="text-sm text-slate-500">Nog geen biedingen binnen.</p>
+                @if ($bids->isEmpty())
+                    <p class="p-5 text-sm text-slate-500">Nog geen biedingen binnen.</p>
                 @else
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
+                    <div class="tw">
+                        <table class="t">
                             <thead>
-                                <tr class="border-b border-surface-700 text-[10px] font-bold tracking-wider text-slate-500 uppercase">
-                                    <th class="pb-2 text-left">Partner</th>
-                                    <th class="pb-2 text-right">Prijs</th>
-                                    <th class="pb-2 text-right">Tegen budget</th>
-                                    <th class="pb-2 text-right">Start</th>
-                                    <th class="pb-2 text-right">Compleet</th>
-                                    @if ($rfq->status !== Rfq::STATUS_AWARDED && $rfq->status !== Rfq::STATUS_DONE)
-                                        <th class="pb-2"></th>
-                                    @endif
+                                <tr>
+                                    <th>Partner</th>
+                                    <th class="r">Inkoop</th>
+                                    <th class="r">Verkoop</th>
+                                    <th class="r">Marge</th>
+                                    <th class="r">Tegen budget</th>
+                                    <th>Start</th>
+                                    <th class="r">Compleet</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($rfq->bids as $bid)
-                                    @php($afwijking = $bid->varianceAgainstBudget())
-                                    <tr class="border-b border-surface-700/60 {{ $best?->id === $bid->id ? 'bg-green-500/5' : '' }}">
-                                        <td class="py-3">
-                                            <span class="block font-semibold text-white">{{ $bid->subcontractor->name }}</span>
+                                @foreach ($bids as $bid)
+                                    @php
+                                        $afwijking = $bid->varianceAgainstBudget();
+                                        $marge = $bid->marginPct();
+                                        $verkoop = $bid->saleTotal();
+                                    @endphp
+                                    <tr class="{{ $best?->id === $bid->id ? 'bg-green-500/5' : '' }}">
+                                        <td>
+                                            <b>{{ $bid->subcontractor->name }}</b>
+                                            @if ($best?->id === $bid->id)
+                                                <span class="ml-1 rounded-full bg-green-500/15 px-2 py-0.5 text-[10px] font-bold text-green-300">Beste bod</span>
+                                            @endif
+                                            @if ($bid->via_whatsapp)
+                                                <span class="ml-1 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold text-slate-300">via WhatsApp</span>
+                                            @endif
                                             @if ($bid->conditions)
-                                                <span class="block text-xs text-slate-500">{{ $bid->conditions }}</span>
+                                                <span class="sub">{{ $bid->conditions }}</span>
                                             @endif
                                             @unless ($bid->subcontractor->mayBeInvited())
                                                 <span class="mt-1 inline-block rounded-full bg-red-500/15 px-2 py-0.5 text-[10px] font-bold text-red-300">
                                                     {{ $bid->subcontractor->statusLabel() }}
                                                 </span>
                                             @endunless
+                                            @if ($bid->margin_approval)
+                                                <span class="sub">Onder de bodem gegund door {{ $bid->margin_approval['door'] }}: {{ $bid->margin_approval['reden'] }}</span>
+                                            @endif
+                                            @if ($bid->purchaseOrder)
+                                                <a href="{{ route('purchase-orders.show', $bid->purchaseOrder) }}" class="sub hover:text-white">Inkooporder {{ $bid->purchaseOrder->number }}, met fotoplicht</a>
+                                            @endif
                                         </td>
-                                        <td class="py-3 text-right font-bold text-white">{{ $eur((float) $bid->price) }}</td>
-                                        <td class="py-3 text-right">
+                                        <td class="r"><b>{{ $eur((float) $bid->price) }}</b></td>
+                                        <td class="r">
+                                            @if ($verkoop !== null)
+                                                {{ $eur($verkoop) }}
+                                                @if ($bid->sale_quantity)
+                                                    <span class="sub">{{ rtrim(rtrim(number_format((float) $bid->sale_quantity, 2, ',', '.'), '0'), ',') }} {{ $bid->sale_unit }} x {{ $eur((float) $bid->sale_price) }}</span>
+                                                @endif
+                                            @else
+                                                <span class="text-slate-500">nog niet ingevuld</span>
+                                            @endif
+                                        </td>
+                                        <td class="r">
+                                            <span class="rounded-full px-2 py-0.5 text-[10px] font-bold {{ Margin::badgeClasses($marge) }}">{{ Margin::format($marge) }}</span>
+                                        </td>
+                                        <td class="r">
                                             @if ($afwijking !== null)
-                                                <span class="rounded-full px-2 py-0.5 text-xs font-bold {{ $afwijking > 0 ? 'bg-red-500/15 text-red-300' : 'bg-green-500/15 text-green-300' }}">
+                                                <span class="rounded-full px-2 py-0.5 text-[10px] font-bold {{ $afwijking > 0 ? 'bg-red-500/15 text-red-300' : 'bg-green-500/15 text-green-300' }}">
                                                     {{ $afwijking > 0 ? '+' : '' }}{{ rtrim(rtrim(number_format($afwijking, 1, ',', '.'), '0'), ',') }}%
                                                 </span>
                                             @else
-                                                <span class="text-xs text-slate-500">geen budget</span>
+                                                <span class="text-slate-500">geen budget</span>
                                             @endif
                                         </td>
-                                        <td class="py-3 text-right text-slate-400">
+                                        <td>
                                             {{ $bid->can_start_on?->translatedFormat('j M') ?? 'onbekend' }}
                                             @if ($bid->days)
-                                                <span class="block text-xs text-slate-500">{{ $bid->days }} dagen</span>
+                                                <span class="sub">{{ $bid->days }} dagen</span>
                                             @endif
                                         </td>
-                                        <td class="py-3 text-right">
-                                            <span class="text-sm {{ $bid->isComplete() ? 'text-green-400' : 'text-amber-300' }}">{{ $bid->completeness }}%</span>
-                                        </td>
-                                        @if ($rfq->status !== Rfq::STATUS_AWARDED && $rfq->status !== Rfq::STATUS_DONE)
-                                            <td class="py-3 pl-2 text-right">
-                                                <form method="POST" action="{{ route('rfqs.award', [$rfq, $bid]) }}">
+                                        <td class="r"><span class="{{ $bid->isComplete() ? 'text-green-400' : 'text-amber-300' }}">{{ $bid->completeness }}%</span></td>
+                                        <td class="r whitespace-nowrap">
+                                            @if ($verkoop !== null)
+                                                <form method="POST" action="{{ route('rfq-bids.adopt', [$rfq, $bid]) }}" class="mb-1.5">
                                                     @csrf
-                                                    <button type="submit"
-                                                            class="rounded-xl px-3 py-1.5 text-xs font-bold transition {{ $best?->id === $bid->id ? 'bg-brand-500 text-white hover:bg-brand-600' : 'border border-surface-600 text-slate-300 hover:text-white' }}">
-                                                        Gunnen
+                                                    <button type="submit" title="Het verkoopbedrag als post in onze conceptofferte zetten"
+                                                            class="rounded-full border border-surface-600 px-3 py-1.5 text-xs font-semibold text-slate-300 transition hover:border-brand-500 hover:text-white">
+                                                        Overnemen in offerte
                                                     </button>
                                                 </form>
-                                            </td>
-                                        @endif
+                                            @endif
+
+                                            @if ($open)
+                                                <form method="POST" action="{{ route('rfqs.award', [$rfq, $bid]) }}" class="space-y-1.5">
+                                                    @csrf
+                                                    @if ($bid->needsDirectorApproval())
+                                                        @if ($canApproveLowMargin)
+                                                            <input type="text" name="margin_reason" required maxlength="500" placeholder="Reden voor gunnen onder de bodem"
+                                                                   class="w-56 rounded-full border-red-500/40 py-1.5 text-xs">
+                                                        @else
+                                                            <span class="block max-w-[14rem] text-[11px] whitespace-normal text-red-300">Onder de bodem: alleen de directie kan dit bod gunnen.</span>
+                                                        @endif
+                                                    @endif
+                                                    @unless ($bid->needsDirectorApproval() && ! $canApproveLowMargin)
+                                                        <button type="submit"
+                                                                class="rounded-full px-4 py-1.5 text-xs font-bold transition {{ $best?->id === $bid->id ? 'bg-brand-500 text-white hover:bg-brand-600' : 'border border-surface-600 text-slate-200 hover:text-white' }}">
+                                                            Gunnen
+                                                        </button>
+                                                    @endunless
+                                                </form>
+                                            @endif
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -111,30 +167,56 @@
                 @endif
 
                 {{-- Bieding vastleggen --}}
-                @if ($rfq->invited->isNotEmpty() && $rfq->status !== Rfq::STATUS_AWARDED)
-                    <form method="POST" action="{{ route('rfq-bids.store', $rfq) }}" class="mt-4 space-y-2 border-t border-surface-700 pt-4">
+                @if ($rfq->invited->isNotEmpty() && $open)
+                    <form method="POST" action="{{ route('rfq-bids.store', $rfq) }}" class="space-y-3 border-t border-surface-700 p-5">
                         @csrf
                         <h3 class="text-sm font-bold text-white">Bieding <span class="text-brand-500">vastleggen</span></h3>
 
-                        <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                            <select name="subcontractor_id" required
-                                    class="w-full rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-white focus:border-brand-500 focus:ring-brand-500">
-                                @foreach ($rfq->invited as $partner)
-                                    <option value="{{ $partner->id }}">{{ $partner->name }}</option>
-                                @endforeach
-                            </select>
-                            <input type="number" step="0.01" min="0" name="price" required placeholder="Prijs"
-                                   class="w-full rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-white placeholder:text-slate-500 focus:border-brand-500 focus:ring-brand-500">
-                            <input type="date" name="can_start_on" title="Kan starten op"
-                                   class="w-full rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-white focus:border-brand-500 focus:ring-brand-500">
-                            <input type="number" min="0" max="100" name="completeness" value="100" title="Hoeveel procent van de posten is geprijsd"
-                                   class="w-full rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-white focus:border-brand-500 focus:ring-brand-500">
+                        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                            <label class="block text-xs text-slate-400">Partner
+                                <select name="subcontractor_id" required class="mt-1 w-full rounded-xl border-surface-600 text-sm">
+                                    @foreach ($rfq->invited as $partner)
+                                        <option value="{{ $partner->id }}">{{ $partner->name }}</option>
+                                    @endforeach
+                                </select>
+                            </label>
+                            <label class="block text-xs text-slate-400">Inkoop, wat de partner vraagt
+                                <input type="text" inputmode="decimal" name="price" required placeholder="Bijvoorbeeld 4.250,00" class="mt-1 w-full rounded-xl border-surface-600 text-sm">
+                            </label>
+                            <label class="block text-xs text-slate-400">Kan starten op
+                                <input type="date" name="can_start_on" class="mt-1 w-full rounded-xl border-surface-600 text-sm">
+                            </label>
+                            <label class="block text-xs text-slate-400">Compleet in procenten
+                                <input type="number" min="0" max="100" name="completeness" value="100" class="mt-1 w-full rounded-xl border-surface-600 text-sm">
+                            </label>
+                        </div>
+
+                        <div class="grid gap-3 rounded-xl bg-surface-850 p-3 sm:grid-cols-3">
+                            <label class="block text-xs text-slate-400">Verkoop: hoeveelheid
+                                <input type="text" inputmode="decimal" name="sale_quantity" value="{{ $lastSale ? (float) $lastSale->sale_quantity ?: '' : '' }}" placeholder="Bijvoorbeeld 120"
+                                       class="mt-1 w-full rounded-xl border-surface-600 text-sm">
+                            </label>
+                            <label class="block text-xs text-slate-400">Eenheid
+                                <input type="text" name="sale_unit" maxlength="20" value="{{ $lastSale?->sale_unit }}" placeholder="m2" class="mt-1 w-full rounded-xl border-surface-600 text-sm">
+                            </label>
+                            <label class="block text-xs text-slate-400">Verkoopprijs per eenheid
+                                <input type="text" inputmode="decimal" name="sale_price" value="{{ $lastSale ? number_format((float) $lastSale->sale_price, 2, ',', '') : '' }}" placeholder="Bijvoorbeeld 45,00"
+                                       class="mt-1 w-full rounded-xl border-surface-600 text-sm">
+                            </label>
+                            <p class="text-xs text-slate-500 sm:col-span-3">
+                                Waarvoor we dit werk zelf verkopen. Daaruit volgt de marge per bod. Zonder hoeveelheid is de prijs het hele bedrag.
+                            </p>
                         </div>
 
                         <input type="text" name="conditions" placeholder="Voorwaarden, bijvoorbeeld: exclusief steiger en afvoer"
-                               class="w-full rounded-xl border-surface-600 bg-surface-850 py-2 text-sm text-white placeholder:text-slate-500 focus:border-brand-500 focus:ring-brand-500">
+                               class="w-full rounded-xl border-surface-600 text-sm">
 
-                        <button type="submit" class="rounded-xl bg-brand-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-600">Vastleggen</button>
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <label class="flex items-center gap-2 text-sm text-slate-300">
+                                <input type="checkbox" name="via_whatsapp" value="1" class="rounded"> Dit bod kwam binnen via WhatsApp
+                            </label>
+                            <button type="submit" class="rounded-full bg-brand-500 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600">Vastleggen</button>
+                        </div>
                     </form>
                 @endif
             </div>
@@ -159,6 +241,11 @@
                         @foreach ($rfq->invited as $partner)
                             <div class="flex items-center gap-2 text-sm">
                                 <span class="min-w-0 flex-1 truncate text-slate-200">{{ $partner->name }}</span>
+                                @if ($partner->phone && $rfq->status === Rfq::STATUS_SENT)
+                                    <a href="https://wa.me/{{ $partner->whatsappNumber() }}?text={{ rawurlencode($rfq->whatsappText()) }}"
+                                       target="_blank" rel="noopener" title="Uitvraag via WhatsApp"
+                                       class="shrink-0 rounded-full border border-surface-600 px-2 py-0.5 text-[10px] font-bold text-slate-300 transition hover:border-green-500 hover:text-green-300">WhatsApp</a>
+                                @endif
                                 @if ($rfq->bids->contains('subcontractor_id', $partner->id))
                                     <span class="shrink-0 rounded-full bg-green-500/15 px-2 py-0.5 text-[10px] font-bold text-green-300">Bood</span>
                                 @else

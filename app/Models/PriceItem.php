@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 #[Fillable([
-    'source', 'edition', 'code', 'name', 'type', 'unit',
+    'source', 'edition', 'code', 'name', 'type', 'group', 'unit',
     'unit_price', 'surcharge_pct', 'index_factor', 'active', 'last_checked_at',
 ])]
 class PriceItem extends Model

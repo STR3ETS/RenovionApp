@@ -42,6 +42,10 @@ class Setting extends Model
         'facturatie.opschorting' => ['label' => 'Opschortingsrecht in procenten', 'group' => 'Facturatie', 'default' => '5', 'hint' => 'Wat een particuliere klant mag achterhouden tot na de onderhoudstermijn', 'type' => 'number'],
         'facturatie.onderhoudstermijn' => ['label' => 'Onderhoudstermijn in maanden', 'group' => 'Facturatie', 'default' => '3', 'hint' => 'Na oplevering, waarna de vijf procent vrijkomt', 'type' => 'number'],
 
+        'marge.baseline' => ['label' => 'Marge waaronder we waarschuwen, in procenten', 'group' => 'Inkoop', 'default' => '17', 'hint' => 'Bij een bod van een onderaannemer en bij vaste prijzen', 'type' => 'number'],
+        'marge.bodem' => ['label' => 'Bodemmarge in procenten', 'group' => 'Inkoop', 'default' => '12', 'hint' => 'Daaronder gunnen kan alleen met een reden en akkoord van de directie', 'type' => 'number'],
+        'inkoop.wka_email' => ['label' => 'E-mailadres voor aanmelding en WKA', 'group' => 'Inkoop', 'default' => 'WKA@renoviongroep.nl', 'hint' => 'Waar het mailpakket van de bouwaanmelding heen gaat', 'type' => 'text'],
+
         'offerte.geldigheid' => ['label' => 'Offerte geldig in dagen', 'group' => 'Offertes', 'default' => '30', 'hint' => '', 'type' => 'number'],
         'offerte.opvolging' => ['label' => 'Opvolgen na dagen', 'group' => 'Offertes', 'default' => '3', 'hint' => 'Daarna verschijnt de offerte in de inbox', 'type' => 'number'],
     ];

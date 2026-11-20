@@ -46,7 +46,7 @@ class SubcontractorController extends Controller
 
     public function show(Subcontractor $subcontractor): View
     {
-        $subcontractor->load(['documents', 'certificates', 'awardedRfqs.project', 'bids.rfq']);
+        $subcontractor->load(['documents', 'certificates', 'awardedRfqs.project', 'bids.rfq', 'frameworks', 'logs.project', 'logs.user']);
 
         return view('subcontractors.show', [
             'subcontractor' => $subcontractor,

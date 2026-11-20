@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * Een prijsaanvraag: een stuk werk dat we uitbesteden, uitgezet bij een paar
@@ -139,10 +140,47 @@ class Rfq extends Model
         return $bid === null ? null : round((float) $this->budget - (float) $bid->price, 2);
     }
 
-    /** De beste bieding die compleet is: alleen die zijn echt vergelijkbaar. */
+    /**
+     * Het beste bod: de hoogste marge bij een complete scope en een partij met
+     * een goedgekeurd dossier. Weten we de verkoop nog niet, dan is de laagste
+     * prijs het beste. Alle biedingen blijven zichtbaar, deze staat bovenaan.
+     */
     public function bestComparableBid(): ?RfqBid
     {
-        return $this->bids->filter->isComplete()->sortBy('price')->first();
+        $candidates = $this->bids->filter(
+            fn (RfqBid $bid) => $bid->isComplete() && $bid->subcontractor->mayBeInvited(),
+        );
+
+        if ($candidates->contains(fn (RfqBid $bid) => $bid->marginPct() !== null)) {
+            return $candidates
+                ->sortBy([
+                    fn (RfqBid $a, RfqBid $b) => ($b->marginPct() ?? -INF) <=> ($a->marginPct() ?? -INF),
+                    fn (RfqBid $a, RfqBid $b) => (float) $a->price <=> (float) $b->price,
+                ])
+                ->first();
+        }
+
+        return $candidates->sortBy('price')->first();
+    }
+
+    public function purchaseOrder(): HasOne
+    {
+        return $this->hasOne(PurchaseOrder::class);
+    }
+
+    /**
+     * De tekst voor de uitvraag via WhatsApp: kort, met wat de partij nodig
+     * heeft om te bieden.
+     */
+    public function whatsappText(): string
+    {
+        return collect([
+            'Prijsaanvraag '.$this->number.' van Renovion Groep: '.$this->title.'.',
+            $this->project?->city ? 'Locatie: '.$this->project->city.'.' : null,
+            $this->scope ? 'Werk: '.str($this->scope)->squish()->limit(300).'.' : null,
+            $this->starts_on ? 'Gewenste start: '.$this->starts_on->translatedFormat('j F').'.' : null,
+            $this->deadline ? 'Graag je prijs voor '.$this->deadline->translatedFormat('j F').'.' : 'Graag je prijs zo snel mogelijk.',
+        ])->filter()->join(' ');
     }
 
     /** Een uitgezette aanvraag waarvan de deadline voorbij is, vraagt actie. */

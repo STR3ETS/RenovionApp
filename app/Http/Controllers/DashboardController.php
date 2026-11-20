@@ -141,6 +141,12 @@ class DashboardController extends Controller
             'projectHealth' => app(ProjectHealthService::class)->forMany($recenteProjecten),
             'aandachtItems' => $attentionItems->take(4),
             'attentionCount' => $attentionItems->count(),
+            // Wat binnenkort verloopt, als venster voor wie het moet regelen (directie).
+            'expiringItems' => \auth()->user()->role->isManagement()
+                ? $attentionItems->filter(fn (array $item) => str_contains($item['label'], 'verloopt') || str_contains($item['label'], 'verlopen'))
+                    ->reject(fn (array $item) => $item['label'] === 'Deadline verlopen')
+                    ->values()
+                : collect(),
             'taken' => $taken,
             'opvolgLeads' => $opvolgLeads,
             'opvolgOffertes' => $opvolgOffertes,

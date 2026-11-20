@@ -20,10 +20,14 @@ use App\Models\ProjectDeduction;
 use App\Models\ProjectPhase;
 use App\Models\QualityReview;
 use App\Models\Rfq;
+use App\Models\Setting;
+use App\Models\SiteRegistration;
 use App\Models\User;
 use App\Services\CostReviewService;
 use App\Services\ProjectHealthService;
+use App\Support\InvoicePlan;
 use App\Support\ProjectTabs;
+use App\Support\RegieStatement;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -144,6 +148,26 @@ class ProjectController extends Controller
     }
 
     /**
+     * Vastleggen dat de opdracht is gegeven, ook al is er in het systeem geen
+     * offerte getekend. Daarmee gaat de werkweergave open.
+     */
+    public function confirmOrder(Request $request, Project $project): RedirectResponse
+    {
+        $project->update(['order_confirmed_at' => now()]);
+
+        AuditLog::record($project, 'opdracht bevestigd', [], ['door' => $request->user()->name]);
+
+        $project->customer?->recordEvent(
+            TimelineEventType::Wijziging,
+            'Opdracht bevestigd buiten de offerte om',
+            'Vastgelegd door '.$request->user()->name.'. De uitvoering kan beginnen.',
+            $project,
+        );
+
+        return back()->with('success', 'Opdracht bevestigd. De uitvoering kan beginnen.');
+    }
+
+    /**
      * De data van één tabblad.
      *
      * @return array<string, mixed>
@@ -184,6 +208,25 @@ class ProjectController extends Controller
                 'review' => QualityReview::where('project_id', $project->id)->with('checks')->first(),
                 'snags' => $project->snags()->with(['assignee', 'subcontractor'])->latest()->get(),
                 'serviceTickets' => $project->serviceTickets()->get(),
+            ],
+            'aanmelding' => [
+                'registration' => SiteRegistration::with('sender')->firstOrNew(['project_id' => $project->id]),
+                'agreements' => $project->agreements()
+                    ->with(['subcontractor.documents', 'subcontractor.frameworks', 'rfq', 'recorder'])
+                    ->get(),
+                'documents' => $project->documents()->latest()->get(),
+                'wkaEmail' => Setting::get('inkoop.wka_email'),
+            ],
+            'uren' => [
+                'statement' => RegieStatement::for($project->load('hoursSigner')),
+                'people' => User::where('active', true)
+                    ->whereNotIn('role', collect(UserRole::external())->pluck('value'))
+                    ->orderBy('name')
+                    ->get(['id', 'name']),
+            ],
+            'meerwerk' => [
+                'extras' => $project->extraWorks()->with('invoice')->get(),
+                'plan' => InvoicePlan::for($project),
             ],
             'financien' => [
                 'invoices' => $project->invoices()->get(),

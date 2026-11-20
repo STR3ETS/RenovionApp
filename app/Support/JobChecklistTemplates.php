@@ -121,6 +121,22 @@ class JobChecklistTemplates
         ['Kort afstemmen met de klant', 'Laat zien wat er gedaan is', false],
     ];
 
+    /** De drie momenten waarop foto's bewijs leveren. */
+    public const MOMENTS = ['voor', 'tijdens', 'na'];
+
+    /**
+     * Bij welk moment een stap hoort: de openingsstappen zijn voor het werk, de
+     * afsluiting is erna, alles daartussen is tijdens.
+     */
+    public static function momentFor(string $stepTitle): string
+    {
+        return match (true) {
+            in_array($stepTitle, array_column(self::OPENING, 0), true) => 'voor',
+            in_array($stepTitle, array_column(self::CLOSING, 0), true) => 'na',
+            default => 'tijdens',
+        };
+    }
+
     /**
      * De checklist voor een klus: openingsstappen, de twee best passende vakken
      * en de afsluiting. Zonder match pakken we toezicht, zodat er altijd een

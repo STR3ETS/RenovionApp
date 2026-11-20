@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * Een uitgaande factuur. Het bedrag staat exclusief btw; de btw volgt uit het
@@ -80,6 +81,16 @@ class Invoice extends Model
     protected function revenue(Builder $query): void
     {
         $query->where('status', '!=', InvoiceStatus::Concept);
+    }
+
+    /**
+     * Wanneer een factuur van vandaag vervalt: factuurdatum plus de termijn van
+     * de opdrachtgever. Een particulier krijgt standaard veertien dagen, een
+     * zakelijke klant dertig, en per klant kan dat anders zijn afgesproken.
+     */
+    public static function dueDateFor(?Customer $customer, ?Carbon $date = null): Carbon
+    {
+        return ($date ?? today())->copy()->addDays($customer?->payment_days ?? self::PAYMENT_DAYS);
     }
 
     /**

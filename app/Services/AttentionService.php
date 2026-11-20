@@ -57,6 +57,8 @@ class AttentionService
             ->concat($this->waitingCustomers())
             ->concat($this->silentLeads())
             ->concat($this->overdueTasks())
+            // Ronde 28 tot en met 34: aanvraagmail, verloop, facturen, meerwerk en marge.
+            ->concat(app(AttentionExtras::class)->items())
             // Zonder expliciete soort is het gewoon actie.
             ->map(fn (array $item) => [...$item, 'kind' => $item['kind'] ?? 'actie'])
             ->sortBy(fn (array $item) => [
@@ -408,11 +410,16 @@ class AttentionService
             ->with('customer')
             ->get()
             ->map(fn (Lead $lead) => [
-                'severity' => 'oranje',
-                'icon' => 'phone',
-                'label' => 'Klant wacht op reactie',
+                // Twee keer niet bereikt: dan helpt nog een keer bellen niet meer.
+                'severity' => $lead->isUnreached() ? 'rood' : 'oranje',
+                'icon' => $lead->next_action_type?->icon() ?? 'phone',
+                'label' => $lead->isUnreached() ? 'Niet bereikt, ander kanaal' : 'Klant wacht op reactie',
                 'title' => $lead->customer->name,
-                'subtitle' => ($lead->next_action ?? 'Opvolgen').', gepland '.$lead->next_action_at->translatedFormat('j M H:i'),
+                'subtitle' => collect([
+                    $lead->next_action_type?->label() ?? ($lead->next_action ?? 'Opvolgen'),
+                    'gepland '.$lead->next_action_at->translatedFormat('j M H:i'),
+                    $lead->missed_calls > 0 ? $lead->missed_calls.' keer geen gehoor' : null,
+                ])->filter()->join(', '),
                 'url' => route('leads.show', $lead),
             ]);
     }

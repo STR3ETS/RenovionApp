@@ -6,6 +6,7 @@ use App\Enums\TaskStatus;
 use App\Enums\TimelineEventType;
 use App\Enums\WorkOrderStatus;
 use App\Models\AuditLog;
+use App\Models\TimeEntry;
 use App\Models\User;
 use App\Models\WorkOrder;
 use Illuminate\Support\Facades\DB;
@@ -50,6 +51,21 @@ class ApproveWorkOrder
             $cost = round($hours * $rate, 2);
 
             $project->update(['progress' => $after]);
+
+            // De uren komen vanzelf op de urenstaat, zodat niemand ze overtypt.
+            if ($hours > 0) {
+                TimeEntry::updateOrCreate(
+                    ['work_order_id' => $order->id],
+                    [
+                        'project_id' => $project->id,
+                        'user_id' => $order->user_id,
+                        'date' => $order->date,
+                        'hours' => $hours,
+                        'description' => 'Werkbon '.$order->number.': '.$order->title,
+                        'created_by' => $approver->id,
+                    ],
+                );
+            }
 
             if ($order->task !== null && $order->task->status !== TaskStatus::Afgerond) {
                 $order->task->update(['status' => TaskStatus::Afgerond, 'completed_at' => now()]);

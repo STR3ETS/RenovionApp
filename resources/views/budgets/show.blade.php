@@ -25,6 +25,16 @@
             {{ $budget->isDraft() ? 'Concept' : 'Definitief' }}
         </span>
 
+        @if ($budget->isDraft() && $budget->customer?->activeFramework())
+            <form method="POST" action="{{ route('budgets.preset', $budget) }}">
+                @csrf
+                <button type="submit" title="Vaste prijzen uit de raamovereenkomst toevoegen"
+                        class="flex items-center gap-1.5 rounded-full border border-surface-600 px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:border-brand-500 hover:text-white">
+                    Preset toepassen
+                </button>
+            </form>
+        @endif
+
         @if ($budget->isDraft())
             <form method="POST" action="{{ route('budgets.finalise', $budget) }}">
                 @csrf

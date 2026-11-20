@@ -1,31 +1,84 @@
+@php
+    use App\Enums\CustomerType;
+    $eur = fn (float $v) => 'EUR '.number_format($v, 0, ',', '.');
+@endphp
+
 <x-layouts.app title="Klanten">
 
-    <x-page-header eyebrow="Relaties" category="klant" title="Klanten" subtitle="{{ $customers->total() }} klanten">
+    <x-page-header eyebrow="Relaties" category="klant" title="Klanten" subtitle="Particulieren laten een klus doen, zakelijke klanten zijn de partijen voor wie we werken.">
         <form method="GET" action="{{ route('customers.index') }}">
-            <input type="search" name="q" value="{{ $search }}" placeholder="Zoek op naam, plaats of e-mail…"
-                   class="w-64 rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
+            @if ($type)
+                <input type="hidden" name="soort" value="{{ $type->value }}">
+            @endif
+            <input type="search" name="q" value="{{ $search }}" placeholder="Zoek op naam, klantnummer of plaats"
+                   class="w-64 rounded-full border-surface-700 bg-surface-850 py-2.5 text-sm text-white placeholder:text-slate-500 focus:border-brand-500 focus:ring-brand-500">
         </form>
     </x-page-header>
 
-    <div class="space-y-2">
-        @forelse ($customers as $customer)
-            <a href="{{ route('customers.show', $customer) }}" class="flex items-center gap-3 rounded-xl border border-surface-700 border-l-4 border-l-klant-500 bg-surface-800 p-3 transition hover:shadow-sm">
-                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-klant-500/15 text-sm font-bold text-klant-300">
-                    {{ str($customer->name)->replace('Familie ', '')->substr(0, 1)->upper() }}
-                </span>
-                <span class="min-w-0 flex-1">
-                    <span class="block truncate text-sm font-semibold text-white">{{ $customer->name }}</span>
-                    <span class="block text-xs text-slate-400">{{ $customer->city ?? '-' }}, {{ $customer->phone ?? 'geen telefoon' }}</span>
-                </span>
-                <span class="text-xs text-slate-500">{{ $customer->leads_count }} {{ $customer->leads_count === 1 ? 'aanvraag' : 'aanvragen' }}, {{ $customer->projects_count }} {{ $customer->projects_count === 1 ? 'project' : 'projecten' }}</span>
-            </a>
-        @empty
-            <x-empty-state title="Geen klanten gevonden" icon="users" category="klant" />
-        @endforelse
-    </div>
+    <x-tabs>
+        <x-tab :href="route('customers.index', ['q' => $search ?: null])" :active="$type === null" :count="$counts->sum()">Alle</x-tab>
+        @foreach (CustomerType::cases() as $case)
+            <x-tab :href="route('customers.index', ['soort' => $case->value, 'q' => $search ?: null])"
+                   :active="$type === $case" :count="$counts[$case->value] ?? 0">{{ $case->label() }}</x-tab>
+        @endforeach
+    </x-tabs>
 
-    <div class="mt-4">
-        {{ $customers->links() }}
-    </div>
+    @if ($customers->isEmpty())
+        <x-empty-state title="Geen klanten gevonden" icon="users" category="klant"
+                       subtitle="Een klant ontstaat vanzelf bij de eerste aanvraag." />
+    @else
+        <div class="tw overflow-hidden rounded-2xl border border-surface-700 bg-surface-800">
+            <table class="t">
+                <thead>
+                    <tr>
+                        <th>Klant</th>
+                        <th>Soort</th>
+                        <th>Contact</th>
+                        <th>Plaats</th>
+                        <th>Betalen</th>
+                        <th>Dossiers</th>
+                        <th class="r">Totale waarde</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($customers as $customer)
+                        @php($framework = $customer->activeFramework())
+                        <tr class="click" onclick="window.location='{{ route('customers.show', $customer) }}'">
+                            <td>
+                                <a href="{{ route('customers.show', $customer) }}"><b>{{ $customer->name }}</b></a>
+                                <span class="sub">{{ $customer->number }}</span>
+                            </td>
+                            <td>
+                                <span class="rounded-full px-2 py-0.5 text-[10px] font-bold {{ $customer->type->badgeClasses() }}">{{ $customer->type->label() }}</span>
+                                @if ($framework)
+                                    <span class="ml-1 rounded-full bg-brand-500/15 px-2 py-0.5 text-[10px] font-bold text-brand-300">Raamovereenkomst</span>
+                                @endif
+                            </td>
+                            <td>
+                                {{ $customer->contact_name ?: ($customer->phone ?? 'geen telefoon') }}
+                                @if ($customer->contact_name && $customer->phone)
+                                    <span class="sub">{{ $customer->phone }}</span>
+                                @endif
+                            </td>
+                            <td>{{ $customer->city ?? 'onbekend' }}</td>
+                            <td>
+                                {{ $customer->payment_days }} dagen
+                                <span class="sub">{{ $customer->reminders ? 'met herinnering' : 'geen herinnering' }}</span>
+                            </td>
+                            <td>
+                                {{ $customer->leads_count }} {{ $customer->leads_count === 1 ? 'aanvraag' : 'aanvragen' }},
+                                {{ $customer->projects_count }} {{ $customer->projects_count === 1 ? 'project' : 'projecten' }}
+                            </td>
+                            <td class="r">{{ $eur((float) $customer->projects_sum_value) }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-4">
+            {{ $customers->links() }}
+        </div>
+    @endif
 
 </x-layouts.app>

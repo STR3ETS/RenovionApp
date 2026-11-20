@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CustomerType;
 use App\Enums\TimelineEventType;
 use App\Enums\UserRole;
 use App\Models\AuditLog;
 use App\Models\Customer;
+use App\Models\PriceItem;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Enum;
 use Illuminate\View\View;
 
 class CustomerController extends Controller
@@ -18,15 +21,21 @@ class CustomerController extends Controller
     {
         $search = $request->string('q')->trim()->toString();
 
+        $type = CustomerType::tryFrom($request->string('soort')->toString());
+
         $customers = Customer::query()
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($query) use ($search) {
                     $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('number', 'like', "%{$search}%")
                         ->orWhere('city', 'like', "%{$search}%")
                         ->orWhere('email', 'like', "%{$search}%");
                 });
             })
+            ->when($type !== null, fn ($query) => $query->where('type', $type))
+            ->with('frameworkAgreements')
             ->withCount(['leads', 'projects'])
+            ->withSum('projects', 'value')
             ->orderBy('name')
             ->paginate(25)
             ->withQueryString();
@@ -34,12 +43,70 @@ class CustomerController extends Controller
         return view('customers.index', [
             'customers' => $customers,
             'search' => $search,
+            'type' => $type,
+            'counts' => Customer::selectRaw('type, count(*) as total')->groupBy('type')->pluck('total', 'type'),
         ]);
+    }
+
+    /**
+     * De gegevens waarmee we voor deze klant rekenen: soort, betaaltermijn en
+     * of hij een herinnering wil. Wisselt de soort, dan gaat de termijn mee naar
+     * de standaard van die soort, tenzij je er zelf een opgeeft.
+     */
+    public function update(Request $request, Customer $customer): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'type' => ['sometimes', new Enum(CustomerType::class)],
+            'contact_name' => ['nullable', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'postal_code' => ['nullable', 'string', 'max:12'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'coc_number' => ['nullable', 'string', 'max:20'],
+            'vat_number' => ['nullable', 'string', 'max:30'],
+            'payment_days' => ['nullable', 'integer', 'min:0', 'max:120'],
+            'relation' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $validated['reminders'] = $request->boolean('reminders');
+
+        if (blank($validated['payment_days'] ?? null)) {
+            $validated['payment_days'] = CustomerType::from($validated['type'] ?? $customer->type->value)->defaultPaymentDays();
+        }
+
+        $old = $customer->only(['type', 'payment_days', 'reminders']);
+        $customer->update($validated);
+
+        AuditLog::record($customer, 'klantgegevens bijgewerkt', $old, $customer->only(['type', 'payment_days', 'reminders']));
+
+        return back()->with('success', 'Klantgegevens bijgewerkt.');
+    }
+
+    /** De persoonlijke link waarmee een zakelijke klant een opdracht inschiet. */
+    public function portalLink(Request $request, Customer $customer): RedirectResponse
+    {
+        if (! $customer->isBusiness()) {
+            return back()->with('error', 'Een persoonlijke opdrachtlink is er alleen voor zakelijke klanten.');
+        }
+
+        // Vernieuwen maakt de oude link ongeldig, bijvoorbeeld als hij is uitgelekt.
+        if ($request->boolean('vernieuwen')) {
+            $customer->forceFill(['portal_token' => null])->save();
+            AuditLog::record($customer, 'opdrachtlink vernieuwd');
+        }
+
+        $customer->ensurePortalToken();
+
+        return back()->with('success', 'De opdrachtlink staat klaar. Kopieer hem hieronder en stuur hem naar de klant.');
     }
 
     public function show(Customer $customer): View
     {
         $customer->load([
+            'frameworkAgreements.prices.priceItem',
+            'frameworkAgreements.terms',
             'leads' => fn ($query) => $query->latest(),
             'quotes' => fn ($query) => $query->latest(),
             'projects' => fn ($query) => $query->latest(),
@@ -48,7 +115,10 @@ class CustomerController extends Controller
             'portalUser',
         ]);
 
-        return view('customers.show', ['customer' => $customer]);
+        return view('customers.show', [
+            'customer' => $customer,
+            'priceItems' => PriceItem::where('active', true)->orderBy('code')->get(['id', 'code', 'name', 'unit', 'unit_price']),
+        ]);
     }
 
     /**

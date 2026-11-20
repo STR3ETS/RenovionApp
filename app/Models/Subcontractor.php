@@ -76,6 +76,34 @@ class Subcontractor extends Model
         $query->where('blocked', false);
     }
 
+    public function logs(): HasMany
+    {
+        return $this->hasMany(SubcontractorLog::class)->latest('logged_at');
+    }
+
+    public function frameworks(): HasMany
+    {
+        return $this->hasMany(SubcontractorFramework::class)->latest('ends_on');
+    }
+
+    /** De raamovereenkomst voor doorlopend werk die nu loopt. */
+    public function activeFramework(): ?SubcontractorFramework
+    {
+        return $this->frameworks->first(fn (SubcontractorFramework $framework) => $framework->isRunning());
+    }
+
+    /** Het telefoonnummer zoals WhatsApp het wil: alleen cijfers, met landcode. */
+    public function whatsappNumber(): string
+    {
+        $digits = preg_replace('/\D/', '', (string) $this->phone) ?? '';
+
+        return match (true) {
+            str_starts_with($digits, '00') => substr($digits, 2),
+            str_starts_with($digits, '0') => '31'.substr($digits, 1),
+            default => $digits,
+        };
+    }
+
     /**
      * Het dossier langs de eisen. Elk punt is in orde, verlopen of ontbreekt.
      *

@@ -49,8 +49,22 @@
         </div>
     </div>
 
+    {{-- Zonder opdracht geen uitvoering --}}
+    @if ($orderMissing)
+        <div class="mb-5 flex items-start gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 p-4">
+            <x-icon name="exclamation-triangle" class="h-6 w-6 shrink-0 text-red-300" />
+            <div>
+                <p class="text-sm font-bold text-white">Dit werk kan nog niet beginnen</p>
+                <p class="mt-0.5 text-sm text-slate-200">
+                    De offerte voor dit project is nog niet getekend. Zonder opdracht geen uitvoering: neem contact op met
+                    {{ $project?->projectLeader?->name ?? 'kantoor' }} voordat je op pad gaat.
+                </p>
+            </div>
+        </div>
+    @endif
+
     {{-- De grote knoppen: één handeling per keer, duim-vriendelijk --}}
-    @if ($canExecute)
+    @if ($canExecute && (! $orderMissing || $job->status->isActive()))
         <div class="mb-5 space-y-2">
             @if ($action && $job->status === JobStatus::Onderweg)
                 {{-- Starten gaat via de veiligheidscheck --}}

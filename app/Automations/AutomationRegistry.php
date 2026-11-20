@@ -16,6 +16,8 @@ class AutomationRegistry
         DeadlineReminderAutomation::class,
         WaitingOnClientAutomation::class,
         DeliveryReportConceptAutomation::class,
+        InvoiceReminderAutomation::class,
+        ExpiryReminderAutomation::class,
     ];
 
     /**

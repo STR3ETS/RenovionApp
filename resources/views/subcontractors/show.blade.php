@@ -180,6 +180,8 @@
                 <button type="submit" class="w-full rounded-xl bg-brand-500 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600">Opslaan</button>
             </form>
 
+            @include('subcontractors.partials.framework-and-log')
+
             {{-- Een inlog voor het partnerportaal, zodat de partij zijn eigen
                  papieren aanlevert en zijn biedingen zelf indient. --}}
             <div class="rounded-2xl border border-surface-700 bg-surface-800 p-5">

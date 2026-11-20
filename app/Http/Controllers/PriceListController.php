@@ -21,10 +21,12 @@ class PriceListController extends Controller
         $request->validate([
             'q' => ['nullable', 'string', 'max:100'],
             'type' => ['nullable', Rule::enum(CalculationLineType::class)],
+            'groep' => ['nullable', 'string', 'max:60'],
         ]);
 
         $q = trim((string) $request->query('q'));
         $type = $request->filled('type') ? CalculationLineType::from($request->query('type')) : null;
+        $group = trim((string) $request->query('groep'));
         $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\%', '\_'], $q).'%';
 
         $items = PriceItem::query()
@@ -32,14 +34,19 @@ class PriceListController extends Controller
                 ->where('name', 'like', $like)
                 ->orWhere('code', 'like', $like)))
             ->when($type !== null, fn ($query) => $query->where('type', $type))
+            ->when($group !== '', fn ($query) => $query->where('group', $group))
             ->orderBy('type')
-            ->orderBy('name')
+            ->orderBy('group')
+            ->orderBy('code')
             ->get();
 
         return view('price-items.index', [
             'items' => $items,
             'q' => $q,
             'type' => $type,
+            'group' => $group,
+            // De groepen die in gebruik zijn, zoals Wandwerk en Plafonds.
+            'groups' => PriceItem::whereNotNull('group')->distinct()->orderBy('group')->pluck('group'),
         ]);
     }
 
@@ -87,6 +94,7 @@ class PriceListController extends Controller
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'type' => ['required', Rule::enum(CalculationLineType::class)],
+            'group' => ['nullable', 'string', 'max:60'],
             'unit' => ['required', 'string', 'max:10'],
             'unit_price' => ['required', 'numeric', 'min:0', 'max:1000000'],
             'surcharge_pct' => ['nullable', 'numeric', 'min:0', 'max:100'],

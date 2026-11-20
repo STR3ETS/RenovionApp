@@ -28,6 +28,13 @@ class JobStatusController extends Controller
 
         $target = JobStatus::from($data['status']);
 
+        // Zonder opdracht geen uitvoering: zolang de offerte niet getekend is,
+        // gaat niemand op pad en begint niemand. Pauzeren van lopend werk mag wel.
+        if ($target !== JobStatus::Pauze && $job->status !== JobStatus::Pauze
+            && $job->project !== null && ! $job->project->hasOrder()) {
+            return back()->with('error', 'Dit werk kan nog niet beginnen: de offerte is niet getekend. Neem contact op met kantoor.');
+        }
+
         return match ($target) {
             JobStatus::Onderweg => $this->onTheWay($job),
             JobStatus::Bezig => $this->start($request, $job, $data['lmra'] ?? []),

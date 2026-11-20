@@ -23,7 +23,7 @@ class Navigation
     public const MANAGEMENT_ONLY = ['teambeheer', 'instellingen', 'mailbuilder', 'automations', 'skills'];
 
     /** Werkdagmodules die iedereen met een interne rol heeft. */
-    private const WORKDAY = ['vandaag', 'inbox', 'teamchat'];
+    private const WORKDAY = ['vandaag', 'agenda', 'inbox', 'teamchat'];
 
     /**
      * Secties: id => groep, label, icoon, teller en de schermen erin.
@@ -37,6 +37,10 @@ class Navigation
             'vandaag' => [
                 'group' => 'Werkdag', 'label' => 'Vandaag', 'icon' => 'sun',
                 'items' => ['vandaag' => ['Vandaag', 'dashboard']],
+            ],
+            'agenda' => [
+                'group' => 'Werkdag', 'label' => 'Agenda', 'icon' => 'calendar',
+                'items' => ['agenda' => ['Agenda', 'agenda.index']],
             ],
             'inbox' => [
                 'group' => 'Werkdag', 'label' => 'Inbox', 'icon' => 'exclamation-triangle', 'counter' => 'inbox',
@@ -60,6 +64,7 @@ class Navigation
                 'items' => [
                     'sales' => ['Aanvragen', 'leads.index'],
                     'opvolging' => ['Opvolging', 'follow-ups.index'],
+                    'aanvraagmail' => ['Aanvraagmail', 'inbound-mails.index'],
                     'klanten' => ['Klanten', 'customers.index'],
                     'intake' => ['Intakes en opnames', 'intakes.index'],
                 ],
@@ -107,6 +112,7 @@ class Navigation
                 'items' => [
                     'financieel' => ['Financieel', 'finance.index'],
                     'facturatie' => ['Facturatie', 'invoices.index'],
+                    'urenstaten' => ['Urenstaten', 'hours.index'],
                     'inkoop' => ['Inkoop', 'purchase-orders.index'],
                     'nacalculatie' => ['Nacalculatie', 'cost-reviews.index'],
                 ],
@@ -146,18 +152,18 @@ class Navigation
             UserRole::Admin->value => '*',
             UserRole::Directie->value => '*',
             UserRole::Sales->value => [
-                ...self::WORKDAY, 'sales', 'opvolging', 'klanten', 'intake', 'calculaties',
+                ...self::WORKDAY, 'sales', 'opvolging', 'aanvraagmail', 'klanten', 'intake', 'calculaties',
                 'offertes', 'offertetool', 'offertedash', 'projecten', 'taken', 'planning', 'servicehub',
                 'documenten', 'marketing', 'academy',
             ],
             UserRole::Calculator->value => [
                 ...self::WORKDAY, 'calculaties', 'begrotingen', 'prijslijst', 'offertes', 'offertetool', 'offertedash',
-                'intake', 'projecten', 'taken', 'inkoop', 'werkhub', 'documenten', 'academy',
+                'intake', 'aanvraagmail', 'projecten', 'taken', 'inkoop', 'werkhub', 'documenten', 'academy',
             ],
             UserRole::Projectleider->value => [
                 ...self::WORKDAY, 'projecten', 'portfolio', 'planning', 'klussen', 'taken', 'werkbonnen',
                 'kwaliteit', 'nazorg', 'servicehub', 'workforce', 'onderaannemers', 'werkhub', 'inkoop',
-                'documenten', 'financieel', 'nacalculatie', 'rapportages', 'klanten', 'academy', 'agents',
+                'documenten', 'financieel', 'urenstaten', 'nacalculatie', 'rapportages', 'klanten', 'academy', 'agents',
                 'goedkeuringen', 'audit',
             ],
             UserRole::Werkvoorbereider->value => [
@@ -169,7 +175,7 @@ class Navigation
                 'documenten', 'academy',
             ],
             UserRole::Administratie->value => [
-                ...self::WORKDAY, 'facturatie', 'financieel', 'nacalculatie', 'klanten', 'documenten',
+                ...self::WORKDAY, 'facturatie', 'urenstaten', 'financieel', 'nacalculatie', 'klanten', 'documenten',
                 'rapportages', 'inkoop', 'projecten', 'academy',
             ],
             UserRole::Uitvoerder->value => [

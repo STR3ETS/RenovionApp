@@ -13,6 +13,10 @@
 
         {{-- Timeline: het centrale dossier --}}
         <div class="lg:col-span-2">
+            @if ($customer->isBusiness())
+                @include('customers.partials.framework')
+            @endif
+
             <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
                 <h2 class="mb-4 text-sm font-bold text-white">Timeline</h2>
 
@@ -57,14 +61,8 @@
 
         <div class="space-y-4">
             {{-- Contact --}}
-            <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
-                <h2 class="mb-3 text-sm font-bold text-white">Gegevens</h2>
-                <dl class="space-y-2 text-sm">
-                    <div><dt class="text-slate-400">Telefoon</dt><dd class="font-medium">{{ $customer->phone ?? '-' }}</dd></div>
-                    <div><dt class="text-slate-400">E-mail</dt><dd class="font-medium break-all">{{ $customer->email ?? '-' }}</dd></div>
-                    <div><dt class="text-slate-400">Adres</dt><dd class="font-medium">{{ $customer->address ?? '-' }}<br>{{ trim(($customer->postal_code ?? '').' '.($customer->city ?? '')) }}</dd></div>
-                </dl>
-            </section>
+            @include('customers.partials.settings')
+
 
             {{-- Klantportaal (briefing §10) --}}
             <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">

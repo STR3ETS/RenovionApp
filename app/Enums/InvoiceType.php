@@ -11,6 +11,7 @@ enum InvoiceType: string
 {
     case Termijn = 'termijn';
     case Meerwerk = 'meerwerk';
+    case Regie = 'regie';
     case Eindafrekening = 'eindafrekening';
     case Credit = 'credit';
 
@@ -19,6 +20,7 @@ enum InvoiceType: string
         return match ($this) {
             self::Termijn => 'Termijnfactuur',
             self::Meerwerk => 'Meerwerkfactuur',
+            self::Regie => 'Regiefactuur',
             self::Eindafrekening => 'Eindafrekening',
             self::Credit => 'Creditnota',
         };
@@ -29,6 +31,7 @@ enum InvoiceType: string
         return match ($this) {
             self::Termijn => 'bg-lead-500/15 text-lead-300',
             self::Meerwerk => 'bg-calc-500/15 text-calc-300',
+            self::Regie => 'bg-planning-500/15 text-planning-300',
             self::Eindafrekening => 'bg-project-500/15 text-project-300',
             self::Credit => 'bg-amber-500/15 text-amber-300',
         };

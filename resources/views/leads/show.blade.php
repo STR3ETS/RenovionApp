@@ -41,6 +41,10 @@
                 <a href="{{ route('customers.show', $lead->customer) }}" class="flex items-center justify-center gap-1.5 rounded-xl border border-surface-600 bg-surface-800 px-3 py-2.5 text-sm font-semibold text-white transition hover:border-brand-400"><x-icon name="folder" /> Klantdossier</a>
             </div>
 
+            @if ($lead->status->isOpen())
+                @include('leads.partials.call-attempt')
+            @endif
+
             {{-- Contactmoment vastleggen (briefing §4: Nova bewaakt contactmomenten) --}}
             <section class="rounded-2xl border border-surface-700 bg-surface-800 p-5">
                 <h2 class="mb-3 text-sm font-bold text-white">Contactmoment vastleggen</h2>

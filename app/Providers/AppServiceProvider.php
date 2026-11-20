@@ -18,6 +18,9 @@ use App\Models\ChecklistItem;
 use App\Models\Customer;
 use App\Models\DeliveryReport;
 use App\Models\Document;
+use App\Models\ExtraWork;
+use App\Models\FrameworkAgreement;
+use App\Models\InboundMail;
 use App\Models\Intake;
 use App\Models\Invoice;
 use App\Models\InvoiceLine;
@@ -28,6 +31,7 @@ use App\Models\Lead;
 use App\Models\MailTemplate;
 use App\Models\Photo;
 use App\Models\Project;
+use App\Models\ProjectAgreement;
 use App\Models\ProjectDeduction;
 use App\Models\ProjectPhase;
 use App\Models\PurchaseInvoice;
@@ -43,9 +47,11 @@ use App\Models\RfqBid;
 use App\Models\ScheduleEntry;
 use App\Models\ServiceTicket;
 use App\Models\Setting;
+use App\Models\SiteRegistration;
 use App\Models\SnagItem;
 use App\Models\Subcontractor;
 use App\Models\SubcontractorDocument;
+use App\Models\SubcontractorLog;
 use App\Models\Task;
 use App\Models\ToolOffer;
 use App\Models\ToolOfferSignature;
@@ -92,6 +98,9 @@ class AppServiceProvider extends ServiceProvider
             'customer' => Customer::class,
             'delivery_report' => DeliveryReport::class,
             'document' => Document::class,
+            'extra_work' => ExtraWork::class,
+            'framework_agreement' => FrameworkAgreement::class,
+            'inbound_mail' => InboundMail::class,
             'intake' => Intake::class,
             'invoice' => Invoice::class,
             'invoice_line' => InvoiceLine::class,
@@ -117,8 +126,11 @@ class AppServiceProvider extends ServiceProvider
             'schedule_entry' => ScheduleEntry::class,
             'service_ticket' => ServiceTicket::class,
             'setting' => Setting::class,
+            'site_registration' => SiteRegistration::class,
             'snag_item' => SnagItem::class,
             'subcontractor' => Subcontractor::class,
+            'subcontractor_log' => SubcontractorLog::class,
+            'project_agreement' => ProjectAgreement::class,
             'subcontractor_document' => SubcontractorDocument::class,
             'task' => Task::class,
             'tool_offer' => ToolOffer::class,

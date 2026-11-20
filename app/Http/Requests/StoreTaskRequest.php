@@ -27,6 +27,7 @@ class StoreTaskRequest extends FormRequest
             'lead_id' => ['nullable', 'exists:leads,id'],
             'owner_id' => ['nullable', 'exists:users,id'],
             'deadline' => ['nullable', 'date'],
+            'due_time' => ['nullable', 'date_format:H:i'],
             'priority' => ['nullable', Rule::enum(TaskPriority::class)],
         ];
     }

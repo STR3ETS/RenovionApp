@@ -32,6 +32,8 @@
             <input type="number" name="unit_price" required min="0" step="0.01" placeholder="Prijs excl. btw *" value="{{ old('unit_price') }}"
                    class="rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
             <button type="submit" class="rounded-xl bg-navy-950 py-2.5 text-sm font-semibold text-white transition hover:bg-navy-900">Toevoegen</button>
+            <input type="text" name="group" list="prijsgroepen" maxlength="60" placeholder="Groep, bijvoorbeeld Wandwerk" value="{{ old('group') }}"
+                   class="rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500 sm:col-span-2">
             @error('name')<p class="text-xs text-red-400 sm:col-span-2 lg:col-span-6">{{ $message }}</p>@enderror
             @error('unit_price')<p class="text-xs text-red-400 sm:col-span-2 lg:col-span-6">{{ $message }}</p>@enderror
             <p class="text-xs text-slate-400 sm:col-span-2 lg:col-span-6">Het artikelnummer wordt automatisch toegekend (ARB, MAT, MTR, OND of STP plus volgnummer).</p>
@@ -47,6 +49,24 @@
             @endforeach
         </div>
 
+        @if ($groups->isNotEmpty())
+            <div class="mb-4 flex flex-wrap items-center gap-1.5">
+                <span class="mr-1 text-[10.5px] font-semibold tracking-[0.1em] text-slate-500 uppercase">Groep</span>
+                <a href="{{ route('price-items.index', array_filter(['type' => $type?->value, 'q' => $q])) }}"
+                   class="rounded-full px-3 py-1.5 text-xs font-semibold {{ $group === '' ? 'bg-navy-900 text-white' : 'border border-surface-600 bg-surface-800 text-slate-300' }}">Alle</a>
+                @foreach ($groups as $name)
+                    <a href="{{ route('price-items.index', array_filter(['type' => $type?->value, 'groep' => $name, 'q' => $q])) }}"
+                       class="rounded-full px-3 py-1.5 text-xs font-semibold {{ $group === $name ? 'bg-navy-900 text-white' : 'border border-surface-600 bg-surface-800 text-slate-300' }}">{{ $name }}</a>
+                @endforeach
+            </div>
+        @endif
+
+        <datalist id="prijsgroepen">
+            @foreach ($groups as $name)
+                <option value="{{ $name }}"></option>
+            @endforeach
+        </datalist>
+
         {{-- Artikelen --}}
         <div class="space-y-2">
             @forelse ($items as $item)
@@ -56,7 +76,7 @@
                         <span class="min-w-0 flex-1">
                             <span class="block truncate text-sm font-semibold text-white">{{ $item->name }}</span>
                             <span class="block text-xs text-slate-400">
-                                {{ $item->source }} ({{ $item->edition }}){{ (float) $item->surcharge_pct > 0 ? ', opslag '.rtrim(rtrim(number_format((float) $item->surcharge_pct, 2, ',', '.'), '0'), ',').'%' : '' }}
+                                {{ $item->group ? $item->group.', ' : '' }}{{ $item->source }} ({{ $item->edition }}){{ (float) $item->surcharge_pct > 0 ? ', opslag '.rtrim(rtrim(number_format((float) $item->surcharge_pct, 2, ',', '.'), '0'), ',').'%' : '' }}
                             </span>
                         </span>
                         <span class="rounded-full px-2.5 py-0.5 text-xs font-semibold {{ $item->type->badgeClasses() }}">{{ $item->type->label() }}</span>
@@ -83,6 +103,8 @@
                         <input type="hidden" name="q" value="{{ $q }}">
                         <input type="text" name="name" required value="{{ $item->name }}"
                                class="rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500 sm:col-span-2">
+                        <input type="text" name="group" list="prijsgroepen" maxlength="60" value="{{ $item->group }}" placeholder="Groep"
+                               class="rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500 lg:col-span-6 lg:order-last">
                         <select name="type" class="rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500">
                             @foreach (\App\Enums\CalculationLineType::cases() as $lineType)
                                 <option value="{{ $lineType->value }}" @selected($item->type === $lineType)>{{ $lineType->label() }}</option>

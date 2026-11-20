@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Enums\PhaseStatus;
 use App\Enums\WorkOrderStatus;
+use App\Models\ExtraWork;
 use App\Models\Project;
 use App\Models\User;
 
@@ -31,9 +32,12 @@ class ProjectTabs
         'uitvoering' => ['Uitvoering', null],
         'taken' => ['Taken', 'taken'],
         'werkbonnen' => ['Werkbonnen', 'werkbonnen'],
+        'uren' => ['Urenstaat', null],
         'fotos' => ["Foto's", null],
         'inkoop' => ['Inkoop en partners', 'inkoop'],
+        'aanmelding' => ['Aanmelding en overeenkomsten', 'inkoop'],
         'kwaliteit' => ['Kwaliteit', 'kwaliteit'],
+        'meerwerk' => ['Meerwerk en facturen', 'financieel'],
         'financien' => ['Financiën', 'facturatie'],
         'nacalculatie' => ['Nacalculatie', 'nacalculatie'],
         'documenten' => ['Documenten', 'documenten'],
@@ -91,6 +95,10 @@ class ProjectTabs
                 ->count(),
             'kwaliteit' => $project->snags()->open()->count(),
             'fotos' => $project->photos()->count(),
+            // Meerwerk dat bij de klant ligt of klaar is om te factureren.
+            'meerwerk' => $project->extraWorks()
+                ->whereIn('status', [ExtraWork::STATUS_SENT, ExtraWork::STATUS_APPROVED])
+                ->count(),
         ];
     }
 

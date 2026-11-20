@@ -75,6 +75,8 @@ class JobController extends Controller
             'lmra' => JobChecklistTemplates::lmra(),
             'tab' => $request->string('tab', 'stappen')->toString(),
             'canExecute' => $request->user()->id === $job->user_id,
+            // Zonder getekende offerte toont de werkweergave een blokkade.
+            'orderMissing' => $job->project !== null && ! $job->project->hasOrder(),
         ]);
     }
 

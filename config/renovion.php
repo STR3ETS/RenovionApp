@@ -16,6 +16,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Aanvraagmail
+    |--------------------------------------------------------------------------
+    |
+    | Token waarmee de maildienst berichten voor aanvraag@ mag afleveren op
+    | POST /api/inkomende-mail, in de header X-Inbound-Token of als ?token=.
+    | Zonder token staat die ingang dicht.
+    |
+    */
+
+    'inbound_mail_token' => env('INBOUND_MAIL_TOKEN'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Nova AI-assistent
     |--------------------------------------------------------------------------
     |

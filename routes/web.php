@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AcademyController;
+use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\AgentController;
 use App\Http\Controllers\AttentionController;
 use App\Http\Controllers\Auth\LoginController;
@@ -13,15 +14,21 @@ use App\Http\Controllers\CalculationAssistController;
 use App\Http\Controllers\CalculationController;
 use App\Http\Controllers\CalculationLineController;
 use App\Http\Controllers\CalculationQuoteController;
+use App\Http\Controllers\CallAttemptController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\ChatMessageController;
 use App\Http\Controllers\ChecklistItemController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CustomerOrderController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeliveryReportController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\ExtraWorkController;
 use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\FollowUpController;
+use App\Http\Controllers\FrameworkAgreementController;
+use App\Http\Controllers\HoursController;
+use App\Http\Controllers\InboundMailController;
 use App\Http\Controllers\IntakeController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\JobCompletionController;
@@ -63,6 +70,7 @@ use App\Http\Controllers\RfqController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ServiceTicketController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\SiteRegistrationController;
 use App\Http\Controllers\SubcontractorController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TaskStatusController;
@@ -88,6 +96,18 @@ if (config('renovion.modules.quotes')) {
         Route::post('offerte/{quote:public_token}/afwijzen', [QuotePublicController::class, 'reject'])->name('quotes.public.reject');
     });
 }
+
+// Opdracht inschieten: een zakelijke klant geeft via zijn persoonlijke link werk door.
+Route::middleware('throttle:30,1')->group(function () {
+    Route::get('opdracht/{token}', [CustomerOrderController::class, 'create'])->name('customer-orders.create');
+    Route::post('opdracht/{token}', [CustomerOrderController::class, 'store'])->middleware('throttle:10,60')->name('customer-orders.store');
+});
+
+// Meerwerk ter akkoord: de klant opent een persoonlijke link en geeft online akkoord.
+Route::middleware('throttle:30,1')->group(function () {
+    Route::get('meerwerk-akkoord/{token}', [ExtraWorkController::class, 'show'])->name('extra-works.public');
+    Route::post('meerwerk-akkoord/{token}', [ExtraWorkController::class, 'accept'])->middleware('throttle:10,1')->name('extra-works.accept');
+});
 
 // Offertetool voor de klant: inloggen met mobiel nummer en toegangscode. De
 // controller telt zelf de inlogpogingen, per adres en per offerte.
@@ -184,6 +204,15 @@ Route::middleware('auth')->group(function () {
 
         Route::get('planning', [PlanningController::class, 'index'])->name('planning.index');
 
+        // Urenstaat: uren boeken en uitdraaien kan iedereen met toegang tot het project.
+        Route::post('projecten/{project}/uren', [HoursController::class, 'store'])->name('hours.store');
+        Route::delete('uren/{entry}', [HoursController::class, 'destroy'])->name('hours.destroy');
+        Route::get('projecten/{project}/urenstaat', [HoursController::class, 'print'])->name('hours.print');
+
+        // Agenda per medewerker: afspraken, taken met een tijd, belacties en werk uit de planning.
+        Route::get('agenda', [AgendaController::class, 'index'])->name('agenda.index');
+        Route::post('agenda/afspraken/{scheduleEntry}/klaar', [AgendaController::class, 'toggleDone'])->name('agenda.done');
+
         // De Academy is voor iedereen met een interne rol, ook voor uitvoerders.
         Route::get('academy', [AcademyController::class, 'index'])->name('academy.index');
         Route::get('academy/{tour}', [AcademyController::class, 'show'])->name('academy.show');
@@ -200,11 +229,23 @@ Route::middleware('auth')->group(function () {
                 ->except('destroy');
             Route::patch('aanvragen/{lead}/status', [LeadStatusController::class, 'update'])->name('leads.status');
             Route::post('aanvragen/{lead}/contactmomenten', [LeadContactController::class, 'store'])->name('leads.contacts.store');
+            Route::post('belpogingen', [CallAttemptController::class, 'store'])->name('call-attempts.store');
 
             Route::get('klanten', [CustomerController::class, 'index'])->name('customers.index');
             Route::get('klanten/{customer}', [CustomerController::class, 'show'])->name('customers.show');
             Route::post('klanten/{customer}/notities', [CustomerController::class, 'storeNote'])->name('customers.notes.store');
             Route::post('klanten/{customer}/portaal', [CustomerController::class, 'storePortalAccount'])->name('customers.portal');
+            Route::match(['put', 'patch'], 'klanten/{customer}', [CustomerController::class, 'update'])->name('customers.update');
+            Route::post('klanten/{customer}/opdrachtlink', [CustomerController::class, 'portalLink'])->name('customers.portal-link');
+
+            // Raamovereenkomsten: vaste prijzen en afspraken met een zakelijke klant.
+            Route::post('klanten/{customer}/raamovereenkomsten', [FrameworkAgreementController::class, 'store'])->name('framework-agreements.store');
+            Route::match(['put', 'patch'], 'raamovereenkomsten/{agreement}', [FrameworkAgreementController::class, 'update'])->name('framework-agreements.update');
+            Route::delete('raamovereenkomsten/{agreement}', [FrameworkAgreementController::class, 'destroy'])->name('framework-agreements.destroy');
+            Route::post('raamovereenkomsten/{agreement}/prijzen', [FrameworkAgreementController::class, 'storePrice'])->name('framework-prices.store');
+            Route::delete('raamprijzen/{price}', [FrameworkAgreementController::class, 'destroyPrice'])->name('framework-prices.destroy');
+            Route::post('raamovereenkomsten/{agreement}/afspraken', [FrameworkAgreementController::class, 'storeTerm'])->name('framework-terms.store');
+            Route::delete('raamafspraken/{term}', [FrameworkAgreementController::class, 'destroyTerm'])->name('framework-terms.destroy');
 
             if (config('renovion.modules.quotes')) {
                 Route::resource('offertes', QuoteController::class)
@@ -284,6 +325,38 @@ Route::middleware('auth')->group(function () {
 
             Route::get('opvolging', [FollowUpController::class, 'index'])->name('follow-ups.index');
 
+            // Aanvraagmail: binnengekomen berichten lezen, koppelen aan een klant en uitzetten.
+            Route::middleware('can:module,"aanvraagmail"')->group(function () {
+                Route::get('aanvraagmail', [InboundMailController::class, 'index'])->name('inbound-mails.index');
+                Route::post('aanvraagmail', [InboundMailController::class, 'store'])->name('inbound-mails.store');
+                Route::post('aanvraagmail/{mail}/lezen', [InboundMailController::class, 'reread'])->middleware('throttle:20,1')->name('inbound-mails.reread');
+                Route::post('aanvraagmail/{mail}/koppelen', [InboundMailController::class, 'link'])->name('inbound-mails.link');
+                Route::post('aanvraagmail/{mail}/uitzetten', [InboundMailController::class, 'dispatchMail'])->name('inbound-mails.dispatch');
+            });
+
+            Route::post('projecten/{project}/opdracht-bevestigen', [ProjectController::class, 'confirmOrder'])->name('projects.confirm-order');
+
+            // Urenstaten voor het kantoor, contractvorm, regiemateriaal, aftekenen en regie factureren.
+            Route::get('urenstaten', [HoursController::class, 'index'])->name('hours.index');
+            Route::patch('projecten/{project}/contractvorm', [HoursController::class, 'contract'])->name('hours.contract');
+            Route::post('projecten/{project}/regiemateriaal', [HoursController::class, 'storeMaterial'])->name('regie-materials.store');
+            Route::delete('regiemateriaal/{material}', [HoursController::class, 'destroyMaterial'])->name('regie-materials.destroy');
+            Route::post('projecten/{project}/uren/aftekenen', [HoursController::class, 'sign'])->name('hours.sign');
+            Route::post('projecten/{project}/uren/factureren', [HoursController::class, 'invoice'])->middleware('can:module,"facturatie"')->name('hours.invoice');
+
+            // Aanmelding van de bouw, het mailpakket en de overeenkomsten met onderaannemers.
+            Route::patch('projecten/{project}/aanmelding', [SiteRegistrationController::class, 'update'])->name('site-registrations.update');
+            Route::post('projecten/{project}/aanmelding/pakket', [SiteRegistrationController::class, 'packageSent'])->name('site-registrations.package');
+            Route::post('overeenkomsten/{agreement}/vastleggen', [SiteRegistrationController::class, 'recordAgreement'])->name('project-agreements.record');
+            Route::post('onderaannemers/{subcontractor}/raamovereenkomst', [SiteRegistrationController::class, 'storeFramework'])->name('subcontractor-frameworks.store');
+
+            // Meerwerk als eigen opdracht: opstellen, naar de klant, akkoord en apart factureren.
+            Route::post('projecten/{project}/meerwerk', [ExtraWorkController::class, 'store'])->name('extra-works.store');
+            Route::post('meerwerk/{extraWork}/versturen', [ExtraWorkController::class, 'send'])->name('extra-works.send');
+            Route::post('meerwerk/{extraWork}/akkoord', [ExtraWorkController::class, 'approve'])->name('extra-works.approve');
+            Route::post('meerwerk/{extraWork}/factureren', [ExtraWorkController::class, 'invoice'])->middleware('can:module,"facturatie"')->name('extra-works.invoice');
+            Route::delete('meerwerk/{extraWork}', [ExtraWorkController::class, 'destroy'])->name('extra-works.destroy');
+
             // Offertetool: begroting en offerte in één scherm, voor wie calculeert en verkoopt.
             Route::middleware('can:module,"offertetool"')->group(function () {
                 Route::get('offertetool', [OfferToolController::class, 'index'])->name('offer-tool.index');
@@ -318,6 +391,7 @@ Route::middleware('auth')->group(function () {
             Route::post('prijsaanvragen/{rfq}/uitnodigen', [RfqController::class, 'invite'])->name('rfqs.invite');
             Route::post('prijsaanvragen/{rfq}/biedingen', [RfqController::class, 'storeBid'])->name('rfq-bids.store');
             Route::post('prijsaanvragen/{rfq}/gunnen/{bid}', [RfqController::class, 'award'])->name('rfqs.award');
+            Route::post('prijsaanvragen/{rfq}/biedingen/{bid}/overnemen', [RfqController::class, 'adopt'])->name('rfq-bids.adopt');
 
             // Geld: facturatie, inkoop, nacalculatie en het financiële beeld.
             Route::get('financieel', [FinanceController::class, 'index'])->name('finance.index');
@@ -349,6 +423,7 @@ Route::middleware('auth')->group(function () {
             Route::delete('begrotingen/{budget}', [BudgetController::class, 'destroy'])->name('budgets.destroy');
             Route::post('begrotingen/{budget}/definitief', [BudgetController::class, 'finalise'])->name('budgets.finalise');
             Route::post('begrotingen/{budget}/heropenen', [BudgetController::class, 'reopen'])->name('budgets.reopen');
+            Route::post('begrotingen/{budget}/preset', [FrameworkAgreementController::class, 'apply'])->name('budgets.preset');
 
             // Indeling: hoofdstukken en paragrafen.
             Route::post('begrotingen/{budget}/hoofdstukken', [BudgetStructureController::class, 'storeChapter'])->name('budget-chapters.store');
