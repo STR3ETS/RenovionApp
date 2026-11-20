@@ -1,7 +1,7 @@
 <x-layouts.app title="Offertes">
 
-    <x-page-header category="offerte" title="Offertes" subtitle="{{ $quotes->total() }} offertes">
-        <a href="{{ route('quotes.create') }}" class="btn pri">+ Offerte</a>
+    <x-page-header title="Offertes" :subtitle="$quotes->total().' offertes. Een offerte staat in het dossier van het project; een rij opent dat dossier.'">
+        <a href="{{ route('quotes.create') }}" class="btn pri"><x-icon name="plus" />Offerte</a>
     </x-page-header>
 
     <div class="tabs mb-4">
@@ -13,31 +13,49 @@
         @endforeach
     </div>
 
-    <div class="space-y-2">
-        @forelse ($quotes as $quote)
-            <a href="{{ route('quotes.show', $quote) }}" class="flex items-center gap-3 rounded-xl border border-surface-700 border-l-4 border-l-offerte-500 bg-surface-800 p-3 transition hover:shadow-sm">
-                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-offerte-500/15 text-offerte-400"><x-icon name="document-text" class="h-4 w-4" /></span>
-                <span class="min-w-0 flex-1">
-                    <span class="block text-sm font-semibold text-ink">{{ $quote->customer->name }}</span>
-                    <span class="block text-xs text-muted">
-                        {{ $quote->number }}, € {{ number_format((float) $quote->total, 2, ',', '.') }}
-                        @if ($quote->daysOpen() !== null), {{ $quote->daysOpen() }} dagen open @endif
-                        @if ($quote->viewed_count > 0), {{ $quote->viewed_count }}× bekeken @endif
-                    </span>
-                </span>
-                @if ($quote->daysOpen() !== null && $quote->daysOpen() >= 5)
-                    <x-signal-dot color="red" title="Al {{ $quote->daysOpen() }} dagen geen reactie" />
-                @elseif ($quote->daysOpen() !== null && $quote->daysOpen() >= 3)
-                    <x-signal-dot color="amber" title="Opvolgen" />
-                @endif
-                <x-status-badge :status="$quote->status" />
-            </a>
-        @empty
-            <x-empty-state title="Geen offertes gevonden" icon="document-text" category="offerte">
-                <a href="{{ route('quotes.create') }}" class="btn pri">+ Eerste offerte</a>
-            </x-empty-state>
-        @endforelse
-    </div>
+    @if ($quotes->isEmpty())
+        <x-empty-state title="Geen offertes gevonden" icon="document-text" category="offerte">
+            <a href="{{ route('quotes.create') }}" class="btn pri">+ Eerste offerte</a>
+        </x-empty-state>
+    @else
+        <div class="card tw overflow-hidden">
+            <table class="t">
+                <thead>
+                    <tr><th>Offerte</th><th>Project</th><th>Verzonden</th><th>Status</th><th class="r">Aanneemsom excl. btw</th></tr>
+                </thead>
+                <tbody>
+                    @foreach ($quotes as $quote)
+                        @php
+                            $dossier = $quote->project ? route('projects.show', [$quote->project, 'tab' => 'offerte']) : route('quotes.show', $quote);
+                            $open = $quote->daysOpen();
+                        @endphp
+                        <tr class="click" onclick="window.location = @js($dossier)">
+                            <td>
+                                <a href="{{ $dossier }}"><b>{{ $quote->number }}</b></a>
+                                <span class="sub">versie {{ $quote->version }}</span>
+                            </td>
+                            <td>
+                                {{ $quote->project?->name ?? $quote->customer->name }}
+                                <span class="sub">{{ collect([$quote->project ? $quote->customer->name : null, $quote->lead?->service])->filter()->implode(', ') ?: 'nog geen project' }}</span>
+                            </td>
+                            <td class="tabular-nums">
+                                @if ($quote->sent_at)
+                                    {{ $quote->sent_at->translatedFormat('j M Y') }}
+                                    @if ($open !== null)
+                                        <span class="sub {{ $open >= 5 ? '!text-bad font-semibold' : '' }}">{{ $open.' dagen open'.($quote->viewed_count > 0 ? ', '.$quote->viewed_count.'× bekeken' : '') }}</span>
+                                    @endif
+                                @else
+                                    <span class="text-muted">nog niet verzonden</span>
+                                @endif
+                            </td>
+                            <td><x-status-badge :status="$quote->status" /></td>
+                            <td class="r"><b>€ {{ number_format((float) $quote->subtotal, 2, ',', '.') }}</b></td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @endif
 
     <div class="mt-4">
         {{ $quotes->links() }}

@@ -4,13 +4,13 @@
 @endphp
 
 <x-layouts.app title="Facturatie">
-    <x-page-header title="Facturatie" category="offerte"
-                   subtitle="Termijnen uit de begroting, meerwerk en de eindafrekening." />
+    <x-page-header title="Facturatie"
+                   subtitle="Termijnfacturen uit de ondertekende betalingsschema's. De betaalstatus werkt direct door in het projectdossier." />
 
     <x-kpi-row>
-        <x-kpi dark label="Openstaand bij klanten" :value="$eur($outstanding)"
+        <x-kpi dark label="Openstaand incl. btw" :value="$eur($outstanding)"
                :sub="$counts->sum().' facturen in totaal'" />
-        <x-kpi label="Waarvan te laat" :value="$eur($overdue)" :alert="$overdue > 0"
+        <x-kpi label="Vervallen" :value="$eur($overdue)" :alert="$overdue > 0"
                :sub="$overdue > 0 ? 'direct opvolgen' : 'niets te laat'" />
         <x-kpi label="Klaar om te factureren" :value="$eur($ready->sum('amount'))"
                :sub="$ready->count().' '.($ready->count() === 1 ? 'termijn' : 'termijnen')" />
@@ -60,36 +60,41 @@
         <x-empty-state icon="currency-euro" category="offerte" title="Nog geen facturen"
                        subtitle="Zodra een begroting definitief is, kun je de termijnen hier factureren." />
     @else
-        <div class="overflow-hidden rounded-2xl border border-surface-700 bg-surface-800">
-            @foreach ($invoices as $invoice)
-                <a href="{{ route('invoices.show', $invoice) }}"
-                   class="flex items-center gap-3 border-b border-surface-700 border-l-4 p-4 transition last:border-b-0 hover:bg-ink/5 {{ $invoice->isOverdue() ? 'border-l-red-500' : 'border-l-transparent' }}">
-                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-offerte-500/15 text-offerte-400">
-                        <x-icon name="receipt" class="h-5 w-5" />
-                    </span>
-
-                    <span class="min-w-0 flex-1">
-                        <span class="flex flex-wrap items-center gap-2">
-                            <b class="truncate text-sm font-semibold text-ink">{{ $invoice->description }}</b>
-                            <span class="rounded-full px-2 py-0.5 text-[10px] font-bold {{ $invoice->status->badgeClasses() }}">{{ $invoice->status->label() }}</span>
-                            <span class="rounded-full px-2 py-0.5 text-[10px] font-bold {{ $invoice->type->badgeClasses() }}">{{ $invoice->type->label() }}</span>
-                        </span>
-                        <small class="mt-0.5 block truncate text-xs text-muted">
-                            {{ $invoice->number }}, {{ $invoice->customer->name }},
-                            @if ($invoice->isOverdue())
-                                <span class="font-semibold text-red-400">{{ $invoice->daysOverdue() }} dagen over de vervaldatum</span>
-                            @else
-                                vervalt {{ $invoice->due_date->translatedFormat('j M') }}
-                            @endif
-                        </small>
-                    </span>
-
-                    <span class="shrink-0 text-right">
-                        <b class="block text-sm font-bold text-ink">{{ $eur($invoice->total()) }}</b>
-                        <small class="block text-xs text-faint">incl. btw</small>
-                    </span>
-                </a>
-            @endforeach
+        <div class="card tw overflow-hidden">
+            <table class="t">
+                <thead>
+                    <tr><th>Factuur</th><th>Klant, project</th><th>Termijn</th><th>Vervaldatum</th><th class="r">Incl. btw</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    @foreach ($invoices as $invoice)
+                        <tr class="click" onclick="window.location = @js(route('invoices.show', $invoice))">
+                            <td>
+                                <a href="{{ route('invoices.show', $invoice) }}"><b>{{ $invoice->number }}</b></a>
+                                <span class="sub">{{ $invoice->date?->translatedFormat('j M') }}</span>
+                            </td>
+                            <td>
+                                {{ $invoice->customer->name }}
+                                <span class="sub">{{ $invoice->project?->name ?? $invoice->type->label() }}</span>
+                            </td>
+                            <td>{{ $invoice->description }}</td>
+                            <td class="tabular-nums">
+                                {{ $invoice->due_date->translatedFormat('j M') }}
+                                @if ($invoice->isOverdue())
+                                    <span class="sub !text-bad font-semibold">{{ $invoice->daysOverdue() }} dagen te laat</span>
+                                @endif
+                            </td>
+                            <td class="r"><b>€ {{ number_format($invoice->total(), 2, ',', '.') }}</b></td>
+                            <td>
+                                @if ($invoice->isOverdue())
+                                    <span class="pill bad">Vervallen</span>
+                                @else
+                                    <x-status-badge :status="$invoice->status" />
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
 
         <div class="mt-4">{{ $invoices->links() }}</div>

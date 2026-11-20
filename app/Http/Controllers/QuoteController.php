@@ -29,7 +29,7 @@ class QuoteController extends Controller
 
         $status = $request->filled('status') ? QuoteStatus::from($request->query('status')) : null;
 
-        $quotes = Quote::with(['customer', 'lead'])
+        $quotes = Quote::with(['customer', 'lead', 'project'])
             ->when($status !== null, fn ($query) => $query->where('status', $status))
             ->latest()
             ->paginate(25)

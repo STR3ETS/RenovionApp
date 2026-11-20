@@ -5,7 +5,7 @@
 
 <x-layouts.app title="Klanten">
 
-    <x-page-header category="klant" title="Klanten" subtitle="Particulieren laten een klus doen, zakelijke klanten zijn de partijen voor wie we werken.">
+    <x-page-header title="Klanten & CRM" accent="CRM" :subtitle="$counts->sum().' relaties. Particulieren laten een klus doen, zakelijke klanten zijn de partijen voor wie we werken.'">
         <form method="GET" action="{{ route('customers.index') }}">
             @if ($type)
                 <input type="hidden" name="soort" value="{{ $type->value }}">
@@ -13,7 +13,16 @@
             <input type="search" name="q" value="{{ $search }}" placeholder="Zoek op naam, klantnummer of plaats"
                    class="w-64 rounded-full border-surface-700 bg-surface-850 py-2.5 text-sm text-ink placeholder:text-faint focus:border-brand-500 focus:ring-brand-500">
         </form>
+        <a href="{{ route('leads.create') }}" class="btn pri"><x-icon name="plus" />Klant toevoegen</a>
     </x-page-header>
+
+    {{-- Hoeveel relaties, en hoe ze verdeeld zijn --}}
+    <section class="kpis mb-[22px]" style="grid-template-columns: repeat(3, minmax(0, 1fr))">
+        <div class="kpi"><span class="lbl">Relaties</span><span class="v" data-count>{{ $counts->sum() }}</span></div>
+        @foreach (CustomerType::cases() as $case)
+            <div class="kpi"><span class="lbl">{{ $case->label() }}</span><span class="v" data-count>{{ $counts[$case->value] ?? 0 }}</span></div>
+        @endforeach
+    </section>
 
     <x-tabs>
         <x-tab :href="route('customers.index', ['q' => $search ?: null])" :active="$type === null" :count="$counts->sum()">Alle</x-tab>
@@ -27,11 +36,12 @@
         <x-empty-state title="Geen klanten gevonden" icon="users" category="klant"
                        subtitle="Een klant ontstaat vanzelf bij de eerste aanvraag." />
     @else
-        <div class="tw overflow-hidden rounded-2xl border border-surface-700 bg-surface-800">
+        <div class="card tw overflow-hidden">
             <table class="t">
                 <thead>
                     <tr>
                         <th>Klant</th>
+                        <th>Klantnr.</th>
                         <th>Soort</th>
                         <th>Contact</th>
                         <th>Plaats</th>
@@ -46,12 +56,12 @@
                         <tr class="click" onclick="window.location='{{ route('customers.show', $customer) }}'">
                             <td>
                                 <a href="{{ route('customers.show', $customer) }}"><b>{{ $customer->name }}</b></a>
-                                <span class="sub">{{ $customer->number }}</span>
                             </td>
+                            <td class="tabular-nums">{{ $customer->number }}</td>
                             <td>
-                                <span class="rounded-full px-2 py-0.5 text-[10px] font-bold {{ $customer->type->badgeClasses() }}">{{ $customer->type->label() }}</span>
+                                <span class="pill {{ $customer->type->badgeClasses() }}">{{ $customer->type->label() }}</span>
                                 @if ($framework)
-                                    <span class="ml-1 rounded-full bg-brand-500/15 px-2 py-0.5 text-[10px] font-bold text-brand-300">Raamovereenkomst</span>
+                                    <span class="pill or ml-1">Raamovereenkomst</span>
                                 @endif
                             </td>
                             <td>
