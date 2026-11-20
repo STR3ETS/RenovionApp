@@ -74,6 +74,15 @@ class QuoteBlockAi
             }
         }
 
+        // De handtekening en de vlaggen zijn niet aan het model: die blijven zoals ze waren.
+        foreach (['_keep', '_fixed', 'signature'] as $key) {
+            if (array_key_exists($key, $data)) {
+                $decoded[$key] = $data[$key];
+            } else {
+                unset($decoded[$key]);
+            }
+        }
+
         return ['ok' => true, 'data' => $decoded];
     }
 
@@ -94,7 +103,7 @@ class QuoteBlockAi
         $hero = collect($current)->firstWhere('type', 'hero') ?? QuoteBlockRegistry::make('hero');
         $pinned = collect($current)
             ->values()
-            ->filter(fn (array $block) => ($block['data']['_keep'] ?? false) && $block['type'] !== 'hero')
+            ->filter(fn (array $block) => (($block['data']['_keep'] ?? false) || ($block['data']['_fixed'] ?? false)) && $block['type'] !== 'hero')
             ->all();
 
         $catalog = collect($registry)

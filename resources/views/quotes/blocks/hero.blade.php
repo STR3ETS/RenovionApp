@@ -9,7 +9,7 @@
     $hero = $isEdit ? null : QuoteHeroStyle::resolve($d);
 @endphp
 
-<header class="overflow-hidden rounded-2xl p-6 text-(--hero-fg) [print-color-adjust:exact] [-webkit-print-color-adjust:exact] lg:p-8"
+<header class="overflow-hidden rounded-2xl p-6 text-(--hero-fg) [print-color-adjust:exact] [-webkit-print-color-adjust:exact] @2xl:p-8"
         @if ($isEdit) :style="heroResolve(block.data).style" @else style="{{ $hero['style'] }}" @endif>
     <div class="mb-6 flex items-start justify-between gap-4">
         {{-- Het logo is wit; op een lichte achtergrond krijgt het een navy plaatje. --}}
@@ -27,14 +27,18 @@
 
     @if ($isEdit)
         <div x-rich="block.data.title" @blur="save()" data-ph="Offerte" class="text-xs font-bold tracking-widest text-(--hero-accent) uppercase"></div>
-        <div x-rich="block.data.subtitle" @blur="save()" data-ph="Type werk" class="mt-1 text-2xl font-bold lg:text-3xl"></div>
+        <div x-rich="block.data.subtitle" @blur="save()" data-ph="Type werk" class="mt-1 text-2xl font-bold @2xl:text-3xl"></div>
+        <div x-rich="block.data.tagline" @blur="save()" data-ph="Ondertitel, bijvoorbeeld het adres" class="mt-1 text-sm text-(--hero-fg-soft)"></div>
     @else
         <p class="text-xs font-bold tracking-widest text-(--hero-accent) uppercase">{!! QuoteText::render($d['title'] ?? 'Offerte') !!}</p>
-        <h1 class="mt-1 text-2xl font-bold lg:text-3xl">{!! QuoteText::render($d['subtitle'] ?? 'Renovatiewerkzaamheden') !!}</h1>
+        <h1 class="mt-1 text-2xl font-bold @2xl:text-3xl">{!! QuoteText::render($d['subtitle'] ?? 'Renovatiewerkzaamheden') !!}</h1>
+        @if (filled($d['tagline'] ?? ''))
+            <p class="mt-1 text-sm text-(--hero-fg-soft)">{!! QuoteText::render($d['tagline']) !!}</p>
+        @endif
     @endif
     <p class="mt-1 text-(--hero-fg-soft)">{{ $quote->customer->name }}</p>
 
-    <div class="mt-6 grid gap-6 border-t border-(--hero-line) pt-6 text-sm sm:grid-cols-3">
+    <div class="mt-6 grid gap-6 border-t border-(--hero-line) pt-6 text-sm @xl:grid-cols-3">
         <div class="space-y-3">
             <div>
                 <p class="text-xs font-bold text-(--hero-fg-muted)">Offertenummer</p>
@@ -92,7 +96,7 @@
                     </label>
                 </div>
 
-                <span class="hidden h-4 w-px bg-(--hero-line) sm:block"></span>
+                <span class="hidden h-4 w-px bg-(--hero-line) @xl:block"></span>
 
                 {{-- Foto --}}
                 <template x-if="!block.data.image">
@@ -123,7 +127,7 @@
                     </div>
                 </template>
 
-                <span class="hidden h-4 w-px bg-(--hero-line) sm:block"></span>
+                <span class="hidden h-4 w-px bg-(--hero-line) @xl:block"></span>
 
                 {{-- Tekstkleur --}}
                 <div class="flex items-center gap-2" title="Tekstkleur: automatisch op basis van de achtergrond, of zelf kiezen">

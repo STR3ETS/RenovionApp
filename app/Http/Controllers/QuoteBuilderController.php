@@ -41,7 +41,14 @@ class QuoteBuilderController extends Controller
             'quote' => $quote,
             'templates' => QuoteTemplate::orderBy('sort_order')->orderBy('name')->get(),
             'registry' => collect(QuoteBlockRegistry::registry())
-                ->map(fn (array $meta, string $type) => [...$meta, 'type' => $type])
+                ->map(fn (array $meta, string $type) => [
+                    ...$meta,
+                    'type' => $type,
+                    'default' => QuoteBlockRegistry::substitute(
+                        [['id' => 'nieuw', 'type' => $type, 'data' => $meta['default'] ?? []]],
+                        $quote,
+                    )[0]['data'],
+                ])
                 ->values()
                 ->all(),
         ]);
@@ -57,9 +64,15 @@ class QuoteBuilderController extends Controller
             'blocks' => ['required', 'array', 'max:40'],
         ]);
 
-        $quote->update(['blocks' => QuoteBlockRegistry::normalize($validated['blocks'])]);
+        $blocks = QuoteBlockRegistry::normalize($validated['blocks']);
+        $kept = QuoteBlockRegistry::keepFixed($quote->blocks, $blocks);
 
-        return response()->json(['ok' => true]);
+        $quote->update(['blocks' => $kept]);
+
+        // Kwam er een merkblok terug, dan krijgt de bouwer de echte lijst.
+        return response()->json(count($kept) === count($blocks)
+            ? ['ok' => true]
+            : ['ok' => true, 'blocks' => $kept, 'notice' => 'Een vast merkblok kan niet weg en is teruggezet.']);
     }
 
     public function applyTemplate(Request $request, Quote $quote): JsonResponse

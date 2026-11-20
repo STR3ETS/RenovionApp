@@ -54,8 +54,17 @@ class PriceListController extends Controller
     {
         $validated = $this->validated($request);
 
+        // Zonder eigen nummer kent het systeem er een toe (ARB, MAT en zo verder).
+        $code = $request->validate([
+            'code' => ['nullable', 'string', 'max:20', 'regex:/^[A-Za-z0-9][A-Za-z0-9.-]*$/', Rule::unique('price_items', 'code')],
+        ], [
+            'code.unique' => 'Dit artikelnummer is al in gebruik.',
+            'code.regex' => 'Gebruik alleen letters, cijfers, punten en streepjes.',
+        ])['code'] ?? null;
+
         $item = PriceItem::create([
             ...$validated,
+            'code' => filled($code) ? strtoupper($code) : null,
             'source' => 'Renovion praktijkprijzen',
             'edition' => (string) now()->year,
             'index_factor' => 1,

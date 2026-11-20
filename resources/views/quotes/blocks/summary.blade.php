@@ -5,12 +5,12 @@
     $d = $data ?? [];
 @endphp
 
-<section class="rounded-2xl border border-gray-200 bg-white p-6 lg:p-8">
+<section class="rounded-2xl border border-gray-200 bg-white p-6 @2xl:p-8">
     @if ($isEdit)
         <div x-rich="block.data.title" @blur="save()" data-ph="Samenvatting van het voorstel" class="mb-3 text-lg font-bold text-navy-950"></div>
         <div x-rich="block.data.text" @blur="save()" data-ph="Korte introductie…" class="mb-4 text-sm leading-relaxed text-gray-600"></div>
 
-        <div class="grid gap-3 sm:grid-cols-2">
+        <div class="grid gap-3 @xl:grid-cols-2">
             <template x-for="(h, i) in block.data.highlights" :key="i">
                 <div class="group relative flex items-start gap-2 rounded-xl border border-brand-100 bg-brand-50 px-4 py-3">
                     <x-icon name="check" class="mt-0.5 h-4 w-4 shrink-0 text-brand-500" />
@@ -32,7 +32,7 @@
             <div class="quote-prose mb-4 text-sm leading-relaxed text-gray-600">{!! QuoteText::render($d['text']) !!}</div>
         @endif
         @if (! empty($d['highlights']))
-            <div class="grid gap-3 sm:grid-cols-2">
+            <div class="grid gap-3 @xl:grid-cols-2">
                 @foreach ($d['highlights'] as $highlight)
                     @continue(blank($highlight))
                     <div class="flex items-start gap-2 rounded-xl border border-brand-100 bg-brand-50 px-4 py-3">

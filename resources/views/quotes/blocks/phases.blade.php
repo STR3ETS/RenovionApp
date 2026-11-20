@@ -5,11 +5,11 @@
     $d = $data ?? [];
 @endphp
 
-<section class="rounded-2xl border border-gray-200 bg-white p-6 lg:p-8">
+<section class="rounded-2xl border border-gray-200 bg-white p-6 @2xl:p-8">
     @if ($isEdit)
         <div x-rich="block.data.title" @blur="save()" data-ph="Aanpak & planning" class="mb-1 text-lg font-bold text-navy-950"></div>
         <div x-rich="block.data.intro" @blur="save()" data-ph="Korte inleiding (optioneel)" class="mb-4 text-sm text-gray-500"></div>
-        <div class="grid gap-3 sm:grid-cols-2">
+        <div class="grid gap-3 @xl:grid-cols-2">
             <template x-for="(fase, i) in block.data.items" :key="i">
                 <div class="group relative rounded-xl bg-gray-50 p-5">
                     <span class="inline-block rounded-full bg-brand-500 px-2.5 py-0.5 text-xs font-bold text-white" x-text="'Fase ' + (i + 1)"></span>
@@ -30,7 +30,7 @@
         @if (filled($d['intro'] ?? ''))
             <div class="mb-4 text-sm text-gray-500">{!! QuoteText::render($d['intro']) !!}</div>
         @endif
-        <div class="grid gap-3 sm:grid-cols-2">
+        <div class="grid gap-3 @xl:grid-cols-2">
             @foreach (($d['items'] ?? []) as $fase)
                 <div class="rounded-xl bg-gray-50 p-5">
                     <span class="inline-block rounded-full bg-brand-500 px-2.5 py-0.5 text-xs font-bold text-white">Fase {{ $loop->iteration }}</span>

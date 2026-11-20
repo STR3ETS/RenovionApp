@@ -285,6 +285,46 @@ class Navigation
         return $groups;
     }
 
+    /** G gevolgd door deze letter springt naar het scherm, als jouw rol het heeft. */
+    private const GO_KEYS = [
+        'v' => 'vandaag', 'a' => 'agenda', 'i' => 'inbox', 'c' => 'teamchat', 's' => 'sales',
+        'k' => 'klanten', 'o' => 'offertes', 'p' => 'projecten', 't' => 'taken', 'f' => 'facturatie',
+    ];
+
+    /**
+     * Wat de sneltoetsen en de snelkoppelingen nodig hebben: alle schermen van
+     * deze gebruiker, en per letter waar G plus die letter heen gaat.
+     *
+     * @return array{screens: list<array{key: string, label: string, url: string, active: bool}>, go: array<string, string>, help: array<string, string>}
+     */
+    public static function shortcutsFor(User $user): array
+    {
+        $screens = collect(self::forUser($user))
+            ->flatten(1)
+            ->flatMap(fn (array $section) => $section['items'])
+            ->map(fn (array $item) => [
+                'key' => $item['key'],
+                'label' => $item['label'],
+                'url' => $item['url'],
+                'active' => $item['active'],
+            ])
+            ->values();
+
+        $go = [];
+        $help = [];
+
+        foreach (self::GO_KEYS as $letter => $module) {
+            $screen = $screens->firstWhere('key', $module);
+
+            if ($screen !== null) {
+                $go[$letter] = $screen['url'];
+                $help[$letter] = $screen['label'];
+            }
+        }
+
+        return ['screens' => $screens->all(), 'go' => $go, 'help' => $help];
+    }
+
     /**
      * De tabbladen van de sectie waar de gebruiker nu staat. Leeg als die sectie
      * maar één scherm heeft.

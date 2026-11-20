@@ -19,6 +19,12 @@
     @include('dashboard.partials.vandaag-kop')
     @include('dashboard.partials.expiry-popup')
 
+    {{-- De schermen die je zelf het meest opent, hooguit vijf --}}
+    <section data-veelgebruikt hidden class="mb-5">
+        <p class="mb-2 text-[10.5px] font-semibold tracking-[0.1em] text-slate-500 uppercase">Vaak gebruikt</p>
+        <div data-veelgebruikt-lijst class="flex flex-wrap gap-2"></div>
+    </section>
+
     <div class="grid gap-x-4 gap-y-6 lg:grid-cols-3">
 
         {{-- Werklijst centraal: actie gaat vóór informatie --}}

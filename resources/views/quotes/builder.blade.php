@@ -44,6 +44,7 @@
 <body class="flex h-screen flex-col bg-gray-100 font-sans text-gray-900 antialiased"
       x-data="quoteBuilder({{ Js::from([
           'saveUrl' => route('quotes.builder.update', $quote),
+          'unnumbered' => \App\Support\QuoteBlockRegistry::UNNUMBERED,
           'applyTplUrl' => route('quotes.builder.template', $quote),
           'saveTplUrl' => route('quotes.builder.save-template', $quote),
           'deleteTplBase' => url('/offerte-templates'),
@@ -97,6 +98,16 @@
                 <p class="text-[10px] font-bold tracking-widest text-gray-400 uppercase">Blokken</p>
                 <p class="mt-1 text-xs text-gray-400">Klik om toe te voegen</p>
             </div>
+            <div class="grid grid-cols-2 gap-2 border-b border-gray-200 p-3">
+                <button type="button" @click="addOwnBlock()" title="Een leeg blok met titel en tekst"
+                        class="rounded-xl border border-gray-200 px-2 py-2.5 text-xs font-bold text-navy-900 transition hover:border-brand-400 hover:bg-brand-50">
+                    Eigen blok
+                </button>
+                <button type="button" @click="addBlockWithNova()" title="Beschrijf het blok en laat Nova het schrijven"
+                        class="flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 px-2 py-2.5 text-xs font-bold text-navy-900 transition hover:border-brand-400 hover:bg-brand-50">
+                    <img src="{{ asset('nova.jpg') }}" alt="" class="h-4 w-4 rounded-full object-cover"> Blok met Nova
+                </button>
+            </div>
             <div class="no-scrollbar flex-1 space-y-1 overflow-y-auto p-3">
                 @foreach ($registry as $item)
                     @continue($item['locked'] ?? false)
@@ -119,7 +130,7 @@
 
         {{-- Midden: canvas, het live document --}}
         <main class="canvas-scroll flex-1 overflow-y-auto">
-            <div class="mx-auto max-w-[800px] space-y-4 px-6 py-6 lg:px-8">
+            <div class="quote-doc @container mx-auto max-w-[800px] space-y-4 px-6 py-6 lg:px-8">
 
                 {{-- Lege staat --}}
                 <template x-if="blocks.length === 0">
@@ -132,7 +143,7 @@
 
                 <template x-for="(block, index) in blocks" :key="block.id">
                     <div class="block-wrapper"
-                         :class="{ selected: selectedIdx === index, 'drag-over': dragOver === index && dragFrom !== index, dragging: dragFrom === index, kept: block.data._keep }"
+                         :class="{ selected: selectedIdx === index, 'drag-over': dragOver === index && dragFrom !== index, dragging: dragFrom === index, kept: block.data._keep, 'quote-chapter': isNumbered(block.type) }"
                          :data-block-id="block.id"
                          :draggable="dragHandle === index"
                          @click="selectedIdx = index"
@@ -142,12 +153,25 @@
                          @dragend="dragFrom = null; dragOver = null; dragHandle = null">
 
                         {{-- Vastgezet-badge --}}
-                        <div x-show="block.data._keep" x-cloak class="absolute top-3 left-3 z-10 rounded-full bg-brand-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">Vast bij Nova</div>
+                        <div class="absolute top-3 left-3 z-10 flex gap-1">
+                            <span x-show="block.data._keep" x-cloak class="rounded-full bg-brand-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">Vast bij Nova</span>
+                            <span x-show="block.data._fixed" x-cloak class="rounded-full bg-navy-950 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">Merkblok</span>
+                        </div>
 
                         {{-- Zwevende blokacties --}}
                         <div class="block-actions">
                             <button type="button" class="block-action-btn drag-handle" @mousedown="dragHandle = index" @mouseup="dragHandle = null" @click.stop title="Sleep om te verplaatsen">
                                 <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
+                            </button>
+                            <button type="button" class="block-action-btn" @click.stop="moveBlock(index, -1)" :disabled="index === 0" title="Omhoog" aria-label="Blok omhoog">
+                                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" /></svg>
+                            </button>
+                            <button type="button" class="block-action-btn" @click.stop="moveBlock(index, 1)" :disabled="index === blocks.length - 1" title="Omlaag" aria-label="Blok omlaag">
+                                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+                            </button>
+                            <button type="button" class="block-action-btn" :class="{ pinned: block.data._fixed }" x-show="!isLocked(block.type)" @click.stop="toggleFixed(index)"
+                                    :title="block.data._fixed ? 'Vast merkblok: te verschuiven, niet te verwijderen. Klik om los te maken' : 'Maak hier een vast merkblok van: te verschuiven, niet te verwijderen'">
+                                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" /></svg>
                             </button>
                             <button type="button" class="block-action-btn" :class="{ pinned: block.data._keep }" @click.stop="toggleKeep(index)"
                                     :title="block.data._keep ? 'Vastgezet: blijft staan als Nova de offerte opnieuw bouwt' : 'Vastzetten: blijft staan als Nova de offerte opnieuw bouwt'">
@@ -159,7 +183,7 @@
                             <button type="button" class="block-action-btn" x-show="!isSingleton(block.type)" @click.stop="duplicateBlock(index)" title="Dupliceren">
                                 <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 8.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v8.25A2.25 2.25 0 0 0 6 16.5h2.25m8.25-8.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-8.25A2.25 2.25 0 0 1 7.5 18v-7.5a2.25 2.25 0 0 1 2.25-2.25h6.75Z" /></svg>
                             </button>
-                            <button type="button" class="block-action-btn danger" x-show="!isLocked(block.type)" @click.stop="removeBlock(index)" title="Verwijderen">
+                            <button type="button" class="block-action-btn danger" x-show="!isLocked(block.type) && !block.data._fixed" @click.stop="removeBlock(index)" title="Verwijderen">
                                 <x-icon name="trash" class="h-3.5 w-3.5" />
                             </button>
                         </div>
@@ -175,7 +199,7 @@
                     </div>
                 </template>
 
-                <p x-show="blocks.length > 0" class="pb-2 text-center text-xs text-gray-400">Tekst pas je direct in het document aan. Beweeg over een blok voor slepen, Nova, dupliceren of verwijderen.</p>
+                <p x-show="blocks.length > 0" class="pb-2 text-center text-xs text-gray-400">Tekst pas je direct in het document aan. Beweeg over een blok voor verschuiven, vastzetten, Nova, dupliceren of verwijderen. De hoofdstukken nummeren vanzelf.</p>
             </div>
         </main>
 
@@ -384,6 +408,7 @@
                 meta(type) { return this.registry.find(item => item.type === type) || {}; },
                 isLocked(type) { return this.meta(type).locked === true; },
                 isSingleton(type) { return this.meta(type).singleton === true; },
+                isNumbered(type) { return !this.cfg.unnumbered.includes(type); },
                 hasBlock(type) { return this.blocks.some(block => block.type === type); },
                 isDisabled(type) { return this.isSingleton(type) && this.hasBlock(type); },
                 newId() { return 'b_' + Math.random().toString(36).slice(2, 14); },
@@ -424,7 +449,13 @@
                             if (!response.ok || !data || !data.ok) {
                                 throw new Error((data && (data.error || data.message)) || ('serverfout ' + response.status));
                             }
-                            this.lastSaved = snap;
+                            if (Array.isArray(data.blocks)) {
+                                this.blocks = data.blocks;
+                                this.lastSaved = this.snapshot();
+                                if (data.notice) alert(data.notice);
+                            } else {
+                                this.lastSaved = snap;
+                            }
                             this.savedAt = new Date();
                         } catch (e) {
                             this.saveError = (e && e.message) ? e.message : 'geen verbinding';
@@ -455,8 +486,38 @@
                     this.save();
                     this.flash(block.id);
                 },
+                // Een leeg blok om zelf te vullen.
+                addOwnBlock() {
+                    const block = { id: this.newId(), type: 'text', data: { title: '', body: '' } };
+                    this.blocks.push(block);
+                    this.selectedIdx = this.blocks.length - 1;
+                    this.save();
+                    this.flash(block.id);
+                    return this.blocks.length - 1;
+                },
+                // Een leeg blok, en meteen Nova erbij om het te schrijven.
+                addBlockWithNova() {
+                    this.openAi(this.addOwnBlock());
+                },
+                moveBlock(index, step) {
+                    const to = index + step;
+                    if (to < 0 || to >= this.blocks.length) return;
+                    const [block] = this.blocks.splice(index, 1);
+                    this.blocks.splice(to, 0, block);
+                    this.selectedIdx = to;
+                    this.save();
+                    this.flash(block.id);
+                },
+                toggleFixed(index) {
+                    const block = this.blocks[index];
+                    if (this.isLocked(block.type)) return;
+                    if (!block.data) block.data = {};
+                    block.data._fixed = !block.data._fixed;
+                    this.save();
+                },
                 removeBlock(index) {
                     if (this.isLocked(this.blocks[index].type)) return;
+                    if (this.blocks[index].data && this.blocks[index].data._fixed) return;
                     if (!confirm('Dit blok verwijderen?')) return;
                     this.blocks.splice(index, 1);
                     if (this.selectedIdx === index) this.selectedIdx = null;

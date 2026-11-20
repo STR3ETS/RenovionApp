@@ -33,10 +33,27 @@ class QuoteBlockRegistry
                 'default' => [
                     'title' => 'Offerte',
                     'subtitle' => 'Renovatiewerkzaamheden',
+                    // De regel onder de titel, bijvoorbeeld het adres of een belofte.
+                    'tagline' => '',
                     'bg' => QuoteHeroStyle::DEFAULT_BG,
                     'image' => '',
                     'overlay' => QuoteHeroStyle::DEFAULT_OVERLAY,
                     'text' => 'auto',
+                ],
+            ],
+            'letter' => [
+                'label' => 'Persoonlijke brief',
+                'icon' => 'envelope',
+                'description' => 'Brief met handtekening en slogan',
+                'singleton' => true,
+                'default' => [
+                    'greeting' => 'Beste {klant},',
+                    'body' => 'Dank voor het vertrouwen en het prettige gesprek. In deze offerte leest u wat we voor u gaan doen, hoe we dat aanpakken en wat het kost.',
+                    'closing' => 'Met vriendelijke groet,',
+                    'signature' => '',
+                    'signer' => '',
+                    'role' => 'Renovion',
+                    'slogan' => 'Vakwerk waar u op kunt bouwen',
                 ],
             ],
             'summary' => [
@@ -204,6 +221,38 @@ class QuoteBlockRegistry
                 'default' => [],
             ],
         ];
+    }
+
+    /** Blokken zonder hoofdstuknummer: de kop, de brief en wat alleen beeld of lijn is. */
+    public const UNNUMBERED = ['hero', 'letter', 'image', 'divider'];
+
+    public static function isNumbered(string $type): bool
+    {
+        return ! in_array($type, self::UNNUMBERED, true);
+    }
+
+    /**
+     * Een vast merkblok mag je verschuiven en bewerken, maar niet weghalen.
+     * Ontbreekt er een in wat de browser terugstuurt, dan zetten we hem terug
+     * op de plek waar hij stond.
+     *
+     * @param  array<int, mixed>|null  $before
+     * @param  list<array{id: string, type: string, data: array<string, mixed>}>  $after
+     * @return list<array{id: string, type: string, data: array<string, mixed>}>
+     */
+    public static function keepFixed(?array $before, array $after): array
+    {
+        $present = array_column($after, 'id');
+
+        foreach (array_values($before ?? []) as $index => $block) {
+            if (! is_array($block) || ! ($block['data']['_fixed'] ?? false) || in_array($block['id'] ?? null, $present, true)) {
+                continue;
+            }
+
+            array_splice($after, min($index, count($after)), 0, [$block]);
+        }
+
+        return array_values($after);
     }
 
     public static function newId(): string
@@ -436,14 +485,14 @@ class QuoteBlockRegistry
         $clean = [];
 
         foreach ($data as $key => $value) {
-            // "_keep" (vastgezet bij Nova) is de enige toegestane interne sleutel.
+            // Interne sleutels: "_keep" (vastgezet bij Nova) en "_fixed" (vast merkblok).
             if (! is_string($key) && ! is_int($key)) {
                 continue;
             }
 
             if (is_string($key) && str_starts_with($key, '_')) {
-                if ($key === '_keep' && $value) {
-                    $clean['_keep'] = true;
+                if (in_array($key, ['_keep', '_fixed'], true) && $value) {
+                    $clean[$key] = true;
                 }
 
                 continue;

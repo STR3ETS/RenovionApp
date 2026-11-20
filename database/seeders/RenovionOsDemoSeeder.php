@@ -2,10 +2,12 @@
 
 namespace Database\Seeders;
 
+use App\Enums\CustomerType;
 use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
 use App\Enums\JobReportType;
 use App\Enums\JobStatus;
+use App\Enums\NextActionType;
 use App\Enums\ScheduleEntryType;
 use App\Enums\WorkOrderStatus;
 use App\Models\AgentApproval;
@@ -14,10 +16,16 @@ use App\Models\AgentRun;
 use App\Models\Budget;
 use App\Models\BudgetOption;
 use App\Models\BudgetTerm;
+use App\Models\Customer;
+use App\Models\ExtraWork;
+use App\Models\FrameworkAgreement;
+use App\Models\InboundMail;
 use App\Models\Intake;
 use App\Models\Invoice;
 use App\Models\JobExecution;
 use App\Models\JobReport;
+use App\Models\Lead;
+use App\Models\PriceItem;
 use App\Models\Project;
 use App\Models\PurchaseInvoice;
 use App\Models\PurchaseOrder;
@@ -25,8 +33,10 @@ use App\Models\QualityReview;
 use App\Models\Rfq;
 use App\Models\ScheduleEntry;
 use App\Models\ServiceTicket;
+use App\Models\SiteRegistration;
 use App\Models\SnagItem;
 use App\Models\Subcontractor;
+use App\Models\Task;
 use App\Models\User;
 use App\Models\WorkOrder;
 use App\Support\BudgetChapterLibrary;
@@ -71,6 +81,7 @@ class RenovionOsDemoSeeder extends Seeder
         $this->quality($jansen, $bakker, $raphael, $peter);
         $this->agents($jansen, $raphael);
         $this->intake($jansen);
+        $this->rounds28To34($jansen, $raphael, $peter);
 
         $this->command->info('Renovion OS-demodata toegevoegd.');
     }
@@ -610,5 +621,170 @@ class RenovionOsDemoSeeder extends Seeder
                 // Bereikbaarheid en aandachtspunten staan bewust nog open.
             ],
         ]);
+    }
+
+    /**
+     * Ronde 28 tot en met 34: een zakelijke klant met raamovereenkomst, een
+     * regieproject met urenstaat, meerwerk, de aanvraagmail, de agenda en de
+     * aanmelding van de bouw.
+     */
+    private function rounds28To34(Project $jansen, ?User $office, ?User $worker): void
+    {
+        if (Customer::where('name', 'Unica Installatie')->exists()) {
+            return;
+        }
+
+        // Een zakelijke klant met vaste prijzen.
+        $unica = Customer::create([
+            'name' => 'Unica Installatie',
+            'type' => CustomerType::Zakelijk,
+            'contact_name' => 'Rob de Inkoper',
+            'email' => 'inkoop@unica-installatie.test',
+            'phone' => '026-7654321',
+            'address' => 'Velperweg 12',
+            'postal_code' => '6824 BH',
+            'city' => 'Arnhem',
+            'coc_number' => '87654321',
+            'payment_days' => 30,
+        ]);
+        $unica->ensurePortalToken();
+
+        $agreement = $unica->frameworkAgreements()->create([
+            'number' => FrameworkAgreement::nextNumber(),
+            'starts_on' => today()->subMonths(2),
+            'ends_on' => today()->addMonths(10),
+            'payment_days' => 30,
+        ]);
+        $agreement->terms()->createMany([
+            ['body' => 'Opdrachten binnen vijf werkdagen ingepland.', 'position' => 1],
+            ['body' => 'Per opdracht in een keer gefactureerd, na oplevering.', 'position' => 2],
+        ]);
+
+        // Vaste verkoopprijzen op de stucwerkartikelen uit de prijslijst: een met ruime marge, een krap.
+        foreach (PriceItem::where('name', 'like', '%stucwerk%')->orderBy('id')->take(2)->get() as $index => $item) {
+            $agreement->prices()->create([
+                'price_item_id' => $item->id,
+                'description' => $item->name,
+                'unit' => $item->unit,
+                'fixed_price' => round((float) $item->unit_price * ($index === 0 ? 1.25 : 1.10), 2),
+                'position' => $index + 1,
+            ]);
+        }
+
+        // Een regieproject voor die klant, met uren en materiaal.
+        $regie = Project::create([
+            'customer_id' => $unica->id,
+            'name' => 'Stucwerk kantoor Velperweg',
+            'type' => 'Stucwerk',
+            'address' => 'Velperweg 12',
+            'city' => 'Arnhem',
+            'value' => 4800,
+            'start_date' => today()->subDays(6),
+            'end_date_expected' => today()->addDays(8),
+            'project_leader_id' => $office?->id,
+            'progress' => 40,
+            'contract_form' => Project::FORM_REGIE,
+            'regie_hourly_rate' => 58,
+        ]);
+
+        foreach ([[5, 8, 'Wanden hal voorbehandeld'], [4, 7.5, 'Wanden hal gestuct'], [3, 8, 'Plafond hal'], [1, 6, 'Trapgat en afwerking']] as [$daysAgo, $hours, $what]) {
+            $regie->timeEntries()->create([
+                'user_id' => $worker?->id,
+                'date' => today()->subWeekdays($daysAgo),
+                'hours' => $hours,
+                'description' => $what,
+                'created_by' => $office?->id,
+            ]);
+        }
+        $regie->regieMaterials()->create(['description' => 'Gipspleister', 'quantity' => 12, 'unit' => 'zak', 'price' => 12.50]);
+
+        // Meerwerk op het lopende project: een bij de klant, een met akkoord.
+        $jansen->extraWorks()->create([
+            'number' => ExtraWork::nextNumberFor($jansen), 'description' => 'Extra wandcontactdozen naast de wastafel',
+            'details' => 'Twee dubbele wandcontactdozen, infrezen en afmonteren.', 'amount' => 385,
+            'status' => ExtraWork::STATUS_SENT, 'public_token' => ExtraWork::newToken(), 'sent_at' => now()->subDays(4), 'created_by' => $office?->id,
+        ]);
+        $jansen->extraWorks()->create([
+            'number' => ExtraWork::nextNumberFor($jansen), 'description' => 'Nis in de douchewand',
+            'amount' => 640, 'status' => ExtraWork::STATUS_APPROVED, 'public_token' => ExtraWork::newToken(),
+            'sent_at' => now()->subDays(6), 'approved_at' => now()->subDays(2), 'approved_name' => $jansen->customer->name, 'created_by' => $office?->id,
+        ]);
+
+        // De aanvraagmail: een nieuwe mail en een opdracht via de persoonlijke link.
+        InboundMail::create([
+            'from_name' => 'Sanne de Wit', 'from_email' => 'sanne@dewit-makelaars.test',
+            'subject' => 'Stucwerk appartement voor verkoop',
+            'body' => "Beste,\n\nWij verkopen een appartement aan de Steenstraat 44, 6828 CM Arnhem. De wanden en plafonds moeten sausklaar worden voor de fotograaf komt.\nHet moet uiterlijk ".today()->addDays(18)->translatedFormat('j F')." klaar zijn. Kunnen jullie een prijs afgeven?\n\nMet vriendelijke groet,\nSanne de Wit",
+            'received_at' => now()->subHours(3),
+            'extracted' => [
+                'werk' => 'Stucwerk appartement voor verkoop', 'adres' => 'Steenstraat 44, 6828 CM Arnhem',
+                'deadline' => today()->addDays(18)->toDateString(), 'klant_id' => null, 'klant_reden' => null, 'bron' => 'patronen',
+            ],
+        ]);
+        InboundMail::create([
+            'from_name' => 'Rob de Inkoper', 'from_email' => $unica->email,
+            'subject' => 'Plafond vergaderruimte tweede verdieping',
+            'body' => 'Plafond van de vergaderruimte op de tweede verdieping herstellen en glad stucen, ongeveer 35 m2.',
+            'status' => InboundMail::STATUS_LINKED, 'source' => InboundMail::SOURCE_PORTAL, 'customer_id' => $unica->id,
+            'received_at' => now()->subDay(),
+            'extracted' => [
+                'werk' => 'Plafond vergaderruimte tweede verdieping', 'adres' => 'Velperweg 12, 6824 BH Arnhem',
+                'deadline' => today()->addDays(25)->toDateString(), 'klant_id' => $unica->id,
+                'klant_reden' => 'via de persoonlijke opdrachtlink', 'nieuwe_klant' => false, 'bron' => 'portaal',
+            ],
+        ]);
+
+        // De agenda: een belactie met een gemiste poging, een taak met een tijd en een afspraak.
+        $lead = Lead::open()->orderBy('id')->first();
+
+        if ($lead !== null) {
+            $lead->update([
+                'assigned_to' => $office?->id,
+                'next_action_type' => NextActionType::Bellen,
+                'next_action' => NextActionType::Bellen->label(),
+                'next_action_at' => today()->setTime(15, 0),
+                'missed_calls' => 1,
+            ]);
+        }
+
+        if ($office !== null) {
+            Task::create([
+                'title' => 'Offerte Unica nalopen', 'customer_id' => $unica->id, 'owner_id' => $office->id,
+                'deadline' => today(), 'due_time' => '11:00',
+            ]);
+
+            $overleg = ScheduleEntry::create([
+                'user_id' => $office->id, 'customer_id' => $unica->id, 'type' => ScheduleEntryType::Afspraak,
+                'title' => 'Bouwoverleg Unica', 'date' => today()->addWeekday(), 'start_time' => '09:30', 'end_time' => '10:30',
+            ]);
+
+            if ($worker !== null) {
+                $overleg->participants()->attach($worker->id);
+            }
+        }
+
+        // De aanmelding van de bouw is half gedaan.
+        SiteRegistration::create([
+            'project_id' => $jansen->id, 'gpi_registered_on' => today()->subDays(10), 'office_registered_on' => today()->subDays(9),
+            'contact_name' => $worker?->name, 'contact_phone' => '06 1234 5678',
+        ]);
+
+        // Wat we zelf vragen voor uitbesteed werk, zodat de marge per bod zichtbaar is.
+        foreach (Rfq::with('bids')->get() as $rfq) {
+            foreach ($rfq->bids as $bid) {
+                $bid->update(['sale_price' => round((float) $rfq->budget * 1.22, 2)]);
+            }
+        }
+
+        // Een raamovereenkomst met een onderaannemer die bijna afloopt.
+        $partner = Subcontractor::orderBy('id')->first();
+
+        if ($partner !== null) {
+            $partner->frameworks()->create([
+                'starts_on' => today()->subMonths(6)->addDays(21),
+                'ends_on' => today()->addDays(20),
+                'recorded_by' => $office?->id,
+            ]);
+        }
     }
 }

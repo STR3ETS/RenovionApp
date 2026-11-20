@@ -5,7 +5,7 @@
     $d = $data ?? [];
 @endphp
 
-<section class="rounded-2xl border border-gray-200 bg-white p-6 lg:p-8">
+<section class="rounded-2xl border border-gray-200 bg-white p-6 @2xl:p-8">
     @if ($isEdit)
         <div x-rich="block.data.title" @blur="save()" data-ph="Veelgestelde vragen" class="mb-4 text-lg font-bold text-navy-950"></div>
         <template x-for="(item, i) in block.data.items" :key="i">

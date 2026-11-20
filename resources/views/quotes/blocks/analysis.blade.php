@@ -5,10 +5,10 @@
     $d = $data ?? [];
 @endphp
 
-<section class="rounded-2xl border border-gray-200 bg-white p-6 lg:p-8">
+<section class="rounded-2xl border border-gray-200 bg-white p-6 @2xl:p-8">
     @if ($isEdit)
         <div x-rich="block.data.title" @blur="save()" data-ph="Bevindingen uit de opname" class="mb-4 text-lg font-bold text-navy-950"></div>
-        <div class="grid gap-6 sm:grid-cols-2">
+        <div class="grid gap-6 @xl:grid-cols-2">
             <div>
                 <h3 class="mb-3 flex items-center gap-2 text-sm font-bold text-navy-900"><x-icon name="check" class="h-4 w-4 text-green-600" /> Wat goed zit</h3>
                 <template x-for="(p, i) in block.data.good" :key="i">
@@ -42,7 +42,7 @@
         </div>
     @else
         <h2 class="mb-4 text-lg font-bold text-navy-950">{!! QuoteText::render($d['title'] ?? 'Bevindingen uit de opname') !!}</h2>
-        <div class="grid gap-6 sm:grid-cols-2">
+        <div class="grid gap-6 @xl:grid-cols-2">
             <div>
                 <h3 class="mb-3 flex items-center gap-2 text-sm font-bold text-navy-900"><x-icon name="check" class="h-4 w-4 text-green-600" /> Wat goed zit</h3>
                 @foreach (($d['good'] ?? []) as $point)

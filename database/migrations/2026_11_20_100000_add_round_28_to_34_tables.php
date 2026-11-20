@@ -34,9 +34,9 @@ return new class extends Migration
             $table->string('portal_token', 64)->nullable()->unique()->after('relation');
         });
 
-        // Bestaande klanten krijgen een nummer in de volgorde waarin ze kwamen.
-        foreach (DB::table('customers')->orderBy('id')->pluck('id') as $position => $id) {
-            DB::table('customers')->where('id', $id)->update(['number' => sprintf('K-%04d', $position + 1)]);
+        // Bestaande klanten krijgen hun nummer op dezelfde manier als nieuwe: uit hun id.
+        foreach (DB::table('customers')->orderBy('id')->pluck('id') as $id) {
+            DB::table('customers')->where('id', $id)->update(['number' => sprintf('K-%04d', $id)]);
         }
 
         Schema::create('framework_agreements', function (Blueprint $table) {

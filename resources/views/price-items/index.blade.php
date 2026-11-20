@@ -34,9 +34,12 @@
             <button type="submit" class="rounded-xl bg-navy-950 py-2.5 text-sm font-semibold text-white transition hover:bg-navy-900">Toevoegen</button>
             <input type="text" name="group" list="prijsgroepen" maxlength="60" placeholder="Groep, bijvoorbeeld Wandwerk" value="{{ old('group') }}"
                    class="rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500 sm:col-span-2">
+            <input type="text" name="code" maxlength="20" placeholder="Eigen artikelnummer, bijvoorbeeld ST-1001" value="{{ old('code') }}"
+                   class="rounded-xl border-surface-600 text-sm focus:border-brand-500 focus:ring-brand-500 sm:col-span-2">
+            @error('code')<p class="text-xs text-red-400 sm:col-span-2 lg:col-span-6">{{ $message }}</p>@enderror
             @error('name')<p class="text-xs text-red-400 sm:col-span-2 lg:col-span-6">{{ $message }}</p>@enderror
             @error('unit_price')<p class="text-xs text-red-400 sm:col-span-2 lg:col-span-6">{{ $message }}</p>@enderror
-            <p class="text-xs text-slate-400 sm:col-span-2 lg:col-span-6">Het artikelnummer wordt automatisch toegekend (ARB, MAT, MTR, OND of STP plus volgnummer).</p>
+            <p class="text-xs text-slate-400 sm:col-span-2 lg:col-span-6">Zonder eigen artikelnummer kent het systeem er een toe (ARB, MAT, MTR, OND of STP plus volgnummer).</p>
         </form>
 
         {{-- Typefilter --}}

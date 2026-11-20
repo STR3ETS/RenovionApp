@@ -154,8 +154,8 @@
             @if ($canCrm)
                 <form action="{{ route('search') }}" method="GET" class="relative w-full max-w-md">
                     <x-icon name="magnifying-glass" class="pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-slate-500" />
-                    <input type="search" name="q" value="{{ request()->routeIs('search') ? request('q') : '' }}"
-                           placeholder="Zoek klanten, projecten, taken, medewerkers…"
+                    <input type="search" name="q" id="globaal-zoeken" value="{{ request()->routeIs('search') ? request('q') : '' }}"
+                           placeholder="Zoek klanten, projecten, taken, medewerkers (Ctrl K)"
                            class="w-full rounded-full border-surface-700 bg-surface-850 py-2.5 pl-10 text-sm text-white placeholder:text-slate-500 focus:border-brand-500 focus:ring-brand-500">
                 </form>
 
@@ -173,7 +173,7 @@
                     </a>
 
                     <div x-data="{ open: false }" class="relative ml-1">
-                        <button @click="open = !open" @click.outside="open = false"
+                        <button @click="open = !open" @click.outside="open = false" @keydown.escape.window="open = false" data-sneltoets-nieuw title="Nieuw (N)"
                                 class="flex items-center gap-1.5 rounded-full bg-brand-500 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600">
                             <x-icon name="plus" class="h-4 w-4" />
                             Nieuw
@@ -326,6 +326,39 @@
             @endforeach
         </nav>
     @endif
+
+    {{-- De voortgangsbalk bij een paginawissel, en wat de sneltoetsen nodig hebben --}}
+    <div id="nav-voortgang" class="nav-voortgang" aria-hidden="true"></div>
+    <script type="application/json" id="nav-schermen">@json(\App\Support\Navigation::shortcutsFor(auth()->user()))</script>
+
+    <dialog id="sneltoetsen" class="motion-pop m-auto w-[min(92vw,26rem)] rounded-2xl border border-surface-700 bg-surface-800 p-5 text-slate-200 shadow-2xl shadow-black/50 backdrop:bg-black/60 backdrop:backdrop-blur-sm" aria-label="Sneltoetsen">
+        <div class="mb-3 flex items-center justify-between gap-3">
+            <h2 class="text-base font-bold text-white">Snel<span class="text-brand-500">toetsen</span></h2>
+            <form method="dialog">
+                <button class="flex h-9 w-9 items-center justify-center rounded-full border border-surface-600 text-slate-300 hover:text-white" aria-label="Sluiten"><x-icon name="x-mark" class="h-4 w-4" /></button>
+            </form>
+        </div>
+        <dl class="space-y-2 text-sm">
+            @foreach ([
+                'Ctrl K' => 'Zoeken in alles',
+                'N' => 'Nieuw: aanvraag, project of taak',
+                '?' => 'Deze lijst tonen of verbergen',
+                'Esc' => 'Venster of menu sluiten',
+            ] as $toets => $uitleg)
+                <div class="flex items-center justify-between gap-3">
+                    <dt class="text-slate-400">{{ $uitleg }}</dt>
+                    <dd><kbd class="rounded-md border border-surface-600 bg-surface-850 px-2 py-0.5 text-xs font-semibold text-white">{{ $toets }}</kbd></dd>
+                </div>
+            @endforeach
+            <div class="border-t border-surface-700 pt-2 text-xs text-slate-500">Eerst G, dan een letter, om naar een scherm te springen:</div>
+            @foreach (\App\Support\Navigation::shortcutsFor(auth()->user())['help'] as $letter => $scherm)
+                <div class="flex items-center justify-between gap-3">
+                    <dt class="text-slate-400">{{ $scherm }}</dt>
+                    <dd><kbd class="rounded-md border border-surface-600 bg-surface-850 px-2 py-0.5 text-xs font-semibold text-white">G {{ strtoupper($letter) }}</kbd></dd>
+                </div>
+            @endforeach
+        </dl>
+    </dialog>
 
 </body>
 </html>

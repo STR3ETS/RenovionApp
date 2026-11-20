@@ -432,3 +432,80 @@
     color: var(--color-slate-500);
     font-weight: 400;
 }
+
+
+/*
+ * Offerte: genummerde hoofdstukken. De teller loopt over de blokken met een
+ * titel, in het document en in de bouwer, en schuift vanzelf mee als je een
+ * blok verplaatst. De kop, de brief, foto's en lijnen tellen niet mee.
+ */
+.quote-doc {
+    counter-reset: quote-chapter;
+}
+
+.quote-chapter:has(h2.text-lg),
+.quote-chapter:has([x-rich='block.data.title']) {
+    counter-increment: quote-chapter;
+}
+
+.quote-chapter h2.text-lg::before,
+.quote-chapter [x-rich='block.data.title']::before {
+    content: counter(quote-chapter, decimal-leading-zero);
+    margin-right: 0.6em;
+    color: var(--color-brand-500);
+    font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Voortgang bij een paginawissel: een dunne oranje balk bovenin, zodat je
+ * binnen een oogwenk ziet dat er iets gebeurt.
+ */
+.nav-voortgang {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 60;
+    height: 3px;
+    background: var(--color-brand-500);
+    transform: scaleX(0);
+    transform-origin: left;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.nav-voortgang.bezig {
+    opacity: 1;
+    animation: nav-voortgang 8s cubic-bezier(0.1, 0.7, 0.1, 1) forwards;
+}
+
+@keyframes nav-voortgang {
+    from {
+        transform: scaleX(0);
+    }
+
+    to {
+        transform: scaleX(0.92);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nav-voortgang.bezig {
+        animation: none;
+        transform: scaleX(0.6);
+    }
+}
+
+/*
+ * Raakvlakken: op een aanraakscherm is alles waar je op tikt minstens 44
+ * pixels, ook met handschoenen aan. Op een scherm met een muis blijft de
+ * dichtere opmaak staan.
+ */
+@media (pointer: coarse) {
+    .app-shell :is(button, select, a.rounded-full, [role='button']),
+    .app-shell input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not([type='hidden']) {
+        min-height: 44px;
+    }
+
+    .app-shell :is(button, a.rounded-full, [role='button']) {
+        min-width: 44px;
+    }
+}
