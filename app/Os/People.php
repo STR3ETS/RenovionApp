@@ -120,6 +120,7 @@ final class People
                     'name' => (string) ($person['naam'] ?? $mail),
                     'email' => $mail,
                     'password' => $password,
+                    'must_change_password' => true,
                     'role' => $role,
                     'active' => true,
                     'person_id' => $personId,
@@ -148,6 +149,19 @@ final class People
         }
 
         return $created;
+    }
+
+    /**
+     * Zet een nieuw tijdelijk wachtwoord: de gebruiker kiest bij de volgende
+     * keer inloggen zelf een eigen wachtwoord, open sessies gaan dicht.
+     */
+    public static function temporaryPassword(User $account): string
+    {
+        $password = self::newPassword();
+        $account->forceFill(['password' => $password, 'must_change_password' => true, 'active' => true])->save();
+        (new self)->endSessions([$account->id]);
+
+        return $password;
     }
 
     public static function newPassword(): string

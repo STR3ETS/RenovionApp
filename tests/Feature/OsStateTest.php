@@ -122,11 +122,48 @@ class OsStateTest extends TestCase
         $this->assertSame(UserRole::Calculator, $account->role);
         $this->assertSame('u1', $account->person_id);
         $this->assertTrue(password_verify($res['accounts'][0]['wachtwoord'], $account->password));
+        $this->assertTrue($account->must_change_password, 'het wachtwoord is tijdelijk');
 
         // deactiveren sluit het account
         $person['status'] = 'gedeactiveerd';
         $this->sync($user, [['extraUsers/u1', json_encode($person)]]);
         $this->assertFalse($account->fresh()->active);
+    }
+
+    public function test_met_een_tijdelijk_wachtwoord_kies_je_eerst_een_eigen_wachtwoord(): void
+    {
+        $admin = $this->admin();
+        $peter = User::factory()->uitvoerder()->create(['name' => 'Peter Mulder', 'email' => 'peter@renovion.nl', 'person_id' => 'peter']);
+
+        $temp = $this->actingAs($admin)->postJson('/os/accounts/peter/wachtwoord')->assertOk()->json('wachtwoord');
+        $this->assertTrue($peter->fresh()->must_change_password);
+        $this->post('/uitloggen');
+
+        // Inloggen met het tijdelijke wachtwoord: eerst een eigen wachtwoord kiezen
+        $this->post('/inloggen', ['email' => 'peter@renovion.nl', 'password' => $temp])->assertRedirect('/');
+        $this->get('/projecten')->assertRedirect('/wachtwoord-kiezen');
+        $this->getJson('/os/staat')->assertStatus(409);
+        $this->get('/wachtwoord-kiezen')->assertOk()->assertSee('Kies je eigen wachtwoord');
+
+        $this->post('/wachtwoord-kiezen', ['password' => 'kort1', 'password_confirmation' => 'kort1'])->assertSessionHasErrors('password');
+        $this->post('/wachtwoord-kiezen', ['password' => $temp, 'password_confirmation' => $temp])->assertSessionHasErrors('password');
+        $this->post('/wachtwoord-kiezen', ['password' => 'Stucwerk2026!', 'password_confirmation' => 'Stucwerk2026!'])->assertRedirect('/');
+
+        $this->assertFalse($peter->fresh()->must_change_password);
+        $this->assertTrue(password_verify('Stucwerk2026!', $peter->fresh()->password));
+        $this->get('/projecten')->assertOk();
+        $this->get('/wachtwoord-kiezen')->assertRedirect('/');
+    }
+
+    public function test_het_commando_zet_tijdelijke_wachtwoorden(): void
+    {
+        $this->admin();
+
+        $this->artisan('os:tijdelijk-wachtwoord', ['email' => ['IMAD@renovion.nl', 'niemand@renovion.nl']])
+            ->expectsOutputToContain('Geen account met niemand@renovion.nl')
+            ->assertSuccessful();
+
+        $this->assertTrue(User::query()->where('email', 'imad@renovion.nl')->value('must_change_password'));
     }
 
     public function test_alleen_de_directie_verandert_rollen(): void
@@ -160,6 +197,8 @@ class OsStateTest extends TestCase
         ]);
         $klant = User::query()->where('email', 'anna@example.nl')->firstOrFail();
         $this->assertSame(UserRole::Klant, $klant->role);
+        $this->actingAs($klant)->getJson('/os/staat')->assertStatus(409);
+        $klant->forceFill(['must_change_password' => false])->save(); // eigen wachtwoord gekozen
 
         $rows = collect($this->actingAs($klant)->getJson('/os/staat')->json('rows'))->mapWithKeys(fn ($r) => [$r[0] => $r[1]]);
 
@@ -211,6 +250,7 @@ class OsStateTest extends TestCase
 
         $partner = User::query()->where('email', 'info@tegel.example')->firstOrFail();
         $this->assertSame(UserRole::Onderaannemer, $partner->role);
+        $partner->forceFill(['must_change_password' => false])->save(); // eigen wachtwoord gekozen
         $rows = collect($this->actingAs($partner)->getJson('/os/staat')->json('rows'))->mapWithKeys(fn ($r) => [$r[0] => $r[1]]);
 
         $this->assertTrue($rows->has('subs/s1'));

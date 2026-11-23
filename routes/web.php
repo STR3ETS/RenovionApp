@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\ChoosePasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Os\AiController;
 use App\Http\Controllers\Os\FileController;
@@ -23,8 +24,12 @@ Route::redirect('/dashboard', '/vandaag');
 
 Route::get('/manifest.webmanifest', [ShellController::class, 'manifest'])->name('manifest');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'password.chosen'])->group(function () {
     Route::post('/uitloggen', [LoginController::class, 'destroy'])->name('logout');
+
+    // Na een tijdelijk wachtwoord eerst zelf een eigen wachtwoord kiezen
+    Route::get('/wachtwoord-kiezen', [ChoosePasswordController::class, 'create'])->name('password.choose');
+    Route::post('/wachtwoord-kiezen', [ChoosePasswordController::class, 'store'])->middleware('throttle:login')->name('password.choose.store');
 
     Route::get('/', [ShellController::class, 'show'])->name('home');
 

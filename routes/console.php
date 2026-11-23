@@ -1,16 +1,19 @@
 <?php
 
 use App\Models\OsRow;
+use App\Models\User;
 use App\Os\Ai\Actions;
 use App\Os\Ai\Agents;
 use App\Os\Ai\AiUnavailable;
 use App\Os\Ai\StateReader;
+use App\Os\People;
 use App\Os\StateStore;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 Artisan::command('os:install', function (StateStore $store) {
     $store->ensureInstalled();
@@ -36,6 +39,19 @@ Artisan::command('os:reset {--force : Ook op productie, zonder vragen}', functio
 
     $this->info('Renovion OS is leeg opnieuw ingericht (bestanden en accounts blijven staan).');
 })->purpose('Wis de staat van Renovion OS en begin opnieuw met de lege fabrieksstaat');
+
+Artisan::command('os:tijdelijk-wachtwoord {email* : E-mailadressen van de accounts}', function () {
+    foreach ($this->argument('email') as $email) {
+        $account = User::query()->whereRaw('lower(email) = ?', [Str::lower($email)])->first();
+        if (! $account) {
+            $this->error("Geen account met {$email}.");
+
+            continue;
+        }
+        $this->line(str_pad($account->email, 28).People::temporaryPassword($account));
+    }
+    $this->info('Bij de volgende keer inloggen kiest iedereen zelf een eigen wachtwoord. Open sessies zijn gesloten.');
+})->purpose('Geef accounts een tijdelijk wachtwoord; de gebruiker kiest daarna zelf een eigen wachtwoord');
 
 Artisan::command('os:agents {--max=6 : Hoeveel signalen deze ronde maximaal}', function (Agents $agents) {
     if (! config('services.anthropic.agents')) {

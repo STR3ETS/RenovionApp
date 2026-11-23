@@ -15,7 +15,7 @@ use Illuminate\Notifications\Notifiable;
  * staat in de staat van het systeem; person_id wijst naar die persoon
  * (een medewerker of een extra gebruiker zoals een klant).
  */
-#[Fillable(['name', 'email', 'password', 'role', 'phone', 'active', 'person_id'])]
+#[Fillable(['name', 'email', 'password', 'role', 'phone', 'active', 'person_id', 'must_change_password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -34,6 +34,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'role' => UserRole::class,
             'active' => 'boolean',
+            'must_change_password' => 'boolean',
         ];
     }
 

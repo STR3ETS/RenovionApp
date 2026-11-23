@@ -90,8 +90,7 @@ class ShellController extends Controller
             return response()->json(['message' => 'Deze persoon heeft nog geen account. Vul een e-mailadres in en sla op; dan maakt het systeem er een.'], 404);
         }
 
-        $password = People::newPassword();
-        $account->forceFill(['password' => $password, 'active' => true])->save();
+        $password = People::temporaryPassword($account);
 
         return response()->json(['naam' => $account->name, 'mail' => $account->email, 'wachtwoord' => $password]);
     }

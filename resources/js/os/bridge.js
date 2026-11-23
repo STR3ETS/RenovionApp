@@ -289,6 +289,11 @@ export async function api(url, { method = 'GET', body, form } = {}) {
         hooks.expired();
         throw new Error('sessie');
     }
+    if (res.status === 409 && url.includes('/os/')) {
+        // Tijdelijk wachtwoord: eerst een eigen wachtwoord kiezen
+        location.href = '/wachtwoord-kiezen';
+        throw new Error('wachtwoord');
+    }
     if (!res.ok) {
         let msg = 'De server gaf een fout (' + res.status + ').';
         try { const j = await res.json(); if (j && j.message) msg = j.message; } catch (e) {}
