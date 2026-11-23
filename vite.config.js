@@ -1,21 +1,20 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
-import { bunny } from 'laravel-vite-plugin/fonts';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js'],
+            input: ['resources/css/os.css', 'resources/css/shell.css', 'resources/js/os/main.js'],
             refresh: true,
-            fonts: [
-                bunny('Instrument Sans', {
-                    weights: [400, 500, 600],
-                }),
-            ],
         }),
         tailwindcss(),
     ],
+    build: {
+        // De app wacht met top-level await op de staat van de server.
+        target: 'es2022',
+        chunkSizeWarningLimit: 2000,
+    },
     server: {
         watch: {
             ignored: ['**/storage/framework/views/**'],

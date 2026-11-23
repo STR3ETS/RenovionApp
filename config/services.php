@@ -35,4 +35,19 @@ return [
         ],
     ],
 
+    /*
+    | Nova en de agents van Renovion OS. Zonder sleutel staan ze uit en zegt
+    | de app dat eerlijk. Het model is in te stellen met RENOVION_AI_MODEL.
+    */
+    // Token waarmee de Renovion-website aanvragen aanlevert (POST /api/aanvragen, header X-Intake-Token).
+    'renovion' => [
+        'lead_intake_token' => env('LEAD_INTAKE_TOKEN'),
+    ],
+
+    'anthropic' => [
+        'key' => env('ANTHROPIC_API_KEY'),
+        'model' => env('RENOVION_AI_MODEL', 'claude-opus-5-5'),
+        'agents' => (bool) env('RENOVION_AGENTS', true),
+    ],
+
 ];

@@ -1,0 +1,1710 @@
+{
+ "v": 1,
+ "emps": [],
+ "clients": [],
+ "projects": [],
+ "invoices": [],
+ "blocks": [],
+ "tasks": [],
+ "agenda": [],
+ "outbox": [],
+ "notifs": [],
+ "seq": {
+  "pd": 0,
+  "ren": 0,
+  "fact": 0,
+  "beg": 0,
+  "wb": 0,
+  "pa": 0,
+  "oa": 0,
+  "sm": 0
+ },
+ "prefs": {
+  "novaMode": "bevestigen"
+ },
+ "subs": [],
+ "teams": [],
+ "werkbonnen": [],
+ "rfqs": [],
+ "fin": {
+  "bank": 0,
+  "bedrijfskosten": 0,
+  "loonIntern": 0,
+  "loonKantoor": 0,
+  "hist": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "doelMaand": 200000
+ },
+ "inkoop": [],
+ "declaraties": [],
+ "klantBerichten": [],
+ "klantNotities": [],
+ "klantVerzoeken": [],
+ "rapporten": [],
+ "chat": {
+  "channels": [
+   {
+    "id": "algemeen",
+    "naam": "algemeen",
+    "type": "algemeen",
+    "oms": "Voor iedereen bij Renovion"
+   },
+   {
+    "id": "hq",
+    "naam": "renovion-groep-hq",
+    "type": "algemeen",
+    "oms": "Directie en kantoor"
+   },
+   {
+    "id": "wvb",
+    "naam": "werkvoorbereiding",
+    "type": "afdeling",
+    "oms": "Tekeningen, bestellingen en planning vooraf"
+   },
+   {
+    "id": "inkoop",
+    "naam": "inkoop",
+    "type": "afdeling",
+    "oms": "Bestellingen, leveringen en prijsaanvragen"
+   },
+   {
+    "id": "uitv",
+    "naam": "uitvoering",
+    "type": "afdeling",
+    "oms": "Alles wat op de bouwplaats speelt"
+   }
+  ],
+  "msgs": [],
+  "read": {}
+ },
+ "automations": [
+  {
+   "id": "a1",
+   "type": "lead",
+   "naam": "Nieuwe lead → salestaak",
+   "trigger": "Nieuwe aanvraag",
+   "voorwaarde": "Nog geen contacttaak",
+   "actie": "Taak \"Eerste contact opnemen\" voor de salesverantwoordelijke",
+   "modus": "automatisch",
+   "aan": true,
+   "teller": 0,
+   "laatste": null
+  },
+  {
+   "id": "a2",
+   "type": "tel",
+   "naam": "Ontbrekend telefoonnummer → aanvulverzoek",
+   "trigger": "Klant opgeslagen",
+   "voorwaarde": "Telefoonnummer leeg",
+   "actie": "Mail met verzoek om telefoonnummer",
+   "modus": "bevestigen",
+   "aan": true,
+   "teller": 0,
+   "laatste": null
+  },
+  {
+   "id": "a3",
+   "type": "intake",
+   "naam": "Intake binnenkort → herinnering",
+   "trigger": "Intake in agenda",
+   "voorwaarde": "Binnen 4 dagen",
+   "actie": "Herinneringsmail naar klant",
+   "modus": "automatisch",
+   "aan": true,
+   "teller": 0,
+   "laatste": null
+  },
+  {
+   "id": "a4",
+   "type": "offerte3",
+   "naam": "Offerte 3 dagen zonder reactie → opvolgtaak",
+   "trigger": "Offerte verzonden",
+   "voorwaarde": "3 dagen geen reactie",
+   "actie": "Opvolgtaak voor sales",
+   "modus": "automatisch",
+   "aan": true,
+   "teller": 0,
+   "laatste": null
+  },
+  {
+   "id": "a5",
+   "type": "getekend",
+   "naam": "Offerte ondertekend → projectactivatie",
+   "trigger": "Offerte ondertekend",
+   "voorwaarde": "Laatste 14 dagen, nog geen werkvoorbereiding",
+   "actie": "Activatie voorbereiden (taken, team, materiaal)",
+   "modus": "signaleren",
+   "aan": true,
+   "teller": 0,
+   "laatste": null
+  },
+  {
+   "id": "a6",
+   "type": "aanbetaling",
+   "naam": "Aanbetaling ontbreekt → waarschuwing",
+   "trigger": "Termijnfactuur 1",
+   "voorwaarde": "Vervaldatum verstreken",
+   "actie": "Waarschuwing aan directie, start blokkeren",
+   "modus": "signaleren",
+   "aan": true,
+   "teller": 0,
+   "laatste": null
+  },
+  {
+   "id": "a7",
+   "type": "deadline",
+   "naam": "Deadline overschreden → escalatie",
+   "trigger": "Taak",
+   "voorwaarde": "Deadline verstreken, niet afgerond",
+   "actie": "Melding aan directie en prioriteit naar hoog",
+   "modus": "automatisch",
+   "aan": true,
+   "teller": 0,
+   "laatste": null
+  },
+  {
+   "id": "a8",
+   "type": "materiaal",
+   "naam": "Materiaal niet besteld → projectleider informeren",
+   "trigger": "Inkooptaak",
+   "voorwaarde": "Deadline binnen 4 dagen, nog open",
+   "actie": "Bericht in projectkanaal aan de projectleider",
+   "modus": "bevestigen",
+   "aan": true,
+   "teller": 0,
+   "laatste": null
+  },
+  {
+   "id": "a9",
+   "type": "certificaat",
+   "naam": "Certificaat verloopt → partner informeren",
+   "trigger": "Certificaat of document",
+   "voorwaarde": "Verlopen of binnen 30 dagen",
+   "actie": "Mail aan de partner met verzoek om vernieuwing",
+   "modus": "bevestigen",
+   "aan": true,
+   "teller": 0,
+   "laatste": null
+  },
+  {
+   "id": "a10",
+   "type": "fase",
+   "naam": "Projectmijlpaal → klantupdate voorbereiden",
+   "trigger": "Voortgang project",
+   "voorwaarde": "25, 50, 75 of 100% bereikt",
+   "actie": "Conceptbericht in de Service Hub",
+   "modus": "bevestigen",
+   "aan": true,
+   "teller": 0,
+   "laatste": null
+  },
+  {
+   "id": "a11",
+   "type": "week",
+   "naam": "Weekafsluiting → rapportage",
+   "trigger": "Vrijdag",
+   "voorwaarde": "Eén keer per week",
+   "actie": "Weekrapport met omzet, uren, risico’s",
+   "modus": "automatisch",
+   "aan": true,
+   "teller": 0,
+   "laatste": null
+  }
+ ],
+ "autoFired": {},
+ "autoQueue": [],
+ "autoLog": [],
+ "autoInit": true,
+ "prijslijst": [
+  {
+   "nr": "R-1001",
+   "oms": "Kalkzandsteen CS20 100 mm",
+   "cat": "Ruwbouw",
+   "eenheid": "m2",
+   "prijs": 24.5,
+   "soort": "m",
+   "norm": 0.55,
+   "lev": "Bouwmaterialen Centrum",
+   "upd": "2026-10-12",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "R-1002",
+   "oms": "Betonmortel C30/37",
+   "cat": "Ruwbouw",
+   "eenheid": "m3",
+   "prijs": 128,
+   "soort": "m",
+   "norm": 0.8,
+   "lev": "Betoncentrale Oost",
+   "upd": "2026-07-15",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "R-1003",
+   "oms": "Wapeningsstaal B500B",
+   "cat": "Ruwbouw",
+   "eenheid": "kg",
+   "prijs": 1.35,
+   "soort": "m",
+   "norm": 0.02,
+   "lev": "Bouwmaterialen Centrum",
+   "upd": "2026-07-15",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "R-1004",
+   "oms": "Gevelmetselwerk handvorm incl. specie",
+   "cat": "Ruwbouw",
+   "eenheid": "m2",
+   "prijs": 68,
+   "soort": "m",
+   "norm": 1.4,
+   "lev": "Steenhandel Rivierland",
+   "upd": "2026-09-01",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "R-1005",
+   "oms": "Lateien beton 100 mm",
+   "cat": "Ruwbouw",
+   "eenheid": "m1",
+   "prijs": 38,
+   "soort": "m",
+   "norm": 0.3,
+   "lev": "Bouwmaterialen Centrum",
+   "upd": "2026-07-15",
+   "actief": false,
+   "hist": []
+  },
+  {
+   "nr": "T-2001",
+   "oms": "Gipsplaat 12,5 mm",
+   "cat": "Timmerwerk",
+   "eenheid": "m2",
+   "prijs": 6.8,
+   "soort": "m",
+   "norm": 0.35,
+   "lev": "Gipsplaten Direct",
+   "upd": "2026-10-12",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "T-2002",
+   "oms": "Metal stud C50",
+   "cat": "Timmerwerk",
+   "eenheid": "m1",
+   "prijs": 2.9,
+   "soort": "m",
+   "norm": 0.05,
+   "lev": "Gipsplaten Direct",
+   "upd": "2026-09-01",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "T-2003",
+   "oms": "Vuren regelwerk 38×63",
+   "cat": "Timmerwerk",
+   "eenheid": "m1",
+   "prijs": 2.15,
+   "soort": "m",
+   "norm": 0.08,
+   "lev": "Houthandel Noord",
+   "upd": "2026-07-15",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "T-2004",
+   "oms": "Binnendeur opdek stomp incl. beslag",
+   "cat": "Timmerwerk",
+   "eenheid": "st",
+   "prijs": 165,
+   "soort": "m",
+   "norm": 2.5,
+   "lev": "Houthandel Noord",
+   "upd": "2026-07-15",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "T-2005",
+   "oms": "Kozijn meranti incl. HR++ glas",
+   "cat": "Timmerwerk",
+   "eenheid": "st",
+   "prijs": 1450,
+   "soort": "m",
+   "norm": 6,
+   "lev": "Kozijnfabriek Brabant",
+   "upd": "2026-09-01",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "T-2006",
+   "oms": "Plinten MDF wit gegrond",
+   "cat": "Timmerwerk",
+   "eenheid": "m1",
+   "prijs": 4.2,
+   "soort": "m",
+   "norm": 0.15,
+   "lev": "Houthandel Noord",
+   "upd": "2026-10-12",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "I-3001",
+   "oms": "Meerlagenbuis 16 mm",
+   "cat": "Installatie",
+   "eenheid": "m1",
+   "prijs": 3.4,
+   "soort": "m",
+   "norm": 0.15,
+   "lev": "Installatiegroothandel Noord",
+   "upd": "2026-07-15",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "I-3002",
+   "oms": "Afvoerbuis PVC 50 mm",
+   "cat": "Installatie",
+   "eenheid": "m1",
+   "prijs": 4.1,
+   "soort": "m",
+   "norm": 0.2,
+   "lev": "Installatiegroothandel Noord",
+   "upd": "2026-09-01",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "I-3003",
+   "oms": "Douchegoot RVS 80 cm",
+   "cat": "Installatie",
+   "eenheid": "st",
+   "prijs": 289,
+   "soort": "m",
+   "norm": 2,
+   "lev": "Installatiegroothandel Noord",
+   "upd": "2026-07-15",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "I-3004",
+   "oms": "Inbouwreservoir met bedieningsplaat",
+   "cat": "Installatie",
+   "eenheid": "st",
+   "prijs": 245,
+   "soort": "m",
+   "norm": 2.5,
+   "lev": "Installatiegroothandel Noord",
+   "upd": "2026-07-15",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "I-3005",
+   "oms": "Warmtepomp lucht/water 8 kW",
+   "cat": "Installatie",
+   "eenheid": "st",
+   "prijs": 7850,
+   "soort": "m",
+   "norm": 16,
+   "lev": "Installatiegroothandel Noord",
+   "upd": "2026-10-12",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "I-3006",
+   "oms": "Elektrische vloerverwarming (mat)",
+   "cat": "Installatie",
+   "eenheid": "m2",
+   "prijs": 85,
+   "soort": "m",
+   "norm": 0.5,
+   "lev": "Installatiegroothandel Noord",
+   "upd": "2026-07-15",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "I-3007",
+   "oms": "Mechanisch ventilatieventiel",
+   "cat": "Installatie",
+   "eenheid": "st",
+   "prijs": 95,
+   "soort": "m",
+   "norm": 1.5,
+   "lev": "Installatiegroothandel Noord",
+   "upd": "2026-07-15",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "E-4001",
+   "oms": "Installatiekabel YMvK 3×2,5 mm²",
+   "cat": "Elektra",
+   "eenheid": "m1",
+   "prijs": 2.4,
+   "soort": "m",
+   "norm": 0.05,
+   "lev": "Elektrogroothandel West",
+   "upd": "2026-09-01",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "E-4002",
+   "oms": "Inbouwdoos",
+   "cat": "Elektra",
+   "eenheid": "st",
+   "prijs": 1.8,
+   "soort": "m",
+   "norm": 0.25,
+   "lev": "Elektrogroothandel West",
+   "upd": "2026-07-15",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "E-4003",
+   "oms": "Wandcontactdoos dubbel",
+   "cat": "Elektra",
+   "eenheid": "st",
+   "prijs": 14.5,
+   "soort": "m",
+   "norm": 0.3,
+   "lev": "Elektrogroothandel West",
+   "upd": "2026-10-12",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "E-4004",
+   "oms": "LED inbouwspot IP44",
+   "cat": "Elektra",
+   "eenheid": "st",
+   "prijs": 32,
+   "soort": "m",
+   "norm": 0.4,
+   "lev": "Elektrogroothandel West",
+   "upd": "2026-09-01",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "E-4005",
+   "oms": "Aardlekautomaat 1P+N",
+   "cat": "Elektra",
+   "eenheid": "st",
+   "prijs": 58,
+   "soort": "m",
+   "norm": 0.5,
+   "lev": "Elektrogroothandel West",
+   "upd": "2026-07-15",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "G-5001",
+   "oms": "Wandtegel 60×120 mat",
+   "cat": "Tegelwerk",
+   "eenheid": "m2",
+   "prijs": 64,
+   "soort": "m",
+   "norm": 0,
+   "lev": "Tegelhuis Amstel",
+   "upd": "2026-07-15",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "G-5002",
+   "oms": "Vloertegel 60×60 antraciet",
+   "cat": "Tegelwerk",
+   "eenheid": "m2",
+   "prijs": 52,
+   "soort": "m",
+   "norm": 0,
+   "lev": "Tegelhuis Amstel",
+   "upd": "2026-09-01",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "G-5003",
+   "oms": "Tegellijm C2TE 25 kg",
+   "cat": "Tegelwerk",
+   "eenheid": "zak",
+   "prijs": 18.9,
+   "soort": "m",
+   "norm": 0,
+   "lev": "Tegelhuis Amstel",
+   "upd": "2026-10-12",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "G-5004",
+   "oms": "Tegelwerk wand zetten (arbeid)",
+   "cat": "Tegelwerk",
+   "eenheid": "m2",
+   "prijs": 0,
+   "soort": "m",
+   "norm": 1.1,
+   "lev": "Eigen personeel",
+   "upd": "2026-07-15",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "S-6001",
+   "oms": "Wandcloset hangend randloos",
+   "cat": "Sanitair",
+   "eenheid": "st",
+   "prijs": 395,
+   "soort": "m",
+   "norm": 2,
+   "lev": "Sanitairgroothandel Midden",
+   "upd": "2026-09-01",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "S-6002",
+   "oms": "Badmeubel 120 cm dubbel",
+   "cat": "Sanitair",
+   "eenheid": "st",
+   "prijs": 1450,
+   "soort": "m",
+   "norm": 4,
+   "lev": "Sanitairgroothandel Midden",
+   "upd": "2026-07-15",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "S-6003",
+   "oms": "Douchewand helder glas 10 mm, geplaatst",
+   "cat": "Sanitair",
+   "eenheid": "st",
+   "prijs": 1180,
+   "soort": "o",
+   "norm": 0,
+   "lev": "Glashandel Zuid",
+   "upd": "2026-07-15",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "S-6004",
+   "oms": "Thermostatische regendouche",
+   "cat": "Sanitair",
+   "eenheid": "st",
+   "prijs": 690,
+   "soort": "m",
+   "norm": 2,
+   "lev": "Sanitairgroothandel Midden",
+   "upd": "2026-10-12",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "A-7001",
+   "oms": "Stucwerk spachtelputz",
+   "cat": "Afbouw",
+   "eenheid": "m2",
+   "prijs": 6,
+   "soort": "m",
+   "norm": 0.6,
+   "lev": "Bouwmaterialen Centrum",
+   "upd": "2026-07-15",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "A-7002",
+   "oms": "Anhydriet dekvloer 50 mm (onderaanneming)",
+   "cat": "Afbouw",
+   "eenheid": "m2",
+   "prijs": 24,
+   "soort": "o",
+   "norm": 0,
+   "lev": "Vloerenbedrijf Delta",
+   "upd": "2026-07-15",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "A-7003",
+   "oms": "Systeemplafond 60×60",
+   "cat": "Afbouw",
+   "eenheid": "m2",
+   "prijs": 28,
+   "soort": "m",
+   "norm": 0.5,
+   "lev": "Gipsplaten Direct",
+   "upd": "2026-09-01",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "P-8001",
+   "oms": "Muurverf binnen, 2 lagen",
+   "cat": "Schilderwerk",
+   "eenheid": "m2",
+   "prijs": 3.2,
+   "soort": "m",
+   "norm": 0.3,
+   "lev": "Verfgroothandel Noord",
+   "upd": "2026-07-15",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "P-8002",
+   "oms": "Lakwerk kozijnen binnen",
+   "cat": "Schilderwerk",
+   "eenheid": "m1",
+   "prijs": 2.6,
+   "soort": "m",
+   "norm": 0.25,
+   "lev": "Verfgroothandel Noord",
+   "upd": "2026-10-12",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "D-9001",
+   "oms": "Bitumineuze dakbedekking 2-laags (onderaanneming)",
+   "cat": "Dak",
+   "eenheid": "m2",
+   "prijs": 58,
+   "soort": "o",
+   "norm": 0,
+   "lev": "Hoekstra Dakwerken",
+   "upd": "2026-09-01",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "D-9002",
+   "oms": "Dakisolatie PIR Rc 6,3",
+   "cat": "Dak",
+   "eenheid": "m2",
+   "prijs": 38,
+   "soort": "m",
+   "norm": 0.2,
+   "lev": "Bouwmaterialen Centrum",
+   "upd": "2026-07-15",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "D-9003",
+   "oms": "Hemelwaterafvoer zink",
+   "cat": "Dak",
+   "eenheid": "m1",
+   "prijs": 46,
+   "soort": "m",
+   "norm": 0.6,
+   "lev": "Bouwmaterialen Centrum",
+   "upd": "2026-07-15",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "M-9501",
+   "oms": "Container 6 m³ incl. afvoer",
+   "cat": "Materieel",
+   "eenheid": "st",
+   "prijs": 485,
+   "soort": "e",
+   "norm": 0,
+   "lev": "Containerdienst West",
+   "upd": "2026-09-01",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "M-9502",
+   "oms": "Rolsteiger huur per week",
+   "cat": "Materieel",
+   "eenheid": "wk",
+   "prijs": 145,
+   "soort": "e",
+   "norm": 0,
+   "lev": "Materieelverhuur Delta",
+   "upd": "2026-10-12",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "M-9503",
+   "oms": "Minigraver met machinist",
+   "cat": "Materieel",
+   "eenheid": "dag",
+   "prijs": 640,
+   "soort": "o",
+   "norm": 0,
+   "lev": "De Groot Grondwerken",
+   "upd": "2026-07-15",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "M-9504",
+   "oms": "Bouwlift huur per week",
+   "cat": "Materieel",
+   "eenheid": "wk",
+   "prijs": 395,
+   "soort": "e",
+   "norm": 0,
+   "lev": "Materieelverhuur Delta",
+   "upd": "2026-09-01",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "O-9601",
+   "oms": "Asbestinventarisatie",
+   "cat": "Onderzoek",
+   "eenheid": "pst",
+   "prijs": 450,
+   "soort": "o",
+   "norm": 0,
+   "lev": "Asbestadvies Midden",
+   "upd": "2026-07-15",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "O-9602",
+   "oms": "Constructieberekening",
+   "cat": "Onderzoek",
+   "eenheid": "pst",
+   "prijs": 850,
+   "soort": "v",
+   "norm": 0,
+   "lev": "Constructiebureau Lijn",
+   "upd": "2026-07-15",
+   "actief": true,
+   "hist": []
+  },
+  {
+   "nr": "ST-1001",
+   "oms": "Stucwerk wand tot 8 mm, behangklaar",
+   "cat": "Stucwerk",
+   "eenheid": "m2",
+   "prijs": 19.5,
+   "soort": "o",
+   "norm": 0,
+   "lev": "Stukadoor · prijsafspraak 17-11-2026",
+   "upd": "2026-10-30",
+   "actief": true,
+   "hist": [],
+   "grp": "Wandwerk"
+  },
+  {
+   "nr": "ST-1002",
+   "oms": "Stucwerk wand dikker dan 8 mm tot 10 mm, behangklaar",
+   "cat": "Stucwerk",
+   "eenheid": "m2",
+   "prijs": 20.5,
+   "soort": "o",
+   "norm": 0,
+   "lev": "Stukadoor · prijsafspraak 17-11-2026",
+   "upd": "2026-10-30",
+   "actief": true,
+   "hist": [],
+   "grp": "Wandwerk"
+  },
+  {
+   "nr": "ST-1003",
+   "oms": "Stucwerk wand tot 8 mm, gladpleisterwerk",
+   "cat": "Stucwerk",
+   "eenheid": "m2",
+   "prijs": 21.5,
+   "soort": "o",
+   "norm": 0,
+   "lev": "Stukadoor · prijsafspraak 17-11-2026",
+   "upd": "2026-10-30",
+   "actief": true,
+   "hist": [],
+   "grp": "Wandwerk"
+  },
+  {
+   "nr": "ST-1004",
+   "oms": "Stucwerk wand dikker dan 8 mm tot 10 mm, gladpleisterwerk",
+   "cat": "Stucwerk",
+   "eenheid": "m2",
+   "prijs": 23,
+   "soort": "o",
+   "norm": 0,
+   "lev": "Stukadoor · prijsafspraak 17-11-2026",
+   "upd": "2026-10-30",
+   "actief": true,
+   "hist": [],
+   "grp": "Wandwerk"
+  },
+  {
+   "nr": "ST-1005",
+   "oms": "Cementgebonden stucwerk t.b.v. tegelwerk",
+   "cat": "Stucwerk",
+   "eenheid": "m2",
+   "prijs": 48.5,
+   "soort": "o",
+   "norm": 0,
+   "lev": "Stukadoor · prijsafspraak 17-11-2026",
+   "upd": "2026-10-30",
+   "actief": true,
+   "hist": [],
+   "grp": "Wandwerk"
+  },
+  {
+   "nr": "ST-1101",
+   "oms": "Plafond gladpleisterwerk, ondergrond stucplaten",
+   "cat": "Stucwerk",
+   "eenheid": "m2",
+   "prijs": 21,
+   "soort": "o",
+   "norm": 0,
+   "lev": "Stukadoor · prijsafspraak 17-11-2026",
+   "upd": "2026-10-30",
+   "actief": true,
+   "hist": [],
+   "grp": "Plafonds"
+  },
+  {
+   "nr": "ST-1102",
+   "oms": "Plafond gladpleisterwerk, ondergrond beton / spackwerk",
+   "cat": "Stucwerk",
+   "eenheid": "m2",
+   "prijs": 23,
+   "soort": "o",
+   "norm": 0,
+   "lev": "Stukadoor · prijsafspraak 17-11-2026",
+   "upd": "2026-10-30",
+   "actief": true,
+   "hist": [],
+   "grp": "Plafonds"
+  },
+  {
+   "nr": "ST-1201",
+   "oms": "Hoekbeschermer",
+   "cat": "Stucwerk",
+   "eenheid": "st",
+   "prijs": 10,
+   "soort": "o",
+   "norm": 0,
+   "lev": "Stukadoor · prijsafspraak 17-11-2026",
+   "upd": "2026-10-30",
+   "actief": true,
+   "hist": [],
+   "grp": "Algemeen"
+  },
+  {
+   "nr": "ST-1202",
+   "oms": "Stucstopprofiel",
+   "cat": "Stucwerk",
+   "eenheid": "st",
+   "prijs": 12.5,
+   "soort": "o",
+   "norm": 0,
+   "lev": "Stukadoor · prijsafspraak 17-11-2026",
+   "upd": "2026-10-30",
+   "actief": true,
+   "hist": [],
+   "grp": "Algemeen"
+  }
+ ],
+ "kwal": {},
+ "lib": [],
+ "pos": [],
+ "mkt": {
+  "maanden": [
+   "mei",
+   "jun",
+   "jul",
+   "aug",
+   "sep",
+   "okt"
+  ],
+  "kanalen": [
+   {
+    "k": "Google Ads",
+    "leads": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "kosten": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "gewonnen": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "omzet": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "k": "Meta Ads",
+    "leads": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "kosten": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "gewonnen": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "omzet": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "k": "Organisch (SEO)",
+    "leads": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "kosten": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "gewonnen": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "omzet": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "k": "Direct en doorverwijzing",
+    "leads": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "kosten": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "gewonnen": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "omzet": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  ],
+  "kw": [],
+  "lokaal": [],
+  "pages": [],
+  "tech": [],
+  "forms": []
+ },
+ "mailTpl": [
+  {
+   "id": "m1",
+   "naam": "Ontvangst aanvraag",
+   "onderwerp": "Wij hebben uw aanvraag ontvangen",
+   "blocks": [
+    {
+     "id": "mbri3bvi",
+     "type": "header",
+     "txt": ""
+    },
+    {
+     "id": "mbvuyzxx",
+     "type": "kop",
+     "txt": "Bedankt voor uw aanvraag, {{contactpersoon}}"
+    },
+    {
+     "id": "mb7d71ah",
+     "type": "tekst",
+     "txt": "Wij hebben uw aanvraag voor {{project_naam}} goed ontvangen. Binnen twee werkdagen nemen wij contact met u op om de wensen te bespreken."
+    },
+    {
+     "id": "mb1bk19q",
+     "type": "ondertekening",
+     "txt": "Met vriendelijke groet,\n{{projectleider}}\nRenovion Groep"
+    },
+    {
+     "id": "mbksh1su",
+     "type": "footer",
+     "txt": ""
+    }
+   ]
+  },
+  {
+   "id": "m2",
+   "naam": "Bedankt voor het gesprek",
+   "onderwerp": "Bedankt voor het prettige gesprek",
+   "blocks": [
+    {
+     "id": "mbmviw3c",
+     "type": "header",
+     "txt": ""
+    },
+    {
+     "id": "mbd1rh12",
+     "type": "kop",
+     "txt": "Bedankt voor het gesprek"
+    },
+    {
+     "id": "mbcwlvcg",
+     "type": "tekst",
+     "txt": "Fijn dat we uw wensen voor {{project_naam}} mochten bespreken. We werken nu aan de begroting."
+    },
+    {
+     "id": "mbw5xzc7",
+     "type": "ondertekening",
+     "txt": "Met vriendelijke groet,\n{{projectleider}}\nRenovion Groep"
+    },
+    {
+     "id": "mbm7sjt8",
+     "type": "footer",
+     "txt": ""
+    }
+   ]
+  },
+  {
+   "id": "m3",
+   "naam": "Bezichtiging gepland",
+   "onderwerp": "Uw afspraak is ingepland",
+   "blocks": [
+    {
+     "id": "mbagcqu6",
+     "type": "header",
+     "txt": ""
+    },
+    {
+     "id": "mbbsxvld",
+     "type": "kop",
+     "txt": "Uw afspraak staat vast"
+    },
+    {
+     "id": "mblwn4xw",
+     "type": "tekst",
+     "txt": "We komen langs op {{afspraak_datum}} om de situatie op {{project_adres}} te bekijken."
+    },
+    {
+     "id": "mb0uo3k5",
+     "type": "ondertekening",
+     "txt": "Met vriendelijke groet,\n{{projectleider}}\nRenovion Groep"
+    },
+    {
+     "id": "mbn9olep",
+     "type": "footer",
+     "txt": ""
+    }
+   ]
+  },
+  {
+   "id": "m4",
+   "naam": "Afspraakherinnering",
+   "onderwerp": "Herinnering: morgen uw afspraak",
+   "blocks": [
+    {
+     "id": "mb9ri4pf",
+     "type": "header",
+     "txt": ""
+    },
+    {
+     "id": "mbejl957",
+     "type": "kop",
+     "txt": "Tot morgen!"
+    },
+    {
+     "id": "mbo9o2l1",
+     "type": "tekst",
+     "txt": "Een korte herinnering aan onze afspraak op {{afspraak_datum}}. Wilt u zorgen dat de ruimte bereikbaar is?"
+    },
+    {
+     "id": "mbaie908",
+     "type": "ondertekening",
+     "txt": "Met vriendelijke groet,\n{{projectleider}}\nRenovion Groep"
+    },
+    {
+     "id": "mbgjxge9",
+     "type": "footer",
+     "txt": ""
+    }
+   ]
+  },
+  {
+   "id": "m5",
+   "naam": "Begroting beschikbaar",
+   "onderwerp": "Uw begroting staat klaar",
+   "blocks": [
+    {
+     "id": "mbp0jbyg",
+     "type": "header",
+     "txt": ""
+    },
+    {
+     "id": "mbk82e64",
+     "type": "kop",
+     "txt": "Uw begroting staat klaar"
+    },
+    {
+     "id": "mbwskuam",
+     "type": "tekst",
+     "txt": "De begroting voor {{project_naam}} staat voor u klaar. U kunt hem bekijken en vragen stellen per onderdeel."
+    },
+    {
+     "id": "mbjhezns",
+     "type": "knop",
+     "txt": "Bekijk begroting"
+    },
+    {
+     "id": "mb7h6vwm",
+     "type": "ondertekening",
+     "txt": "Met vriendelijke groet,\n{{projectleider}}\nRenovion Groep"
+    },
+    {
+     "id": "mbrb7mwn",
+     "type": "footer",
+     "txt": ""
+    }
+   ]
+  },
+  {
+   "id": "m6",
+   "naam": "Offerte beschikbaar",
+   "onderwerp": "Uw offerte {{offertenummer}}",
+   "blocks": [
+    {
+     "id": "mbgmk4wi",
+     "type": "header",
+     "txt": ""
+    },
+    {
+     "id": "mb5rnf67",
+     "type": "kop",
+     "txt": "Uw offerte voor {{project_naam}}"
+    },
+    {
+     "id": "mbs6bm9y",
+     "type": "afbeelding",
+     "txt": ""
+    },
+    {
+     "id": "mbua17yz",
+     "type": "tekst",
+     "txt": "Beste {{contactpersoon}},\n\nIn de bijlage en in uw persoonlijke omgeving vindt u offerte {{offertenummer}} voor {{contractwaarde}} inclusief btw."
+    },
+    {
+     "id": "mbzvmo71",
+     "type": "knop",
+     "txt": "Offerte bekijken en ondertekenen"
+    },
+    {
+     "id": "mby3no7r",
+     "type": "ondertekening",
+     "txt": "Met vriendelijke groet,\n{{projectleider}}\nRenovion Groep"
+    },
+    {
+     "id": "mb4czg8v",
+     "type": "footer",
+     "txt": ""
+    }
+   ]
+  },
+  {
+   "id": "m7",
+   "naam": "Offerte-opvolging",
+   "onderwerp": "Heeft u nog vragen over uw offerte?",
+   "blocks": [
+    {
+     "id": "mblt9qxh",
+     "type": "header",
+     "txt": ""
+    },
+    {
+     "id": "mbvk90ld",
+     "type": "kop",
+     "txt": "Heeft u nog vragen?"
+    },
+    {
+     "id": "mbmlq1n7",
+     "type": "tekst",
+     "txt": "Een paar dagen geleden stuurden wij u offerte {{offertenummer}}. Heeft u vragen of wilt u iets aanpassen? Wij denken graag mee."
+    },
+    {
+     "id": "mb8aneqs",
+     "type": "knop",
+     "txt": "Plan een belafspraak"
+    },
+    {
+     "id": "mbm50ucd",
+     "type": "ondertekening",
+     "txt": "Met vriendelijke groet,\n{{projectleider}}\nRenovion Groep"
+    },
+    {
+     "id": "mbcyldk4",
+     "type": "footer",
+     "txt": ""
+    }
+   ]
+  },
+  {
+   "id": "m8",
+   "naam": "Offerte geaccepteerd",
+   "onderwerp": "Bedankt voor uw opdracht",
+   "blocks": [
+    {
+     "id": "mbxp1udr",
+     "type": "header",
+     "txt": ""
+    },
+    {
+     "id": "mboyz3lm",
+     "type": "kop",
+     "txt": "Bedankt voor uw vertrouwen"
+    },
+    {
+     "id": "mbuq0q18",
+     "type": "tekst",
+     "txt": "We hebben uw ondertekende offerte ontvangen. De start van {{project_naam}} staat gepland op {{startdatum}}."
+    },
+    {
+     "id": "mbi9h421",
+     "type": "ondertekening",
+     "txt": "Met vriendelijke groet,\n{{projectleider}}\nRenovion Groep"
+    },
+    {
+     "id": "mbz6d7ej",
+     "type": "footer",
+     "txt": ""
+    }
+   ]
+  },
+  {
+   "id": "m9",
+   "naam": "Aanbetaling",
+   "onderwerp": "Factuur eerste termijn",
+   "blocks": [
+    {
+     "id": "mbi1kzfb",
+     "type": "header",
+     "txt": ""
+    },
+    {
+     "id": "mbxnjpmw",
+     "type": "kop",
+     "txt": "Eerste termijnfactuur"
+    },
+    {
+     "id": "mbzsq9ab",
+     "type": "tekst",
+     "txt": "Bijgaand ontvangt u de factuur voor de eerste termijn. Na ontvangst van de aanbetaling plannen we het team definitief in."
+    },
+    {
+     "id": "mbnp0hsi",
+     "type": "ondertekening",
+     "txt": "Met vriendelijke groet,\n{{projectleider}}\nRenovion Groep"
+    },
+    {
+     "id": "mb7xpkgs",
+     "type": "footer",
+     "txt": ""
+    }
+   ]
+  },
+  {
+   "id": "m10",
+   "naam": "Welkom Service Hub",
+   "onderwerp": "Welkom in uw persoonlijke projectomgeving",
+   "blocks": [
+    {
+     "id": "mbx02g9g",
+     "type": "header",
+     "txt": ""
+    },
+    {
+     "id": "mbml7zof",
+     "type": "kop",
+     "txt": "Welkom bij uw project"
+    },
+    {
+     "id": "mbt8tcmt",
+     "type": "tekst",
+     "txt": "Vanaf nu volgt u {{project_naam}} in uw eigen Service Hub: planning, documenten, betalingen en foto’s van het werk."
+    },
+    {
+     "id": "mbpu3jce",
+     "type": "knop",
+     "txt": "Open Service Hub"
+    },
+    {
+     "id": "mbe56q23",
+     "type": "ondertekening",
+     "txt": "Met vriendelijke groet,\n{{projectleider}}\nRenovion Groep"
+    },
+    {
+     "id": "mbneasbj",
+     "type": "footer",
+     "txt": ""
+    }
+   ]
+  },
+  {
+   "id": "m11",
+   "naam": "Project start",
+   "onderwerp": "Uw project gaat beginnen",
+   "blocks": [
+    {
+     "id": "mbtqidct",
+     "type": "header",
+     "txt": ""
+    },
+    {
+     "id": "mbl3aqgo",
+     "type": "kop",
+     "txt": "We gaan beginnen!"
+    },
+    {
+     "id": "mbenql8d",
+     "type": "tekst",
+     "txt": "Op {{startdatum}} start ons team bij u. Uw vaste aanspreekpunt is {{projectleider}}."
+    },
+    {
+     "id": "mbxwd3a9",
+     "type": "ondertekening",
+     "txt": "Met vriendelijke groet,\n{{projectleider}}\nRenovion Groep"
+    },
+    {
+     "id": "mbfb5z7y",
+     "type": "footer",
+     "txt": ""
+    }
+   ]
+  },
+  {
+   "id": "m12",
+   "naam": "Projectupdate",
+   "onderwerp": "Update over uw project",
+   "blocks": [
+    {
+     "id": "mb7f0lj8",
+     "type": "header",
+     "txt": ""
+    },
+    {
+     "id": "mblx6h9j",
+     "type": "kop",
+     "txt": "Update: {{project_naam}}"
+    },
+    {
+     "id": "mbjj29p4",
+     "type": "projectkaart",
+     "txt": ""
+    },
+    {
+     "id": "mbf8dba4",
+     "type": "tekst",
+     "txt": "Uw project is nu in de fase {{fase}}. Hieronder ziet u de voortgang."
+    },
+    {
+     "id": "mbo7wyct",
+     "type": "knop",
+     "txt": "Bekijk foto’s en planning"
+    },
+    {
+     "id": "mbk3nbu6",
+     "type": "ondertekening",
+     "txt": "Met vriendelijke groet,\n{{projectleider}}"
+    },
+    {
+     "id": "mb4ptd7b",
+     "type": "footer",
+     "txt": ""
+    }
+   ]
+  },
+  {
+   "id": "m13",
+   "naam": "Meerwerk ter goedkeuring",
+   "onderwerp": "Meerwerk ter goedkeuring",
+   "blocks": [
+    {
+     "id": "mbr0h451",
+     "type": "header",
+     "txt": ""
+    },
+    {
+     "id": "mb7zx097",
+     "type": "kop",
+     "txt": "Meerwerk ter goedkeuring"
+    },
+    {
+     "id": "mbrfphvg",
+     "type": "tekst",
+     "txt": "Er staat meerwerk klaar dat uw akkoord nodig heeft. U kunt het met één klik goedkeuren in uw Service Hub."
+    },
+    {
+     "id": "mbjfbnc1",
+     "type": "knop",
+     "txt": "Bekijk en keur goed"
+    },
+    {
+     "id": "mbc5t7u8",
+     "type": "ondertekening",
+     "txt": "Met vriendelijke groet,\n{{projectleider}}\nRenovion Groep"
+    },
+    {
+     "id": "mbd80enn",
+     "type": "footer",
+     "txt": ""
+    }
+   ]
+  },
+  {
+   "id": "m14",
+   "naam": "Planning gewijzigd",
+   "onderwerp": "Wijziging in de planning",
+   "blocks": [
+    {
+     "id": "mb63zhcx",
+     "type": "header",
+     "txt": ""
+    },
+    {
+     "id": "mb3rif5i",
+     "type": "kop",
+     "txt": "Er is iets veranderd in de planning"
+    },
+    {
+     "id": "mbxrfv7o",
+     "type": "tekst",
+     "txt": "We moeten de planning van {{project_naam}} aanpassen. De nieuwe verwachte opleverdatum is {{opleverdatum}}."
+    },
+    {
+     "id": "mbh203r8",
+     "type": "ondertekening",
+     "txt": "Met vriendelijke groet,\n{{projectleider}}\nRenovion Groep"
+    },
+    {
+     "id": "mbr645lq",
+     "type": "footer",
+     "txt": ""
+    }
+   ]
+  },
+  {
+   "id": "m15",
+   "naam": "Oplevering",
+   "onderwerp": "Uw project is opgeleverd",
+   "blocks": [
+    {
+     "id": "mbiwam7r",
+     "type": "header",
+     "txt": ""
+    },
+    {
+     "id": "mbdq7f2k",
+     "type": "kop",
+     "txt": "Gefeliciteerd met uw nieuwe ruimte!"
+    },
+    {
+     "id": "mbs4h5l9",
+     "type": "tekst",
+     "txt": "{{project_naam}} is opgeleverd. Het opleverrapport en uw garantiedocumenten staan in de Service Hub."
+    },
+    {
+     "id": "mbrox6kl",
+     "type": "ondertekening",
+     "txt": "Met vriendelijke groet,\n{{projectleider}}\nRenovion Groep"
+    },
+    {
+     "id": "mbltz3xm",
+     "type": "footer",
+     "txt": ""
+    }
+   ]
+  },
+  {
+   "id": "m16",
+   "naam": "Nazorg",
+   "onderwerp": "Hoe bevalt het?",
+   "blocks": [
+    {
+     "id": "mbd5zvvl",
+     "type": "header",
+     "txt": ""
+    },
+    {
+     "id": "mbhjr4er",
+     "type": "kop",
+     "txt": "Hoe bevalt het?"
+    },
+    {
+     "id": "mbzju5o0",
+     "type": "tekst",
+     "txt": "Uw project is een tijdje klaar. Hoe bevalt het? Heeft u nog vragen of opmerkingen, laat het ons gerust weten."
+    },
+    {
+     "id": "mbp2ue4q",
+     "type": "knop",
+     "txt": "Geef uw mening"
+    },
+    {
+     "id": "mb7wwccl",
+     "type": "ondertekening",
+     "txt": "Met vriendelijke groet,\n{{projectleider}}\nRenovion Groep"
+    },
+    {
+     "id": "mbddx3zh",
+     "type": "footer",
+     "txt": ""
+    }
+   ]
+  }
+ ],
+ "extraUsers": [],
+ "offVragen": [],
+ "service": [],
+ "r10": 1,
+ "ai": {
+  "cfg": {
+   "skills": {},
+   "agents": {},
+   "stop": false
+  },
+  "runs": [],
+  "approvals": [],
+  "audit": [],
+  "idem": {},
+  "incidents": [],
+  "tickets": [],
+  "cases": [],
+  "seq": {
+   "run": 0,
+   "ev": 0,
+   "apr": 0,
+   "inc": 0,
+   "var": 0,
+   "ct": 0,
+   "ho": 0
+  },
+  "flow": {},
+  "seeded": 1
+ },
+ "offHist": [],
+ "r15c": 1,
+ "r15s": 1,
+ "r16": 1,
+ "risks": {},
+ "academy": {
+  "done": {},
+  "started": {},
+  "hideWelcome": false,
+  "last": null
+ },
+ "r19": 1,
+ "contacts": {},
+ "leadNext": {},
+ "klus": {},
+ "r23": 1,
+ "r31b": 1,
+ "r31d": 1,
+ "r31e": 1,
+ "mailIn": [],
+ "r32": 1,
+ "r34": 1,
+ "r34p": 1,
+ "certMail": {}
+}

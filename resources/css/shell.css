@@ -1,0 +1,117 @@
+/* Tailwind zonder preflight: de basisstijl komt van het prototype (os.css), Tailwind-klassen zijn beschikbaar voor Blade-schermen. */
+@layer theme, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+@source "../views";
+
+/* =========================================================
+   Renovion OS: aanvullingen op het prototype (os.css).
+   Hier alleen wat de echte app nodig heeft en het prototype
+   niet had: laden (skeletons), paginawissel, inloggen en
+   de meldingen van het opslaan.
+   ========================================================= */
+
+/* Het prototype liet de standaardmarge van de browser staan: een rand van 8 pixels rond de app. */
+body{margin:0}
+
+/* ---------- Skeletons: zo ziet een scherm eruit terwijl het laadt ---------- */
+.sk{display:block;border-radius:8px;background:var(--border2);position:relative;overflow:hidden}
+.sk::after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--card) 70%,transparent),transparent);animation:skShimmer 1.3s ease-in-out infinite}
+@keyframes skShimmer{to{transform:translateX(100%)}}
+.sk-side{display:flex;flex-direction:column;gap:8px;padding:0 8px}
+.sk-side .sk{background:var(--side-hover)}
+.sk-side .sk::after{background:linear-gradient(90deg,transparent,#ffffff10,transparent)}
+.sk-logo{height:44px;width:170px;margin-bottom:18px;border-radius:10px}
+.sk-group{height:9px;width:84px;margin:14px 0 4px}
+.sk-item{height:30px;border-radius:999px}
+.sk-band{height:188px;border-radius:var(--r);background:var(--navy)}
+.sk-band::after{background:linear-gradient(90deg,transparent,#ffffff0d,transparent)}
+.sk-card{padding:18px;display:flex;flex-direction:column;gap:10px}
+.sk-line{height:10px}
+.sk-num{height:26px;width:55%}
+.sk-row{display:flex;gap:12px;align-items:center;padding:6px 0}
+.sk-ic{width:34px;height:34px;border-radius:10px;flex:none}
+.sk-tx{display:flex;flex-direction:column;gap:7px;flex:1}
+.w30{width:30%}.w40{width:40%}.w60{width:60%}.w70{width:70%}
+.sk-frame{position:absolute;inset:0;display:flex;flex-direction:column;gap:14px;padding:24px;background:var(--bg);pointer-events:none;transition:opacity .2s ease}
+.sk-frame.gone{opacity:0}
+.bmod{position:relative}
+@media (prefers-reduced-motion:reduce){.sk::after{animation:none}}
+
+/* ---------- Paginawissel: een rustige overgang, het menu blijft staan ---------- */
+.side{view-transition-name:os-side}
+.top{view-transition-name:os-top}
+::view-transition-old(root){animation-duration:.14s;animation-timing-function:ease}
+::view-transition-old(root){animation-name:osOut}
+::view-transition-new(root){animation:none}
+::view-transition-old(os-side),::view-transition-new(os-side),::view-transition-old(os-top),::view-transition-new(os-top){animation:none}
+@keyframes osOut{to{opacity:0}}
+@keyframes osIn{from{opacity:0;transform:translateY(4px)}}
+@media (prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root){animation:none}}
+
+/* ---------- Opslaan: alleen zichtbaar als er iets misgaat ---------- */
+.os-sync{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);opacity:0;z-index:300;display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:999px;background:var(--navy);color:#fff;font-size:12.5px;font-weight:600;box-shadow:var(--shadow-lg);transition:opacity .2s ease,transform .2s ease;pointer-events:none}
+.os-sync.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.os-sync i{width:8px;height:8px;border-radius:50%;background:var(--warn-c)}
+.os-sync.bad i{background:var(--bad)}
+.os-sync button{all:unset;cursor:pointer;color:var(--orange);font-weight:700}
+@media (max-width:760px){.os-sync{bottom:calc(76px + env(safe-area-inset-bottom,0px))}}
+
+/* ---------- Inloggen ---------- */
+.login-body{min-height:100%;background:var(--navy);display:grid;place-items:center;padding:24px 16px}
+.login{width:100%;max-width:400px;display:flex;flex-direction:column;gap:20px}
+.login-brand svg{display:block;width:240px;max-width:80%;margin:0 auto}
+.login-card{padding:24px;display:flex;flex-direction:column;gap:16px;box-shadow:var(--shadow-lg)}
+.login-card h1{font-size:24px}
+.login-card p{margin:4px 0 0;font-size:13px}
+.login-card .btn{justify-content:center}
+.login-remember{gap:8px;font-size:13px;color:var(--ink2);cursor:pointer}
+.login-foot{margin:0;text-align:center;font-size:12px;color:var(--on-navy-2)}
+
+/* ---------- Wachtwoord eenmalig tonen ---------- */
+.pw-box{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:12px 14px;border:1px dashed var(--orange-line);border-radius:var(--r-sm);background:var(--orange-soft)}
+.pw-box code{font-size:16px;font-weight:700;letter-spacing:.04em;color:var(--text);user-select:all}
+
+/* ---------- Rustiger beweging dan het prototype ----------
+   Geen waas, geen kanteling, geen uitrekken of doorschieten: blokken komen
+   kort en gelijkmatig binnen, knoppen geven een kleine indruk bij klikken. */
+@keyframes moIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.mo-in{animation:moIn .34s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--mo-d,0ms)}
+@keyframes moModal{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+.modal-bg>.modal{animation:moModal .22s cubic-bezier(.2,.8,.2,1) both!important}
+.btn:active,.iconbtn:active,.seg button:active,.of-ask:active{transform:scale(.97)!important}
+.btn:hover svg,.qa:hover svg,.nitem:hover svg{transform:none}
+.uv-card:hover,.pcard:hover,.ac-tc:hover,[data-go].card:hover,.kb-card:hover,.kpi[data-go]:hover{transform:translateY(-2px)}
+@keyframes uxBump{0%{transform:scale(1)}40%{transform:scale(1.15)}100%{transform:scale(1)}}
+input[type=checkbox]:checked{animation:none}
+@keyframes uxArc{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.nv-launch,.kd-fab{animation:uxArc .3s ease .2s both}
+@keyframes uxToast{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.ux-toast>svg{animation:none}
+body:has(#layer .modal) #app{filter:none}
+html.os-motion-off *{animation:none!important;transition:none!important}
+
+/* Een opgeslagen bestand: de naam is een link */
+a.os-file{color:inherit;text-decoration:underline;text-decoration-color:var(--orange-line);text-underline-offset:3px}
+a.os-file:hover{color:var(--orange-h);text-decoration-color:currentColor}
+
+/* Klant en partner: geen interne acties (Nieuw, Nova) in de schil */
+.os-ext #plusbtn,.os-ext .top [data-act="nova"],.os-ext .nv-launch,.os-ext .kd-fab[data-act="nova"]{display:none!important}
+[data-os-hide]{display:none!important}
+
+/* Controlelijsten (documenten van een partner): lange woorden breken, op de telefoon status en knop onder de naam */
+.check-row .grow{overflow-wrap:anywhere}
+@media (max-width:560px){
+  .check-row{flex-wrap:wrap;row-gap:6px}
+  .check-row .grow{flex-basis:calc(100% - 26px)}
+  .check-row>.pill{margin-left:26px}
+}
+
+/* Lange KPI-labels (INKOOPVERPLICHTINGEN) breken netjes af op een smalle kaart */
+.kpi .lbl{hyphens:auto;overflow-wrap:break-word}
+
+/* Nova met echte AI: opmaak van antwoorden, fouten en de acties bij een goedkeuring */
+.nv-body .msg.n p{margin:0 0 6px}.nv-body .msg.n p:last-child{margin-bottom:0}
+.nv-list{margin:4px 0 6px;padding-left:18px}.nv-list li{margin:2px 0}
+.nv-err{color:var(--bad)}
+.os-apr-acts{margin:6px 0 2px;padding-left:18px;font-size:12.5px;color:var(--ink2)}.os-apr-acts li{margin:2px 0}
