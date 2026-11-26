@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Os\Ai\ActionException;
 use App\Os\Ai\Actions;
 use App\Os\Ai\Agents;
+use App\Os\Ai\ReadTools;
 use App\Os\Ai\Signals;
 use App\Os\Ai\StateReader;
 use App\Os\StateStore;
@@ -99,6 +100,24 @@ class OsAiTest extends TestCase
         $this->assertSame('Keukenrenovatie', $this->row('projects/'.$pid)['type']);
         $this->assertSame($pid, $this->row('projects/#order')[0]);
         $this->assertSame(1, $this->row('seq')['pd']);
+    }
+
+    public function test_een_lead_komt_in_het_crm_zonder_dossier_en_nova_ziet_hem_als_lead(): void
+    {
+        $result = $this->actions()->execute($this->admin, [['type' => 'lead', 'naam' => 'Bouwbedrijf Jansen', 'soort' => 'Zakelijk', 'contactpersoon' => 'Henk Jansen', 'plaats' => 'Arnhem', 'soort_werk' => 'Stucwerk', 'budget' => 12500, 'tekst' => 'Gesproken op een netwerkborrel', 'datum' => '2026-11-30', 'tijd' => '10:00']]);
+
+        $this->assertSame([], $result['rejected']);
+        $lead = collect(OsRow::query()->where('collection', 'clients')->where('path', 'not like', '%#order')->pluck('value'))->map(fn ($v) => json_decode($v, true))->firstWhere('naam', 'Bouwbedrijf Jansen');
+        $this->assertSame('nieuw', $lead['lead']['status']);
+        $this->assertSame('Stucwerk', $lead['lead']['interesse']);
+        $this->assertSame(12500.0, (float) $lead['lead']['waarde']);
+        $this->assertSame('2026-11-30', $this->row('leadNext/'.$lead['id'])['d']);
+        $this->assertSame(['PD-1'], $this->row('projects/#order'), 'een lead krijgt geen dossier');
+        $this->assertFalse(Actions::isSafe([['type' => 'lead', 'naam' => 'x']]));
+
+        $found = (new ReadTools(new StateReader($this->admin), now()->toDateString()))->run('zoeken', ['zoekterm' => 'Jansen']);
+        $this->assertStringContainsString('lead zonder dossier', $found);
+        $this->assertStringNotContainsString('lead zonder dossier', (new ReadTools(new StateReader($this->admin), now()->toDateString()))->run('zoeken', ['zoekterm' => 'de Boer']));
     }
 
     public function test_alleen_veilige_interne_acties_mogen_zonder_bevestiging(): void

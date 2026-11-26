@@ -17,7 +17,7 @@ use App\Os\StateStore;
  */
 final class Actions
 {
-    public const TYPES = ['taak', 'taak_bijwerken', 'afspraak', 'notitie', 'contactmoment', 'chatbericht', 'klantbericht', 'mail', 'inplannen', 'planning_wijzigen', 'begrotingsregel', 'aanvraag'];
+    public const TYPES = ['taak', 'taak_bijwerken', 'afspraak', 'notitie', 'contactmoment', 'chatbericht', 'klantbericht', 'mail', 'inplannen', 'planning_wijzigen', 'begrotingsregel', 'aanvraag', 'lead'];
 
     /** Interne acties die Nova of een agent zelf mag uitvoeren als de instelling dat toestaat. */
     public const SAFE = ['taak', 'taak_bijwerken', 'notitie', 'contactmoment', 'chatbericht', 'afspraak'];
@@ -57,7 +57,7 @@ final class Actions
                         'items' => [
                             'type' => 'object',
                             'properties' => [
-                                'type' => ['type' => 'string', 'enum' => self::TYPES, 'description' => 'taak: nieuwe taak. taak_bijwerken: status, eigenaar, deadline of prioriteit van een taak. afspraak: in de agenda. notitie: aantekening in het dossier. contactmoment: gebeld, mail, WhatsApp of voicemail vastleggen. chatbericht: bericht in de teamchat. klantbericht: bericht aan de klant in het klantportaal. mail: e-mail aan iemand (komt in de outbox). inplannen: medewerker op een project inplannen. planning_wijzigen: planningsblok verplaatsen. begrotingsregel: prijs invullen voor een begrotingsregel. aanvraag: nieuwe klant en aanvraag.'],
+                                'type' => ['type' => 'string', 'enum' => self::TYPES, 'description' => 'taak: nieuwe taak. taak_bijwerken: status, eigenaar, deadline of prioriteit van een taak. afspraak: in de agenda. notitie: aantekening in het dossier. contactmoment: gebeld, mail, WhatsApp of voicemail vastleggen. chatbericht: bericht in de teamchat. klantbericht: bericht aan de klant in het klantportaal. mail: e-mail aan iemand (komt in de outbox). inplannen: medewerker op een project inplannen. planning_wijzigen: planningsblok verplaatsen. begrotingsregel: prijs invullen voor een begrotingsregel. aanvraag: nieuwe klant met een concrete klus; maakt meteen een projectdossier. lead: iemand die we als klant willen binnenhalen maar die nog geen concrete klus heeft; komt in het CRM zonder dossier (naam, en als ze bekend zijn contactpersoon, telefoon, mailadres, plaats, soort_werk als interesse, budget als verwachte waarde, tekst als notitie, datum en tijd voor de eerste opvolging).'],
                                 'titel' => ['type' => 'string'],
                                 'tekst' => ['type' => 'string', 'description' => 'Inhoud van notitie, bericht of mail, of omschrijving van een taak.'],
                                 'project_id' => ['type' => 'string'],
@@ -73,7 +73,7 @@ final class Actions
                                 'eind' => $date,
                                 'tijd' => ['type' => 'string', 'description' => 'UU:MM'],
                                 'duur_minuten' => ['type' => 'integer'],
-                                'soort' => ['type' => 'string', 'description' => 'afspraak: afspraak, terug, intake of overleg. contactmoment: gebeld, geen (geen gehoor), voicemail, mail of wa. aanvraag: Particulier of Zakelijk.'],
+                                'soort' => ['type' => 'string', 'description' => 'afspraak: afspraak, terug, intake of overleg. contactmoment: gebeld, geen (geen gehoor), voicemail, mail of wa. aanvraag en lead: Particulier of Zakelijk.'],
                                 'status' => ['type' => 'string', 'enum' => ['open', 'todo', 'bezig', 'wacht', 'afgerond']],
                                 'prioriteit' => ['type' => 'string', 'enum' => ['laag', 'normaal', 'hoog']],
                                 'aan' => ['type' => 'string', 'description' => 'E-mailadres'],
@@ -83,7 +83,7 @@ final class Actions
                                 'materieel_per_eenheid' => ['type' => 'number'],
                                 'onderaanneming_per_eenheid' => ['type' => 'number'],
                                 'vast_bedrag' => ['type' => 'number'],
-                                'naam' => ['type' => 'string', 'description' => 'Aanvraag: naam van de klant (Familie ... of bedrijfsnaam)'],
+                                'naam' => ['type' => 'string', 'description' => 'Aanvraag of lead: naam van de klant (Familie ... of bedrijfsnaam)'],
                                 'contactpersoon' => ['type' => 'string'],
                                 'telefoon' => ['type' => 'string'],
                                 'mailadres' => ['type' => 'string'],
@@ -156,6 +156,7 @@ final class Actions
             'planning_wijzigen' => $need('blok_id') ?? ($this->s->find('blocks', 'id', $a['blok_id']) ? null : 'planningsblok '.$a['blok_id'].' bestaat niet') ?? $person($a['medewerker'] ?? null) ?? ($date($a['start'] ?? null) && $date($a['eind'] ?? null) ? null : 'start en eind moeten JJJJ-MM-DD zijn'),
             'begrotingsregel' => $need('regel_id') ?? $project(true) ?? ($this->findLine($a['project_id'], $a['regel_id']) ? null : 'regel '.$a['regel_id'].' staat niet in de begroting van '.$a['project_id']) ?? ($this->hasPrice($a) ? null : 'geef minstens een van uren_per_eenheid, materiaal_per_eenheid, materieel_per_eenheid, onderaanneming_per_eenheid of vast_bedrag'),
             'aanvraag' => $need('naam') ?? (empty($a['mailadres']) || filter_var($a['mailadres'], FILTER_VALIDATE_EMAIL) ? null : 'mailadres is ongeldig'),
+            'lead' => $need('naam') ?? (empty($a['mailadres']) || filter_var($a['mailadres'], FILTER_VALIDATE_EMAIL) ? null : 'mailadres is ongeldig') ?? $person($a['eigenaar'] ?? null) ?? ($date($a['datum'] ?? null) ? null : 'datum moet JJJJ-MM-DD zijn'),
             default => 'onbekend type',
         };
     }
@@ -229,6 +230,7 @@ final class Actions
                 isset($a['vast_bedrag']) ? StateReader::euro((float) $a['vast_bedrag']).' vast' : null,
             ])),
             'aanvraag' => 'Nieuwe aanvraag en klant "'.$a['naam'].'"'.(($a['soort_werk'] ?? '') ? ', '.$a['soort_werk'] : '').(($a['plaats'] ?? '') ? ' in '.$a['plaats'] : ''),
+            'lead' => 'Nieuwe lead "'.$a['naam'].'" in het CRM, nog zonder dossier'.(($a['soort_werk'] ?? '') ? ', interesse in '.$a['soort_werk'] : '').(($a['plaats'] ?? '') ? ', '.$a['plaats'] : '').(($a['datum'] ?? '') ? ', opvolgen op '.$date($a['datum']) : ''),
             default => $a['type'],
         };
     }
@@ -342,6 +344,9 @@ final class Actions
             case 'aanvraag':
                 $this->createLead($a, $actor);
                 break;
+            case 'lead':
+                $this->createCrmLead($a);
+                break;
         }
     }
 
@@ -360,7 +365,7 @@ final class Actions
         $clientId = isset($a['klant_id']) && $this->s->client($a['klant_id']) ? $a['klant_id'] : null;
         if (! $clientId) {
             $clientId = $this->id('c');
-            $this->add('clients', ['id' => $clientId, 'naam' => $a['naam'], 'soort' => $zakelijk ? 'Zakelijk' : 'Particulier', 'contact' => $a['contactpersoon'] ?? $a['naam'], 'tel' => $a['telefoon'] ?? '', 'mail' => $a['mailadres'] ?? '', 'plaats' => $a['plaats'] ?? '', 'nr' => 'K-'.(max([1000, ...$numbers]) + 1), 'betaal' => $zakelijk ? 30 : 14, 'herinnering' => true, 'token' => bin2hex(random_bytes(4))], false);
+            $this->add('clients', ['id' => $clientId, 'naam' => $a['naam'], 'soort' => $zakelijk ? 'Zakelijk' : 'Particulier', 'contact' => $a['contactpersoon'] ?? $a['naam'], 'tel' => $a['telefoon'] ?? '', 'mail' => $a['mailadres'] ?? '', 'plaats' => $a['plaats'] ?? '', 'bron' => $a['bron'] ?? '', 'nr' => 'K-'.(max([1000, ...$numbers]) + 1), 'betaal' => $zakelijk ? 30 : 14, 'herinnering' => true, 'token' => bin2hex(random_bytes(4))], false);
         }
 
         $sales = null;
@@ -385,6 +390,23 @@ final class Actions
             'uren' => [], 'regieMat' => [], 'mw' => [], 'contract' => 'aangenomen', 'regieTarief' => 55, 'bouw' => ['gpi' => false, 'kantoor' => false, 'klus' => false, 'contact' => '', 'pakket' => null],
         ], true);
         $this->add('tasks', ['id' => $this->id('t'), 'titel' => 'Eerste contact opnemen', 'pid' => $pid, 'eig' => $sales ?? $this->s->user->person_id, 'dl' => date('Y-m-d', strtotime($this->today.' +1 day')), 'status' => 'open', 'prio' => 'hoog', 'oms' => 'Aangemaakt bij de aanvraag.', 'checklist' => []]);
+    }
+
+    /** Een lead: een relatie in het CRM zonder dossier (zie "Leads (CRM)" in app.js). */
+    private function createCrmLead(array $a): void
+    {
+        $numbers = array_map(fn ($c) => (int) preg_replace('/\D/', '', (string) ($c['nr'] ?? '')), $this->s->list('clients'));
+        $zakelijk = ($a['soort'] ?? '') === 'Zakelijk';
+        $me = $this->s->user->person_id;
+        $id = $this->id('c');
+        $this->add('clients', [
+            'id' => $id, 'naam' => $a['naam'], 'soort' => $zakelijk ? 'Zakelijk' : 'Particulier', 'contact' => $a['contactpersoon'] ?? $a['naam'], 'tel' => $a['telefoon'] ?? '', 'mail' => $a['mailadres'] ?? '', 'plaats' => $a['plaats'] ?? '',
+            'nr' => 'K-'.(max([1000, ...$numbers]) + 1), 'betaal' => $zakelijk ? 30 : 14, 'herinnering' => true, 'token' => bin2hex(random_bytes(4)),
+            'lead' => ['status' => 'nieuw', 'bron' => $a['bron'] ?? 'Nova', 'eig' => $a['eigenaar'] ?? $this->defaultOwner ?? $me, 'interesse' => $a['soort_werk'] ?? 'Nog onbekend', 'waarde' => (float) ($a['budget'] ?? 0), 'note' => (string) ($a['tekst'] ?? ''), 'd' => $this->today, 'door' => $me],
+        ], false);
+        if (! empty($a['datum'])) {
+            $this->put('leadNext/'.$id, ['type' => 'bellen', 'd' => $a['datum'], 't' => (string) ($a['tijd'] ?? ''), 'note' => '']);
+        }
     }
 
     /* ---------- regels lezen en schrijven ---------- */

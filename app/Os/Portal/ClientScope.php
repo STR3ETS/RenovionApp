@@ -29,6 +29,9 @@ final class ClientScope
     /** Velden van een medewerker die een klant mag zien (naam en hoe hij bereikbaar is). */
     private const EMP_FIELDS = ['id', 'naam', 'rol', 'type', 'tel', 'mail', 'sysrol', 'status'];
 
+    /** Soorten documenten uit het dossier die voor de klant zijn (KLANT_DOC in het portaal). */
+    private const DOC_CATS = ['Offerte', 'Overeenkomst', 'Tekening', 'Keuze', 'Vergunning', 'Planning', 'Garantie', 'Klant'];
+
     /** @return array{person: ?string, pids: list<string>, cid: ?string} */
     public static function for(User $user): array
     {
@@ -124,15 +127,69 @@ final class ClientScope
         };
     }
 
-    /** Wat een klant van zijn project mag zien: alles behalve interne notities. */
+    /** Wat een klant van zijn project mag zien: alles behalve interne notities en een planning die nog een voorstel is. */
     private function project(object $p): object
     {
         if (isset($p->begroting) && is_object($p->begroting) && isset($p->begroting->notities)) {
             $p->begroting->notities = (object) ['prive' => '', 'vragen' => []];
         }
-        unset($p->intern, $p->risico);
+        unset($p->intern, $p->risico, $p->planVoorstel);
+
+        // Het logboek en de documentenmap van het dossier zijn intern (inkoop, gunningen, gespreksverslagen):
+        // de klant krijgt alleen wat het portaal toont. Werkelijke kosten en de nacalculatie gaan nooit mee.
+        unset($p->kosten, $p->nacalcFinal);
+        foreach (['activity' => 'publicActivity', 'docs' => 'publicDoc'] as $list => $rule) {
+            if (isset($p->{$list}) && is_array($p->{$list})) {
+                $p->{$list} = array_values(array_filter($p->{$list}, [self::class, $rule]));
+            }
+        }
 
         return $p;
+    }
+
+    /** Een regel uit het logboek die de klant als update ziet: een mijlpaal, zonder bedragen of interne zaken. Zelfde regel als "Recente updates" in het portaal. */
+    public static function publicActivity(mixed $entry): bool
+    {
+        $text = is_object($entry) ? (string) ($entry->t ?? '') : '';
+
+        return preg_match('/gestart|opgeleverd|klaar|gereed|ingepland|ondertekend|goedgekeurd|akkoord/iu', $text) === 1
+            && preg_match('/€|marge|kosten|factuur|gegund|budget|begroting|calculatie|sjabloon|prijsaanvraag|planningsvoorstel|inkoop|intern|verslag|declaratie|herinnering|mailpakket|outbox|concept|nova|portaal|service hub/iu', $text) !== 1;
+    }
+
+    /** Een document dat voor de klant bedoeld is (offerte, overeenkomst, tekening …) of dat hij zelf aanleverde. */
+    public static function publicDoc(mixed $doc): bool
+    {
+        return is_object($doc) && in_array((string) ($doc->cat ?? ''), self::DOC_CATS, true);
+    }
+
+    /**
+     * De klant ziet van zo'n lijst alleen het openbare deel en zet daar iets
+     * bij (vooraan of achteraan). Wat hij bijzette komt in de volledige
+     * lijst; wat hij niet zag, blijft staan en niets gaat eruit.
+     */
+    private function added(mixed $old, mixed $new, string $rule, int $max = 20): array
+    {
+        $old = is_array($old) ? array_values($old) : [];
+        $new = is_array($new) ? array_values($new) : [];
+        $seen = array_values(array_filter($old, [self::class, $rule]));
+        $extra = count($new) - count($seen);
+        if ($extra <= 0 || $extra > $max) {
+            return $old;
+        }
+
+        $json = fn (array $list) => array_map([Json::class, 'encode'], $list);
+        $have = $json($old);
+        // Een scherm dat nog niet is bijgewerkt, stuurt een eerdere toevoeging nog eens mee: die telt één keer.
+        $fresh = fn (array $items) => array_values(array_filter($items, fn ($item) => ! in_array(Json::encode($item), $have, true)));
+
+        if ($json(array_slice($new, $extra)) === $json($seen)) {
+            return [...$fresh(array_slice($new, 0, $extra)), ...$old]; // vooraan bijgezet
+        }
+        if ($json(array_slice($new, 0, count($seen))) === $json($seen)) {
+            return [...$old, ...$fresh(array_slice($new, count($seen)))]; // achteraan bijgezet
+        }
+
+        return $old;
     }
 
     private function employee(mixed $e): object
@@ -168,8 +225,8 @@ final class ClientScope
     {
         $out = clone $old;
 
-        $out->activity = Json::appendOnly($old->activity ?? [], $new->activity ?? []);
-        $out->docs = Json::appendOnly($old->docs ?? [], $new->docs ?? []);
+        $out->activity = $this->added($old->activity ?? [], $new->activity ?? [], 'publicActivity');
+        $out->docs = $this->added($old->docs ?? [], $new->docs ?? [], 'publicDoc');
 
         // Akkoord op meerwerk: alleen van optie naar akkoord.
         if (isset($old->begroting->options, $new->begroting->options) && is_array($old->begroting->options)) {

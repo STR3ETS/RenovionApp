@@ -64,6 +64,26 @@ final class ReadTools
         };
     }
 
+    /** Een lead is een relatie zonder dossier; wie al een dossier heeft, is gewoon klant. */
+    private function leadNote(array $c): string
+    {
+        $lead = $c['lead'] ?? null;
+        if (! is_array($lead)) {
+            return '';
+        }
+        foreach ($this->s->list('projects') as $p) {
+            if (($p['clientId'] ?? null) === ($c['id'] ?? '')) {
+                return '';
+            }
+        }
+        if (! empty($lead['lost'])) {
+            return ' [lead, afgevallen: '.($lead['lost']['reden'] ?? '').']';
+        }
+        $status = ['nieuw' => 'nieuw', 'gesprek' => 'in gesprek', 'warm' => 'geïnteresseerd'][$lead['status'] ?? 'nieuw'] ?? 'nieuw';
+
+        return ' [lead zonder dossier, '.$status.', eigenaar '.$this->s->personName($lead['eig'] ?? null).(($lead['interesse'] ?? '') ? ', interesse '.$lead['interesse'] : '').(($lead['note'] ?? '') ? ', notitie: '.$lead['note'] : '').']';
+    }
+
     private function search(string $term): string
     {
         $q = mb_strtolower(trim($term));
@@ -75,7 +95,7 @@ final class ReadTools
 
         foreach ($this->s->list('clients') as $c) {
             if ($hit([$c['naam'] ?? '', $c['contact'] ?? '', $c['plaats'] ?? '', $c['nr'] ?? '', $c['mail'] ?? ''])) {
-                $out[] = "klant {$c['id']}: ".($c['naam'] ?? '').' ('.($c['contact'] ?? '').', '.($c['plaats'] ?? '').', tel '.($c['tel'] ?: 'onbekend').', '.($c['mail'] ?? '').')';
+                $out[] = "klant {$c['id']}: ".($c['naam'] ?? '').' ('.($c['contact'] ?? '').', '.($c['plaats'] ?? '').', tel '.(($c['tel'] ?? '') ?: ($c['telVast'] ?? '') ?: 'onbekend').', '.($c['mail'] ?? '').')'.$this->leadNote($c);
             }
         }
         foreach ($this->s->list('projects') as $p) {
@@ -114,7 +134,10 @@ final class ReadTools
         $o = $p['offerte'] ?? null;
         $lines = [
             "Project {$p['id']}: ".($p['naam'] ?? ''),
-            'Klant: '.($c['naam'] ?? 'onbekend').' (klant-id '.($c['id'] ?? '-').'), contact '.($c['contact'] ?? '-').', tel '.(($c['tel'] ?? '') ?: 'ontbreekt').', mail '.(($c['mail'] ?? '') ?: 'ontbreekt').', soort '.($c['soort'] ?? '-'),
+            'Klant: '.($c['naam'] ?? 'onbekend').' (klant-id '.($c['id'] ?? '-').'), contact '.($c['contact'] ?? '-').', tel '.(implode(' / ', array_filter([$c['tel'] ?? '', $c['telVast'] ?? ''])) ?: 'ontbreekt').', mail '.(($c['mail'] ?? '') ?: 'ontbreekt').', soort '.($c['soort'] ?? '-')
+                .(($c['kvk'] ?? '') ? ', KvK '.$c['kvk'] : '').(($c['btw'] ?? '') ? ', btw '.$c['btw'] : '')
+                .(($c['uitvoerder'] ?? '') ? ', uitvoerder '.$c['uitvoerder'].(($c['uitvoerderTel'] ?? '') ? ' ('.$c['uitvoerderTel'].')' : '') : '')
+                .(($p['bron'] ?? $c['bron'] ?? '') ? ', binnengekomen via '.($p['bron'] ?? $c['bron']) : ''),
             'Adres: '.trim(($p['adres'] ?? '').', '.($p['plaats'] ?? ''), ', '),
             'Soort werk: '.($p['type'] ?? '-').'. Fase: '.StateReader::phase($p['phase'] ?? 0).'. Projectleider: '.$this->s->personName($p['leider'] ?? null).' ('.($p['leider'] ?? '-').')',
             'Voortgang '.($p['progress'] ?? 0).'%, volgens planning '.($p['planned'] ?? 0).'%. Start '.($p['start'] ?? '-').', oplevering '.($p['eind'] ?? '-'),
@@ -139,6 +162,11 @@ final class ReadTools
         $lines[] = 'Komende afspraken: '.($agenda ? implode('; ', array_map(fn ($a) => ($a['d'] ?? '').' '.($a['tijd'] ?? '').' '.($a['titel'] ?? ''), $agenda)) : 'geen');
         $blocks = array_filter($this->s->list('blocks'), fn ($bl) => ($bl['pid'] ?? '') === $p['id']);
         $lines[] = 'Planning: '.($blocks ? implode('; ', array_map(fn ($bl) => ($bl['id'] ?? '').' '.($bl['titel'] ?? '').' '.$this->s->personName($bl['emp'] ?? null).' '.($bl['start'] ?? '').' t/m '.($bl['end'] ?? ''), $blocks)) : 'nog niets ingepland');
+        $proposal = $p['planVoorstel'] ?? null;
+        if (is_array($proposal) && ($proposal['status'] ?? '') === 'open' && ! empty($proposal['regels'])) {
+            $lines[] = 'Planningsvoorstel (klaargezet na akkoord, nog NIET ingepland; een mens neemt het over in het dossier, tab Planning): '
+                .implode('; ', array_map(fn ($r) => ($r['titel'] ?? '').' '.(($r['emp'] ?? '') ? $this->s->personName($r['emp']) : 'nog niemand').' '.($r['start'] ?? '').' t/m '.($r['end'] ?? ''), $proposal['regels']));
+        }
         $messages = array_slice(array_values(array_filter($this->s->list('klantBerichten'), fn ($m) => ($m['pid'] ?? '') === $p['id'])), -6);
         $lines[] = 'Laatste klantberichten: '.($messages ? implode(' | ', array_map(fn ($m) => (($m['van'] ?? '') === 'klant' ? 'klant' : ($m['naam'] ?? 'Renovion')).' '.($m['d'] ?? '').': '.($m['txt'] ?? ''), $messages)) : 'geen');
         $lines[] = 'Laatste activiteit: '.implode(' | ', array_map(fn ($a) => ($a['d'] ?? '').' '.($a['t'] ?? ''), array_slice($p['activity'] ?? [], 0, 10)));
@@ -223,7 +251,7 @@ final class ReadTools
                 break;
             case 'klanten':
                 foreach ($this->s->list('clients') as $c) {
-                    $rows[] = ($c['id'] ?? '').' '.($c['nr'] ?? '').' '.($c['naam'] ?? '').', '.($c['soort'] ?? '').', '.($c['contact'] ?? '').', tel '.(($c['tel'] ?? '') ?: 'ontbreekt').', '.(($c['mail'] ?? '') ?: 'geen mail').', '.($c['plaats'] ?? '');
+                    $rows[] = ($c['id'] ?? '').' '.($c['nr'] ?? '').' '.($c['naam'] ?? '').', '.($c['soort'] ?? '').', '.($c['contact'] ?? '').', tel '.(($c['tel'] ?? '') ?: ($c['telVast'] ?? '') ?: 'ontbreekt').(($c['kvk'] ?? '') ? ', KvK '.$c['kvk'] : '').(($c['btw'] ?? '') ? ', btw '.$c['btw'] : '').', '.(($c['mail'] ?? '') ?: 'geen mail').', '.($c['plaats'] ?? '').$this->leadNote($c);
                 }
                 break;
             case 'klantvragen':

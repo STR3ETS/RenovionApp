@@ -33,7 +33,7 @@ final class Signals
             // Lex: een aanvraag waar al een paar dagen niets mee gebeurt, of waar gegevens ontbreken
             if ($phase <= 1 && $days($last) >= 2) {
                 $out[] = ['agent' => 'lex', 'skill' => 'complete_intake', 'key' => 'stil:'.$p['id'].':'.$last, 'pid' => $p['id'],
-                    'tekst' => "Aanvraag {$p['id']} {$p['naam']} ({$client['naam']}) staat al {$days($last)} dagen stil in fase ".StateReader::phase($phase).($client['tel'] ?? '' ? '' : ', telefoonnummer ontbreekt').'.'];
+                    'tekst' => "Aanvraag {$p['id']} {$p['naam']} ({$client['naam']}) staat al {$days($last)} dagen stil in fase ".StateReader::phase($phase).(($client['tel'] ?? '') || ($client['telVast'] ?? '') ? '' : ', telefoonnummer ontbreekt').'.'];
             }
             // Lex: offerte verzonden zonder reactie
             $o = $p['offerte'] ?? null;

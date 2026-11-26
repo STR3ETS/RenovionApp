@@ -187,7 +187,7 @@ class OsStateTest extends TestCase
         $this->sync($admin, [
             ['clients/c1', json_encode(['id' => 'c1', 'naam' => 'Familie de Boer'])],
             ['clients/c2', json_encode(['id' => 'c2', 'naam' => 'Bakkerij Jansen'])],
-            ['projects/PD-1', json_encode(['id' => 'PD-1', 'clientId' => 'c1', 'naam' => 'Badkamer', 'begroting' => ['notities' => ['prive' => 'marge 30%', 'vragen' => []], 'options' => [['d' => 'Vloerverwarming', 's' => 'optie']]], 'offerte' => ['status' => 'verzonden', 'basis' => 10000], 'activity' => []])],
+            ['projects/PD-1', json_encode(['id' => 'PD-1', 'clientId' => 'c1', 'naam' => 'Badkamer', 'begroting' => ['notities' => ['prive' => 'marge 30%', 'vragen' => []], 'options' => [['d' => 'Vloerverwarming', 's' => 'optie']]], 'offerte' => ['status' => 'verzonden', 'basis' => 10000], 'activity' => [], 'planVoorstel' => ['status' => 'open', 'regels' => [['id' => 'pv1', 'titel' => 'Tegelwerk', 'emp' => 'peter', 'start' => '2026-12-07', 'end' => '2026-12-08']]]])],
             ['projects/PD-2', json_encode(['id' => 'PD-2', 'clientId' => 'c2', 'naam' => 'Winkel'])],
             ['projects/#order', '["PD-1","PD-2"]'],
             ['invoices/F-1', json_encode(['nr' => 'F-1', 'pid' => 'PD-1', 'status' => 'verzonden'])],
@@ -210,6 +210,7 @@ class OsStateTest extends TestCase
         $this->assertFalse($rows->has('tasks/t1'));
         $this->assertSame('["PD-1"]', $rows['projects/#order']);
         $this->assertStringNotContainsString('marge 30%', $rows['projects/PD-1']);
+        $this->assertStringNotContainsString('planVoorstel', $rows['projects/PD-1'], 'een planning die nog een voorstel is, gaat niet naar de klant');
 
         // wijzigen: eigen bericht ja, andermans project en facturen nee, prijs en status van de offerte blijven staan
         $sent = json_decode($rows['projects/PD-1'], true);
@@ -233,7 +234,56 @@ class OsStateTest extends TestCase
         $this->assertSame('geaccepteerd', $project['offerte']['status'], 'ondertekenen van een verzonden offerte mag');
         $this->assertSame('akkoord', $project['begroting']['options'][0]['s'], 'akkoord op meerwerk mag');
         $this->assertSame('marge 30%', $project['begroting']['notities']['prive'], 'interne notitie blijft staan');
+        $this->assertSame('Tegelwerk', $project['planVoorstel']['regels'][0]['titel'], 'het planningsvoorstel blijft staan als de klant tekent');
         $this->assertSame('verzonden', $this->row('invoices/F-1')['status']);
+    }
+
+    public function test_een_klant_krijgt_alleen_de_updates_en_documenten_die_voor_hem_zijn(): void
+    {
+        $admin = $this->admin();
+        $this->sync($admin, [
+            ['clients/c1', json_encode(['id' => 'c1', 'naam' => 'Familie de Boer'])],
+            ['projects/PD-1', json_encode(['id' => 'PD-1', 'clientId' => 'c1', 'naam' => 'Badkamer', 'kosten' => 3120, 'nacalcFinal' => ['marge' => 21.5],
+                'activity' => [
+                    ['d' => '2026-11-20', 't' => 'Inkoopfactuur IF-1 goedgekeurd: € 1.200,00', 'k' => 'ok'],
+                    ['d' => '2026-11-19', 't' => 'Uitvoering gestart, sloopwerk', 'k' => 'ok'],
+                    ['d' => '2026-11-18', 't' => 'Meetingverslag (12:30): de marge staat onder druk', 'k' => 'ok'],
+                ],
+                'docs' => [
+                    ['naam' => 'Gespreksverslag intern.pdf', 'cat' => 'Verslag', 'datum' => '2026-11-18', 'txt' => 'Klant twijfelt over de prijs'],
+                    ['naam' => 'Plattegrond.pdf', 'cat' => 'Tekening', 'datum' => '2026-11-10'],
+                ]])],
+            ['extraUsers/k1', json_encode(['id' => 'k1', 'naam' => 'Anna', 'sysrol' => 'Klant', 'mail' => 'anna@example.nl', 'status' => 'actief', 'scope' => 'PD-1'])],
+        ]);
+        $klant = User::query()->where('email', 'anna@example.nl')->firstOrFail();
+        $klant->forceFill(['must_change_password' => false])->save();
+
+        $rows = collect($this->actingAs($klant)->getJson('/os/staat')->json('rows'))->mapWithKeys(fn ($r) => [$r[0] => $r[1]]);
+        $seen = json_decode($rows['projects/PD-1'], true);
+
+        $this->assertSame(['Uitvoering gestart, sloopwerk'], array_column($seen['activity'], 't'), 'alleen mijlpalen, geen inkoop of verslagen');
+        $this->assertSame(['Plattegrond.pdf'], array_column($seen['docs'], 'naam'), 'alleen documenten voor de klant');
+        $this->assertArrayNotHasKey('kosten', $seen);
+        $this->assertArrayNotHasKey('nacalcFinal', $seen);
+        $this->assertStringNotContainsString('twijfelt', $rows['projects/PD-1']);
+
+        // De klant stelt een vraag en levert een foto aan: dat komt erbij, het interne deel blijft heel.
+        array_unshift($seen['activity'], ['d' => '2026-11-26', 't' => 'Klantvraag via Service Hub: "Wanneer starten jullie?"', 'k' => 'or']);
+        array_unshift($seen['docs'], ['naam' => 'meterkast.jpg', 'cat' => 'Klant', 'datum' => '2026-11-26']);
+        $this->sync($klant, [['projects/PD-1', json_encode($seen)]])->assertOk();
+
+        $project = $this->row('projects/PD-1');
+        $this->assertSame(['Klantvraag via Service Hub: "Wanneer starten jullie?"', 'Inkoopfactuur IF-1 goedgekeurd: € 1.200,00', 'Uitvoering gestart, sloopwerk', 'Meetingverslag (12:30): de marge staat onder druk'], array_column($project['activity'], 't'));
+        $this->assertSame(['meterkast.jpg', 'Gespreksverslag intern.pdf', 'Plattegrond.pdf'], array_column($project['docs'], 'naam'));
+        $this->assertSame(3120, $project['kosten']);
+        $this->assertSame(21.5, $project['nacalcFinal']['marge']);
+
+        // Een scherm dat nog niet is bijgewerkt stuurt de eerdere toevoeging nog eens mee: die komt er niet dubbel in.
+        array_unshift($seen['activity'], ['d' => '2026-11-26', 't' => 'Afspraak 30 nov bevestigd door klant', 'k' => 'blue']);
+        $this->sync($klant, [['projects/PD-1', json_encode($seen)]])->assertOk();
+
+        $this->assertCount(5, $this->row('projects/PD-1')['activity']);
+        $this->assertCount(3, $this->row('projects/PD-1')['docs']);
     }
 
     public function test_een_partner_ziet_alleen_zijn_eigen_dossier_en_prijsaanvragen_zonder_andermans_prijzen(): void
