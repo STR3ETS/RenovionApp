@@ -89,7 +89,7 @@ final class Actions
                                 'mailadres' => ['type' => 'string'],
                                 'adres' => ['type' => 'string'],
                                 'plaats' => ['type' => 'string'],
-                                'soort_werk' => ['type' => 'string', 'description' => 'Badkamerrenovatie, Keukenrenovatie, Aanbouw, Dakkapel, Renovatie, Verbouwing, Nieuwbouw, Onderhoud, Stucwerk, Schilderwerk of Tegelwerk'],
+                                'soort_werk' => ['type' => 'string', 'description' => 'Badkamerrenovatie, Keukenrenovatie, Aanbouw, Dakkapel, Renovatie, Verbouwing, Nieuwbouw, Onderhoud, Stucwerk, Schilderwerk of Tegelwerk. Meer dan één soort werk: met een komma ertussen, bijvoorbeeld "Badkamerrenovatie, Stucwerk".'],
                                 'budget' => ['type' => 'number'],
                             ],
                             'required' => ['type'],
@@ -376,11 +376,21 @@ final class Actions
                 }
             }
         }
-        $type = $a['soort_werk'] ?? 'Renovatie';
+        // Meer dan één soort werk kan: "Badkamerrenovatie, Stucwerk" (zelfde vorm als wkList/wkKort in app.js)
+        $types = array_values(array_unique(array_filter(array_map('trim', explode(',', (string) ($a['soort_werk'] ?? ''))), fn ($t) => $t !== '')));
+        $type = $types ? implode(', ', $types) : 'Renovatie';
         $short = preg_replace('/^Familie\s+/i', '', (string) $a['naam']);
         // Zoals het prototype: "Badkamerrenovatie" + "Familie de Boer" wordt "Badkamer de Boer"
-        $label = trim((string) preg_replace('/\s*renovatie$/i', '', $type));
-        $label = $label === '' || strcasecmp($label, 'Complete') === 0 ? 'Renovatie' : $label;
+        $kort = array_map(function (string $t): string {
+            $l = trim((string) preg_replace('/\s*renovatie$/i', '', $t));
+
+            return $l === '' || strcasecmp($l, 'Complete') === 0 ? 'Renovatie' : $l;
+        }, $types);
+        $label = match (true) {
+            count($kort) === 1 => $kort[0],
+            count($kort) === 2 => $kort[0].' en '.mb_strtolower($kort[1]),
+            default => 'Renovatie',
+        };
         $this->add('projects', [
             'id' => $pid, 'naam' => $label.' '.$short, 'clientId' => $clientId, 'adres' => $a['adres'] ?? '', 'plaats' => $a['plaats'] ?? '', 'type' => $type,
             'phase' => 0, 'leider' => $sales ?? $this->s->user->person_id, 'progress' => 0, 'planned' => 0, 'kleur' => count($this->s->list('projects')) % 6, 'waarde' => (float) ($a['budget'] ?? 0),

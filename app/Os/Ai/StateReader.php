@@ -87,6 +87,21 @@ final class StateReader
         return $id ? $this->find('clients', 'id', $id) : null;
     }
 
+    /**
+     * Btw-percentage van een dossier, dezelfde regel als pBtw() in app.js:
+     * het percentage van de begroting als die er is, anders het tarief uit de aanvraag, anders 21.
+     */
+    public static function btw(?array $project): float
+    {
+        foreach ([$project['begroting']['btw'] ?? null, $project['btwPct'] ?? null] as $value) {
+            if (is_numeric($value) && $value >= 0 && $value <= 100) {
+                return (float) $value;
+            }
+        }
+
+        return 21.0;
+    }
+
     public function person(?string $id): ?array
     {
         return $id ? ($this->find('emps', 'id', $id) ?? $this->find('extraUsers', 'id', $id)) : null;

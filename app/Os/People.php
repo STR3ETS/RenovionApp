@@ -3,6 +3,7 @@
 namespace App\Os;
 
 use App\Enums\UserRole;
+use App\Models\OsRow;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -36,8 +37,13 @@ final class People
      */
     public function guard(User $user, string $path, ?string $old, ?string $new): ?string
     {
-        if (! self::isPersonPath($path) || $user->role->isManagement() || str_ends_with($path, '/#order')) {
+        if (! self::isPersonPath($path) || str_ends_with($path, '/#order')) {
             return $new;
+        }
+
+        if ($user->role->isManagement()) {
+            // Ook de directie haalt zichzelf niet weg: anders zit je zonder account.
+            return $new === null && $old !== null && Layout::keyOf($path) === $user->person_id ? $old : $new;
         }
 
         $oldPerson = $old !== null ? json_decode($old, true) : null;
@@ -96,9 +102,19 @@ final class People
             }
 
             if (! is_array($person)) {
-                // Persoon weggehaald: het account gaat dicht, het werk blijft staan.
-                User::query()->where('person_id', $personId)->update(['active' => false]);
-                $this->endSessions(User::query()->where('person_id', $personId)->pluck('id')->all());
+                // Persoon verwijderd (Teambeheer, alleen de directie): het account gaat helemaal weg, het werk blijft staan.
+                // Een partnerbedrijf dat verdwijnt, houdt een gesloten account.
+                $ids = User::query()->where('person_id', $personId)->pluck('id')->all();
+                $this->endSessions($ids);
+                if ($partner) {
+                    User::query()->whereIn('id', $ids)->update(['active' => false]);
+                } elseif ($ids) {
+                    User::query()->whereIn('id', $ids)->delete();
+                    foreach ($ids as $id) {
+                        // eigen regels van die gebruiker (gelezen chatberichten, Academy)
+                        OsRow::query()->where('path', 'like', '~'.$id.'/%')->delete();
+                    }
+                }
 
                 continue;
             }

@@ -102,6 +102,18 @@ class OsAiTest extends TestCase
         $this->assertSame(1, $this->row('seq')['pd']);
     }
 
+    public function test_een_aanvraag_met_meer_soorten_werk_houdt_ze_allemaal(): void
+    {
+        $this->actions()->execute($this->admin, [['type' => 'aanvraag', 'naam' => 'Familie Visser', 'soort_werk' => 'Badkamerrenovatie, Stucwerk']]);
+        $this->actions()->execute($this->admin, [['type' => 'aanvraag', 'naam' => 'Familie Bos', 'soort_werk' => 'Stucwerk,Schilderwerk, Tegelwerk']]);
+
+        $jaar = now()->year;
+        $this->assertSame('Badkamerrenovatie, Stucwerk', $this->row('projects/PD-'.$jaar.'-0001')['type']);
+        $this->assertSame('Badkamer en stucwerk Visser', $this->row('projects/PD-'.$jaar.'-0001')['naam']);
+        $this->assertSame('Stucwerk, Schilderwerk, Tegelwerk', $this->row('projects/PD-'.$jaar.'-0002')['type']);
+        $this->assertSame('Renovatie Bos', $this->row('projects/PD-'.$jaar.'-0002')['naam']);
+    }
+
     public function test_een_lead_komt_in_het_crm_zonder_dossier_en_nova_ziet_hem_als_lead(): void
     {
         $result = $this->actions()->execute($this->admin, [['type' => 'lead', 'naam' => 'Bouwbedrijf Jansen', 'soort' => 'Zakelijk', 'contactpersoon' => 'Henk Jansen', 'plaats' => 'Arnhem', 'soort_werk' => 'Stucwerk', 'budget' => 12500, 'tekst' => 'Gesproken op een netwerkborrel', 'datum' => '2026-11-30', 'tijd' => '10:00']]);
@@ -169,6 +181,27 @@ class OsAiTest extends TestCase
 
         $this->assertCount(1, $milo);
         $this->assertStringContainsString('b3', $milo[0]['tekst']);
+    }
+
+    public function test_het_btw_tarief_van_het_dossier_telt_voor_bedragen_incl_btw(): void
+    {
+        $this->assertSame(21.0, StateReader::btw(null));
+        $this->assertSame(21.0, StateReader::btw(['id' => 'PD-1']));
+        $this->assertSame(9.0, StateReader::btw(['btwPct' => 9]));
+        $this->assertSame(0.0, StateReader::btw(['btwPct' => 0]), 'btw verlegd');
+        $this->assertSame(21.0, StateReader::btw(['btwPct' => 9, 'begroting' => ['btw' => 21]]), 'met een begroting telt het percentage van de begroting');
+
+        $project = $this->row('projects/PD-1');
+        $this->rows([
+            'projects/PD-1' => ['btwPct' => 9] + $project,
+            'invoices/F-1' => ['nr' => 'F-1', 'pid' => 'PD-1', 'termijn' => 0, 'oms' => 'Bij opdracht', 'bedrag' => 1000, 'datum' => '2026-01-01', 'verval' => '2026-01-15', 'status' => 'verzonden'],
+            'invoices/#order' => ['F-1'],
+        ]);
+
+        $finn = array_values(array_filter((new Signals(new StateReader($this->admin), now()->toDateString()))->all(), fn ($s) => $s['agent'] === 'finn' && str_contains($s['key'], 'F-1')));
+
+        $this->assertCount(1, $finn);
+        $this->assertStringContainsString('1.090,00', $finn[0]['tekst']);
     }
 
     public function test_een_websiteaanvraag_wordt_een_klant_met_dossier(): void

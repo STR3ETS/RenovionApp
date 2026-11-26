@@ -181,6 +181,37 @@ class OsStateTest extends TestCase
         $this->actingAs($peter)->postJson('/os/accounts/imad/wachtwoord')->assertForbidden();
     }
 
+    public function test_de_directie_verwijdert_een_gedeactiveerd_account_helemaal_maar_niet_zichzelf(): void
+    {
+        $admin = $this->admin();
+        $this->actingAs($admin)->getJson('/os/staat');
+        $me = $admin->fresh()->person_id;
+        $peter = User::factory()->uitvoerder()->create(['name' => 'Peter', 'email' => 'peter@renovion.nl', 'person_id' => 'peter']);
+        $this->sync($admin, [['emps/peter', json_encode(['id' => 'peter', 'naam' => 'Peter', 'sysrol' => 'Uitvoerder', 'mail' => 'peter@renovion.nl', 'status' => 'gedeactiveerd'])]]);
+        $this->assertFalse($peter->fresh()->active);
+        $this->sync($peter->fresh(), [['~me/academy', json_encode(['gezien' => 1])]]);
+
+        // een collega zonder directierol haalt niemand weg
+        $klaas = User::factory()->uitvoerder()->create(['name' => 'Klaas', 'person_id' => 'klaas']);
+        $this->sync($klaas, [['emps/peter', null]]);
+        $this->assertNotNull($this->row('emps/peter'));
+        $this->assertNotNull($peter->fresh());
+
+        // de directie wel: persoon, account en eigen regels zijn weg
+        $this->sync($admin, [['emps/peter', null]])->assertOk();
+        $this->assertNull($this->row('emps/peter'));
+        $this->assertNull(User::query()->find($peter->id), 'het account is echt verwijderd');
+        $this->assertSame(0, OsRow::query()->where('path', 'like', '~'.$peter->id.'/%')->count());
+        $this->post('/uitloggen');
+        $this->post('/inloggen', ['email' => 'peter@renovion.nl', 'password' => 'password'])->assertSessionHasErrors('email');
+
+        // jezelf verwijderen kan niet
+        $this->assertNotNull($me);
+        $this->sync($admin->fresh(), [['emps/'.$me, null]]);
+        $this->assertNotNull($this->row('emps/'.$me));
+        $this->assertNotNull($admin->fresh());
+    }
+
     public function test_een_klant_ziet_alleen_zijn_eigen_project_en_kan_niets_anders_wijzigen(): void
     {
         $admin = $this->admin();

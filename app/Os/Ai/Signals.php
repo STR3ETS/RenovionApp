@@ -131,7 +131,7 @@ final class Signals
         foreach ($this->s->list('invoices') as $i) {
             if (($i['status'] ?? '') === 'verzonden' && ($i['verval'] ?? '9') < $this->today) {
                 $out[] = ['agent' => 'finn', 'skill' => 'budget_forecast', 'key' => 'factuur:'.($i['nr'] ?? '').':'.($i['verval'] ?? ''), 'pid' => $i['pid'] ?? null,
-                    'tekst' => 'Factuur '.($i['nr'] ?? '').' ('.$name($i['pid'] ?? null).', '.StateReader::euro((float) ($i['bedrag'] ?? 0) * 1.21).' incl. btw) is vervallen sinds '.($i['verval'] ?? '').'.'];
+                    'tekst' => 'Factuur '.($i['nr'] ?? '').' ('.$name($i['pid'] ?? null).', '.StateReader::euro((float) ($i['bedrag'] ?? 0) * (1 + StateReader::btw($this->s->project($i['pid'] ?? null)) / 100)).' incl. btw) is vervallen sinds '.($i['verval'] ?? '').'.'];
             }
         }
 

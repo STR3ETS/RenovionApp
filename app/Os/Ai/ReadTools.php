@@ -139,7 +139,7 @@ final class ReadTools
                 .(($c['uitvoerder'] ?? '') ? ', uitvoerder '.$c['uitvoerder'].(($c['uitvoerderTel'] ?? '') ? ' ('.$c['uitvoerderTel'].')' : '') : '')
                 .(($p['bron'] ?? $c['bron'] ?? '') ? ', binnengekomen via '.($p['bron'] ?? $c['bron']) : ''),
             'Adres: '.trim(($p['adres'] ?? '').', '.($p['plaats'] ?? ''), ', '),
-            'Soort werk: '.($p['type'] ?? '-').'. Fase: '.StateReader::phase($p['phase'] ?? 0).'. Projectleider: '.$this->s->personName($p['leider'] ?? null).' ('.($p['leider'] ?? '-').')',
+            'Soort werk: '.($p['type'] ?? '-').'. Btw-tarief: '.(StateReader::btw($p) > 0 ? rtrim(rtrim(number_format(StateReader::btw($p), 2, ',', ''), '0'), ',').'%' : '0% (btw verlegd)').'. Fase: '.StateReader::phase($p['phase'] ?? 0).'. Projectleider: '.$this->s->personName($p['leider'] ?? null).' ('.($p['leider'] ?? '-').')',
             'Voortgang '.($p['progress'] ?? 0).'%, volgens planning '.($p['planned'] ?? 0).'%. Start '.($p['start'] ?? '-').', oplevering '.($p['eind'] ?? '-'),
             'Intake: '.json_encode($p['intake'] ?? new \stdClass, JSON_UNESCAPED_UNICODE),
         ];
