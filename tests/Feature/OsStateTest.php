@@ -3,16 +3,18 @@
 namespace Tests\Feature;
 
 use App\Enums\UserRole;
+use App\Mail\AccountInvitation;
 use App\Models\OsFile;
 use App\Models\OsRow;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /**
- * De gedeelde staat van Renovion OS: inloggen, ophalen, opslaan, bijwerken
+ * De gedeelde staat van Renovion Groep: inloggen, ophalen, opslaan, bijwerken
  * en de rechten die de server afdwingt.
  */
 class OsStateTest extends TestCase
@@ -153,6 +155,83 @@ class OsStateTest extends TestCase
         $this->assertTrue(password_verify('Stucwerk2026!', $peter->fresh()->password));
         $this->get('/projecten')->assertOk();
         $this->get('/wachtwoord-kiezen')->assertRedirect('/');
+    }
+
+    public function test_een_nieuw_account_krijgt_een_uitnodiging_per_mail_met_een_inloglink(): void
+    {
+        Mail::fake();
+        $admin = $this->admin();
+
+        $res = $this->sync($admin, [
+            ['projects/PD-1', json_encode(['id' => 'PD-1', 'naam' => 'Badkamer Jansen'])],
+            ['extraUsers/k1', json_encode(['id' => 'k1', 'naam' => 'Anna Jansen', 'sysrol' => 'Klant', 'mail' => 'anna@example.nl', 'status' => 'uitgenodigd', 'scope' => 'PD-1'])],
+        ])->assertOk()->json();
+
+        $this->assertTrue($res['accounts'][0]['gemaild']);
+        $link = $res['accounts'][0]['link'];
+        $this->assertStringContainsString('/uitnodiging/', $link);
+        Mail::assertSent(AccountInvitation::class, fn (AccountInvitation $m) => $m->hasTo('anna@example.nl')
+            && $m->kind === 'klant' && $m->project === 'Badkamer Jansen' && $m->link === $link && ! $m->again);
+
+        $klant = User::query()->where('email', 'anna@example.nl')->firstOrFail();
+        $mail = new AccountInvitation($klant, $link, 'klant', project: 'Badkamer Jansen');
+        $mail->assertSeeInHtml('Beste Anna Jansen');
+        $mail->assertSeeInHtml('Badkamer Jansen');
+        $mail->assertSeeInText($link);
+        $this->assertSame('Renovion Groep BV', $mail->envelope()->from->name);
+
+        // Een link waar aan gezeten is, doet niets
+        $this->post('/uitloggen');
+        $this->get($link.'x')->assertRedirect('/inloggen')->assertSessionHasErrors('email');
+        $this->assertGuest();
+
+        // De link logt in en brengt je naar het kiezen van een eigen wachtwoord
+        $this->get($link)->assertRedirect('/wachtwoord-kiezen');
+        $this->assertAuthenticatedAs($klant);
+        $this->get('/wachtwoord-kiezen')->assertOk()->assertSee('welkom bij Renovion Groep BV');
+        $this->post('/wachtwoord-kiezen', ['password' => 'Badkamer2026!', 'password_confirmation' => 'Badkamer2026!'])->assertRedirect('/');
+
+        // Daarna is de link verbruikt
+        $this->post('/uitloggen');
+        $this->get($link)->assertRedirect('/inloggen')->assertSessionHasErrors('email');
+        $this->assertGuest();
+    }
+
+    public function test_een_nieuw_wachtwoord_mailt_een_nieuwe_link_en_de_oude_werkt_niet_meer(): void
+    {
+        Mail::fake();
+        $admin = $this->admin();
+        $oud = $this->sync($admin, [['extraUsers/u1', json_encode(['id' => 'u1', 'naam' => 'Sanne de Wit', 'sysrol' => 'Calculator', 'mail' => 'sanne@renovion.nl', 'status' => 'uitgenodigd'])]])->json('accounts.0.link');
+        Mail::assertSent(AccountInvitation::class, fn (AccountInvitation $m) => $m->kind === 'team' && $m->by === 'Imad');
+
+        $nieuw = $this->actingAs($admin)->postJson('/os/accounts/u1/wachtwoord')->assertOk()->assertJsonPath('gemaild', true)->json('link');
+        Mail::assertSent(AccountInvitation::class, fn (AccountInvitation $m) => $m->again && $m->link === $nieuw);
+        $this->assertNotSame($oud, $nieuw);
+
+        $this->post('/uitloggen');
+        $this->get($oud)->assertRedirect('/inloggen');
+        $this->assertGuest();
+        $this->get($nieuw)->assertRedirect('/wachtwoord-kiezen');
+
+        // Een gesloten account komt er ook met de link niet in
+        $this->post('/uitloggen');
+        User::query()->where('email', 'sanne@renovion.nl')->update(['active' => false]);
+        $this->get($nieuw)->assertRedirect('/inloggen');
+        $this->assertGuest();
+    }
+
+    public function test_zonder_mailserver_gaat_er_geen_mail_uit_en_komt_de_link_alleen_in_beeld(): void
+    {
+        Mail::fake();
+        config(['mail.default' => 'log']);
+        $admin = $this->admin();
+
+        $account = $this->sync($admin, [['extraUsers/u1', json_encode(['id' => 'u1', 'naam' => 'Sanne de Wit', 'sysrol' => 'Calculator', 'mail' => 'sanne@renovion.nl', 'status' => 'uitgenodigd'])]])->json('accounts.0');
+
+        $this->assertFalse($account['gemaild']);
+        $this->assertStringContainsString('/uitnodiging/', $account['link']);
+        Mail::assertNothingSent();
+        $this->actingAs($admin)->get('/')->assertSee('"mail":false', false);
     }
 
     public function test_het_commando_zet_tijdelijke_wachtwoorden(): void
@@ -429,5 +508,144 @@ class OsStateTest extends TestCase
 
         $this->assertNull(OsRow::query()->where('path', 'projects/PD-1')->value('value'));
         $this->assertTrue(OsRow::query()->where('path', 'emps/imad')->exists());
+    }
+
+    /** Een uitgenodigde partner met account, klaar om in te loggen. */
+    private function partner(User $admin, string $id = 's1', string $mail = 'piet@loodgieter.example'): User
+    {
+        $this->sync($admin, [['subs/'.$id, json_encode([
+            'id' => $id, 'naam' => 'Loodgietersbedrijf Jansen', 'contact' => 'Piet Jansen', 'mail' => $mail, 'vak' => 'Loodgieter',
+            'keurmerk' => 'nieuw', 'tarief' => 0, 'docs' => [], 'checks' => [], 'inv' => ['d' => '2026-11-27', 'stap' => 0, 'done' => false],
+        ])]]);
+        $partner = User::query()->where('email', $mail)->firstOrFail();
+        $partner->forceFill(['must_change_password' => false])->save();
+
+        return $partner;
+    }
+
+    public function test_een_partner_meldt_zichzelf_aan_en_komt_dan_in_beoordeling(): void
+    {
+        $admin = $this->admin();
+        $partner = $this->partner($admin);
+        $this->assertSame('Piet Jansen', $partner->name, 'het account heet naar de contactpersoon');
+
+        // tijdens het aanmelden: eigen gegevens en tarief, maar niet zelf het keurmerk
+        $sub = $this->row('subs/s1');
+        $this->sync($partner, [['subs/s1', json_encode([...$sub, 'kvk' => '12345678', 'tarief' => 58, 'keurmerk' => 'goedgekeurd', 'rating' => 5, 'inv' => ['d' => '2026-11-27', 'stap' => 3, 'done' => false]])]]);
+        $this->assertSame('12345678', $this->row('subs/s1')['kvk']);
+        $this->assertSame(58, $this->row('subs/s1')['tarief']);
+        $this->assertSame('nieuw', $this->row('subs/s1')['keurmerk']);
+        $this->assertArrayNotHasKey('rating', $this->row('subs/s1'));
+
+        // afronden: van nieuw naar in beoordeling
+        $sub = $this->row('subs/s1');
+        $this->sync($partner, [['subs/s1', json_encode([...$sub, 'keurmerk' => 'beoordeling', 'inv' => ['d' => '2026-11-27', 'stap' => 6, 'done' => true]])]]);
+        $this->assertSame('beoordeling', $this->row('subs/s1')['keurmerk']);
+
+        // daarna ligt het tarief vast en beslist Renovion over het keurmerk
+        $sub = $this->row('subs/s1');
+        $this->sync($partner, [['subs/s1', json_encode([...$sub, 'tarief' => 95, 'keurmerk' => 'goedgekeurd'])]]);
+        $this->assertSame(58, $this->row('subs/s1')['tarief']);
+        $this->assertSame('beoordeling', $this->row('subs/s1')['keurmerk']);
+    }
+
+    public function test_een_partner_geeft_beschikbaarheid_door_stelt_vragen_en_dient_facturen_in(): void
+    {
+        $admin = $this->admin();
+        $partner = $this->partner($admin);
+        $ander = $this->partner($admin, 's2', 'info@schilder.example');
+        $this->sync($admin, [
+            ['partnerBesch/pb-ander', json_encode(['id' => 'pb-ander', 'sub' => 's2', 'van' => '2026-12-01', 'tot' => '2026-12-02', 'status' => 'open'])],
+            ['partnerBesch/#order', json_encode(['pb-ander'])],
+            ['partnerVragen/pq-ander', json_encode(['id' => 'pq-ander', 'sub' => 's2', 'van' => 'partner', 'txt' => 'Vraag van de ander'])],
+        ]);
+
+        $res = $this->sync($partner, [
+            ['partnerBesch/pb1', json_encode(['id' => 'pb1', 'sub' => 's1', 'van' => '2026-12-07', 'tot' => '2026-12-11', 'note' => 'Hele dagen', 'status' => 'gekoppeld', 'pid' => 'PD-9'])],
+            ['partnerBesch/#order', json_encode(['pb1'])],
+            ['partnerBesch/pb2', json_encode(['id' => 'pb2', 'sub' => 's2', 'van' => '2026-12-07', 'tot' => '2026-12-11'])],
+            ['partnerBesch/pb3', json_encode(['id' => 'pb3', 'sub' => 's1', 'van' => '2026-12-11', 'tot' => '2026-12-07'])],
+            ['partnerVragen/pq1', json_encode(['id' => 'pq1', 'sub' => 's1', 'van' => 'renovion', 'naam' => 'Piet', 'txt' => 'Waar ligt de sleutel?'])],
+            ['partnerFact/pf1', json_encode(['id' => 'pf1', 'sub' => 's1', 'nr' => '2026-014', 'bedrag' => 1280.5, 'btw' => 0, 'status' => 'betaald', 'url' => '/os/bestanden/abc'])],
+            ['partnerFact/pf2', json_encode(['id' => 'pf2', 'sub' => 's1', 'nr' => '2026-015', 'bedrag' => 100, 'url' => 'https://elders.example/factuur.pdf'])],
+        ])->json();
+
+        $this->assertEqualsCanonicalizing(['partnerBesch/pb2', 'partnerBesch/pb3', 'partnerFact/pf2'], $res['rejected']);
+        $this->assertSame('open', $this->row('partnerBesch/pb1')['status'], 'koppelen doet Renovion');
+        $this->assertArrayNotHasKey('pid', $this->row('partnerBesch/pb1'));
+        $this->assertSame('partner', $this->row('partnerVragen/pq1')['van']);
+        $this->assertSame('ingediend', $this->row('partnerFact/pf1')['status']);
+        $this->assertSame(1280.5, $this->row('partnerFact/pf1')['bedrag']);
+
+        // hij ziet alleen wat van zijn eigen bedrijf is
+        $rows = collect($this->actingAs($partner)->getJson('/os/staat')->json('rows'))->mapWithKeys(fn ($r) => [$r[0] => $r[1]]);
+        $this->assertTrue($rows->has('partnerBesch/pb1'));
+        $this->assertFalse($rows->has('partnerBesch/pb-ander'));
+        $this->assertFalse($rows->has('partnerVragen/pq-ander'));
+        $this->assertSame(['pb1'], json_decode($rows['partnerBesch/#order'], true));
+
+        // Renovion koppelt en keurt goed; daarna kan de partner het niet meer intrekken of aanpassen
+        $this->sync($admin, [
+            ['partnerBesch/pb1', json_encode([...$this->row('partnerBesch/pb1'), 'status' => 'gekoppeld', 'pid' => 'PD-1'])],
+            ['partnerFact/pf1', json_encode([...$this->row('partnerFact/pf1'), 'status' => 'goedgekeurd'])],
+            ['partnerVragen/pq2', json_encode(['id' => 'pq2', 'sub' => 's1', 'van' => 'renovion', 'naam' => 'Imad', 'txt' => 'Bij de buren op 14.'])],
+        ]);
+        $this->sync($partner, [
+            ['partnerBesch/pb1', json_encode([...$this->row('partnerBesch/pb1'), 'status' => 'ingetrokken'])],
+            ['partnerFact/pf1', json_encode([...$this->row('partnerFact/pf1'), 'status' => 'betaald', 'bedrag' => 9999])],
+            ['partnerVragen/pq2', json_encode(['id' => 'pq2', 'sub' => 's1', 'van' => 'renovion', 'txt' => 'Aangepast antwoord'])],
+        ]);
+        $this->assertSame('gekoppeld', $this->row('partnerBesch/pb1')['status']);
+        $this->assertSame('goedgekeurd', $this->row('partnerFact/pf1')['status']);
+        $this->assertSame(1280.5, $this->row('partnerFact/pf1')['bedrag']);
+        $this->assertSame('Bij de buren op 14.', $this->row('partnerVragen/pq2')['txt']);
+
+        // een klant krijgt niets van de partners te zien
+        $this->sync($admin, [['extraUsers/u1', json_encode(['id' => 'u1', 'naam' => 'Familie de Boer', 'sysrol' => 'Klant', 'mail' => 'klant@example.test', 'status' => 'actief', 'scope' => 'PD-1'])]]);
+        $klant = User::query()->where('email', 'klant@example.test')->firstOrFail();
+        $klant->forceFill(['must_change_password' => false])->save();
+        $paths = collect($this->actingAs($klant)->getJson('/os/staat')->json('rows'))->map(fn ($r) => $r[0]);
+        $this->assertSame([], $paths->filter(fn ($p) => str_starts_with($p, 'partner') && ! str_ends_with($p, '/#order'))->values()->all());
+        $this->assertNotNull($ander);
+    }
+
+    public function test_een_ingeplande_partner_krijgt_een_vakman_in_de_planning_en_vult_zijn_werkbon_in(): void
+    {
+        $admin = $this->admin();
+        $partner = $this->partner($admin);
+
+        // bij het keurmerk of het koppelen: een vakman van het type partner met hetzelfde mailadres; het account verhuist mee
+        $this->sync($admin, [
+            ['emps/e1', json_encode(['id' => 'e1', 'naam' => 'Piet Jansen', 'rol' => 'Loodgieter', 'type' => 'partner', 'sysrol' => 'Onderaannemer', 'status' => 'actief', 'mail' => 'piet@loodgieter.example'])],
+            ['subs/s1', json_encode([...$this->row('subs/s1'), 'empId' => 'e1', 'keurmerk' => 'goedgekeurd'])],
+            ['projects/PD-1', json_encode(['id' => 'PD-1', 'naam' => 'Badkamer De Boer', 'adres' => 'Kerkstraat 1', 'plaats' => 'Arnhem', 'begroting' => ['x' => 1]])],
+            ['blocks/b1', json_encode(['id' => 'b1', 'emp' => 'e1', 'pid' => 'PD-1', 'titel' => 'Leidingwerk', 'start' => '2026-12-07', 'end' => '2026-12-08'])],
+            ['werkbonnen/WB-1', json_encode(['nr' => 'WB-1', 'pid' => 'PD-1', 'emp' => 'e1', 'blockId' => 'b1', 'titel' => 'Leidingwerk', 'status' => 'uitgegeven', 'begrUren' => 16, 'uren' => 0, 'situatie' => 'Sleutel bij de buren', 'checklist' => [['t' => 'Persproef uitgevoerd', 'd' => false]], 'opm' => '', 'obstakels' => '', 'getekend' => ''])],
+        ]);
+        $this->assertSame(1, User::query()->where('email', 'piet@loodgieter.example')->count());
+        $partner->refresh();
+        $this->assertSame('e1', $partner->person_id);
+
+        $rows = collect($this->actingAs($partner)->getJson('/os/staat')->json('rows'))->mapWithKeys(fn ($r) => [$r[0] => $r[1]]);
+        $this->assertTrue($rows->has('subs/s1'), 'zijn eigen dossier, nu via de vakman');
+        $this->assertTrue($rows->has('blocks/b1'));
+        $this->assertSame('Kerkstraat 1', json_decode($rows['projects/PD-1'], true)['adres']);
+        $this->assertNull(json_decode($rows['projects/PD-1'], true)['begroting']);
+        $wb = json_decode($rows['werkbonnen/WB-1'], true);
+        $this->assertSame('Sleutel bij de buren', $wb['situatie']);
+
+        // invullen en indienen: uren, checklist, opmerking, obstakel en wie aftekende; de voorbereiding blijft van kantoor
+        $this->sync($partner, [['werkbonnen/WB-1', json_encode([...$wb, 'status' => 'controle', 'uren' => 15, 'checklist' => [['t' => 'Persproef uitgevoerd', 'd' => true]], 'opm' => 'Klaar', 'obstakels' => 'Afvoer lag hoger', 'getekend' => 'Mevrouw de Boer', 'situatie' => 'Aangepast', 'begrUren' => 99])]]);
+        $saved = $this->row('werkbonnen/WB-1');
+        $this->assertSame('controle', $saved['status']);
+        $this->assertSame(15, $saved['uren']);
+        $this->assertSame('Afvoer lag hoger', $saved['obstakels']);
+        $this->assertSame('Mevrouw de Boer', $saved['getekend']);
+        $this->assertSame('Sleutel bij de buren', $saved['situatie']);
+        $this->assertSame(16, $saved['begrUren']);
+
+        // goedkeuren kan hij niet zelf
+        $this->sync($partner, [['werkbonnen/WB-1', json_encode([...$saved, 'status' => 'goedgekeurd'])]]);
+        $this->assertSame('controle', $this->row('werkbonnen/WB-1')['status']);
     }
 }

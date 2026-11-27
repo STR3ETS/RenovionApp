@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
 <meta charset="utf-8">
-<title>Renovion OS</title>
+<title>Renovion Groep</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0D1A2E">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -47,7 +47,7 @@
       <button class="btn pri" data-act="plus" id="plusbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span>Nieuw</span></button>
     </header>
     <main id="view">
-      <div class="page sk-page" aria-busy="true" aria-label="Renovion OS wordt geladen">
+      <div class="page sk-page" aria-busy="true" aria-label="Renovion Groep wordt geladen">
         <div class="sk sk-band"></div>
         <div class="grid kpis">
           <div class="card sk-card"><span class="sk sk-line w40"></span><span class="sk sk-num"></span><span class="sk sk-line w60"></span></div>
@@ -60,7 +60,7 @@
           <div class="card sk-card">@for ($i = 0; $i < 4; $i++)<div class="sk-row"><span class="sk sk-ic"></span><span class="sk-tx"><span class="sk sk-line w60"></span><span class="sk sk-line w30"></span></span></div>@endfor</div>
         </div>
       </div>
-      <noscript><div class="page"><div class="card card-b">Renovion OS heeft JavaScript nodig.</div></div></noscript>
+      <noscript><div class="page"><div class="card card-b">Renovion Groep heeft JavaScript nodig.</div></div></noscript>
     </main>
   </div>
 </div>

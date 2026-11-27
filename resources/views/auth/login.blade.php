@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
 <meta charset="utf-8">
-<title>Inloggen - Renovion OS</title>
+<title>Inloggen - Renovion Groep</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0D1A2E">
 <link rel="manifest" href="{{ route('manifest') }}">
@@ -17,7 +17,7 @@
 <body class="login-body">
 <main class="login">
   <div class="login-brand">
-    <svg viewBox="70 88 470 156" role="img" aria-label="Renovion OS"><path d="M117 205H80V136L140 99L200 136V152" fill="none" stroke="var(--orange)" stroke-width="7"/><text x="124" y="205" textLength="288" lengthAdjust="spacingAndGlyphs" font-family="Outfit, 'Plus Jakarta Sans', sans-serif" font-size="70" font-weight="500" fill="#FFFFFF">Renovion</text><text x="428" y="205" textLength="96" lengthAdjust="spacingAndGlyphs" font-family="Outfit, 'Plus Jakarta Sans', sans-serif" font-size="70" font-weight="700" fill="var(--orange)">OS</text><text x="128" y="236" font-family="'Plus Jakarta Sans', sans-serif" font-size="15" font-weight="500" textLength="396" lengthAdjust="spacing" fill="#A9B5C8">ÉÉN PLATFORM. HELE BOUWPROJECTEN.</text></svg>
+    <svg viewBox="70 88 578 160" role="img" aria-label="Renovion Groep"><path d="M117 205H80V136L140 99L200 136V152" fill="none" stroke="var(--orange)" stroke-width="7"/><text x="124" y="205" textLength="288" lengthAdjust="spacingAndGlyphs" font-family="Outfit, 'Plus Jakarta Sans', sans-serif" font-size="70" font-weight="500" fill="#FFFFFF">Renovion</text><text x="428" y="205" textLength="204" lengthAdjust="spacingAndGlyphs" font-family="Outfit, 'Plus Jakarta Sans', sans-serif" font-size="70" font-weight="700" fill="var(--orange)">Groep</text><text x="128" y="241" font-family="'Plus Jakarta Sans', sans-serif" font-size="19" font-weight="500" textLength="504" lengthAdjust="spacing" fill="#A9B5C8">ÉÉN PLATFORM. HELE BOUWPROJECTEN.</text></svg>
   </div>
   <form class="card login-card" method="POST" action="{{ route('login.store') }}">
     @csrf
@@ -39,7 +39,7 @@
     <label class="row login-remember"><input type="checkbox" name="remember" value="1"> Ingelogd blijven op dit apparaat</label>
     <button class="btn pri lg" type="submit">Inloggen</button>
   </form>
-  <p class="login-foot">Renovion Groep, Mercatorweg 28, 6827 DC Arnhem</p>
+  <p class="login-foot">Renovion Groep BV, Mercatorweg 28, 6827 DC Arnhem</p>
 </main>
 </body>
 </html>

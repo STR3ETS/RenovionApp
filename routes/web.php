@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\ChoosePasswordController;
+use App\Http\Controllers\Auth\InvitationController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Os\AiController;
 use App\Http\Controllers\Os\FileController;
@@ -9,7 +10,7 @@ use App\Http\Controllers\Os\StateController;
 use Illuminate\Support\Facades\Route;
 
 /*
-| Renovion OS draait als één pagina (de schermen uit het prototype). De server
+| Renovion Groep draait als één pagina (de schermen uit het prototype). De server
 | levert inloggen, de gedeelde staat en de bestanden.
 */
 
@@ -17,6 +18,9 @@ Route::middleware('guest')->group(function () {
     Route::get('/inloggen', [LoginController::class, 'create'])->name('login');
     Route::post('/inloggen', [LoginController::class, 'store'])->middleware('throttle:login')->name('login.store');
 });
+
+// De link uit een uitnodiging: inloggen zonder wachtwoord en meteen een eigen wachtwoord kiezen
+Route::get('/uitnodiging/{user}', [InvitationController::class, 'show'])->whereNumber('user')->middleware('throttle:20,1')->name('invite');
 
 // Oude adressen uit de vorige app
 Route::redirect('/login', '/inloggen');

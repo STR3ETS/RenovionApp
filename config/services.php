@@ -22,6 +22,13 @@ return [
         'key' => env('RESEND_API_KEY'),
     ],
 
+    'mailgun' => [
+        'domain' => env('MAILGUN_DOMAIN'),
+        'secret' => env('MAILGUN_SECRET'),
+        'endpoint' => env('MAILGUN_ENDPOINT', 'api.eu.mailgun.net'),
+        'scheme' => 'https',
+    ],
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
@@ -36,12 +43,15 @@ return [
     ],
 
     /*
-    | Nova en de agents van Renovion OS. Zonder sleutel staan ze uit en zegt
+    | Nova en de agents van Renovion Groep. Zonder sleutel staan ze uit en zegt
     | de app dat eerlijk. Het model is in te stellen met RENOVION_AI_MODEL.
     */
     // Token waarmee de Renovion-website aanvragen aanlevert (POST /api/aanvragen, header X-Intake-Token).
+    // mail_name en reply_to: zo komt een uitnodiging binnen, ook als het verzenddomein van een ander is.
     'renovion' => [
         'lead_intake_token' => env('LEAD_INTAKE_TOKEN'),
+        'mail_name' => env('RENOVION_MAIL_NAME', 'Renovion Groep BV'),
+        'reply_to' => env('RENOVION_REPLY_TO', 'info@renovion.nl'),
     ],
 
     'anthropic' => [

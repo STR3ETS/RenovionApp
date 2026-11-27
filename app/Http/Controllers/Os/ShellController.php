@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Os;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Os\Ai\Claude;
+use App\Os\Invites;
 use App\Os\People;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -12,7 +13,7 @@ use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 /**
- * De schil van Renovion OS: één pagina, de app regelt de schermen zelf.
+ * De schil van Renovion Groep: één pagina, de app regelt de schermen zelf.
  */
 class ShellController extends Controller
 {
@@ -32,6 +33,7 @@ class ShellController extends Controller
                 'today' => now()->toDateString(),
                 'debug' => app()->isLocal(),
                 'ai' => Claude::enabled(),
+                'mail' => Invites::enabled(),
                 'csrf' => csrf_token(),
                 'urls' => [
                     'state' => route('os.state'),
@@ -53,11 +55,11 @@ class ShellController extends Controller
         ]);
     }
 
-    /** Het app-manifest, zodat Renovion OS op het beginscherm kan. */
+    /** Het app-manifest, zodat Renovion Groep op het beginscherm kan. */
     public function manifest(): Response
     {
         $manifest = [
-            'name' => 'Renovion OS',
+            'name' => 'Renovion Groep',
             'short_name' => 'Renovion',
             'description' => 'Eén platform voor het hele bouwproject.',
             'lang' => 'nl',
@@ -78,8 +80,9 @@ class ShellController extends Controller
     }
 
     /**
-     * Een nieuw wachtwoord voor iemand uit het team (alleen directie). Er is
-     * geen mailserver, dus het wachtwoord komt één keer terug in beeld.
+     * Een nieuw wachtwoord voor iemand uit het team (alleen directie). De
+     * persoon krijgt een mail met een nieuwe inloglink; het wachtwoord en de
+     * link komen ook één keer terug in beeld.
      */
     public function password(Request $request, string $person): JsonResponse
     {
@@ -92,6 +95,6 @@ class ShellController extends Controller
 
         $password = People::temporaryPassword($account);
 
-        return response()->json(['naam' => $account->name, 'mail' => $account->email, 'wachtwoord' => $password]);
+        return response()->json(Invites::describe($account, $password, $request->user(), again: true));
     }
 }

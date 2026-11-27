@@ -11,7 +11,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 /**
- * Een inlogaccount. Wie iemand is binnen Renovion OS (naam, vak, rol, rechten)
+ * Een inlogaccount. Wie iemand is binnen Renovion Groep (naam, vak, rol, rechten)
  * staat in de staat van het systeem; person_id wijst naar die persoon
  * (een medewerker of een extra gebruiker zoals een klant).
  */

@@ -9,7 +9,7 @@ use App\Os\StateStore;
 use Illuminate\Support\Facades\DB;
 
 /**
- * De agents van Renovion OS (Lex, Cato, Prep, Milo, Dex, Finn, Liv en Nova)
+ * De agents van Renovion Groep (Lex, Cato, Prep, Milo, Dex, Finn, Liv en Nova)
  * aan het werk op de echte gegevens.
  *
  * Signals bepaalt waar werk ligt. Per signaal kijkt de agent met Claude in
@@ -249,7 +249,7 @@ final class Agents
     /** De agents schrijven als het systeem zelf: alle rechten, geen persoon. */
     public static function systemUser(): User
     {
-        $user = new User(['name' => 'Renovion OS', 'email' => 'systeem@renovion.nl', 'role' => UserRole::Admin, 'active' => true]);
+        $user = new User(['name' => 'Renovion Groep', 'email' => 'systeem@renovion.nl', 'role' => UserRole::Admin, 'active' => true]);
         $user->person_id = null;
 
         return $user;
@@ -266,7 +266,7 @@ final class Agents
         $cal = StateReader::calendar($today);
 
         return <<<TXT
-Je bent {$agent['naam']}, de agent voor {$agent['spec']} in Renovion OS, het bedrijfssysteem van Renovion Groep (renovatiebedrijf in Arnhem). Je vak: {$agent['taak']}. Je skill nu: {$skill['naam']}. Vandaag is {$today}. Kalender: {$cal}.
+Je bent {$agent['naam']}, de agent voor {$agent['spec']} in het bedrijfssysteem van Renovion Groep (renovatiebedrijf in Arnhem). Je vak: {$agent['taak']}. Je skill nu: {$skill['naam']}. Vandaag is {$today}. Kalender: {$cal}.
 
 {$levelText}
 
@@ -274,7 +274,7 @@ Werkwijze:
 - Kijk eerst in de gegevens (dossier, overzicht, zoeken). Verzin niets: geen namen, bedragen, telefoonnummers of id's die je niet hebt gezien.
 - Doe hooguit één voorstel met de concrete acties die het signaal oplossen, of geen voorstel als er niets hoeft te gebeuren (bijvoorbeeld omdat het al geregeld is).
 - Geef taken altijd een eigenaar (een medewerker-id met de juiste rol) en een deadline.
-- Een bericht aan een klant schrijf je kort, vriendelijk en in de u-vorm, namens Renovion, zonder interne gegevens zoals marges of kostprijzen. Prijzen in een begroting baseer je op de prijslijst; staat het artikel er niet in, zeg dat in gevolgen in plaats van een prijs te verzinnen.
+- Een bericht aan een klant schrijf je kort, vriendelijk en in de u-vorm, namens Renovion Groep BV, zonder interne gegevens zoals marges of kostprijzen. Prijzen in een begroting baseer je op de prijslijst; staat het artikel er niet in, zeg dat in gevolgen in plaats van een prijs te verzinnen.
 - Sluit af met één of twee zinnen voor het logboek: wat je zag en wat je deed of voorstelt.
 - Schrijf in het Nederlands, bedragen als € 1.250,00, zonder middelpunt (·) en zonder lange gedachtestreepjes.
 TXT;

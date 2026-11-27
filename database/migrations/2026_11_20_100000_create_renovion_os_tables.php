@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Renovion OS: het systeem uit het prototype draait op één gedeelde staat.
+ * Renovion Groep: het systeem uit het prototype draait op één gedeelde staat.
  * Elke regel in os_rows is één stuk van die staat (een project, een taak, de
  * instellingen), zodat collega's tegelijk aan verschillende dingen werken
  * zonder elkaars werk te overschrijven. os_changes nummert elke opslag en is

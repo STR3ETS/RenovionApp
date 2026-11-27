@@ -89,7 +89,7 @@ final class Actions
                                 'mailadres' => ['type' => 'string'],
                                 'adres' => ['type' => 'string'],
                                 'plaats' => ['type' => 'string'],
-                                'soort_werk' => ['type' => 'string', 'description' => 'Badkamerrenovatie, Keukenrenovatie, Aanbouw, Dakkapel, Renovatie, Verbouwing, Nieuwbouw, Onderhoud, Stucwerk, Schilderwerk of Tegelwerk. Meer dan één soort werk: met een komma ertussen, bijvoorbeeld "Badkamerrenovatie, Stucwerk".'],
+                                'soort_werk' => ['type' => 'string', 'description' => 'Badkamerrenovatie, Keukenrenovatie, Aanbouw, Dakkapel, Renovatie, Verbouwing, Nieuwbouw, Onderhoud, Stucwerk, Schilderwerk, Tegelwerk, Elektrawerk, Loodgieterswerk, Dakwerk of Gevelisolatie. Meer dan één soort werk: met een komma ertussen, bijvoorbeeld "Badkamerrenovatie, Stucwerk".'],
                                 'budget' => ['type' => 'number'],
                             ],
                             'required' => ['type'],
@@ -363,6 +363,9 @@ final class Actions
         $zakelijk = ($a['soort'] ?? '') === 'Zakelijk';
         // Een bestaande klant (klant_id) krijgt er een aanvraag bij; anders een nieuwe klant.
         $clientId = isset($a['klant_id']) && $this->s->client($a['klant_id']) ? $a['klant_id'] : null;
+        // Standaardregel btw (zie btwRegel in app.js): een zakelijke opdrachtgever krijgt 0% (btw verlegd). Of een woning
+        // ouder is dan 2 jaar (9% op stuc- en schilderwerk) is hier niet bekend; dat kiest iemand bij de intake.
+        $btw = ($clientId ? ($this->s->client($clientId)['soort'] ?? '') === 'Zakelijk' : $zakelijk) ? 0 : 21;
         if (! $clientId) {
             $clientId = $this->id('c');
             $this->add('clients', ['id' => $clientId, 'naam' => $a['naam'], 'soort' => $zakelijk ? 'Zakelijk' : 'Particulier', 'contact' => $a['contactpersoon'] ?? $a['naam'], 'tel' => $a['telefoon'] ?? '', 'mail' => $a['mailadres'] ?? '', 'plaats' => $a['plaats'] ?? '', 'bron' => $a['bron'] ?? '', 'nr' => 'K-'.(max([1000, ...$numbers]) + 1), 'betaal' => $zakelijk ? 30 : 14, 'herinnering' => true, 'token' => bin2hex(random_bytes(4))], false);
@@ -396,6 +399,7 @@ final class Actions
             'phase' => 0, 'leider' => $sales ?? $this->s->user->person_id, 'progress' => 0, 'planned' => 0, 'kleur' => count($this->s->list('projects')) % 6, 'waarde' => (float) ($a['budget'] ?? 0),
             'termijnen' => [['oms' => 'Bij opdracht', 'pct' => 40], ['oms' => 'Bij start uitvoering', 'pct' => 40], ['oms' => 'Bij oplevering', 'pct' => 20]],
             'begroting' => null, 'offerte' => null, 'docs' => [], 'activity' => [['d' => $this->today, 't' => ($a['activiteit'] ?? 'Aanvraag aangemaakt door '.$actor), 'k' => 'blue']], 'bron' => $a['bron'] ?? 'Nova',
+            'btwPct' => $btw,
             'intake' => array_filter(['wensen' => $a['tekst'] ?? '', 'budget' => isset($a['budget']) ? StateReader::euro((float) $a['budget']) : '', 'startWens' => $a['gewenste_start'] ?? null], fn ($v) => $v !== null) ?: ['wensen' => ''], 'kosten' => 0,
             'uren' => [], 'regieMat' => [], 'mw' => [], 'contract' => 'aangenomen', 'regieTarief' => 55, 'bouw' => ['gpi' => false, 'kantoor' => false, 'klus' => false, 'contact' => '', 'pakket' => null],
         ], true);

@@ -3,7 +3,7 @@
 namespace App\Enums;
 
 /**
- * De elf rollen van Renovion OS. De waarde staat in de database (users.role),
+ * De elf rollen van Renovion Groep. De waarde staat in de database (users.role),
  * het label is de naam die het systeem zelf gebruikt (sysrol in de staat).
  */
 enum UserRole: string

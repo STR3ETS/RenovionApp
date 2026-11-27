@@ -100,6 +100,11 @@ class OsAiTest extends TestCase
         $this->assertSame('Keukenrenovatie', $this->row('projects/'.$pid)['type']);
         $this->assertSame($pid, $this->row('projects/#order')[0]);
         $this->assertSame(1, $this->row('seq')['pd']);
+        $this->assertSame(21, $this->row('projects/'.$pid)['btwPct']);
+
+        // een zakelijke opdrachtgever (aannemer): btw verlegd
+        $this->actions()->execute($this->admin, [['type' => 'aanvraag', 'naam' => 'Bouwbedrijf Peters', 'soort' => 'Zakelijk', 'soort_werk' => 'Stucwerk']]);
+        $this->assertSame(0, $this->row('projects/PD-'.now()->year.'-0002')['btwPct']);
     }
 
     public function test_een_aanvraag_met_meer_soorten_werk_houdt_ze_allemaal(): void

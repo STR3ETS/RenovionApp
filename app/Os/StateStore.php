@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
- * De gedeelde staat van Renovion OS: lezen, wijzigingen sinds een nummer, en
+ * De gedeelde staat van Renovion Groep: lezen, wijzigingen sinds een nummer, en
  * opslaan. Wat een portaalgebruiker (klant, onderaannemer) mag zien en
  * wijzigen, bepaalt Visibility; wie wat aan accounts mag doen, People.
  */

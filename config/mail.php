@@ -65,6 +65,11 @@ return [
             'transport' => 'resend',
         ],
 
+        // Mailgun (EU): sleutel en domein staan in config/services.php
+        'mailgun' => [
+            'transport' => 'mailgun',
+        ],
+
         'sendmail' => [
             'transport' => 'sendmail',
             'path' => env('MAIL_SENDMAIL_PATH', '/usr/sbin/sendmail -bs -i'),

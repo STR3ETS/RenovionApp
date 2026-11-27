@@ -14,6 +14,11 @@ use App\Os\Layout;
  * anderen), zijn eigen werkbonnen en klussen, en van de projecten alleen
  * naam en adres. Hij levert zijn documenten aan, dient een prijs in en
  * werkt zijn werkbonnen bij; goedkeuren en keuren doet Renovion.
+ *
+ * In het portaal geeft hij ook zijn beschikbaarheid door (partnerBesch), stelt
+ * hij vragen (partnerVragen) en dient hij facturen in (partnerFact). Daarvan
+ * ziet hij alleen wat van zijn eigen bedrijf is; koppelen aan een project,
+ * antwoorden en goedkeuren doet Renovion.
  */
 final class PartnerScope
 {
@@ -23,7 +28,10 @@ final class PartnerScope
     private const SUB_LOCKED = ['keurmerk', 'blocked', 'blockReden', 'rating', 'checks', 'idCheck', 'raam', 'opdrachten', 'empId', 'tarief'];
 
     /** Velden van een werkbon die de partner zelf invult. */
-    private const WB_FIELDS = ['uren', 'checklist', 'fotos', 'materialen', 'notitie', 'notities', 'opmerking', 'eind', 'log', 'handtekening', 'sig', 'start', 'pauze'];
+    /** Wat de partner zelf in het portaal aanlevert: één regel per bericht, altijd met zijn eigen bedrijf in `sub`. */
+    private const OWN = ['partnerBesch', 'partnerVragen', 'partnerFact'];
+
+    private const WB_FIELDS = ['uren', 'checklist', 'fotos', 'materialen', 'opm', 'obstakels', 'getekend', 'notitie', 'notities', 'opmerking', 'eind', 'log', 'handtekening', 'sig', 'start', 'pauze'];
 
     private const WB_OWN_STATUS = ['uitgegeven', 'uitvoering', 'controle'];
 
@@ -91,6 +99,7 @@ final class PartnerScope
                 'blocks' => $scope['blocks'],
                 'emps' => $keys,
                 'werkbonnen' => null,
+                'partnerBesch', 'partnerVragen', 'partnerFact' => $this->ownKeys($collection, $scope['sid']),
                 default => [],
             };
             if ($visible === null) {
@@ -110,6 +119,7 @@ final class PartnerScope
             'klus' => in_array($key, $scope['blocks'], true) ? $value : null,
             'projects' => in_array($key, $scope['pids'], true) ? Json::encode($this->project($item)) : null,
             'emps' => $key === $scope['person'] ? $value : Json::encode($this->pick($item, self::EMP_FIELDS, ['certs' => [], 'afwezig' => []])),
+            'partnerBesch', 'partnerVragen', 'partnerFact' => $scope['sid'] && is_object($item) && ($item->sub ?? null) === $scope['sid'] ? $value : null,
             default => null,
         };
     }
@@ -137,12 +147,22 @@ final class PartnerScope
                 if ($key !== $scope['sid'] || ! is_object($prev) || ! is_object($item)) {
                     return false;
                 }
+                // Tijdens het aanmelden (keurmerk "nieuw") geeft de partner zelf zijn tarief op en rondt hij de
+                // aanmelding af: dan gaat het dossier naar "in beoordeling". Daarna beslist Renovion.
+                $onboarding = ($prev->keurmerk ?? null) === 'nieuw';
+                $done = $onboarding && ($item->keurmerk ?? null) === 'beoordeling' && Json::get($item, 'inv.done') === true;
                 foreach (self::SUB_LOCKED as $field) {
+                    if ($onboarding && $field === 'tarief' && is_numeric($item->tarief ?? null)) {
+                        continue;
+                    }
                     if (property_exists($prev, $field)) {
                         $item->{$field} = $prev->{$field};
                     } else {
                         unset($item->{$field});
                     }
+                }
+                if ($done) {
+                    $item->keurmerk = 'beoordeling';
                 }
 
                 // Documenten levert de partner zelf aan (net als in het prototype); het keurmerk geeft Renovion.
@@ -173,6 +193,11 @@ final class PartnerScope
             case 'klus':
                 return in_array($key, $scope['blocks'], true);
 
+            case 'partnerBesch':
+            case 'partnerVragen':
+            case 'partnerFact':
+                return $this->own($collection, $scope, $key, $prev, $item);
+
             case 'notifs':
             case 'outbox':
             case 'ai.audit':
@@ -181,6 +206,91 @@ final class PartnerScope
             default:
                 return false;
         }
+    }
+
+    /**
+     * Beschikbaarheid, vragen en facturen van de partner zelf. Hij zet er nieuwe bij voor zijn eigen bedrijf en
+     * trekt een beschikbaarheid of factuur in zolang Renovion er nog niets mee deed; de status verder is van Renovion.
+     */
+    private function own(string $collection, array $scope, string $key, mixed $prev, mixed $item): bool|string
+    {
+        $sid = $scope['sid'];
+        if (! $sid || ! is_object($item) || ($item->sub ?? null) !== $sid || (string) ($item->id ?? '') !== $key) {
+            return false;
+        }
+        $text = fn (string $field, int $max) => mb_substr(trim((string) (is_scalar($item->{$field} ?? null) ? $item->{$field} : '')), 0, $max);
+        $date = fn (string $field) => preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) (is_scalar($item->{$field} ?? null) ? $item->{$field} : '')) === 1 ? (string) $item->{$field} : null;
+        $today = now()->toDateString();
+
+        if ($prev !== null) {
+            // Bestaand: alleen wijzigen of intrekken wat nog open staat (een vraag blijft staan zoals hij is gesteld).
+            $open = ['partnerBesch' => 'open', 'partnerFact' => 'ingediend'][$collection] ?? null;
+            if (! is_object($prev) || ($prev->sub ?? null) !== $sid || $open === null || ($prev->status ?? null) !== $open) {
+                return false;
+            }
+            $out = clone $prev;
+            if (($item->status ?? null) === 'ingetrokken') {
+                $out->status = 'ingetrokken';
+            } elseif ($collection === 'partnerBesch') {
+                $van = $date('van');
+                $tot = $date('tot');
+                if ($van && $tot && $tot >= $van) {
+                    $out->van = $van;
+                    $out->tot = $tot;
+                    $out->note = $text('note', 500);
+                }
+            }
+
+            return Json::encode($out);
+        }
+
+        if ($collection === 'partnerBesch') {
+            $van = $date('van');
+            $tot = $date('tot');
+
+            return $van && $tot && $tot >= $van
+                ? Json::encode(['id' => $key, 'sub' => $sid, 'van' => $van, 'tot' => $tot, 'note' => $text('note', 500), 'd' => $today, 'status' => 'open'])
+                : false;
+        }
+
+        if ($collection === 'partnerVragen') {
+            $txt = $text('txt', 4000);
+
+            return $txt === '' ? false : Json::encode(array_filter([
+                'id' => $key, 'sub' => $sid, 'van' => 'partner', 'naam' => $text('naam', 120), 'txt' => $txt,
+                'd' => $today, 'tijd' => $text('tijd', 5), 'over' => $text('over', 160),
+            ], fn ($v) => $v !== ''));
+        }
+
+        $url = $text('url', 200);
+        if (! is_numeric($item->bedrag ?? null) || (float) $item->bedrag <= 0 || $text('nr', 60) === '' || ($url !== '' && ! str_starts_with($url, '/os/bestanden/'))) {
+            return false;
+        }
+        $btw = (int) (is_numeric($item->btw ?? null) ? $item->btw : 21);
+
+        return Json::encode(array_filter([
+            'id' => $key, 'sub' => $sid, 'nr' => $text('nr', 60), 'datum' => $date('datum') ?? $today, 'bedrag' => round((float) $item->bedrag, 2),
+            'btw' => in_array($btw, [0, 9, 21], true) ? $btw : 21,
+            'oms' => $text('oms', 300), 'ref' => $text('ref', 160), 'pid' => $text('pid', 40), 'bestand' => $text('bestand', 200), 'url' => $url,
+            'd' => $today, 'status' => 'ingediend',
+        ], fn ($v) => $v !== ''));
+    }
+
+    /** @return list<string> de sleutels in een eigen collectie die van dit partnerbedrijf zijn */
+    private function ownKeys(string $collection, ?string $sid): array
+    {
+        if (! $sid || ! in_array($collection, self::OWN, true)) {
+            return [];
+        }
+        $keys = [];
+        foreach (OsRow::query()->where('collection', $collection)->whereNotNull('value')->where('path', 'not like', '%/#order')->get(['path', 'value']) as $row) {
+            $x = Json::decode($row->value);
+            if (is_object($x) && ($x->sub ?? null) === $sid) {
+                $keys[] = (string) Layout::keyOf($row->path);
+            }
+        }
+
+        return $keys;
     }
 
     private function ownWorkOrder(array $scope, string $key): bool

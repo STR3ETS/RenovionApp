@@ -8,7 +8,7 @@ use Illuminate\Database\Seeder;
 class DatabaseSeeder extends Seeder
 {
     /**
-     * De teamaccounts en daarna de lege staat van Renovion OS. Veilig op
+     * De teamaccounts en daarna de lege staat van Renovion Groep. Veilig op
      * productie: bestaande accounts en een bestaande staat blijven staan.
      */
     public function run(): void

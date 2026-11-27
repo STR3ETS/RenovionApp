@@ -5,7 +5,7 @@
 @source "../views";
 
 /* =========================================================
-   Renovion OS: aanvullingen op het prototype (os.css).
+   Renovion Groep: aanvullingen op het prototype (os.css).
    Hier alleen wat de echte app nodig heeft en het prototype
    niet had: laden (skeletons), paginawissel, inloggen en
    de meldingen van het opslaan.
@@ -14,6 +14,11 @@
 /* Het prototype liet de standaardmarge van de browser staan: een rand van 8 pixels rond de app. */
 body{margin:0}
 
+/* Het logo heet Renovion Groep en is breder dan dat van het prototype: iets meer ruimte, zodat de letters even groot blijven. */
+.logo svg{width:200px}
+.rpd-logo{width:232px}
+@media (max-width:700px){.rpd-logo{width:196px}}
+
 /* ---------- Skeletons: zo ziet een scherm eruit terwijl het laadt ---------- */
 .sk{display:block;border-radius:8px;background:var(--border2);position:relative;overflow:hidden}
 .sk::after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--card) 70%,transparent),transparent);animation:skShimmer 1.3s ease-in-out infinite}
@@ -21,7 +26,7 @@ body{margin:0}
 .sk-side{display:flex;flex-direction:column;gap:8px;padding:0 8px}
 .sk-side .sk{background:var(--side-hover)}
 .sk-side .sk::after{background:linear-gradient(90deg,transparent,#ffffff10,transparent)}
-.sk-logo{height:44px;width:170px;margin-bottom:18px;border-radius:10px}
+.sk-logo{height:46px;width:190px;margin-bottom:18px;border-radius:10px}
 .sk-group{height:9px;width:84px;margin:14px 0 4px}
 .sk-item{height:30px;border-radius:999px}
 .sk-band{height:188px;border-radius:var(--r);background:var(--navy)}
@@ -60,7 +65,7 @@ body{margin:0}
 /* ---------- Inloggen ---------- */
 .login-body{min-height:100%;background:var(--navy);display:grid;place-items:center;padding:24px 16px}
 .login{width:100%;max-width:400px;display:flex;flex-direction:column;gap:20px}
-.login-brand svg{display:block;width:240px;max-width:80%;margin:0 auto}
+.login-brand svg{display:block;width:290px;max-width:88%;margin:0 auto}
 .login-card{padding:24px;display:flex;flex-direction:column;gap:16px;box-shadow:var(--shadow-lg)}
 .login-card h1{font-size:24px}
 .login-card p{margin:4px 0 0;font-size:13px}
@@ -71,6 +76,15 @@ body{margin:0}
 /* ---------- Wachtwoord eenmalig tonen ---------- */
 .pw-box{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:12px 14px;border:1px dashed var(--orange-line);border-radius:var(--r-sm);background:var(--orange-soft)}
 .pw-box code{font-size:16px;font-weight:700;letter-spacing:.04em;color:var(--text);user-select:all}
+/* Uitnodiging: de inloglink op één regel, de status van de mail en het tijdelijke wachtwoord als reserve */
+.pw-box .pw-link{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:var(--text);user-select:all}
+.pw-box .btn{flex:none}
+.acc-card+.acc-card{padding-top:14px;border-top:1px solid var(--border)}
+.acc-st{display:flex;align-items:center;gap:6px;margin-top:2px;font-size:12.5px;color:var(--muted)}
+.acc-st.ok{color:var(--ok)}
+.acc-st svg{width:14px;height:14px;flex:none}
+.pw-alt{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+.pw-alt code{font-size:13px;font-weight:600;color:var(--text);user-select:all}
 
 /* ---------- Rustiger beweging dan het prototype ----------
    Geen waas, geen kanteling, geen uitrekken of doorschieten: blokken komen
@@ -289,6 +303,109 @@ form[data-zk="0"] .zk-only{display:none}
 /* Nieuw project: de klantvelden alleen bij "Nieuwe klant" */
 .pn-sub{display:contents}
 form[data-new="0"] .pn-new{display:none}
+/* Klus aanmelden: de velden van de klus alleen bij die route, met vaste prijs of regie; de kaart in het dossier */
+form:not([data-vv="klus"]) .ka-only{display:none}
+form[data-afr="regie"] .ka-vast,form:not([data-afr="regie"]) .ka-regie{display:none}
+.dup-klus{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid var(--border2);font-size:12.5px}
+.klc{margin-bottom:16px}
+.klc-meta{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:14px;font-size:13px;color:var(--ink2)}
+.klc-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
 
 /* Teamchat: initialen bij een gesprek met een collega */
 .wa-av.wa-ini{font-size:14px;font-weight:700;letter-spacing:.02em}
+
+/* Standaardregel btw: het veld "Woning ouder dan 2 jaar" alleen bij een particulier, en de uitleg onder het tarief */
+form[data-zk="1"] .pt-only{display:none}
+.btw-hint{display:block;margin-top:5px;font-size:12px;line-height:1.4}
+
+/* Loopt het uit of op schema: het oordeel per project */
+.p-oordeel{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0 0;padding:9px 12px;border-radius:12px;font-size:13px;line-height:1.4;background:var(--ok-soft);color:var(--ok)}
+.p-oordeel svg{width:15px;height:15px;flex:none}
+.p-oordeel b{font-weight:700}
+.p-oordeel span{color:var(--ink2);flex:1 1 180px;min-width:0}
+.p-oordeel.s-o{background:var(--warn-soft);color:var(--warn)}
+.p-oordeel.s-r{background:var(--bad-soft);color:var(--bad)}
+.card-b>.p-oordeel:first-child{margin:0 0 14px}
+
+/* Balans: details per post */
+.ps-det{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 24px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border2)}
+.ps-det h4{margin:0 0 6px;font-size:13.5px}.ps-det h4 small{font-weight:500;color:var(--muted);font-size:12px}
+.ps-dt{width:100%;font-size:13px}.ps-dt td,.ps-dt th{padding:6px 0}.ps-dt td.r,.ps-dt th.r{text-align:right;padding-left:10px;white-space:nowrap}
+.ps-dt tr.tot td{font-weight:700;border-top:1px solid var(--border)}.ps-dt tr.over td.r{color:var(--bad)}
+.ps-res{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 12px;border-radius:12px;background:var(--card2)}
+.ps-res small{color:var(--muted)}.ps-res b{font-size:15px}
+.ps-det>.ps-acts{grid-column:1/-1}
+@media (max-width:760px){.ps-det{grid-template-columns:1fr}}
+
+/* Tabbalk van een sectie op de telefoon: de pagina heeft daar 14 px marge (os.css trok hem 16 px naar buiten, 2 px buiten beeld) */
+@media (max-width:900px){.page>.sectabs{margin-left:-14px;margin-right:-14px}}
+
+/* "+ Toevoegen" bij Werkzaamheden, Specialismen en de checklist van de werkbon: knop wordt een invoerveld */
+.wk-add,.tt.tt-add{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;border:1.5px dashed var(--border);border-radius:999px;background:transparent;font-size:13.5px;font-weight:600;color:var(--orange-h);cursor:pointer}
+.tt.tt-add{min-height:0;padding:6px 12px;font-size:12.5px}
+.wk-add svg{width:14px;height:14px}
+.wk-add:hover,.tt.tt-add:hover{border-color:var(--orange);background:var(--orange-soft)}
+.os-addv{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;max-width:100%}
+.os-addv .in{width:230px;max-width:100%;height:36px}
+.os-addv .btn svg{width:14px;height:14px}
+@media (pointer:coarse){.wk-add{min-height:44px}.os-addv .in{height:44px}.tt.tt-add{padding:10px 14px}}
+@media (max-width:560px){.os-addv{width:100%}.os-addv .in{flex:1 1 160px;width:auto}}
+
+/* Werkbon voorbereiden: checklist om aan te tikken (scrollt), wat gekozen is eronder */
+.wbt-list{max-height:280px;overflow-y:auto;border:1px solid var(--border);border-radius:14px;padding:12px;display:grid;gap:14px;background:var(--card2);overscroll-behavior:contain}
+.wbt-list:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+.wbt-g{display:grid;gap:8px}
+.wbt-g>b{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.wbt-sel{font-size:13px}
+.wbt-sel ol{margin:6px 0 0;padding-left:20px;display:grid;gap:3px}
+/* Situatie en foto's: sleepvlak, miniaturen, vergroten */
+.dropz{border:1.5px dashed var(--border);border-radius:14px;padding:12px;display:grid;gap:8px;background:var(--card2);transition:border-color .15s,background-color .15s}
+.dropz.over{border-color:var(--orange);background:var(--orange-soft)}
+.dropz-h{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12.5px}
+.dropz-h svg{width:14px;height:14px;flex:none}
+.thumbs.sit{grid-template-columns:repeat(auto-fill,minmax(84px,1fr))}
+.sit-t{position:relative;display:block;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--card);border:1px solid var(--border2)}
+.sit-t img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in;aspect-ratio:auto;border-radius:0}
+.sit-t.doc a,.sit-t.doc>span{display:grid;place-items:center;align-content:center;gap:4px;height:100%;padding:6px;text-align:center;color:var(--ink2);text-decoration:none}
+.sit-t.doc svg{width:22px;height:22px;color:var(--orange-h)}
+.sit-t.doc small{font-size:10.5px;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
+.sit-x{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;border:0;display:grid;place-items:center;background:rgba(13,26,46,.78);color:#fff;cursor:pointer}
+.sit-x svg{width:12px;height:12px}
+@media (pointer:coarse){.sit-x{width:32px;height:32px}}
+.sit-blok p{margin:0;white-space:pre-wrap;font-size:13.5px;line-height:1.5}
+.sit-blok{background:var(--orange-soft);border:1px solid var(--orange-line);border-radius:14px;padding:12px;display:grid;gap:8px}
+.sit-lb{position:fixed;inset:0;z-index:400;background:rgba(8,14,26,.88);display:grid;place-items:center;padding:16px;cursor:zoom-out}
+.sit-lb img{max-width:100%;max-height:100%;border-radius:10px;object-fit:contain}
+
+/* Partnerportaal: aanmelden in stappen, tabbladen, beschikbaarheid */
+.os-partner .top .search,.os-partner #notifbtn,.os-partner [data-act="wb-new"],.os-partner [data-act="wb-paper"]{display:none!important}
+.pon-lead{margin:0;color:var(--ink2);font-size:14px;line-height:1.5}
+.pon-acts{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:6px}
+.pon .fg label.row{gap:10px;line-height:1.45}
+.pp-tabs{display:flex;width:100%}
+.pp .li .tx small+small{display:block}
+.pdoc{align-items:center;flex-wrap:wrap}
+.pdoc .grow{min-width:180px}
+.pdoc small{display:block;color:var(--muted);font-size:12px;line-height:1.4}
+.pdoc-f a{color:var(--orange-h);font-weight:600;overflow-wrap:anywhere}
+.pdoc-g{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.pdoc-g .in{width:150px;height:32px}
+.pdoc label.busy{opacity:.55;pointer-events:none}
+.pp-over{display:block;margin:0 0 4px;font-weight:600;opacity:.8}
+.ppk{display:grid;gap:8px}
+.ppk-h,.ppk-g{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.ppk-h span{text-align:center;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.ppk-d{aspect-ratio:1;max-height:44px;display:grid;place-items:center;border-radius:9px;border:1px solid var(--border2);font-size:12.5px;font-weight:600;color:var(--ink2);background:var(--card)}
+.ppk-d.we{color:var(--muted);background:var(--card2)}
+.ppk-d.past{opacity:.4}
+.ppk-d.vrij{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.ppk-d.klus{background:var(--navy);border-color:var(--navy);color:#fff}
+.ppk-d.nu{box-shadow:0 0 0 2px var(--orange)}
+.ppk-l{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.ppk-l span{display:inline-flex;align-items:center;gap:6px}
+.ppk-l span::before{content:"";width:12px;height:12px;border-radius:4px;background:var(--ok-soft);border:1px solid var(--ok)}
+.ppk-l .klus::before{background:var(--navy);border-color:var(--navy)}
+.pp-in .li{flex-wrap:wrap}
+@media (max-width:700px){.pon-acts .btn{flex:1 1 140px}.pdoc-g .in{width:132px}.pp .li .btn,.pp-in .li .btn{min-height:36px}}
+/* de stappen van het aanmelden op de telefoon: alleen de naam van de stap waar je bent */
+@media (max-width:700px){.pon .stp small{display:none}.pon .stp li.on small{display:block;white-space:nowrap;font-size:11px}}

@@ -1,5 +1,5 @@
 {
-    "_uitleg": "Hoe de staat van Renovion OS in regels wordt opgeknipt. items: lijst per element (pad collectie/sleutel, sleutelveld erbij; _k = gegenereerde sleutel). maps: object per sleutel. perUser: per gebruiker apart. De rest is één regel per onderdeel. Gedeeld door de app (JS) en de server (PHP).",
+    "_uitleg": "Hoe de staat van Renovion Groep in regels wordt opgeknipt. items: lijst per element (pad collectie/sleutel, sleutelveld erbij; _k = gegenereerde sleutel). maps: object per sleutel. perUser: per gebruiker apart. De rest is één regel per onderdeel. Gedeeld door de app (JS) en de server (PHP).",
     "items": {
         "emps": "id",
         "clients": "id",
@@ -32,6 +32,9 @@
         "service": "id",
         "offHist": "nr",
         "mailIn": "id",
+        "partnerBesch": "id",
+        "partnerVragen": "id",
+        "partnerFact": "id",
         "chat.channels": "id",
         "chat.msgs": "id",
         "ai.runs": "run_id",

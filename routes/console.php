@@ -17,16 +17,16 @@ use Illuminate\Support\Str;
 
 Artisan::command('os:install', function (StateStore $store) {
     $store->ensureInstalled();
-    $this->info('Renovion OS staat klaar (revisie '.$store->rev().').');
-})->purpose('Zet de lege fabrieksstaat van Renovion OS klaar als die er nog niet is');
+    $this->info('Renovion Groep staat klaar (revisie '.$store->rev().').');
+})->purpose('Zet de lege fabrieksstaat van Renovion Groep klaar als die er nog niet is');
 
 Artisan::command('os:reset {--force : Ook op productie, zonder vragen}', function (StateStore $store) {
     if (app()->isProduction() && ! $this->option('force')) {
-        $this->error('Op productie alleen met --force: dit wist alle gegevens van Renovion OS.');
+        $this->error('Op productie alleen met --force: dit wist alle gegevens van Renovion Groep.');
 
         return 1;
     }
-    if (! $this->option('force') && ! $this->confirm('Alle projecten, klanten, taken en de rest van Renovion OS worden gewist. Doorgaan?')) {
+    if (! $this->option('force') && ! $this->confirm('Alle projecten, klanten, taken en de rest van Renovion Groep worden gewist. Doorgaan?')) {
         return 1;
     }
 
@@ -37,8 +37,8 @@ Artisan::command('os:reset {--force : Ook op productie, zonder vragen}', functio
     Cache::forget('os-lease:automations');
     $store->ensureInstalled();
 
-    $this->info('Renovion OS is leeg opnieuw ingericht (bestanden en accounts blijven staan).');
-})->purpose('Wis de staat van Renovion OS en begin opnieuw met de lege fabrieksstaat');
+    $this->info('Renovion Groep is leeg opnieuw ingericht (bestanden en accounts blijven staan).');
+})->purpose('Wis de staat van Renovion Groep en begin opnieuw met de lege fabrieksstaat');
 
 Artisan::command('os:tijdelijk-wachtwoord {email* : E-mailadressen van de accounts}', function () {
     foreach ($this->argument('email') as $email) {
@@ -70,14 +70,14 @@ Artisan::command('os:agents {--max=6 : Hoeveel signalen deze ronde maximaal}', f
         $this->line("{$run['agent']}: {$run['uitkomst']} ({$run['signaal']})");
     }
     $this->info(count($done).' uitvoering(en).');
-})->purpose('Laat de agents van Renovion OS een ronde werken op de echte gegevens');
+})->purpose('Laat de agents van Renovion Groep een ronde werken op de echte gegevens');
 
 // Elk half uur een ronde agents, overdag op werkdagen (de scheduler moet draaien: cron of schedule:work).
 Schedule::command('os:agents')->everyThirtyMinutes()->weekdays()->between('7:00', '19:00')->withoutOverlapping();
 
 /*
  * Eenmalig bij de overstap: klanten uit de vorige app (tabellen customers,
- * leads, timeline_events) overzetten naar Renovion OS, met hun aanvraag en
+ * leads, timeline_events) overzetten naar Renovion Groep, met hun aanvraag en
  * logboek. Daarna kan os:oude-app-opruimen de oude tabellen weghalen.
  */
 Artisan::command('os:importeer-oud {klant* : Id\'s uit de oude tabel customers}', function (StateStore $store) {

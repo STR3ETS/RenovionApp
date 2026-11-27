@@ -1,5 +1,5 @@
 /* =========================================================
-   Renovion OS: de brug tussen de app en de server.
+   Renovion Groep: de brug tussen de app en de server.
 
    De app (app.js) werkt met één staat S, net als het prototype. Deze brug
    knipt S op in regels (layout.json), stuurt na elke handeling alleen wat
@@ -442,6 +442,8 @@ export const urls = BOOT.urls || {};
 export const debug = !!BOOT.debug;
 /** Staat er een AI-sleutel op de server (Nova en de agents met Claude)? */
 export const ai = !!BOOT.ai;
+/** Is er een mailserver gekoppeld (uitnodigingen gaan dan vanzelf per mail)? */
+export const mail = !!BOOT.mail;
 export const rev = () => REV;
 /** Wijzigingen die een andere aanroep (Nova, goedkeuring) meestuurde: meteen verwerken. */
 export function ingest(res) {

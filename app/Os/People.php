@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 
 /**
  * Medewerkers en extra gebruikers in de staat (emps, extraUsers) zijn de
- * mensen van Renovion OS; een inlogaccount (users) hoort bij elk van hen met
+ * mensen van Renovion Groep; een inlogaccount (users) hoort bij elk van hen met
  * een e-mailadres. Deze klasse houdt die twee gelijk en bewaakt dat alleen
  * superadmin en directie rollen, status en e-mailadressen wijzigen.
  */
@@ -75,11 +75,12 @@ final class People
 
     /**
      * Na het opslaan: accounts bijwerken voor de mensen die veranderden.
-     * Nieuwe accounts krijgen een wachtwoord dat één keer terugkomt, zodat
-     * de directie het kan doorgeven (er gaat geen mail de deur uit).
+     * Een nieuw account krijgt een uitnodiging per mail met een inloglink
+     * (Invites). Het tijdelijke wachtwoord en de link komen één keer terug,
+     * zodat de directie ze ook zelf kan doorgeven.
      *
      * @param  array<string, array{0: ?string, 1: ?string}>  $accepted
-     * @return list<array{naam: string, mail: string, wachtwoord: string}>
+     * @return list<array{naam: string, mail: string, wachtwoord: string, link: string, gemaild: bool}>
      */
     public function reconcile(User $actor, array $accepted): array
     {
@@ -95,7 +96,8 @@ final class People
             $person = $value !== null ? json_decode($value, true) : null;
             if ($partner && is_array($person)) {
                 // Een partner heeft geen rol of status in de staat: altijd onderaannemer, actief zolang het bedrijf bestaat.
-                $person = ['naam' => $person['naam'] ?? ($person['contact'] ?? ''), 'mail' => $person['mail'] ?? '', 'sysrol' => 'Onderaannemer', 'status' => 'actief'];
+                // Het account heet naar de contactpersoon: zo begint de uitnodiging met zijn naam, niet met de bedrijfsnaam.
+                $person = ['naam' => trim((string) ($person['contact'] ?? '')) ?: ($person['naam'] ?? ''), 'mail' => $person['mail'] ?? '', 'sysrol' => 'Onderaannemer', 'status' => 'actief'];
                 if (! empty($value) && ($sub = json_decode($value, true)) && ! empty($sub['empId'])) {
                     continue; // gekoppeld aan een medewerker van het type partner: die heeft het account
                 }
@@ -132,7 +134,7 @@ final class People
                 }
 
                 $password = self::newPassword();
-                User::query()->create([
+                $account = User::query()->create([
                     'name' => (string) ($person['naam'] ?? $mail),
                     'email' => $mail,
                     'password' => $password,
@@ -141,7 +143,7 @@ final class People
                     'active' => true,
                     'person_id' => $personId,
                 ]);
-                $created[] = ['naam' => (string) ($person['naam'] ?? $mail), 'mail' => $mail, 'wachtwoord' => $password];
+                $created[] = Invites::describe($account, $password, $actor);
 
                 continue;
             }

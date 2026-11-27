@@ -1,4 +1,4 @@
-// Bouwt de fabrieksstaat van Renovion OS: de volledige structuur van het prototype, zonder demodata.
+// Bouwt de fabrieksstaat van Renovion Groep: de volledige structuur van het prototype, zonder demodata.
 const fs=require('fs');
 const S=JSON.parse(fs.readFileSync(process.argv[2]));
 const F=JSON.parse(JSON.stringify(S));

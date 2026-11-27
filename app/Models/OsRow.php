@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Eén stuk van de staat van Renovion OS. value is JSON, of null als het stuk
+ * Eén stuk van de staat van Renovion Groep. value is JSON, of null als het stuk
  * is verwijderd (dan weten de andere schermen bij de volgende ronde dat het
  * weg moet). rev is het nummer van de opslag die het laatst iets veranderde.
  */

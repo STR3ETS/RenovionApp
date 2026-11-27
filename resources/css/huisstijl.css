@@ -1,0 +1,114 @@
+/* Renovion Groep: huisstijl voor documenten richting de klant (briefpapier).
+   Hoort bij resources/js/os/huisstijl.js. Het document is altijd wit papier, ook in het donkere thema.
+   --u is 1% van de breedte van het vel, zodat de hoek, het logo en de marges meeschalen
+   van telefoon tot A4; de tekst houdt een leesbare vaste grootte. */
+.hs-wrap{background:#E9EDF3;border-radius:12px;padding:22px;min-width:0}
+.hs-modal{max-width:940px}
+.hs{--u:1cqw;--hs-a:#F26A1B;--hs-d:#0D1A2E;--hs-rand:max(18px,calc(7.8*var(--u)));container-type:inline-size;position:relative;background:#fff;color:#1B2536;max-width:794px;margin:0 auto;border-radius:4px;box-shadow:0 2px 6px rgba(13,26,46,.08),0 18px 40px -20px rgba(13,26,46,.35);font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:12px;line-height:1.55;text-align:left;display:flex;flex-direction:column;aspect-ratio:210/297}
+.hs *{box-sizing:border-box}
+.hs-hoek{border-top-left-radius:4px;position:absolute;left:0;top:0;width:calc(30.9*var(--u));height:auto;pointer-events:none}
+.hs-pg{flex:0 0 auto;width:100%;border-collapse:collapse;border:0;table-layout:fixed}
+.hs-pg>thead>tr>td,.hs-pg>tfoot>tr>td,.hs-pg>tbody>tr>td{padding:0;border:0}
+.hs-sp{height:calc(5.6*var(--u))}
+.hs-vel{padding:0 var(--hs-rand)}
+.hs-kop{display:flex;justify-content:flex-end;padding-top:calc(10.5*var(--u))}
+.hs-logo{display:block;width:calc(39*var(--u));min-width:150px;max-width:310px;height:auto}
+img.hs-logo{max-height:110px;width:auto;max-width:min(310px,60%);object-fit:contain}
+.hs-aan{font-style:normal;display:grid;gap:1px;margin-top:max(22px,calc(3.4*var(--u)));font-size:12.5px;line-height:1.5;color:#2A3447}
+.hs-aan b{font-size:13.5px;color:#111A2B;margin-bottom:2px}
+.hs-aan small{font-size:11px;margin-top:6px;color:#2A3447}
+.hs-titel{display:flex;justify-content:space-between;align-items:baseline;gap:8px 20px;flex-wrap:wrap;margin-top:max(24px,calc(5.2*var(--u)))}
+.hs-titel h1{margin:0;font-family:inherit;font-size:19px;font-weight:800;letter-spacing:.01em;text-transform:uppercase;color:#111A2B;line-height:1.2;overflow-wrap:anywhere}
+.hs-titel h1 em{font-style:normal;font-size:10px;font-weight:700;letter-spacing:.08em;vertical-align:middle;margin-left:10px;padding:3px 8px;border-radius:999px;background:#EEF0F3;color:#5B6678}
+.hs-titel>b{font-size:13.5px;color:#111A2B}
+.hs-meta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 24px;margin-top:12px;align-items:start}
+.hs-meta dl,.hs-kv{margin:0;display:grid;gap:5px}
+.hs-meta dl>div,.hs-kv>div{display:grid;grid-template-columns:132px minmax(0,1fr);gap:10px}
+.hs-kv>div{grid-template-columns:158px minmax(0,1fr)}
+.hs-meta dt,.hs-kv dt{font-weight:700;color:#111A2B}
+.hs-meta dd,.hs-kv dd{margin:0;overflow-wrap:anywhere}
+.hs-van{display:grid;gap:1px;text-align:right;font-size:11.5px;color:#2A3447;white-space:nowrap}
+.hs-hr{border:0;border-top:1px solid #D9DEE6;margin:22px 0 0}
+.hs-kv-top{border-top:1px solid #D9DEE6;margin-top:20px;padding-top:15px;gap:8px}
+.hs-body{margin-top:22px}
+.hs-t{width:100%;border-collapse:collapse}
+.hs-t th{background:#EEF0F3;text-align:left;font-size:12.5px;font-weight:700;color:#111A2B;padding:10px 14px}
+.hs-t td{padding:14px 14px;border-bottom:1px solid #D9DEE6;vertical-align:top}
+.hs-t td small{display:block;font-size:11px;color:#6B7586;margin-top:4px}
+.hs-t .r{text-align:right;white-space:nowrap}
+.hs-tot{display:grid;justify-content:end;margin-top:14px}
+.hs-tot>div{display:grid;grid-template-columns:minmax(120px,auto) 110px;gap:16px;padding:5px 14px;text-align:right}
+.hs-tot>div.tot{background:#EEF0F3;font-weight:800;color:#111A2B;padding:9px 14px;margin-top:6px;font-size:12.5px}
+.hs-noot{margin:20px 0 0;font-size:10.5px;color:#2A3447}
+.hs-voet{margin-top:auto;padding:0 var(--hs-rand) calc(5.6*var(--u));break-inside:avoid}
+.hs-voet-in{display:flex;justify-content:space-between;align-items:flex-end;gap:6px 24px;flex-wrap:wrap;padding-top:12px;border-top:1px solid #D9DEE6;font-size:10px;color:#6B7586;line-height:1.7}
+.hs-voet-in>div{display:grid}
+.hs-voet b{font-size:11px;color:#111A2B;margin-bottom:2px}
+.hs-voet i{font-style:normal;margin:0 7px;color:#B4BBC7}
+.hs-voet .r{text-align:right;margin-left:auto}
+/* tekst uit de documentgenerator */
+.hs-tx{display:grid;gap:15px}
+.hs-blok{break-inside:avoid}
+.hs-blok:last-child{break-after:avoid}
+.hs-blok h3{margin:0 0 5px;font-family:inherit;font-size:12.5px;font-weight:800;color:#111A2B;letter-spacing:.01em}
+.hs-blok h3::after{content:"";display:block;width:26px;height:2px;background:var(--hs-a);margin-top:5px;border-radius:2px}
+.hs-blok p{margin:0;overflow-wrap:anywhere}
+.hs-lijst{list-style:none;margin:0;padding:0}
+.hs-lijst li{padding:4.5px 0;border-bottom:1px solid #E6EAF0}
+.hs-lijst li:last-child{border-bottom:0}
+.hs-var{background:#FDEDE2;color:#B34A0B;border-radius:3px;padding:0 3px;font-weight:600;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.hs-miss{background:#FDE7E7;color:#B42318;border-radius:3px;padding:0 3px;font-weight:600}
+.hs-sig{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 40px;margin-top:28px;break-inside:avoid}
+.hs-sig>div{display:grid;gap:2px;align-content:start}
+.hs-sig-rol{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6B7586}
+.hs-sig b{color:#111A2B;min-height:1.5em}
+.hs-sig-ruimte{height:46px}
+.hs-sig-hand{font-family:Caveat,"Segoe Script",cursive;font-size:30px;line-height:46px;height:46px;color:#16233B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hs-sig i{display:block;border-top:1px solid #111A2B}
+.hs-sig small{font-size:10px;color:#6B7586}
+.hs-tip{margin:10px 0 0;font-size:12px;color:var(--muted)}
+/* smal vel (telefoon): alles onder elkaar */
+@container (max-width:520px){
+  .hs-meta{grid-template-columns:minmax(0,1fr)}
+  .hs-van{text-align:left;white-space:normal;order:-1}
+  .hs-titel>b{flex-basis:100%}
+  .hs-meta dl>div,.hs-kv>div{grid-template-columns:104px minmax(0,1fr)}
+  .hs-t th,.hs-t td{padding-left:8px;padding-right:8px}
+  .hs-tot{justify-content:stretch}
+  .hs-tot>div{grid-template-columns:minmax(0,1fr) auto;padding-left:8px;padding-right:8px}
+  .hs-sig{grid-template-columns:minmax(0,1fr)}
+  .hs-voet .r{text-align:left;margin-left:0}
+}
+/* in de app: generator, huisstijl-instellingen en verwijzingen naar een factuur */
+.hs-klein{max-height:300px;overflow:auto;padding:12px}
+.hs-nr{border:0;background:none;padding:0;font:inherit;font-size:12px;color:var(--muted);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.hs-nr:hover{color:var(--orange-h)}
+.hs-docknop{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;border:0;background:none;padding:0;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.hs-docknop:hover .docrow{color:var(--orange-h)}
+.hs-acties{display:grid;gap:8px}
+.hs-uitleg{margin:0;font-size:12px;color:var(--muted);line-height:1.5}
+.hs-uitleg code{font-size:11.5px}
+.hs-kleuren{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.hs-kleur{display:flex;align-items:center;gap:10px}
+.hs-kleur input[type=color]{width:44px;height:36px;padding:2px;border:1px solid var(--border);border-radius:10px;background:var(--card);cursor:pointer}
+.hs-logorij{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hs-logorij img{height:40px;max-width:150px;object-fit:contain;background:#fff;border:1px solid var(--border);border-radius:8px;padding:4px}
+textarea.hs-ta{min-height:340px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.55;white-space:pre-wrap}
+@media (max-width:700px){
+  .hs-wrap{padding:0;background:none}
+  .hs{border-radius:8px;border:1px solid var(--border);box-shadow:none}.hs-hoek{border-top-left-radius:8px}
+}
+@media print{
+  html.printing-hs,html.printing-hs body{background:#fff!important;height:auto!important;overflow:visible!important}
+  html.printing-hs body>*:not(#layer){display:none!important}
+  /* het venster zelf telt bij het afdrukken niet mee (display:contents): anders houdt het de vaste voet vast
+     en staat die niet onderaan elke pagina */
+  html.printing-hs #layer,html.printing-hs #layer .modal-bg,html.printing-hs #layer .modal,html.printing-hs #layer .mb{display:contents!important}
+  html.printing-hs #layer .mh,html.printing-hs #layer .mf,html.printing-hs #layer .hs-tip{display:none!important}
+  html.printing-hs .hs-wrap{background:none;padding:0;margin:0;border-radius:0}
+  /* op papier staat de voet onderaan elke pagina (position:fixed herhaalt zich per pagina); de tabelvoet houdt er ruimte voor vrij */
+  html.printing-hs .hs{--u:2.1mm;container-type:normal;width:210mm;max-width:none;margin:0;border:0;border-radius:0;box-shadow:none;display:block;aspect-ratio:auto}
+  html.printing-hs .hs-pg>tfoot .hs-sp{height:34mm}
+  html.printing-hs .hs-voet{position:fixed;left:0;right:0;bottom:0;margin:0;padding:0 var(--hs-rand) 11mm}
+  html.printing-hs .hs,html.printing-hs .hs *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
