@@ -2079,6 +2079,8 @@ const PHASE_UITLEG=['Wij hebben uw aanvraag ontvangen en nemen contact met u op.
 const KLANT_DOC=['Offerte','Overeenkomst','Tekening','Keuze','Vergunning','Planning','Garantie','Klant'];
 /* Het klantaccount (rol Klant) dat bij dit project hoort; een account voor een ander project van dezelfde klant ziet dit project ook. */
 function hubAccount(p){ return (S.extraUsers||[]).find(u=>u.sysrol==='Klant'&&u.status!=='gedeactiveerd'&&(u.scope===p.id||(!!p.clientId&&(proj(u.scope)||{}).clientId===p.clientId))); }
+/* het prototype liet het portaal pas zien na de opdracht; een klant kan nu ook eerder toegang hebben, dus zonder (getekende) offerte */
+function hubGetekend(p){ return !!(p&&p.offerte&&p.offerte.status==='geaccepteerd'); }
 function vServiceHub(){
   const isKlant=ME_ROL==='Klant';
   const opts=isKlant?S.projects:S.projects.filter(p=>p.phase>=4); const p=proj(hubPid())||opts[0]; if(!p) return `<div class="page"><div class="empty">${isKlant?'Uw project staat nog niet voor u klaar. Neem gerust contact op met Renovion Groep BV via info@renovion.nl of +31 6 395 353 00.':'Nog geen projecten in opdracht. Zodra een offerte is ondertekend, verschijnt het project hier en kun je de klant toegang geven.'}</div></div>`;
@@ -2121,9 +2123,9 @@ function vServiceHub(){
     </div>
     <div class="stack" style="gap:16px">
       <div class="card"><div class="card-h"><h3>Mijn <em>betalingen</em></h3></div><div class="card-b">
-        <div class="sumrow"><span class="muted">Totaal contract incl. btw</span><b class="num">${eur(val)}</b></div><div class="sumrow"><span class="muted">Betaald</span><span class="num up">${eur(betaald)}</span></div><div class="sumrow"><span class="muted">Openstaand</span><span class="num ${open?'dn':''}">${eur(open)}</span></div>
-        <div class="bar ok" style="margin:10px 0"><i style="width:${val?betaald/val*100:0}%"></i></div>
-        ${nextT>=0?`<div class="calcbox"><div class="row between"><span>Volgende termijn</span><b>${nextT+1}. ${esc(p.termijnen[nextT].oms)}</b></div><div class="row between"><span>Bedrag incl. btw</span><b class="num">${eur(p.offerte.basis*p.termijnen[nextT].pct/100*btwF(p))}</b></div></div>`:''}
+        ${hubGetekend(p)||inv.length?`<div class="sumrow"><span class="muted">Totaal contract incl. btw</span><b class="num">${eur(val)}</b></div><div class="sumrow"><span class="muted">Betaald</span><span class="num up">${eur(betaald)}</span></div><div class="sumrow"><span class="muted">Openstaand</span><span class="num ${open?'dn':''}">${eur(open)}</span></div>
+        <div class="bar ok" style="margin:10px 0"><i style="width:${val?betaald/val*100:0}%"></i></div>`:`<p class="muted" style="margin:0">${p.offerte&&p.offerte.status==='verzonden'?'U heeft de offerte ontvangen. Na uw akkoord ziet u hier uw termijnen en betalingen.':'Er is nog geen opdracht. Zodra de offerte is ondertekend, ziet u hier uw termijnen en betalingen.'}</p>`}
+        ${nextT>=0&&hubGetekend(p)&&+p.offerte.basis>0?`<div class="calcbox"><div class="row between"><span>Volgende termijn</span><b>${nextT+1}. ${esc(p.termijnen[nextT].oms)}</b></div><div class="row between"><span>Bedrag incl. btw</span><b class="num">${eur(p.offerte.basis*p.termijnen[nextT].pct/100*btwF(p))}</b></div></div>`:''}
         ${inv.length?`<div style="margin-top:10px"><span class="lbl">Betaalhistorie</span>${inv.map(i=>`<div class="sumrow"><span>${i.nr} · ${esc(i.oms)}</span><span>${i.status==='betaald'?`<span class="pill ok">Betaald ${fmtD(i.betaald)}</span>`:i.verval<TODAY?'<span class="pill bad">Vervallen</span>':`<span class="pill blue">Vóór ${fmtD(i.verval)}</span>`}</span></div>`).join('')}</div>`:''}
       </div></div>
       <div class="card"><div class="card-h"><h3>Mijn <em>documenten</em></h3></div><div class="card-b">${docs.map(d=>`<div class="sumrow"><span class="docrow">${ic('file')}${esc(d.naam)}</span><span class="muted">${fmtD(d.datum)}</span></div>`).join('')}${inv.map(i=>`<button class="sumrow hs-docknop" data-act="inv-doc" data-nr="${i.nr}" title="Factuur bekijken"><span class="docrow">${ic('receipt')}Factuur ${i.nr}.pdf</span><span class="muted">${fmtD(i.datum)}</span></button>`).join('')}${!docs.length&&!inv.length?'<span class="muted">Nog geen documenten.</span>':''}</div></div>
