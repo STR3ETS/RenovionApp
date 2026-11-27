@@ -212,6 +212,44 @@ class OsStateTest extends TestCase
         $this->assertNotNull($admin->fresh());
     }
 
+    public function test_een_besloten_gesprek_in_de_teamchat_is_alleen_voor_de_deelnemers(): void
+    {
+        $admin = $this->admin();
+        $this->actingAs($admin)->getJson('/os/staat');
+        $me = $admin->fresh()->person_id;
+        $peter = User::factory()->uitvoerder()->create(['name' => 'Peter', 'person_id' => 'peter']);
+        $klaas = User::factory()->uitvoerder()->create(['name' => 'Klaas', 'person_id' => 'klaas']);
+        $paths = fn (User $u) => collect($this->actingAs($u)->getJson('/os/staat')->assertOk()->json('rows'))->pluck(0)->all();
+
+        $this->sync($admin->fresh(), [
+            ['chat.channels/dm1', json_encode(['id' => 'dm1', 'naam' => '', 'type' => 'direct', 'leden' => [$me, 'peter'], 'oms' => ''])],
+            ['chat.msgs/m1', json_encode(['id' => 'm1', 'ch' => 'dm1', 'van' => $me, 'txt' => 'Alleen voor Peter', 'd' => '2026-11-27', 'tijd' => '09:00'])],
+            ['chat.msgs/m2', json_encode(['id' => 'm2', 'ch' => 'algemeen', 'van' => $me, 'txt' => 'Voor iedereen', 'd' => '2026-11-27', 'tijd' => '09:01'])],
+        ])->assertOk();
+
+        // de deelnemers krijgen het gesprek, een collega die er niet in zit niet
+        $this->assertContains('chat.channels/dm1', $paths($peter));
+        $this->assertContains('chat.msgs/m1', $paths($peter));
+        $this->assertNotContains('chat.channels/dm1', $paths($klaas));
+        $this->assertNotContains('chat.msgs/m1', $paths($klaas));
+        $this->assertContains('chat.msgs/m2', $paths($klaas), 'open kanalen blijven voor iedereen');
+        $later = collect($this->actingAs($klaas)->getJson('/os/wijzigingen?since=0')->assertOk()->json('rows'))->pluck(0)->all();
+        $this->assertNotContains('chat.msgs/m1', $later);
+
+        // en hij kan zich er niet in schrijven of zichzelf toevoegen
+        $res = $this->sync($klaas, [
+            ['chat.msgs/m3', json_encode(['id' => 'm3', 'ch' => 'dm1', 'van' => 'klaas', 'txt' => 'Ik lees mee', 'd' => '2026-11-27', 'tijd' => '09:05'])],
+            ['chat.channels/dm1', json_encode(['id' => 'dm1', 'naam' => '', 'type' => 'direct', 'leden' => [$me, 'peter', 'klaas']])],
+        ])->assertOk()->json('rejected');
+        $this->assertEqualsCanonicalizing(['chat.msgs/m3', 'chat.channels/dm1'], $res);
+        $this->assertNull($this->row('chat.msgs/m3'));
+        $this->assertSame([$me, 'peter'], $this->row('chat.channels/dm1')['leden']);
+
+        // Peter schrijft wel
+        $this->sync($peter, [['chat.msgs/m4', json_encode(['id' => 'm4', 'ch' => 'dm1', 'van' => 'peter', 'txt' => 'Gezien', 'd' => '2026-11-27', 'tijd' => '09:06'])]])->assertOk();
+        $this->assertSame('Gezien', $this->row('chat.msgs/m4')['txt']);
+    }
+
     public function test_een_klant_ziet_alleen_zijn_eigen_project_en_kan_niets_anders_wijzigen(): void
     {
         $admin = $this->admin();

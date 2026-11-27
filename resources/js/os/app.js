@@ -510,7 +510,7 @@ function vProjecten(){
   const f=UI.projFilter||'alle';
   const list=S.projects.filter(p=>f==='alle'||(f==='sales'&&p.phase<=3)||(f==='voorb'&&(p.phase===4||p.phase===5))||(f==='uitv'&&p.phase===6)||(f==='afgerond'&&p.phase>=7));
   const tabs=[['alle','Alle'],['sales','Commercieel'],['voorb','Voorbereiding'],['uitv','Uitvoering'],['afgerond','Oplevering en nazorg']];
-  return `<div class="page"><div class="ph"><div><h1>Project<em>dossiers</em></h1><p>Elk project is één dossier, van aanvraag tot nazorg.</p></div><button class="btn pri" data-act="newlead">${ic('plus')}Nieuw projectdossier</button></div>
+  return `<div class="page"><div class="ph"><div><h1>Project<em>dossiers</em></h1><p>Elk project is één dossier, van aanvraag tot nazorg. Is iemand al klant, dan start je met Nieuw project zonder aanvraag.</p></div><div class="acts"><button class="btn" data-act="newlead">${ic('plus')}Nieuwe aanvraag</button><button class="btn pri" data-act="pn-new">${ic('plus')}Nieuw project</button></div></div>
   <div class="tabs">${tabs.map(([k,l])=>`<button class="tab ${f===k?'on':''}" data-act="projf" data-f="${k}">${l}</button>`).join('')}</div>
   <div class="grid g3">${list.map(p=>{ if(!p.lost&&!p.closed) return projKaart(p); /* kaart met de stand van het project; in opdracht met planning, uren, facturatie en kosten */ const fin=projectFin(p); return `<div class="card pcard" data-go="project-${p.id.toLowerCase()}">
     <div class="row between"><span class="id">${p.id}</span>${phasePill(p)}</div>
@@ -778,7 +778,7 @@ function vTaken(){
 
 /* ---------- Commercieel ---------- */
 function vSales(){
-  const cols=[0,1,2,3]; const leads=S.projects.filter(p=>p.phase<=3);
+  const cols=[0,1,2,3]; const leads=S.projects.filter(p=>p.phase<=3&&p.route!=='direct'); /* direct gestarte projecten lopen niet via de aanvraagstraat */
   const pipe=leads.reduce((s,p)=>s+projectValue(p),0); const kans=[.1,.25,.4,.6]; const weighted=leads.reduce((s,p)=>s+projectValue(p)*kans[p.phase],0);
   return `<div class="page"><div class="ph"><div><h1>Aanvragen &amp; <em>sales</em></h1><p>Sleep een kaart naar de volgende fase. Akkoord kan alleen via ondertekening van de offerte.</p></div><button class="btn pri" data-act="newlead">${ic('plus')}Nieuwe aanvraag</button></div>
   <div class="grid g4"><div class="card kpi"><span class="lbl">Open aanvragen</span><span class="v num">${leads.length}</span></div><div class="card kpi"><span class="lbl">Potentiële omzet</span><span class="v num">${eur0(pipe)}</span></div><div class="card kpi dark"><span class="lbl">Gewogen pipeline</span><span class="v num">${heur0(weighted)}</span><span class="s">kans × waarde (10/25/40/60%)</span></div><div class="card kpi"><span class="lbl">Gewonnen dit jaar</span><span class="v num">${eur0(S.projects.filter(p=>p.offerte&&p.offerte.status==='geaccepteerd').reduce((s,p)=>s+projectValue(p),0))}</span></div></div>
@@ -1115,7 +1115,7 @@ document.addEventListener('click',e=>{
     case 'pok': { const f=UI.pending[d.id]; if(!f) break; const r=f(); delete UI.pending[d.id]; UI.novaMsgs.find(m=>m.id===d.id).state='ok'; save(); render(); novaSay('Uitgevoerd. '+(r||'De wijziging is verwerkt in alle gekoppelde onderdelen.')); renderNova(); toast('Nova-actie uitgevoerd'); break; }
     case 'px': delete UI.pending[d.id]; UI.novaMsgs.find(m=>m.id===d.id).state='x'; renderNova(); break;
     case 'pedit': { const m=UI.novaMsgs.find(m=>m.id===d.id); const idx=UI.novaMsgs.indexOf(m); const u=UI.novaMsgs.slice(0,idx).reverse().find(x=>x.r==='u'); m.state='x'; delete UI.pending[d.id]; renderNova(); $('#nvin').value=u?u.t:''; $('#nvin').focus(); break; }
-    case 'plus': menuAt(el,`<button data-act="newlead">${ic('funnel')}Nieuwe aanvraag</button><button data-act="cl-new">${ic('users')}Nieuwe lead</button><button data-act="newtask">${ic('checksq')}Taak</button><button data-act="newappt">${ic('cal')}Afspraak</button><button data-act="newblock">${ic('team')}Werk inplannen</button><hr><button data-go="calculaties">${ic('calc')}Calculatie</button>`); break;
+    case 'plus': menuAt(el,`<button data-act="newlead">${ic('funnel')}Nieuwe aanvraag</button><button data-act="cl-new">${ic('users')}Nieuwe lead</button><button data-act="pn-new">${ic('folder')}Nieuw project</button><button data-act="newtask">${ic('checksq')}Taak</button><button data-act="newappt">${ic('cal')}Afspraak</button><button data-act="newblock">${ic('team')}Werk inplannen</button><hr><button data-go="calculaties">${ic('calc')}Calculatie</button>`); break;
     case 'usermenu': menuAt(el,`<button data-act="theme">${ic('moon')}Donker / licht wisselen</button><button data-act="os-motion">${ic('bolt')}Animaties ${moPref()?'uit':'aan'}zetten</button><button data-go="instellingen">${ic('gear')}Instellingen</button><hr><button data-act="logout">${ic('logout')}Uitloggen</button>`); break;
     case 'notif': menuAt(el,`<div style="padding:8px 10px" class="lbl">Meldingen</div>${S.notifs.map(n=>`<button>${ic('bell')}<span>${esc(n.t)}<br><small class="muted">${fmtD(n.d)}</small></span></button>`).join('')||'<div class="muted" style="padding:10px">Geen nieuwe meldingen.</div>'}${S.notifs.length?`<hr><button data-act="notifclear">${ic('check')}Alles gelezen</button>`:''}`); break;
     case 'notifclear': S.notifs=[]; closeMenus(); commit(); break;
@@ -2124,7 +2124,7 @@ function mAuto(r){
 function autoConfirm(i){ const x=S.autoQueue[i]; if(!x) return ''; const r=S.automations.find(a=>a.id===x.rid); const c=r&&AUTO_TYPES[r.type].eval().find(c=>c.k===x.k); S.autoQueue.splice(i,1); if(!c){ S.autoLog.unshift({d:TODAY,tijd:nowT(),rid:x.rid,t:x.t,res:'Overgeslagen: niet meer van toepassing'}); return 'niet meer van toepassing'; } const res=c.apply(); S.autoLog.unshift({d:TODAY,tijd:nowT(),rid:x.rid,t:x.t,res:'Bevestigd: '+res}); return res; }
 
 /* ---------- Teamchat ---------- */
-function chChannels(){ const base=S.chat.channels; const klant=[...new Set(S.klantBerichten.map(m=>m.pid))].map(pid=>({id:'klant-'+pid,naam:(proj(pid)||{naam:pid}).naam,type:'klant',pid})); return {base,klant}; }
+function chChannels(){ const base=S.chat.channels.filter(chMag).map(c=>c.leden?{...c,naam:chNaam(c)}:c); const klant=[...new Set(S.klantBerichten.map(m=>m.pid))].map(pid=>({id:'klant-'+pid,naam:(proj(pid)||{naam:pid}).naam,type:'klant',pid})); return {base,klant}; }
 function chMsgs(id){ if(id.startsWith('klant-')){ const pid=id.slice(6); return S.klantBerichten.filter(m=>m.pid===pid).map(m=>({id:m.id,ch:id,van:m.van==='klant'?'klant':S.emps.find(e=>e.naam===m.naam)?.id||ME,klantNaam:m.naam,txt:m.txt,d:m.d,tijd:m.tijd,replies:[],pinned:false,att:null,klant:m.van==='klant'})); } return S.chat.msgs.filter(m=>m.ch===id); }
 function unread(id){ return id.startsWith('klant-')?0:Math.max(0,chMsgs(id).length-(S.chat.read[id]||0)); }
 function fmtChat(t){ let h=esc(t); h=h.replace(/@([A-Za-zÀ-ÿ]+)/g,'<span class="mention">@$1</span>'); h=h.replace(/PD-2026-(\d{4})/g,(m)=>proj(m)?`<a class="pdlink" href="/project-${m.toLowerCase()}">${m}</a>`:m); return h; }
@@ -4423,7 +4423,7 @@ const waCol=id=>{ let h=0; for(const ch of String(id)) h=(h*31+ch.charCodeAt(0))
 const waName=m=>m.agent?agName(m.agent):m.van==='nova'?'Nova':m.van==='klant'?(m.klantNaam||'Klant'):empName(m.van)||m.van;
 function waMine(m,isK){ return isK?m.van!=='klant':m.van===ME; }
 function waPreview(id){ const ms=chMsgs(id); const m=ms[ms.length-1]; if(!m) return {t:'Nog geen berichten',d:''}; const who=waMine(m,id.startsWith('klant-'))?'Jij':waName(m).split(' ')[0]; return {t:`${who}: ${String(m.txt).replace(/[*_]/g,'').slice(0,60)}`,d:m.d===TODAY?m.tijd:fmtD(m.d),m}; }
-function waAvatar(c){ if(c.type==='klant') return `<span class="wa-av" style="--ac:#7C5CD6">${ic('home')}</span>`; if(c.type==='project'){ const p=proj(c.pid); return `<span class="wa-av pc${p?p.kleur%6:0}">${ic('folder')}</span>`; } if(c.type==='team') return `<span class="wa-av" style="--ac:#2B8C8C">${ic('team')}</span>`; return `<span class="wa-av" style="--ac:#3E6BA8">${ic('hash')}</span>`; }
+function waAvatar(c){ if(c.leden) return c.leden.length>2?`<span class="wa-av" style="--ac:#2B8C8C">${ic('users')}</span>`:`<span class="wa-av wa-ini" style="--ac:#C2500C">${esc(String(chNaam(c)).split(/\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase())}</span>`; if(c.type==='klant') return `<span class="wa-av" style="--ac:#7C5CD6">${ic('home')}</span>`; if(c.type==='project'){ const p=proj(c.pid); return `<span class="wa-av pc${p?p.kleur%6:0}">${ic('folder')}</span>`; } if(c.type==='team') return `<span class="wa-av" style="--ac:#2B8C8C">${ic('team')}</span>`; return `<span class="wa-av" style="--ac:#3E6BA8">${ic('hash')}</span>`; }
 function waMembers(c,msgs){ const ids=[...new Set(msgs.map(m=>m.agent?agName(m.agent):m.van==='nova'?'Nova':m.van==='klant'?(m.klantNaam||'Klant'):firstName(m.van)))]; return ids.slice(0,5).join(', ')+(ids.length>5?` +${ids.length-5}`:''); }
 function waFindMsg(id){ return S.chat.msgs.find(x=>x.id===id)||(UI.chCur?chMsgs(UI.chCur).find(x=>x.id===id):null); }
 function waBubble(m,isK,prev){ const mine=waMine(m,isK); const cont=prev&&prev.van===m.van&&prev.agent===m.agent&&prev.d===m.d; const sel=UI.waSel&&UI.waSel.includes(m.id); const q=m.reply&&waFindMsg(m.reply);
@@ -4448,7 +4448,7 @@ function waBubble(m,isK,prev){ const mine=waMine(m,isK); const cont=prev&&prev.v
 vTeamchat=function(){ const {base,klant}=chChannels(); const all=[...base,...klant.map(c=>({...c,type:'klant'}))]; let cur=UI.chCur||'uitv'; let ch=all.find(c=>c.id===cur); if(!ch){ cur=UI.chCur='algemeen'; ch=all.find(c=>c.id===cur); }
   const isK=cur.startsWith('klant-'); S.chat.read[cur]=chMsgs(cur).length; const msgs=chMsgs(cur); const thr=UI.chThread&&S.chat.msgs.find(m=>m.id===UI.chThread);
   const f=UI.waF||'alle', q=(UI.waQ||'').toLowerCase();
-  const list=all.filter(c=>(f==='alle'||(f==='ongelezen'?unread(c.id):f==='projecten'?c.type==='project':f==='klanten'?c.type==='klant':c.type==='team'||c.type==='algemeen'||c.type==='afdeling'))&&(!q||c.naam.toLowerCase().includes(q)||chMsgs(c.id).some(m=>String(m.txt).toLowerCase().includes(q))))
+  const list=all.filter(c=>(f==='alle'||(f==='ongelezen'?unread(c.id):f==='projecten'?c.type==='project':f==='klanten'?c.type==='klant':c.type==='team'||c.type==='algemeen'||c.type==='afdeling'||!!c.leden))&&(!q||c.naam.toLowerCase().includes(q)||chMsgs(c.id).some(m=>String(m.txt).toLowerCase().includes(q))))
     .map(c=>({c,p:waPreview(c.id)})).sort((a,b)=>{ const ka=a.p.m?a.p.m.d+a.p.m.tijd:'', kb=b.p.m?b.p.m.d+b.p.m.tijd:''; return ka<kb?1:-1; });
   let day=''; let prev=null; const body=msgs.map(m=>{ let sep=''; if(m.d!==day){ day=m.d; prev=null; sep=`<div class="wa-day"><span>${m.d===TODAY?'Vandaag':cap(dayName(m.d))+' '+fmtD(m.d)}</span></div>`; } const h=sep+waBubble(m,isK,prev); prev=m; return h; }).join('');
   const rep=UI.waReply&&waFindMsg(UI.waReply); const nSel=UI.waSel?UI.waSel.length:0; const mob=matchMedia('(max-width: 900px)').matches;
@@ -4456,9 +4456,9 @@ vTeamchat=function(){ const {base,klant}=chChannels(); const all=[...base,...kla
   <aside class="wa-list"><div class="wa-lh"><h3>Chats</h3><button class="iconbtn" data-act="wa-new" title="Nieuw gesprek" aria-label="Nieuw gesprek">${ic('plus')}</button></div>
     <div class="wa-search">${ic('eye')}<input id="waq" placeholder="Zoek gesprek of bericht" value="${esc(UI.waQ||'')}" aria-label="Zoeken in chats"></div>
     <div class="wa-f">${[['alle','Alles'],['ongelezen','Ongelezen'],['projecten','Projecten'],['teams','Teams'],['klanten','Klanten']].map(([k,l])=>`<button class="${f===k?'on':''}" data-act="wa-f" data-f="${k}">${l}</button>`).join('')}</div>
-    <div class="wa-items">${list.map(({c,p})=>{ const u=unread(c.id); return `<button class="wa-it ${c.id===cur?'on':''}" data-act="wa-open" data-id="${c.id}">${waAvatar(c)}<span class="wa-itx"><span class="row between"><b>${c.type==='klant'?'':'#'}${esc(c.naam)}</b><small class="${u?'u':''}">${p.d}</small></span><span class="row between"><small>${esc(p.t)}</small>${u?`<span class="wa-u">${u}</span>`:''}</span></span></button>`; }).join('')||'<div class="empty">Geen gesprekken gevonden.</div>'}</div></aside>
+    <div class="wa-items">${list.map(({c,p})=>{ const u=unread(c.id); return `<button class="wa-it ${c.id===cur?'on':''}" data-act="wa-open" data-id="${c.id}">${waAvatar(c)}<span class="wa-itx"><span class="row between"><b>${c.type==='klant'||c.leden?'':'#'}${esc(c.naam)}</b><small class="${u?'u':''}">${p.d}</small></span><span class="row between"><small>${esc(p.t)}</small>${u?`<span class="wa-u">${u}</span>`:''}</span></span></button>`; }).join('')||'<div class="empty">Geen gesprekken gevonden.</div>'}</div></aside>
   <section class="wa-main">
-    <header class="wa-h">${mob?`<button class="iconbtn" data-act="wa-back" aria-label="Terug naar chats">${ic('chevl')}</button>`:''}${waAvatar(ch)}<div class="wa-ht"><b>${ch.type==='klant'?'':'#'}${esc(ch.naam)}</b><small>${esc(isK?'Klantgesprek · zichtbaar in de Service Hub':waMembers(ch,msgs)||ch.oms||'')}</small></div>
+    <header class="wa-h">${mob?`<button class="iconbtn" data-act="wa-back" aria-label="Terug naar chats">${ic('chevl')}</button>`:''}${waAvatar(ch)}<div class="wa-ht"><b>${ch.type==='klant'||ch.leden?'':'#'}${esc(ch.naam)}</b><small>${esc(isK?'Klantgesprek · zichtbaar in de Service Hub':ch.leden?'Besloten · alleen '+ch.leden.map(x=>x===ME?'jij':chPers(x)).join(', '):waMembers(ch,msgs)||ch.oms||'')}</small></div>
       ${ch.pid?`<a class="btn sm" href="/project-${ch.pid.toLowerCase()}">${ic('folder')}<span class="hide-s">${ch.pid}</span></a>`:''}<button class="btn sm" data-act="ch-sum" title="Samenvatten">${ic('spark')}<span class="hide-s">Samenvatten</span></button><button class="btn sm ${UI.waSel?'pri':''}" data-act="wa-selmode">${ic('checksq')}<span class="hide-s">${UI.waSel?'Klaar':'Selecteren'}</span></button></header>
     ${UI.chSum&&UI.chSum.ch===cur?UI.chSum.html:''}
     <div class="wa-msgs" id="chmsgs">${body||'<div class="wa-sys">Nog geen berichten. Zeg hallo 👋</div>'}</div>
@@ -4505,7 +4505,7 @@ document.addEventListener('click',e=>{ const sel=UI.waSel&&e.target.closest&&e.t
     case 'wa-selx': UI.waSel=null; render(); break;
     case 'wa-taskN': waTaskModal(UI.waSel||[]); break;
     case 'wa-taskopen': { const t=S.tasks.find(x=>x.id===d.id); if(t) mTask(t); break; }
-    case 'wa-new': modal('Nieuw gesprek',`<p class="muted" style="margin-top:0">In het prototype starten gesprekken per kanaal, project of team. Kies een bestaand kanaal of open een projectdossier om het projectkanaal te gebruiken.</p>`,`<button class="btn pri" data-act="mclose">Oké</button>`); break;
+    case 'wa-new': UI.waNewT='collega'; mGesprekNieuw(); break;
   } });
 document.addEventListener('input',e=>{ if(e.target.id==='waq'){ UI.waQ=e.target.value; clearTimeout(UI._waT); UI._waT=setTimeout(()=>{ render(); const i=$('#waq'); if(i){ i.focus(); i.setSelectionRange(i.value.length,i.value.length); } },250); }
   if(e.target.id==='chtxt'){ const t=e.target; t.style.height='auto'; t.style.height=Math.min(140,t.scrollHeight)+'px'; } });
@@ -5163,7 +5163,7 @@ const ago=d=>{ const n=Math.round((D(TODAY)-D(d))/864e5); return n<=0?'vandaag':
 function ctMissed(pid){ let n=0; for(const c of ctList(pid)){ if(c.type==='geen'||c.type==='voicemail') n++; else break; } return n; }
 function ctNextState(pid){ const nx=S.leadNext[pid]; if(!nx) return {s:'none',l:'Niets gepland'}; const now=nowT(); const late=nx.d<TODAY||(nx.d===TODAY&&nx.t&&nx.t<now);
   return {s:late?'late':nx.d===TODAY?'today':'later',l:`${CT_NEXT[nx.type]?CT_NEXT[nx.type][0]:'Actie'} ${nx.d===TODAY?'vandaag':dayName(nx.d)+' '+fmtD(nx.d)}${nx.t?' '+nx.t:''}`,nx}; }
-const openLeads=()=>S.projects.filter(p=>p.phase<=3&&!p.lost&&!p.closed);
+const openLeads=()=>S.projects.filter(p=>p.phase<=3&&!p.lost&&!p.closed&&p.route!=='direct');
 
 function ctLine(pid){ const l=ctList(pid)[0]; const ns=ctNextState(pid); const m=ctMissed(pid);
   const last=l?`<span class="ct-row"><span class="ct-l ${CT[l.type][2]}">${ic(CT[l.type][1])}${CT[l.type][0]}${m>1?` <b>×${m}</b>`:''}</span><small>${ago(l.d)}</small></span>`:`<span class="ct-l bad">${ic('alert')}Nog geen contact</span>`;
@@ -6041,7 +6041,7 @@ vKlanten=function(){ const f=UI.klSeg||'alle'; const L=S.clients.filter(c=>f==='
   <div class="grid g3"><div class="card kpi dark"><span class="lbl">Relaties</span><span class="v num">${S.clients.length}</span></div><div class="card kpi"><span class="lbl">Particulier</span><span class="v num">${n('particulier')}</span><span class="s">standaard 14 dagen</span></div><div class="card kpi"><span class="lbl">Zakelijk</span><span class="v num">${n('zakelijk')}</span><span class="s">partners en aannemers</span></div></div>
   <div class="seg">${[['alle','Alle'],['particulier','Particulier'],['zakelijk','Zakelijk'],['leads',`Leads (${clOpen().length})`]].map(([k,l])=>`<button class="${f===k?'on':''}" data-act="kl-seg" data-v="${k}">${l}</button>`).join('')}</div>
   <div class="card tw"><table class="t"><thead><tr><th>Klant</th><th>Klantnr.</th><th>Soort</th><th>Contact</th><th>Betaling</th><th>Dossiers</th><th class="r">Totale waarde</th><th></th></tr></thead><tbody>
-  ${L.map(c=>{ const ps=S.projects.filter(p=>p.clientId===c.id); return `<tr class="click" ${ps[0]?`data-go="project-${ps[0].id.toLowerCase()}"`:c.lead?`data-act="cl-open" data-id="${c.id}"`:''}><td><div class="row">${avatar(c.naam,'sm')}<b>${esc(c.naam)}</b></div></td><td><span class="code">${esc(c.nr)}</span></td><td><span class="pill ${segOf(c)==='zakelijk'?'blue':'mut'}">${segOf(c)==='zakelijk'?'Zakelijk':'Particulier'}</span></td><td>${esc(c.contact||'')}<div class="sub">${klTel(c)?esc(klTel(c)):'<span class="dn">Geen telefoon</span>'}</div></td><td>${betaalDagen(c)} dagen<div class="sub">${c.herinnering?'herinnering aan':'geen herinnering'}</div></td><td>${ps.map(p=>phasePill(p)).join(' ')||(c.lead?clPill(c):'—')}</td><td class="r">${eur0(ps.reduce((s,p)=>s+projectValue(p),0))}</td><td class="r"><button class="btn xs" data-act="kl-set" data-id="${c.id}">${ic('gear')}Instellingen</button></td></tr>`; }).join('')||'<tr><td colspan="8"><div class="empty">Geen klanten in deze weergave.</div></td></tr>'}
+  ${L.map(c=>{ const ps=S.projects.filter(p=>p.clientId===c.id); return `<tr class="click" ${ps[0]?`data-go="project-${ps[0].id.toLowerCase()}"`:c.lead?`data-act="cl-open" data-id="${c.id}"`:''}><td><div class="row">${avatar(c.naam,'sm')}<b>${esc(c.naam)}</b></div></td><td><span class="code">${esc(c.nr)}</span></td><td><span class="pill ${segOf(c)==='zakelijk'?'blue':'mut'}">${segOf(c)==='zakelijk'?'Zakelijk':'Particulier'}</span></td><td>${esc(c.contact||'')}<div class="sub">${klTel(c)?esc(klTel(c)):'<span class="dn">Geen telefoon</span>'}</div></td><td>${betaalDagen(c)} dagen<div class="sub">${c.herinnering?'herinnering aan':'geen herinnering'}</div></td><td>${ps.map(p=>phasePill(p)).join(' ')||(c.lead?clPill(c):'—')}</td><td class="r">${eur0(ps.reduce((s,p)=>s+projectValue(p),0))}</td><td class="r"><div class="t-btns"><button class="btn xs" data-act="pn-new" data-id="${c.id}" title="Nieuw project voor deze klant, zonder aanvraag">${ic('plus')}Project</button><button class="btn xs" data-act="kl-set" data-id="${c.id}">${ic('gear')}Instellingen</button></div></td></tr>`; }).join('')||'<tr><td colspan="8"><div class="empty">Geen klanten in deze weergave.</div></td></tr>'}
   </tbody></table></div></div>`; };
 function mKlant(c){ const link=`${location.host}/inloggen`;
   modal(`Klant · ${esc(c.naam)}`,`<form class="fg" data-form="klset" data-id="${c.id}" data-zk="${c.soort==='Zakelijk'?1:0}"><div class="f"><label>Klantnummer</label><input class="in" value="${esc(c.nr)}" readonly></div><div class="f"><label for="kl-s">Soort</label><select class="in" id="kl-s" name="soort"><option ${c.soort!=='Zakelijk'?'selected':''} value="Particulier">Particulier (klus)</option><option ${c.soort==='Zakelijk'?'selected':''} value="Zakelijk">Zakelijk (partner / aannemer)</option></select></div>
@@ -6523,6 +6523,94 @@ if(!S.r34p){ S.r34p=1; const id=newPD(); const p={id,naam:'Unica · stucwerk kan
   S.projects.unshift(p); mkBegroting(p); const set=(oms,q)=>{ for(const ch of p.begroting.chapters) for(const pr of ch.pars) for(const l of pr.lines) if(l.d===oms) l.q=q; }; set('Stucwerk wand tot 8 mm, behangklaar',420); set('Plafond gladpleisterwerk, ondergrond stucplaten',160); set('Hoekbeschermer',36); save(); }
 (()=>{ return; /* Caveat staat al in de pagina */ if(document.querySelector('link[data-caveat]')) return; const l=document.createElement('link'); l.rel='stylesheet'; l.href='https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap'; l.dataset.caveat=1; document.head.appendChild(l); })();
 
+/* ---------- Teamchat: nieuw gesprek ----------
+   Het prototype had hier alleen een melding. Drie soorten: met een of meer collega's (besloten: kanaal met leden, alleen
+   de deelnemers krijgen het van de server, zie Visibility), een projectkanaal voor een dossier dat er nog geen heeft, en een
+   open kanaal voor iedereen van kantoor. */
+function chPers(id){ const u=emp(id)||(S.extraUsers||[]).find(x=>x.id===id); return u?String(u.naam).split(' ')[0]:empName(id); }
+function chMag(c){ return !c.leden||c.leden.includes(ME); }
+function chNaam(c){ if(c.naam) return c.naam; const a=c.leden.filter(x=>x!==ME); if(a.length===1){ const u=emp(a[0])||(S.extraUsers||[]).find(x=>x.id===a[0]); return u?u.naam:empName(a[0]); } return a.map(chPers).join(', ')||'Alleen jij'; }
+function chCollegas(){ return [...S.emps,...(S.extraUsers||[])].filter(u=>u.id!==ME&&u.status!=='gedeactiveerd'&&!['Klant','Onderaannemer'].includes(u.sysrol)&&u.type!=='partner'); }
+function mGesprekNieuw(){ const t=UI.waNewT||'collega'; const cs=chCollegas(); const vrij=S.projects.filter(p=>!p.lost&&!p.closed&&!S.chat.channels.some(c=>c.pid===p.id));
+  const body=t==='collega'?(cs.length?`<div class="f full"><span class="lbl">Met wie?</span><div class="ag-who">${cs.map(u=>`<label><input type="checkbox" name="w" value="${u.id}"> ${esc(u.naam)}</label>`).join('')}</div></div>
+      <div class="f full"><label for="gn-naam">Naam van het gesprek</label><input class="in" id="gn-naam" name="naam" maxlength="40" placeholder="Alleen nodig bij een groep, bijv. Werkvoorbereiding"></div>
+      <div class="full alert info">${ic('lock')}<div class="grow">Besloten gesprek: alleen jij en de collega's die je aanvinkt kunnen het zien en erin schrijven.</div></div>`
+      :`<div class="full"><div class="empty sm">Er zijn nog geen collega's met een account. Nodig ze uit bij Organisatie, Team &amp; rechten.</div></div>`)
+    :t==='project'?(vrij.length?`<div class="f full"><label for="gn-pid">Projectdossier</label><select class="in" id="gn-pid" name="pid">${vrij.map(p=>`<option value="${p.id}">${esc(p.id)} · ${esc(p.naam)}</option>`).join('')}</select></div>
+      <div class="full alert info">${ic('folder')}<div class="grow">Een projectkanaal is voor iedereen van kantoor en uitvoering te lezen en hangt aan het dossier.</div></div>`
+      :`<div class="full"><div class="empty sm">Elk lopend dossier heeft al een projectkanaal. Je vindt ze in de lijst onder Projecten.</div></div>`)
+    :`<div class="f full"><label for="gn-naam">Naam van het kanaal</label><input class="in" id="gn-naam" name="naam" maxlength="40" placeholder="Bijv. inkoop of planning" required></div>
+      <div class="f full"><label for="gn-oms">Waar is het voor?</label><input class="in" id="gn-oms" name="oms" maxlength="80" placeholder="Korte omschrijving"></div>
+      <div class="full alert info">${ic('chat')}<div class="grow">Een open kanaal is voor iedereen van Renovion te lezen.</div></div>`;
+  modal('Nieuw gesprek',`<div class="seg">${[['collega','Met collega\'s'],['project','Projectkanaal'],['kanaal','Open kanaal']].map(([k,l])=>`<button class="${t===k?'on':''}" data-act="gn-type" data-v="${k}">${l}</button>`).join('')}</div>
+    <form class="fg" data-form="gesprek" data-t="${t}" style="margin-top:12px">${body}</form>`,
+    `<button class="btn" data-act="mclose">Annuleren</button><button class="btn pri" data-act="submit">${ic('chat')}Gesprek starten</button>`); }
+function chOpen(id){ UI.chCur=id; UI.chThread=null; UI.waSel=null; UI.waReply=null; UI.waOpen=true; UI.waF='alle'; UI.waQ=''; }
+R2_FORMS.gesprek=function(f,v){ const t=f.dataset.t; const slug=x=>String(x||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40);
+  const start=(c,txt)=>{ S.chat.channels.push(c); S.chat.msgs.push({id:uid('m'),ch:c.id,van:ME,txt,d:TODAY,tijd:nowT(),pinned:false,replies:[],att:null,sys:true}); chOpen(c.id); closeModal(); commit(); setTimeout(()=>{ const i=$('#chtxt'); i&&i.focus(); },50); };
+  if(t==='collega'){ const w=[...f.querySelectorAll('input[name="w"]:checked')].map(x=>x.value); if(!w.length) return toast('Vink minstens één collega aan.','warn');
+    const leden=[ME,...w]; const naam=w.length>1?(v.naam||''):'';
+    const al=!naam&&S.chat.channels.find(c=>c.leden&&c.leden.length===leden.length&&leden.every(x=>c.leden.includes(x))&&!c.naam);
+    if(al){ chOpen(al.id); closeModal(); render(); return toast('Dit gesprek bestond al; je bent er nu in.'); }
+    return start({id:uid('dm'),naam,type:w.length>1?'groep':'direct',leden,oms:''},`${esc(myName())} heeft dit gesprek gestart`); }
+  if(t==='project'){ const p=proj(v.pid); if(!p) return toast('Kies een projectdossier.','warn'); const al=S.chat.channels.find(c=>c.pid===p.id); if(al){ chOpen(al.id); closeModal(); return render(); }
+    return start({id:'p-'+p.id.toLowerCase(),naam:slug(p.id.replace(/^PD-\d+-/,'pd-')+'-'+p.naam),type:'project',pid:p.id,oms:'Projectkanaal '+p.naam},`Projectkanaal voor ${esc(p.naam)} geopend door ${esc(myName())}`); }
+  const naam=slug(v.naam); if(!naam) return fieldErr(f,'naam','Geef het kanaal een naam.'); if(S.chat.channels.some(c=>!c.leden&&c.naam===naam)) return fieldErr(f,'naam','Er is al een kanaal met deze naam.');
+  start({id:uid('ch'),naam,type:'team',oms:v.oms||''},`Kanaal geopend door ${esc(myName())}`); };
+document.addEventListener('click',e=>{ const el=e.target.closest&&e.target.closest('[data-act="gn-type"]'); if(!el) return; e.preventDefault(); e.stopPropagation(); UI.waNewT=el.dataset.v; mGesprekNieuw(); },true);
+
+/* ---------- Nieuw project zonder aanvraagstraat ----------
+   Voor wie al klant is (of dat meteen wordt): het dossier begint in Begroting, zonder aanvraag, intake, contacttaak of
+   ontvangstmail, en staat niet op het aanvragenbord (p.route = 'direct'). Calculatie krijgt de taak om de offerte te maken;
+   bij een zakelijke opdrachtgever met een afgesproken prijs gaat het meteen door naar Direct factureren. Het prototype kende
+   deze route alleen via de aanvraagmail (mbOut). */
+function mProjectNieuw(cid){ const L=S.clients.slice().sort((a,b)=>String(a.naam).localeCompare(String(b.naam),'nl')); const c0=cid?S.clients.find(c=>c.id===cid):null; const nieuw=!L.length;
+  modal('Nieuw project',`<form class="fg" data-form="projnieuw" data-zk="${c0&&c0.soort==='Zakelijk'?1:0}" data-new="${nieuw?1:0}">
+    <div class="f full"><label for="pn-cid">Klant</label><select class="in" id="pn-cid" name="cid">${L.length&&!c0?'<option value="" selected>Kies een klant…</option>':''}${L.map(c=>`<option value="${c.id}" ${c0&&c0.id===c.id?'selected':''}>${esc(c.naam)}${c.plaats?' · '+esc(c.plaats):''}${c.nr?' · '+esc(c.nr):''}</option>`).join('')}<option value="new" ${nieuw?'selected':''}>Nieuwe klant…</option></select></div>
+    <div class="pn-new pn-sub"><div class="f"><label for="pn-soort">Soort</label><select class="in" id="pn-soort" name="soort"><option value="Particulier">Particulier (klus)</option><option value="Zakelijk">Zakelijk (partner / aannemer)</option></select></div>
+      <div class="f"><label for="pn-naam">Naam / bedrijfsnaam</label><input class="in" id="pn-naam" name="naam" placeholder="Familie …"></div>
+      <div class="f"><label for="pn-contact">Contactpersoon</label><input class="in" id="pn-contact" name="contact"></div>
+      <div class="f"><label for="pn-mail">E-mail</label><input class="in" id="pn-mail" name="mail" type="email"></div>
+      ${klTelVelden('pn')}${klZakVelden('pn')}${klBronVeld('pn')}<div class="full" id="pn-dup"></div></div>
+    ${wkVeld('pn','type','Werkzaamheden')}
+    <div class="f full"><label for="pn-adres">Projectadres</label><input class="in" id="pn-adres" name="adres"></div>
+    <div class="f"><label for="pn-plaats">Plaats</label><input class="in" id="pn-plaats" name="plaats" value="${esc(c0&&c0.plaats||'')}"></div>
+    ${btwVeld('pn',21)}
+    <div class="f full"><label for="pn-leider">Projectleider</label><select class="in" id="pn-leider" name="leider">${empOpts(osPL())}</select></div>
+    <div class="f full"><label for="pn-oms">Omschrijving</label><textarea class="in" id="pn-oms" name="oms" placeholder="Wat moet er gebeuren?"></textarea></div>
+    <div class="f full" role="radiogroup" aria-label="Hoe gaat het verder"><span class="lbl">Hoe gaat het verder?</span>
+      <label class="dup"><input type="radio" name="vervolg" value="calc" checked> <span><b>Calculatie en offerte</b> · ${esc(firstName(osCalc()))} krijgt de taak om de offerte te maken</span></label>
+      <label class="dup zk-only"><input type="radio" name="vervolg" value="fact"> <span><b>Prijs is al afgesproken</b> · meteen door naar Direct factureren (alleen zakelijke opdrachtgevers)</span></label></div>
+    <div class="full alert info">${ic('folder')}<div class="grow">Dit dossier slaat de aanvraagstraat over: geen aanvraag, intake of contacttaak. Het begint in de fase Begroting en staat niet op het aanvragenbord.</div></div></form>`,
+    `<button class="btn" data-act="mclose">Annuleren</button><button class="btn pri" data-act="submit">Project aanmaken</button>`); }
+document.addEventListener('change',e=>{ const t=e.target; if(!t||t.id!=='pn-cid') return; const f=t.form, c=S.clients.find(x=>x.id===t.value);
+  const nw=t.value==='new'; f.dataset.new=nw?'1':'0'; f.dataset.zk=(c?c.soort:nw?f.elements.soort.value:'')==='Zakelijk'?'1':'0';
+  if(c&&c.plaats&&!f.elements.adres.value) f.elements.plaats.value=c.plaats;
+  if(f.dataset.zk==='0') f.querySelector('[name="vervolg"][value="calc"]').checked=true;
+  if(nw){ const n=f.elements.naam; n&&n.focus(); } });
+document.addEventListener('change',e=>{ const t=e.target; if(t&&t.name==='soort'&&t.form&&t.form.dataset.form==='projnieuw'&&t.value!=='Zakelijk') t.form.querySelector('[name="vervolg"][value="calc"]').checked=true; });
+document.addEventListener('input',e=>{ const f=e.target.closest&&e.target.closest('[data-form="projnieuw"]'); if(!f||f.dataset.new!=='1') return; const box=f.querySelector('#pn-dup'); if(!box) return; const ms=dupMatches(formData(f));
+  box.innerHTML=ms.length?`<div class="alert warn">${ic('users')}<div class="grow"><b>Deze klant bestaat mogelijk al.</b> ${ms.map(({c,why})=>`${esc(c.naam)}${c.plaats?' · '+esc(c.plaats):''} (zelfde ${why.join(' en ')})`).join(', ')}. Kies hem dan bovenaan bij Klant.</div></div>`:''; });
+R2_FORMS.projnieuw=function(f,v){ let c=v.cid&&v.cid!=='new'?S.clients.find(x=>x.id===v.cid):null; const bestaand=!!c;
+  if(!c&&v.cid!=='new') return fieldErr(f,'cid','Kies een klant, of kies Nieuwe klant.');
+  if(!c){ if(!v.naam) return fieldErr(f,'naam','Naam is verplicht.'); if(v.mail&&!/^\S+@\S+\.\S+$/.test(v.mail)) return fieldErr(f,'mail','Dit e-mailadres klopt niet.'); if(!klCheck(f,v)) return; }
+  if(!wkList(v.type).length) return wkErr(f,'type','Vink minstens één soort werk aan.');
+  const zak=(c?c.soort:v.soort)==='Zakelijk';
+  if(!c){ const nr='K-'+(Math.max(1000,...S.clients.map(x=>+String(x.nr||'').replace(/\D/g,'')||0))+1);
+    c={id:uid('c'),naam:v.naam,soort:zak?'Zakelijk':'Particulier',contact:v.contact||v.naam,tel:v.tel||'',mail:v.mail||'',plaats:v.plaats||'',...klExtra(v),nr,betaal:zak?30:14,herinnering:true,token:Math.random().toString(36).slice(2,10)}; S.clients.push(c); }
+  else if(c.lead&&clIsOpen(c)){ c.lead.omgezet=TODAY; }
+  const id=newPD(); const nm=`${wkKort(v.type)} ${c.naam.replace(/^Familie\s+/i,'')}`.replace(/\s+/g,' ').trim();
+  const p={id,naam:nm,clientId:c.id,adres:v.adres||'',plaats:v.plaats||c.plaats||'',type:wkList(v.type).join(', '),phase:2,route:'direct',leider:emp(v.leider)?v.leider:osPL(),progress:0,planned:0,kleur:S.projects.length%6,waarde:0,
+    termijnen:[{oms:'Bij opdracht',pct:40},{oms:'Bij start uitvoering',pct:40},{oms:'Bij oplevering',pct:20}],begroting:null,offerte:null,docs:[],activity:[],intake:{wensen:v.oms||''},kosten:0,bron:klBron(c),btwPct:btwNum(v.btwPct)??21};
+  if(c.lead&&c.lead.omgezet===TODAY&&!c.lead.pid) c.lead.pid=id;
+  addActivity(p,`Project gestart zonder aanvraag (${bestaand?'bestaande':'nieuwe'} klant ${c.naam})`,'blue'); S.projects.unshift(p);
+  const fact=v.vervolg==='fact'&&zak&&sfKan(p);
+  if(!fact) S.tasks.push({id:uid('t'),titel:`Offerte maken: ${p.naam}`,pid:id,eig:osCalc(),dl:addDays(TODAY,2),status:'todo',prio:'hoog',oms:`Project zonder aanvraag: direct naar calculatie.${v.oms?' '+v.oms:''}`,checklist:[]});
+  closeModal(); save(); if(fact) UI.pdTab[id]='offerte'; go('project-'+id.toLowerCase());
+  if(fact){ mSnelFactuur(p); toast(`Projectdossier ${id} aangemaakt. Vul het afgesproken bedrag in.`); }
+  else toast(`Projectdossier ${id} aangemaakt. Taak voor ${esc(firstName(osCalc()))}: offerte maken.`); };
+document.addEventListener('click',e=>{ const el=e.target.closest&&e.target.closest('[data-act]'); if(!el||el.dataset.act!=='pn-new') return; e.stopPropagation(); e.preventDefault(); closeMenus(); mProjectNieuw(el.dataset.id); },true);
+
 /* ---------- Teambeheer: een gedeactiveerd account helemaal verwijderen ----------
    Deactiveren sluit alleen de inlog; verwijderen haalt de persoon uit emps/extraUsers en de server gooit het account weg
    (People::reconcile). Wat nog aan de persoon hing, wordt eerst losgemaakt; oud werk (werkbonnen, uren, afgeronde taken,
@@ -6535,7 +6623,7 @@ function uDelete(id){ const u=emp(id)||S.extraUsers.find(x=>x.id===id); if(!u||u
   i.taken.forEach(t=>t.eig='');
   S.blocks=S.blocks.filter(b=>!(b.emp===id&&b.start>=TODAY)); S.blocks.forEach(b=>{ if(b.emp===id&&b.end>=TODAY) b.end=gisteren; });
   S.projects.forEach(p=>{ if(p.leider!==id) return; p.leider=ME; if(!p.closed&&!p.lost) addActivity(p,`${u.naam} is uit het systeem verwijderd; ${myName()} is nu projectleider`,'mut'); });
-  (S.teams||[]).forEach(t=>{ if(t.leden) t.leden=t.leden.filter(x=>x!==id); });
+  (S.teams||[]).forEach(t=>{ if(t.leden) t.leden=t.leden.filter(x=>x!==id); }); ((S.chat&&S.chat.channels)||[]).forEach(c=>{ if(c.leden&&c.leden.includes(id)&&c.leden.length>2) c.leden=c.leden.filter(x=>x!==id); });
   (S.agenda||[]).forEach(a=>{ if(a.d>=TODAY&&(a.wie||[]).includes(id)){ a.wie=a.wie.filter(x=>x!==id); if(!a.wie.length) a.wie=[ME]; } });
   (S.clients||[]).forEach(c=>{ if(c.lead&&c.lead.eig===id) c.lead.eig=ME; });
   if(i.sub) i.sub.empId='';

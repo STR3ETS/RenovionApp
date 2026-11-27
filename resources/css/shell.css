@@ -285,3 +285,10 @@ form[data-zk="0"] .zk-only{display:none}
 .wk-o input:checked+span::before{border-color:var(--orange);background-color:var(--orange);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 6.4l2.4 2.4 4.6-5.2'/%3E%3C/svg%3E")}
 .wk-o input:focus-visible+span{outline:2px solid var(--orange);outline-offset:2px}
 @media (pointer:coarse){.wk-o span{min-height:44px;padding:0 16px 0 12px}}
+
+/* Nieuw project: de klantvelden alleen bij "Nieuwe klant" */
+.pn-sub{display:contents}
+form[data-new="0"] .pn-new{display:none}
+
+/* Teamchat: initialen bij een gesprek met een collega */
+.wa-av.wa-ini{font-size:14px;font-weight:700;letter-spacing:.02em}

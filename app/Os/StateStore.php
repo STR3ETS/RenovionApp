@@ -83,6 +83,7 @@ final class StateStore
             $paths[] = $path;
         }
         $current = OsRow::query()->whereIn('path', array_filter($paths))->pluck('value', 'path');
+        $this->visibility->refresh($user);
 
         foreach ($changes as $i => $change) {
             $path = $paths[$i];
@@ -199,6 +200,7 @@ final class StateStore
     {
         $out = [];
         $prefix = '~'.$user->id.'/';
+        $this->visibility->refresh($user);
 
         $query->select(['path', 'collection', 'value'])->orderBy('id')->chunk(500, function ($rows) use (&$out, $user, $prefix, $withDeleted) {
             foreach ($rows as $row) {
